@@ -1,5 +1,5 @@
 // =============================================================================
-// clovirone-portal / Jenkinsfile  v3
+// server-exporter / Jenkinsfile  v3
 //
 // 포털 → Jenkins → Ansible gather → 결과 stdout JSON → 포털
 //

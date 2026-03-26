@@ -17,10 +17,10 @@ import time
 ANSIBLE_HOST = "10.100.64.166"
 ANSIBLE_USER = "cloviradmin"
 ANSIBLE_PASS = "Goodmit0802!"
-REMOTE_DIR = "/home/cloviradmin/clovirone-portal"
+REMOTE_DIR = "/home/cloviradmin/server-exporter"
 OUTPUT_DIR = "/tmp/round13_identifier"
 
-# Files to sync (local path relative to clovirone-portal/)
+# Files to sync (local path relative to repository root)
 FILES_TO_SYNC = [
     "os-gather/tasks/linux/gather_system.yml",
 ]

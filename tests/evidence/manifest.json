@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-03-25T11:39:09.027153",
-  "description": "Evidence and fixture manifest for clovirone-portal",
+  "description": "Evidence and fixture manifest for server-exporter",
   "files": [
     {
       "path": "tests/fixtures/redfish/lenovo/chassis.json",

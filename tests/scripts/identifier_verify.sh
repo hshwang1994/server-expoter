@@ -4,7 +4,7 @@
 #       Windows VM, ESXi, Redfish (Dell R760 BMC)
 #
 # 실행: Jenkins agent 또는 Ansible 설치된 Linux 호스트에서
-#   cd /home/cloviradmin/clovirone-portal
+#   cd /home/cloviradmin/server-exporter
 #   bash tests/scripts/identifier_verify.sh
 set -euo pipefail
 

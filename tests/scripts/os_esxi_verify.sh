@@ -3,7 +3,7 @@
 # 대상: Ubuntu, Windows, ESXi, RHEL(보조)
 set -e
 
-PORTAL_DIR="/home/cloviradmin/clovirone-portal"
+PORTAL_DIR="/home/cloviradmin/server-exporter"
 OUTPUT_DIR="/tmp/round9_evidence"
 mkdir -p "$OUTPUT_DIR"
 
