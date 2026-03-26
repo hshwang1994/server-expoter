@@ -164,6 +164,20 @@ pipeline {
                 }
             }
         }
+
+        // ── 4. E2E Regression ─────────────────────────────────────────────────
+        // baseline/fixture 기반 핵심 필드 회귀 검증
+        // 실패 시 UNSTABLE (Phase 2에서 FAIL 상향 검토)
+        stage('E2E Regression') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    sh '''
+                        cd "${WORKSPACE}"
+                        python3 -m pytest tests/e2e/ -v --tb=short
+                    '''
+                }
+            }
+        }
     }
 
     // ── post 처리 ─────────────────────────────────────────────────────────────
