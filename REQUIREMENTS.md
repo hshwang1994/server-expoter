@@ -131,15 +131,27 @@ OS 채널은 `system.hosting_type` 필드를 제공한다.
 | **Supermicro** | BMC | **X10 이상** (BMC FW 3.xx+) | `Systems/1` | `Managers/1` |
 | **Cisco** | CIMC | **CIMC** (UCS C-Series M4+) | 동적 탐색 (Members[0]) | `Managers/CIMC` |
 
+**검증 기준 장비 (2026-03-18 직접 HTTPS 호출 검증):**
+
+| 벤더 | 모델 | BMC | FW 버전 | Redfish Version | 매칭 Adapter |
+|------|------|-----|---------|-----------------|-------------|
+| Dell | PowerEdge R740 | iDRAC 9 | 4.00 | 1.6.0 | redfish_dell_idrac9 (P100) |
+| HPE | ProLiant DL380 Gen11 | iLO 6 | 1.73 | 1.20.0 | redfish_hpe_ilo (P10) |
+| Lenovo | ThinkSystem SR650 V2 | XCC | 5.70 | 1.15.0 | redfish_lenovo_xcc (P100) |
+
+> 검증 기준 장비에서 확인된 Redfish Version 범위는 1.6.0 ~ 1.20.0 이다.
+> 이 범위는 지원 범위가 아니라, 실장비 검증 시점에 확인된 값이다.
+> HPE iLO 6 전용 어댑터는 없으며 hpe_ilo (P10) fallback으로 동작한다.
+
 **벤더별 지원/미지원 상세:**
 
-| 벤더 | 지원 | 미지원 |
-|------|------|--------|
-| Dell | iDRAC 9 (PowerEdge 14G+) | iDRAC 7/8 (PowerEdge 12G/13G) — Redfish 미성숙 |
-| HPE | iLO 5 (ProLiant Gen10+), iLO 6 (Gen11) | iLO 4 이하 — `Oem.Hp` 구조 달라 일부 수집 제한 |
-| Lenovo | ThinkSystem (X11, SR/ST/SD 시리즈) | ThinkServer — Redfish 미지원 |
-| Supermicro | X10/X11/X12/X13/H11/H12 이상 | X9 이하 — Redfish 미지원 |
-| Cisco | UCS C-Series M4+ (CIMC Redfish 지원) | UCS C-Series M3 이하 — Redfish 미지원 |
+| 벤더 | 지원 | 미지원 | 실장비 검증 |
+|------|------|--------|-----------|
+| Dell | iDRAC 9 (PowerEdge 14G+) | iDRAC 7/8 (PowerEdge 12G/13G) — Redfish 미성숙 | 검증 완료 |
+| HPE | iLO 5 (ProLiant Gen10+), iLO 6 (Gen11) | iLO 4 이하 — `Oem.Hp` 구조 달라 일부 수집 제한 | 검증 완료 |
+| Lenovo | ThinkSystem (X11, SR/ST/SD 시리즈) | ThinkServer — Redfish 미지원 | 검증 완료 |
+| Supermicro | X10/X11/X12/X13/H11/H12 이상 | X9 이하 — Redfish 미지원 | 미검증 (어댑터만 존재) |
+| Cisco | UCS C-Series M4+ (CIMC Redfish 지원) | UCS C-Series M3 이하 — Redfish 미지원 | 미검증 (어댑터만 존재) |
 
 > 코드는 Redfish 표준 API(DSP0266)를 동적 탐색(API Discovery)하므로,
 > Redfish 를 지원하는 모든 모델에서 **표준 필드**는 정상 수집된다.
@@ -158,17 +170,45 @@ OS 채널은 `system.hosting_type` 필드를 제공한다.
 
 ## 4. Jenkins Agent 공통 요구사항
 
-| 항목 | 최소 요구사항 | 비고 |
-|------|-------------|------|
-| **OS** | RHEL/CentOS 7+, Ubuntu 18.04+, Rocky 8+ | |
-| **Python** | **3.9 이상** | f-string, removeprefix 등 3.9+ 기능 사용 |
-| **Java** | **21 이상** | Jenkins Agent 실행 (OpenJDK 21 권장) |
-| **Ansible** | **2.12 이상** | `ansible.builtin.set_fact` 최신 필터 사용 |
-| **ansible.windows** | 1.x 이상 | Windows 수집 시 필요 |
-| **community.vmware** | 3.0 이상 | ESXi 수집 시 필요 |
-| **pywinrm** | 0.4.0 이상 | Windows WinRM 연결 |
-| **pyvmomi** | 7.0 이상 | ESXi vSphere API 연결 |
-| **redis (Python)** | 4.0 이상 | Ansible Fact 캐싱 |
+> **검증 기준 Agent**: 10.100.64.154 (Ubuntu 24.04.4 LTS), 2026-03-27 확인.
+> 아래 "검증 기준" 컬럼은 해당 Agent에서 실측한 값이며, 전체 운영 환경의 표준을 의미하지 않는다.
+> 설치 절차는 [docs/03_agent-setup.md](docs/03_agent-setup.md) 참조.
+
+### 4-1. 런타임 환경
+
+| 항목 | 최소 | 검증 기준 Agent | 비고 |
+|------|------|----------------|------|
+| **OS** | RHEL/CentOS 7+, Ubuntu 18.04+, Rocky 8+ | Ubuntu 24.04.4 LTS | |
+| **Python** | **3.9** | 3.12.3 | venv: `/opt/ansible-env/` |
+| **Java** | **21** | OpenJDK 21.0.10 | Jenkins Agent 실행 |
+| **ansible-core** | **2.12** | 2.20.3 | `ansible.builtin` 최신 필터 사용 |
+| **ansible (package)** | — | 13.4.0 | 풀패키지 설치 시 core + bundled collections 포함 |
+
+### 4-2. pip 패키지
+
+| 패키지 | 최소 | 검증 기준 Agent | 용도 | 필수 여부 |
+|--------|------|----------------|------|----------|
+| **pywinrm** | 0.4.0 | 0.5.0 | Windows WinRM 연결 | Windows 수집 시 필수 |
+| **pyvmomi** | 7.0 | 9.0.0 | ESXi vSphere API | ESXi 수집 시 필수 |
+| **redis** | 4.0 | 7.3.0 | Ansible fact caching | fact caching 사용 시 필수 |
+| **jmespath** | — | 1.1.0 | json_query 필터 | json_query 사용 시 필수 |
+| **netaddr** | — | 1.3.0 | ipaddr 필터 | ipaddr 사용 시 필수 |
+| **lxml** | — | 6.0.2 | VMware XML 파싱 | ESXi 수집 시 필수 |
+| **requests** | — | 2.32.5 | HTTP 클라이언트 | pywinrm 의존 |
+
+### 4-3. Ansible Collections
+
+| Collection | 최소 | 검증 기준 Agent | 용도 | 필수 여부 |
+|-----------|------|----------------|------|----------|
+| **ansible.windows** | 1.x | 3.3.0 | Windows gather | Windows 수집 시 필수 |
+| **community.vmware** | 3.0 | 6.2.0 | ESXi gather | ESXi 수집 시 필수 |
+| **community.windows** | — | 3.1.0 | Windows 보조 모듈 | Windows 수집 시 권장 |
+| **ansible.posix** | — | 2.1.0 | Linux 모듈 | ansible 풀패키지에 포함 |
+| **community.general** | — | 12.4.0 | 범용 모듈 | ansible 풀패키지에 포함 |
+| **ansible.utils** | — | 6.0.1 | 유틸리티 필터 | ansible 풀패키지에 포함 |
+
+> 검증 기준 Agent에는 `vmware.vmware` (2.7.0), `vmware.vmware_rest` (4.10.0),
+> `dellemc.openmanage` (10.0.1) 등도 설치되어 있으나, 현재 프로젝트에서 직접 사용하지 않는다.
 
 ---
 

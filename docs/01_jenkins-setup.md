@@ -20,9 +20,10 @@ apt update && apt install -y openjdk-21-jdk
 java -version
 ```
 
-> **Java 21 필수**: Jenkins 는 2026-03-31 부터 Java 17 지원을 종료한다.
-> Java 21 은 Jenkins LTS 2.426.1 부터 지원되며, 신규 설치 시 반드시 Java 21 을 사용한다.
-> 기존 Java 17 환경은 위 패키지 설치 후 Jenkins 재시작으로 전환 가능하다.
+> **Java 21 필수**: Jenkins 의 Java 17 지원은 종료되었다 (2026-03-31).
+> Java 21 은 Jenkins LTS 2.426.1 부터 지원된다. 신규 설치 시 반드시 Java 21 을 사용한다.
+> 기존 Java 17 환경은 위 패키지 설치 후 Jenkins 재시작으로 전환한다.
+> 검증 기준 Agent: OpenJDK 21.0.10.
 
 ---
 

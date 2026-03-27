@@ -100,18 +100,34 @@ adapter_loader (lookup plugin)
 
 ## 기술 스택
 
-| 카테고리 | 기술 | 버전 | 용도 |
-|---------|------|------|------|
-| **Orchestration** | Ansible | 2.10+ | 플레이북 실행 |
-| **Language** | Python | 3.8+ | 커스텀 모듈, 필터, 플러그인 |
-| **Protocol** | SSH, WinRM, Redfish API | v4 | 정보 수집 |
-| **CI/CD** | Jenkins | 2.x | 파이프라인 실행 |
-| **Secrets** | Ansible Vault | - | 인증 정보 관리 |
-| **Utils** | Python stdlib | - | HTTP, XML, JSON (외부 라이브러리 없음) |
+> 아래는 검증 기준 Agent (10.100.64.154) 에서 2026-03-27 확인한 값이다.
+> 최소 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md) §4 참조.
 
-**의존성:**
-- `ansible.windows` (Windows support)
-- `community.vmware` (ESXi support)
+| 카테고리 | 기술 | 검증 기준 버전 | 용도 |
+|---------|------|--------------|------|
+| **Orchestration** | ansible-core | 2.20.3 | 플레이북 실행 |
+| | ansible (package) | 13.4.0 | core + bundled collections |
+| **Language** | Python | 3.12.3 | 커스텀 모듈, 필터, 플러그인 (venv: `/opt/ansible-env/`) |
+| **Runtime** | Java (OpenJDK) | 21.0.10 | Jenkins Agent 실행 |
+| **Template** | Jinja2 | 3.1.6 | Ansible 템플릿 엔진 |
+| **Protocol** | SSH, WinRM, Redfish API | — | 정보 수집 |
+| **CI/CD** | Jenkins | — | 파이프라인 실행 (Java 21 필수) |
+| **Secrets** | Ansible Vault | — | 인증 정보 관리 |
+| **Utils** | Python stdlib | — | Redfish HTTP, XML, JSON (외부 라이브러리 없음) |
+
+**Collections (프로젝트 사용 분):**
+- `ansible.windows` 3.3.0 — Windows gather
+- `community.vmware` 6.2.0 — ESXi gather
+- `community.windows` 3.1.0 — Windows 보조 모듈
+- `ansible.posix` 2.1.0, `community.general` 12.4.0, `ansible.utils` 6.0.1
+
+**pip 패키지:**
+- `pywinrm` 0.5.0 — Windows WinRM
+- `pyvmomi` 9.0.0 — ESXi vSphere API
+- `redis` 7.3.0 — Ansible fact caching
+- `jmespath` 1.1.0 — json_query 필터
+- `netaddr` 1.3.0 — ipaddr 필터
+- `lxml` 6.0.2 — VMware XML 파싱
 - Redfish는 **stdlib만 사용** (urllib, ssl, json)
 
 ---

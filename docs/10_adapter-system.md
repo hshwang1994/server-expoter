@@ -158,6 +158,18 @@ diagnosis:
 | 데이터 정규화 | adapter YAML + normalize tasks |
 | 필드 매핑 | adapter capabilities + normalize tasks |
 
+## 검증 상태
+
+| 벤더 | 검증 기준 장비 | 매칭 Adapter | 실장비 검증 |
+|------|--------------|-------------|-----------|
+| Dell | PowerEdge R740 (iDRAC 9, FW 4.00) | redfish_dell_idrac9 (P100) | 검증 완료 |
+| HPE | DL380 Gen11 (iLO 6, FW 1.73) | redfish_hpe_ilo (P10) | 검증 완료, iLO 6 전용 어댑터 없음 |
+| Lenovo | SR650 V2 (XCC, FW 5.70) | redfish_lenovo_xcc (P100) | 검증 완료 |
+| Supermicro | — | redfish_supermicro_bmc 등 | 미검증 (어댑터만 존재) |
+| Cisco | — | redfish_cisco_cimc | 미검증 (어댑터만 존재) |
+
+> 검증 상세는 [docs/13_redfish-live-validation.md](13_redfish-live-validation.md) 참조.
+
 ## 설계 원칙 (실장비 검증 확정)
 
 1. **URI 패턴 하드코딩 금지** — 컬렉션 Members[0]에서 동적 취득
