@@ -21,7 +21,7 @@ parameters (loc, target_type, inventory_json)
 
 | Stage | 도구 | 게이트 | 비고 |
 |-------|------|--------|------|
-| Validate Schema | `python3 tests/validate_field_dictionary.py` | UNSTABLE | 실패 시 빌드 계속, 결과 UNSTABLE |
+| Validate Schema | `python3 tests/validate_field_dictionary.py` | **FAIL** | 실패 시 빌드 FAILURE (Build #7-9 연속 PASS 확인 후 상향) |
 | E2E Regression | `python3 -m pytest tests/e2e/ -v --tb=short` | **FAIL** | 실패 시 빌드 FAILURE (Build #7-9 연속 green 확인 후 상향) |
 
 Stage 3/4는 venv Python을 사용한다 (`. /opt/ansible-env/bin/activate`).

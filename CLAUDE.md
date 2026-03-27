@@ -31,7 +31,7 @@
     │   ├─→ os-gather/site.yml (Play1:포트감지 → Play2:Linux → Play3:Windows)
     │   ├─→ esxi-gather/site.yml (1-Play)
     │   └─→ redfish-gather/site.yml (1-Play)
-    ├─ [3 Validate Schema] field_dictionary.yml 정합성 (UNSTABLE 게이트)
+    ├─ [3 Validate Schema] field_dictionary.yml 정합성 (FAIL 게이트)
     ├─ [4 E2E Regression] pytest baseline/fixture 회귀 검증 (FAIL 게이트)
     └─ [Post] json_only callback → JSON 출력
          ↓
