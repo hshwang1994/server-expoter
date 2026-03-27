@@ -167,17 +167,15 @@ pipeline {
         }
 
         // ── 4. E2E Regression ─────────────────────────────────────────────────
-        // baseline/fixture 기반 핵심 필드 회귀 검증
-        // 실패 시 UNSTABLE (Phase 2에서 FAIL 상향 검토)
+        // baseline/fixture 기반 필드 회귀 검증
+        // 3회 연속 green 확인 완료 (Build #7/#8/#9) → FAIL 게이트 상향
         stage('E2E Regression') {
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    sh '''
-                        cd "${WORKSPACE}"
-                        . /opt/ansible-env/bin/activate
-                        python3 -m pytest tests/e2e/ -v --tb=short
-                    '''
-                }
+                sh '''
+                    cd "${WORKSPACE}"
+                    . /opt/ansible-env/bin/activate
+                    python3 -m pytest tests/e2e/ -v --tb=short
+                '''
             }
         }
     }

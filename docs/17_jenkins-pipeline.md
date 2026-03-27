@@ -10,10 +10,21 @@
 
 ```
 parameters (loc, target_type, inventory_json)
-  → Validate (파라미터 검증)
-  → Gather (Ansible 실행)
+  → Stage 1: Validate (파라미터 검증)
+  → Stage 2: Gather (Ansible 실행)
+  → Stage 3: Validate Schema (field_dictionary.yml 정합성, UNSTABLE 게이트)
+  → Stage 4: E2E Regression (pytest baseline/fixture 회귀 검증, FAIL 게이트)
   → Post (결과 처리)
 ```
+
+### Stage 3/4 품질 게이트
+
+| Stage | 도구 | 게이트 | 비고 |
+|-------|------|--------|------|
+| Validate Schema | `python3 tests/validate_field_dictionary.py` | UNSTABLE | 실패 시 빌드 계속, 결과 UNSTABLE |
+| E2E Regression | `python3 -m pytest tests/e2e/ -v --tb=short` | **FAIL** | 실패 시 빌드 FAILURE (Build #7-9 연속 green 확인 후 상향) |
+
+Stage 3/4는 venv Python을 사용한다 (`. /opt/ansible-env/bin/activate`).
 
 ## 2. Jenkins 파라미터
 
