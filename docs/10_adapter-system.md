@@ -166,7 +166,7 @@ diagnosis:
 | HPE | DL380 Gen11 (iLO 6, FW 1.73) | redfish_hpe_ilo (P10) | 검증 완료, iLO 6 전용 어댑터 없음 |
 | Lenovo | SR650 V2 (XCC, FW 5.70) | redfish_lenovo_xcc (P100) | 검증 완료 |
 | Supermicro | — | redfish_supermicro_bmc 등 | 미검증 (어댑터만 존재) |
-| Cisco | — | redfish_cisco_cimc | 미검증 (어댑터만 존재) |
+| Cisco | — | redfish_cisco_cimc | baseline + E2E 검증 완료 (실장비 미검증) |
 
 > 검증 상세는 [docs/13_redfish-live-validation.md](13_redfish-live-validation.md) 참조.
 
