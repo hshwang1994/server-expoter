@@ -117,34 +117,40 @@
       ansible.builtin.debug:
         msg: "{{ _output | to_json }}"
 
-    - name: "detect | register linux host"
-      when: _detected_os | trim == 'linux'
+    # ── add_host 는 인벤토리 조작 모듈이므로 암시적 run_once 동작.
+    #    loop + run_once: true 로 모든 호스트를 한 번에 등록한다.
+    - name: "detect | register linux hosts"
       ansible.builtin.add_host:
-        name:                    "{{ inventory_hostname }}"
+        name:                    "{{ item }}"
         groups:                  _os_linux
-        ansible_host:            "{{ ansible_host | default(inventory_hostname) }}"
+        ansible_host:            "{{ hostvars[item].ansible_host | default(item) }}"
         ansible_connection:      ssh
         ansible_port:            22
         ansible_ssh_common_args: >-
           -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
           -o ConnectTimeout=15 -o ServerAliveInterval=10
         _os_type:                linux
+      loop: "{{ ansible_play_hosts_all }}"
+      when: (hostvars[item]._detected_os | default('') | trim) == 'linux'
+      run_once: true
       no_log: true
 
-    - name: "detect | register windows host"
-      when: _detected_os | trim == 'windows'
+    - name: "detect | register windows hosts"
       ansible.builtin.add_host:
-        name:                                  "{{ inventory_hostname }}"
+        name:                                  "{{ item }}"
         groups:                                _os_windows
-        ansible_host:                          "{{ ansible_host | default(inventory_hostname) }}"
+        ansible_host:                          "{{ hostvars[item].ansible_host | default(item) }}"
         ansible_connection:                    winrm
-        ansible_port:                          "{{ _winrm_port }}"
-        ansible_winrm_scheme:                  "{{ _winrm_scheme }}"
+        ansible_port:                          "{{ hostvars[item]._winrm_port | default('5985') }}"
+        ansible_winrm_scheme:                  "{{ hostvars[item]._winrm_scheme | default('http') }}"
         ansible_winrm_transport:               ntlm
         ansible_winrm_server_cert_validation:  ignore
         ansible_winrm_operation_timeout_sec:   60
         ansible_winrm_read_timeout_sec:        70
         _os_type:                              windows
+      loop: "{{ ansible_play_hosts_all }}"
+      when: (hostvars[item]._detected_os | default('') | trim) == 'windows'
+      run_once: true
       no_log: true
 
 

@@ -91,7 +91,7 @@
       {%- set seen = [] -%}
       {%- for ctrl in (_rf_d_storage | default([])) -%}
         {%- for drv in (ctrl.drives | default([])) -%}
-          {%- set key = (drv.name|default(''))~(drv.model|default('')) -%}
+          {%- set key = (drv.name|default(''))~(drv.model|default(''))~(drv.serial|default('')) -%}
           {%- if key not in seen and (drv.name or drv.model) -%}
             {%- set _ = seen.append(key) -%}
             {%- set _ = out.append({
