@@ -167,6 +167,9 @@
   vars:
     _ip:      "{{ ansible_host | default(inventory_hostname) }}"
     _os_type: "linux"
+    # SSH 비밀번호를 sudo 비밀번호로 전달 (DMI 식별자 읽기에 필요)
+    # vault에 ansible_become_pass가 별도 정의되면 그 값이 우선됨
+    ansible_become_pass: "{{ ansible_become_password | default(ansible_password | default(omit)) }}"
 
   tasks:
 
