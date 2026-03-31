@@ -56,7 +56,8 @@ timeout = 60
 | 변수 | 필수 | 설명 | 설정 위치 |
 |------|------|------|----------|
 | `REPO_ROOT` | 필수 | 프로젝트 루트 경로 (adapter/vault 로딩) | Jenkinsfile: `${WORKSPACE}` |
-| `INVENTORY_JSON` | 필수 | 포털이 전달하는 호스트 배열 JSON | Jenkinsfile: `${params.inventory_json}` |
+| `INVENTORY_JSON` | 필수 | 호출자가 전달하는 호스트 배열 JSON | Jenkinsfile: `${params.inventory_json}` |
+| `IP_FIELD` | 선택 | inventory_json 내 IP 필드명 (기본값: `ip`) | Jenkinsfile: `${params.ip_field}` |
 | `ANSIBLE_CONFIG` | 권장 | ansible.cfg 경로 (미설정 시 CWD 기준) | Jenkins workspace 루트 |
 
 ---

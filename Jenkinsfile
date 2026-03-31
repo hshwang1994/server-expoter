@@ -12,6 +12,7 @@
 //   loc             : 슬레이브 로케이션 Labels (ich|chj|yi)
 //   target_type     : 수집 대상 종류 (os|esxi|redfish)
 //   inventory_json  : 호출자가 전달하는 호스트 배열 JSON
+//   ip_field        : inventory_json 내 IP 필드명 (기본값: "ip")
 //
 // 출력:
 //   표준 JSON schema v1 (stdout) — json_only callback 필터
@@ -47,10 +48,16 @@ pipeline {
 ]''',
             description : '호출자가 전달하는 타겟 호스트 JSON 배열'
         )
+        string(
+            name        : 'ip_field',
+            defaultValue: 'ip',
+            description : 'inventory_json 내 IP 필드명 (기본값: ip)'
+        )
     }
 
     environment {
         INVENTORY_JSON = "${params.inventory_json}"
+        IP_FIELD       = "${params.ip_field}"
         REPO_ROOT      = "${WORKSPACE}"
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
     }
@@ -95,10 +102,11 @@ pipeline {
                         error "[Validate] inventory_json 배열이 비어있습니다"
                     }
 
-                    // 각 호스트 ip 필드 검증
+                    // 각 호스트 IP 필드 검증 (ip_field 파라미터 기준)
+                    def ipKey = params.ip_field?.trim() ?: 'ip'
                     hosts.eachWithIndex { host, idx ->
-                        if (!host.ip?.trim()) {
-                            error "[Validate] inventory_json[${idx}] ip 필드 누락: ${host}"
+                        if (!host[ipKey]?.trim()) {
+                            error "[Validate] inventory_json[${idx}] '${ipKey}' 필드 누락: ${host}"
                         }
                     }
 
@@ -110,7 +118,7 @@ pipeline {
                         }
                     }
 
-                    echo "[Validate] OK — target_type=${params.target_type}, hosts=${hosts.size()}개, loc=${params.loc}"
+                    echo "[Validate] OK — target_type=${params.target_type}, hosts=${hosts.size()}개, loc=${params.loc}, ip_field=${ipKey}"
                 }
             }
         }

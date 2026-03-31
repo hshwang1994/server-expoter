@@ -74,6 +74,7 @@ server-exporter/
 | `loc` | 필수 | Jenkins agent label: `ich` / `chj` / `yi` |
 | `target_type` | 필수 | `os` / `esxi` / `redfish` |
 | `inventory_json` | 필수 | `[{"ip": "10.x.x.1"}]` |
+| `ip_field` | 선택 | inventory_json 내 IP 필드명 (기본값: `ip`) |
 
 ---
 

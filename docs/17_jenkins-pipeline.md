@@ -32,7 +32,8 @@ Stage 3/4는 venv Python을 사용한다 (`. /opt/ansible-env/bin/activate`).
 |---------|------|------|------|
 | `loc` | string | 필수 | 슬레이브 로케이션 (ich/chj/yi) |
 | `target_type` | choice | 필수 | os / esxi / redfish |
-| `inventory_json` | text | 필수 | 포털이 조립한 호스트 JSON 배열 |
+| `inventory_json` | text | 필수 | 호출자가 전달하는 호스트 JSON 배열 |
+| `ip_field` | string | 선택 | inventory_json 내 IP 필드명 (기본값: `ip`) |
 
 ### inventory_json 형식
 ```json

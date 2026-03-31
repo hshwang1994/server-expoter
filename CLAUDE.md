@@ -23,7 +23,8 @@
 호출자 (HTTP POST)
   ├─ loc: "ich|chj|yi"
   ├─ target_type: "os|esxi|redfish"
-  └─ inventory_json: [{"ip":"10.x.x.1"}]
+  ├─ inventory_json: [{"ip":"10.x.x.1"}]
+  └─ ip_field: "ip" (선택, 기본값 "ip")
          ↓
     Jenkins Job (Jenkinsfile v3, 4-Stage)
     ├─ [1 Validate] 입력값 검증
