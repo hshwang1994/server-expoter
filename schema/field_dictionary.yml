@@ -5,7 +5,7 @@
 #
 # 목적:
 #   server-exporter의 gather 출력 JSON 필드에 대한 해석 가이드.
-#   포털/운영자가 각 필드의 의미, 단위, null 의미, 채널 간 차이를 이해할 수 있도록
+#   운영자가 각 필드의 의미, 단위, null 의미, 채널 간 차이를 이해할 수 있도록
 #   한국어/영어 설명을 제공합니다.
 #
 # 설계 원칙:
@@ -15,7 +15,7 @@
 #
 # 역할 정의:
 #   - 문서용 참조 자산 (운영자/개발자가 필드 의미를 이해할 때 사용)
-#   - 포털 UI lookup 메타데이터 (포털이 이 파일을 로드하여 필드 설명 표시)
+#   - UI lookup 메타데이터 (외부 시스템이 이 파일을 로드하여 필드 설명 표시)
 #   - schema reference (출력 JSON 필드의 타입/enum/null 의미 정의)
 #   - 검증: tests/validate_field_dictionary.py로 무결성 검사 가능
 #
@@ -29,13 +29,13 @@
 #   - "correlation.host_ip"   → correlation.host_ip (top-level)
 #
 #   매칭 방법:
-#     포털에서 output JSON의 필드를 이 dictionary에서 찾을 때:
+#     외부 시스템에서 output JSON의 필드를 이 dictionary에서 찾을 때:
 #     1. 정확한 path로 먼저 검색 (예: "hardware.health")
 #     2. 배열 item 필드는 "physical_disks[].serial" 형태로 검색
 #     3. 와일드카드 path는 "sections.*"로 검색
 #
 # 사용 방법:
-#   1. 포털: 이 파일을 1회 로드하여 필드명 기반 lookup
+#   1. 외부 시스템: 이 파일을 1회 로드하여 필드명 기반 lookup
 #      예) fieldDict["memory.total_basis"].help_ko
 #   2. 운영자: 출력 JSON의 특정 필드가 무엇인지 이 파일에서 검색
 #   3. 개발자: 새 필드 추가 시 코드 반영 후 이 파일에 설명 추가

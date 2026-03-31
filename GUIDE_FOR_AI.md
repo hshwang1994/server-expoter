@@ -7,8 +7,8 @@ AI 가 이 repo 의 컨벤션에 맞게 새 gather 를 생성하거나 기존 ga
 
 ## 이 Repo 의 역할
 
-포털에 등록되기 전 서버의 하드웨어/OS 정보를 수집한다.
-포털 → Jenkins → Ansible → 표준 JSON → 포털 흐름으로 동작한다.
+서버의 하드웨어/OS 정보를 수집한다.
+호출자 → Jenkins → Ansible → 표준 JSON 흐름으로 동작한다.
 
 ---
 
@@ -16,8 +16,8 @@ AI 가 이 repo 의 컨벤션에 맞게 새 gather 를 생성하거나 기존 ga
 
 | 제약 | 값 |
 |------|-----|
-| 포털 입력 | `inventory_json = [{"ip":"10.x.x.1"}]` — ip 만 |
-| 계정 관리 | vault 자동 로딩 (포털이 계정 전달 안 함) |
+| 입력 | `inventory_json = [{"ip":"10.x.x.1"}]` — ip 만 |
+| 계정 관리 | vault 자동 로딩 (호출자가 계정 전달 안 함) |
 | OUTPUT 태스크명 | `name: OUTPUT` — callback plugin 캡처 기준 |
 | schema_version | `"1"` 고정 |
 

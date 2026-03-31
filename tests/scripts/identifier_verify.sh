@@ -8,15 +8,15 @@
 #   bash tests/scripts/identifier_verify.sh
 set -euo pipefail
 
-PORTAL_DIR="${PORTAL_DIR:-$(pwd)}"
+PROJECT_DIR="${PROJECT_DIR:-$(pwd)}"
 OUTPUT_DIR="/tmp/round13_identifier"
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
-cd "$PORTAL_DIR"
-export REPO_ROOT="$PORTAL_DIR"
+cd "$PROJECT_DIR"
+export REPO_ROOT="$PROJECT_DIR"
 export ANSIBLE_STDOUT_CALLBACK=json_only
-export ANSIBLE_CONFIG="$PORTAL_DIR/ansible.cfg"
+export ANSIBLE_CONFIG="$PROJECT_DIR/ansible.cfg"
 
 echo "=== Round 13: Identifier Collection Verification ==="
 echo "Timestamp: $(date -Iseconds)"
@@ -85,7 +85,7 @@ print()
 # 1. Ubuntu VM — no become (DMI fallback will fail without sudo password)
 # ═══════════════════════════════════════════════════════════════
 echo "--- [1/7] Ubuntu 10.100.64.166 (no become) ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.166," \
   -e ansible_user=cloviradmin \
@@ -97,7 +97,7 @@ extract_ids "$OUTPUT_DIR/ubuntu_no_become.log" "Ubuntu-no-become"
 # 2. Ubuntu VM — with become (DMI fallback should succeed)
 # ═══════════════════════════════════════════════════════════════
 echo "--- [2/7] Ubuntu 10.100.64.166 (with become) ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.166," \
   -e ansible_user=cloviradmin \
@@ -110,7 +110,7 @@ extract_ids "$OUTPUT_DIR/ubuntu_with_become.log" "Ubuntu-with-become"
 # 3. RHEL VM — no become
 # ═══════════════════════════════════════════════════════════════
 echo "--- [3/7] RHEL 10.100.64.197 (no become) ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.197," \
   -e ansible_user=cloviradmin \
@@ -122,7 +122,7 @@ extract_ids "$OUTPUT_DIR/rhel_no_become.log" "RHEL-no-become"
 # 4. Baremetal — no become
 # ═══════════════════════════════════════════════════════════════
 echo "--- [4/7] Baremetal 10.100.64.96 (no become) ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.96," \
   -e ansible_user=cloviradmin \
@@ -134,7 +134,7 @@ extract_ids "$OUTPUT_DIR/baremetal_no_become.log" "Baremetal-no-become"
 # 5. Baremetal — with become
 # ═══════════════════════════════════════════════════════════════
 echo "--- [5/7] Baremetal 10.100.64.96 (with become) ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.96," \
   -e ansible_user=cloviradmin \
@@ -147,7 +147,7 @@ extract_ids "$OUTPUT_DIR/baremetal_with_become.log" "Baremetal-with-become"
 # 6. Windows VM
 # ═══════════════════════════════════════════════════════════════
 echo "--- [6/7] Windows 10.100.64.120 ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.120," \
   -e ansible_user=gooddit \
@@ -159,7 +159,7 @@ extract_ids "$OUTPUT_DIR/windows.log" "Windows"
 # 7a. ESXi
 # ═══════════════════════════════════════════════════════════════
 echo "--- [7a/7] ESXi 10.100.64.2 ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook esxi-gather/site.yml \
   -i "10.100.64.2," \
   -e ansible_user=root \
@@ -171,7 +171,7 @@ extract_ids "$OUTPUT_DIR/esxi.log" "ESXi"
 # 7b. Redfish — Dell R760 BMC (entity linking pair)
 # ═══════════════════════════════════════════════════════════════
 echo "--- [7b/7] Redfish Dell R760 BMC 10.100.15.34 ---"
-REPO_ROOT="$PORTAL_DIR" \
+REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook redfish-gather/site.yml \
   -i "10.100.15.34," \
   2>&1 | tee "$OUTPUT_DIR/redfish_r760.log" || true

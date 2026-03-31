@@ -1,7 +1,7 @@
 // =============================================================================
 // server-exporter / Jenkinsfile  v3
 //
-// 포털 → Jenkins → Ansible gather → 결과 stdout JSON → 포털
+// 호출자 → Jenkins → Ansible gather → 결과 stdout JSON
 //
 // 지원 gather 종류 (target_type):
 //   os      → os-gather/site.yml     (Linux/Windows 자동 감지)
@@ -11,11 +11,11 @@
 // 파라미터:
 //   loc             : 슬레이브 로케이션 Labels (ich|chj|yi)
 //   target_type     : 수집 대상 종류 (os|esxi|redfish)
-//   inventory_json  : 포털이 조립한 호스트 배열 JSON
+//   inventory_json  : 호출자가 전달하는 호스트 배열 JSON
 //
 // 출력:
 //   표준 JSON schema v1 (stdout) — json_only callback 필터
-//   BUILD_RESULT artifact (results.json) — 포털 재취득 가능
+//   BUILD_RESULT artifact (results.json) — 재취득 가능
 //
 // 실패 처리:
 //   Validate 단계 실패 → 즉시 종료
@@ -27,7 +27,7 @@ pipeline {
     agent { label "${params.loc}" }
 
     parameters {
-        // 포털이 전달하는 값 — defaultValue 는 포털 jspreadsheet 컬럼 정의로 사용
+        // 호출자가 전달하는 값
         string(
             name        : 'loc',
             defaultValue: '',
@@ -45,7 +45,7 @@ pipeline {
     "ip": ""
   }
 ]''',
-            description : '포털이 조립한 타겟 호스트 JSON 배열'
+            description : '호출자가 전달하는 타겟 호스트 JSON 배열'
         )
     }
 
@@ -187,15 +187,15 @@ pipeline {
                 def result = currentBuild.currentResult
                 echo "[Post] 빌드 결과: ${result}"
                 // json_only callback 이 stdout 에 JSON 을 출력하므로
-                // 포털은 Jenkins console log 에서 JSON 라인을 파싱한다.
+                // 호출자는 Jenkins console log 에서 JSON 라인을 파싱한다.
                 // 또는 archiveArtifacts 로 결과 파일 보존 가능.
             }
         }
         success {
-            echo "[Post] gather 완료 — 포털로 결과 반환"
+            echo "[Post] gather 완료 — 결과 반환"
         }
         failure {
-            echo "[Post] gather 실패 — 포털로 에러 상태 반환 (partial result 포함 가능)"
+            echo "[Post] gather 실패 — 에러 상태 반환 (partial result 포함 가능)"
         }
     }
 }

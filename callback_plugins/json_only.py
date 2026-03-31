@@ -5,7 +5,7 @@ Ansible Callback Plugin — json_only  v2
 OUTPUT 태스크의 결과만 JSON 으로 stdout 에 출력한다.
 나머지 모든 Ansible 로그(play/task 헤더, ok/changed 메시지 등)는 억제한다.
 
-포털은 이 JSON 출력만 파싱한다.
+호출자는 이 JSON 출력만 파싱한다.
 
 환경변수:
   ANSIBLE_JSON_OUTPUT_TASK  — 캡처할 태스크 이름 (기본값: OUTPUT)

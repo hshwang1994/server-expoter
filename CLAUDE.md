@@ -8,7 +8,7 @@
 - **3중 채널**: OS-gather (Linux/Windows) + ESXi-gather + Redfish-gather (BMC/IPMI)
 - **Fragment 모듈화**: 각 gather가 자신의 역할만 하고, 공통 정규화 파이프라인이 병합
 - **Adapter 시스템**: 벤더/세대별 수집 방식을 YAML로 추상화 (코드 수정 불필요)
-- **Vault 자동 로딩**: 포털은 IP만 전달, 인증정보는 ansible vault에서 자동 로드
+- **Vault 자동 로딩**: 호출자는 IP만 전달, 인증정보는 ansible vault에서 자동 로드
 - **표준 JSON Output**: 3채널 공통 스키마 (status, sections, data, errors, meta, diagnosis)
 
 **상태**: 프로덕션 준비 완료 (실장비 검증: Dell/HPE/Lenovo, Round 7-10 완료)
@@ -17,10 +17,10 @@
 
 ## 아키텍처
 
-### 전체 흐름 (포털 → Jenkins → Ansible → 포털)
+### 전체 흐름 (호출자 → Jenkins → Ansible → JSON 결과)
 
 ```
-포털 (HTTP POST)
+호출자 (HTTP POST)
   ├─ loc: "ich|chj|yi"
   ├─ target_type: "os|esxi|redfish"
   └─ inventory_json: [{"ip":"10.x.x.1"}]
@@ -35,7 +35,7 @@
     ├─ [4 E2E Regression] pytest baseline/fixture 회귀 검증 (FAIL 게이트)
     └─ [Post] json_only callback → JSON 출력
          ↓
-    포털 (console log 파싱 또는 artifact)
+    호출자 (console log 파싱 또는 artifact)
 ```
 
 ### Fragment 정규화
