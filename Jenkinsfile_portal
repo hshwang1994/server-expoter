@@ -1,0 +1,276 @@
+// =============================================================================
+// Jenkinsfile_portal  v1
+//
+// ClovierONE Portal 전용 파이프라인
+//
+// 호출 흐름:
+//   Portal HTTP POST → Jenkins Job → Ansible gather
+//     → Callback POST → Portal API
+//
+// 기본 Jenkinsfile 과 차이점:
+//   - 추가 파라미터: developmentEnvironmentId, eventUuid, callbackUrl
+//   - Callback 스테이지: gather 결과를 callbackUrl 로 POST
+//   - httpRequest 플러그인 필요 (HTTP Request Plugin)
+//
+// Callback URL 패턴:
+//   {callbackUrl}/api/jenkins/gather/{target_type}
+//
+// Callback Body:
+//   {
+//     "loc": "...",
+//     "developmentEnvironmentId": "...",
+//     "eventUuid": "...",
+//     "gatherInfoJson": [ ... ]   // 전체 호스트 결과 배열
+//   }
+// =============================================================================
+
+pipeline {
+
+    agent { label "${params.loc}" }
+
+    parameters {
+        string(
+            name        : 'loc',
+            defaultValue: '',
+            description : 'Agent 로케이션 Labels (ich | chj | yi)'
+        )
+        choice(
+            name        : 'target_type',
+            choices     : ['os', 'esxi', 'redfish'],
+            description : '수집 대상 종류'
+        )
+        text(
+            name        : 'inventory_json',
+            defaultValue: '''[
+  {
+    "ip": ""
+  }
+]''',
+            description : '호스트 JSON 배열 (os/esxi: service_ip, redfish: bmc_ip, fallback: ip)'
+        )
+        string(
+            name        : 'developmentEnvironmentId',
+            defaultValue: '',
+            description : '포털 개발환경 ID'
+        )
+        string(
+            name        : 'eventUuid',
+            defaultValue: '',
+            description : '포털 이벤트 UUID (요청 추적용)'
+        )
+        string(
+            name        : 'callbackUrl',
+            defaultValue: '',
+            description : '결과 전달 Callback URL (예: http://portal.example.com)'
+        )
+    }
+
+    environment {
+        INVENTORY_JSON = "${params.inventory_json}"
+        REPO_ROOT      = "${WORKSPACE}"
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+    }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '100'))
+        ansiColor('xterm')
+    }
+
+    stages {
+
+        // -- 1. 파라미터 검증 --------------------------------------------------
+        stage('Validate') {
+            steps {
+                script {
+
+                    // loc 필수
+                    if (!params.loc?.trim()) {
+                        error "[Validate] 필수 파라미터 누락: loc"
+                    }
+
+                    // target_type 범위 검증
+                    def allowed = ['os', 'esxi', 'redfish']
+                    if (!allowed.contains(params.target_type?.trim())) {
+                        error "[Validate] target_type 값 오류: '${params.target_type}' -- 허용값: ${allowed}"
+                    }
+
+                    // inventory_json 파싱 검증
+                    if (!params.inventory_json?.trim()) {
+                        error "[Validate] inventory_json 이 비어있습니다"
+                    }
+
+                    def hosts
+                    try {
+                        hosts = readJSON text: params.inventory_json
+                    } catch (groovy.json.JsonException e) {
+                        error "[Validate] inventory_json JSON 파싱 실패: ${e.message}"
+                    }
+
+                    if (!hosts || hosts.size() == 0) {
+                        error "[Validate] inventory_json 배열이 비어있습니다"
+                    }
+
+                    // target_type 별 IP 필드 검증 (fallback: ip)
+                    def primaryKey = (params.target_type == 'redfish') ? 'bmc_ip' : 'service_ip'
+                    hosts.eachWithIndex { host, idx ->
+                        def ipVal = host[primaryKey]?.trim() ?: host['ip']?.trim()
+                        if (!ipVal) {
+                            error "[Validate] inventory_json[${idx}] '${primaryKey}' 또는 'ip' 필드 누락: ${host}"
+                        }
+                    }
+
+                    // 포털 파라미터 검증
+                    if (!params.callbackUrl?.trim()) {
+                        error "[Validate] 필수 파라미터 누락: callbackUrl"
+                    }
+                    if (!params.developmentEnvironmentId?.trim()) {
+                        error "[Validate] 필수 파라미터 누락: developmentEnvironmentId"
+                    }
+                    if (!params.eventUuid?.trim()) {
+                        error "[Validate] 필수 파라미터 누락: eventUuid"
+                    }
+
+                    echo "[Validate] OK -- target_type=${params.target_type}, hosts=${hosts.size()}, loc=${params.loc}"
+                    echo "[Validate] callback=${params.callbackUrl}, eventUuid=${params.eventUuid}"
+                }
+            }
+        }
+
+        // -- 2. Ansible 실행 ---------------------------------------------------
+        stage('Gather') {
+            steps {
+                script {
+                    def playbookMap = [
+                        'os'     : "${WORKSPACE}/os-gather/site.yml",
+                        'esxi'   : "${WORKSPACE}/esxi-gather/site.yml",
+                        'redfish': "${WORKSPACE}/redfish-gather/site.yml",
+                    ]
+                    def inventoryMap = [
+                        'os'     : "${WORKSPACE}/os-gather/inventory.sh",
+                        'esxi'   : "${WORKSPACE}/esxi-gather/inventory.sh",
+                        'redfish': "${WORKSPACE}/redfish-gather/inventory.sh",
+                    ]
+
+                    def playbook  = playbookMap[params.target_type]
+                    def inventory = inventoryMap[params.target_type]
+
+                    echo "[Gather] playbook=${playbook}"
+
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                        ansiblePlaybook(
+                            playbook    : playbook,
+                            inventory   : inventory,
+                            installation: 'ansible',
+                            colorized   : true,
+                        )
+                    }
+                }
+            }
+        }
+
+        // -- 3. Schema 검증 ----------------------------------------------------
+        stage('Validate Schema') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    sh '''set +x
+                        cd "${WORKSPACE}"
+                        python3 tests/validate_field_dictionary.py
+                    '''
+                }
+            }
+        }
+
+        // -- 4. Callback POST --------------------------------------------------
+        // gather 결과를 포털 API 로 전달
+        // json_only callback 이 콘솔 로그에 출력한 JSON 을 파싱하여 전송
+        stage('Callback') {
+            steps {
+                script {
+                    def callbackEndpoint = "${params.callbackUrl}/api/jenkins/gather/${params.target_type}"
+                    echo "[Callback] POST -> ${callbackEndpoint}"
+
+                    // 콘솔 로그에서 json_only callback 출력 파싱
+                    // json_only callback 은 OUTPUT 태스크 결과를 한 줄 JSON 으로 출력
+                    // 여러 호스트의 결과가 각각 별도 줄로 출력됨
+                    def gatherResults = []
+                    def logText = currentBuild.rawBuild.getLog(10000).join('\n')
+
+                    // OUTPUT 태스크의 JSON 라인 추출
+                    // json_only callback 출력 패턴: {"host": "...", ...}
+                    logText.eachLine { line ->
+                        line = line.trim()
+                        if (line.startsWith('{"') && line.contains('"status"')) {
+                            try {
+                                def parsed = readJSON text: line
+                                gatherResults.add(parsed)
+                            } catch (Exception e) {
+                                echo "[Callback] JSON 파싱 스킵: ${e.message}"
+                            }
+                        }
+                    }
+
+                    if (gatherResults.isEmpty()) {
+                        echo "[Callback] WARNING: gather 결과 JSON 을 찾지 못했습니다"
+                    }
+
+                    // Callback body 조립
+                    def callbackBody = groovy.json.JsonOutput.toJson([
+                        loc                      : params.loc,
+                        developmentEnvironmentId : params.developmentEnvironmentId,
+                        eventUuid                : params.eventUuid,
+                        gatherInfoJson           : gatherResults,
+                    ])
+
+                    echo "[Callback] body size=${callbackBody.length()} bytes, hosts=${gatherResults.size()}"
+
+                    // HTTP POST with retry (최대 3회)
+                    def maxRetries = 3
+                    def success = false
+
+                    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                            def response = httpRequest(
+                                url            : callbackEndpoint,
+                                httpMode       : 'POST',
+                                contentType    : 'APPLICATION_JSON',
+                                requestBody    : callbackBody,
+                                validResponseCodes: '200:299',
+                                timeout        : 30,
+                            )
+                            echo "[Callback] 성공 (${attempt}/${maxRetries}) -- HTTP ${response.status}"
+                            success = true
+                            break
+                        } catch (Exception e) {
+                            echo "[Callback] 실패 (${attempt}/${maxRetries}) -- ${e.message}"
+                            if (attempt < maxRetries) {
+                                echo "[Callback] ${attempt * 5}초 후 재시도..."
+                                sleep(time: attempt * 5, unit: 'SECONDS')
+                            }
+                        }
+                    }
+
+                    if (!success) {
+                        unstable "[Callback] ${maxRetries}회 재시도 모두 실패 -- 포털에 결과 미전달"
+                    }
+                }
+            }
+        }
+    }
+
+    // -- post 처리 -------------------------------------------------------------
+    post {
+        always {
+            script {
+                def result = currentBuild.currentResult
+                echo "[Post] 빌드 결과: ${result}"
+            }
+        }
+        success {
+            echo "[Post] gather + callback 완료"
+        }
+        failure {
+            echo "[Post] 파이프라인 실패"
+        }
+    }
+}
