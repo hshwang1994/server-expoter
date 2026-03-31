@@ -13,7 +13,8 @@
 OS 타입과 벤더를 모르는 상태로 시작하며, gather 가 직접 감지하여 분기한다.
 
 ```
-호출자 → inventory_json = [{"ip": "10.x.x.1"}]
+호출자 → inventory_json = [{"service_ip": "10.x.x.1"}]  (os/esxi)
+       → inventory_json = [{"bmc_ip": "10.x.x.1"}]     (redfish)
        → Jenkins (target_type: os|esxi|redfish)
           → 포트 감지 / Manufacturer 감지
           → vault 자동 로딩 → 수집 → OUTPUT JSON (schema_version: "1")
@@ -73,8 +74,7 @@ server-exporter/
 |---------|------|------|
 | `loc` | 필수 | Jenkins agent label: `ich` / `chj` / `yi` |
 | `target_type` | 필수 | `os` / `esxi` / `redfish` |
-| `inventory_json` | 필수 | `[{"ip": "10.x.x.1"}]` |
-| `ip_field` | 선택 | inventory_json 내 IP 필드명 (기본값: `ip`) |
+| `inventory_json` | 필수 | os/esxi: `[{"service_ip": "10.x.x.1"}]`, redfish: `[{"bmc_ip": "10.x.x.1"}]` |
 
 ---
 

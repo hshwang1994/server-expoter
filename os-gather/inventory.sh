@@ -5,7 +5,7 @@
 INVENTORY_JSON 환경변수 또는 .inventory_input.json 파일을 파싱하여
 Ansible 동적 인벤토리를 생성한다.
 inventory_json 에는 IP 만 전달. 계정은 vault 에서 로딩.
-IP 필드명은 IP_FIELD 환경변수로 지정 (기본값: "ip").
+IP 필드: service_ip (1순위) → ip (fallback)
 
 우선순위:
   1. 환경변수 INVENTORY_JSON (값이 있으면 사용)
@@ -13,9 +13,8 @@ IP 필드명은 IP_FIELD 환경변수로 지정 (기본값: "ip").
   3. 둘 다 없으면 에러
 
 INVENTORY_JSON 형식:
-  [{ "ip": "10.x.x.1" }, { "ip": "10.x.x.2" }]
-  또는 ip_field 지정 시:
-  [{ "service_ip": "10.x.x.1" }]  (IP_FIELD=service_ip)
+  [{ "service_ip": "10.x.x.1" }]          — 권장
+  [{ "ip": "10.x.x.1" }]                  — fallback (하위 호환)
 
 사용법:
   ansible-playbook -i inventory.sh ...
@@ -82,12 +81,11 @@ def main():
     if not isinstance(payload, list) or not payload:
         error("INVENTORY_JSON 은 비어있지 않은 배열이어야 합니다.")
 
-    ip_field = os.environ.get("IP_FIELD", "").strip() or "ip"
     hostvars, host_keys, seen = {}, [], set()
     for idx, host in enumerate(payload):
-        ip = host.get(ip_field, "").strip()
+        ip = (host.get("service_ip") or host.get("ip") or "").strip()
         if not ip:
-            error(f"'{ip_field}' 필드 누락 (항목[{idx}])")
+            error(f"'service_ip' 또는 'ip' 필드 누락 (항목[{idx}])")
         validate_ip(ip, idx)
         if ip in seen:
             error(f"IP 가 중복됩니다: '{ip}' (항목[{idx}])")

@@ -6,31 +6,29 @@
 
 ## 형식
 
+target_type 에 따라 IP 필드명이 다르다:
+
 ```json
-[{"ip": "10.x.x.1"}, {"ip": "10.x.x.2"}]
+// os / esxi
+[{"service_ip": "10.x.x.1"}, {"service_ip": "10.x.x.2"}]
+
+// redfish
+[{"bmc_ip": "10.x.x.201"}, {"bmc_ip": "10.x.x.202"}]
+
+// fallback (하위 호환)
+[{"ip": "10.x.x.1"}]
 ```
 
 ## 전달 필드
 
-| 필드 | 필수 | 설명 |
-|------|------|------|
-| `ip` (기본) | ✅ 전체 | Ansible 접속 IP. `ip_field` 파라미터로 필드명 변경 가능 |
+| target_type | 1순위 필드 | fallback | 설명 |
+|-------------|-----------|----------|------|
+| `os` | `service_ip` | `ip` | 서버 서비스 IP |
+| `esxi` | `service_ip` | `ip` | 서버 서비스 IP |
+| `redfish` | `bmc_ip` | `ip` | BMC 관리 IP |
 
 hostname / username / password / vendor 는 전달하지 않는다.
 계정은 vault 에서 자동 로딩하며, OS 타입/벤더는 gather 가 자동 감지한다.
-
-### ip_field — IP 필드명 지정
-
-호출자의 JSON 필드명이 `ip`가 아닌 경우, Jenkins 파라미터 `ip_field`로 지정한다.
-
-```
-// 기본 (ip_field 생략 시)
-inventory_json = [{"ip": "10.x.x.1"}]
-
-// 커스텀 필드명
-inventory_json = [{"service_ip": "10.x.x.1"}]
-ip_field = "service_ip"
-```
 
 ---
 
