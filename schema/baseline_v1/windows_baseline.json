@@ -17,51 +17,63 @@
     "users": "success",
     "power": "not_supported"
   },
-  "diagnosis": null,
+  "diagnosis": {
+    "reachable": true,
+    "port_open": true,
+    "protocol_supported": true,
+    "auth_success": true,
+    "failure_stage": null,
+    "failure_reason": null,
+    "details": {
+      "channel": "os",
+      "adapter_candidate": "os_windows_generic",
+      "detected_os": "windows",
+      "selected_port": "5985",
+      "checked_ports": [
+        5985,
+        5986
+      ]
+    }
+  },
   "meta": {
-    "started_at": "2026-03-23T00:07:13.148431Z",
-    "finished_at": "2026-03-23T00:07:49.524638Z",
-    "duration_ms": 36000,
+    "started_at": "2026-04-01T04:36:21.655005Z",
+    "finished_at": "2026-04-01T04:37:05.951081Z",
+    "duration_ms": 44000,
     "adapter_id": "os_windows_generic",
     "adapter_version": "1.0.0",
     "ansible_version": "2.20.3"
   },
   "correlation": {
-    "serial_number": null,
-    "system_uuid": null,
+    "serial_number": "VMware-42 04 cc cc 3a 70 bf 67-4d 8c be c6 fb 82 c2 65",
+    "system_uuid": "CCCC0442-703A-67BF-4D8C-BEC6FB82C265",
     "bmc_ip": null,
     "host_ip": "10.100.64.120"
   },
   "errors": [],
   "data": {
-    "hardware": null,
     "system": {
       "os_family": "Windows",
       "distribution": "Microsoft Windows 10 Home",
       "version": "22H2",
       "kernel": "19045",
       "architecture": "x86_64",
-      "uptime_seconds": 5433613,
+      "hosting_type": "virtual",
+      "uptime_seconds": 167596,
       "selinux": null,
       "fqdn": "DESKTOP-99237QP",
-      "hosting_type": "virtual",
       "serial_number": "VMware-42 04 cc cc 3a 70 bf 67-4d 8c be c6 fb 82 c2 65",
       "system_uuid": "CCCC0442-703A-67BF-4D8C-BEC6FB82C265"
     },
-    "bmc": null,
     "memory": {
       "total_mb": 8192,
       "total_basis": "physical_installed",
       "installed_mb": 8192,
       "visible_mb": 8192,
-      "free_mb": 3693,
+      "free_mb": 6576,
       "slots": []
     },
     "power": null,
     "network": {
-      "dns_servers": [
-        "10.100.64.251"
-      ],
       "interfaces": [
         {
           "id": "vmxnet3 Ethernet Adapter",
@@ -83,6 +95,9 @@
           ]
         }
       ],
+      "dns_servers": [
+        "10.100.64.251"
+      ],
       "default_gateways": [
         {
           "family": "ipv4",
@@ -90,7 +105,16 @@
         }
       ]
     },
+    "hardware": null,
+    "cpu": {
+      "sockets": 1,
+      "cores_physical": 2,
+      "logical_threads": 2,
+      "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+      "architecture": "x86_64"
+    },
     "storage": {
+      "datastores": [],
       "physical_disks": [
         {
           "id": "\\\\.\\PHYSICALDRIVE0",
@@ -102,30 +126,21 @@
           "health": null
         }
       ],
-      "logical_volumes": [],
-      "datastores": [],
       "controllers": [],
+      "logical_volumes": [],
       "filesystems": [
         {
           "device": "C:",
           "mount_point": "C:\\",
           "filesystem": "NTFS",
           "total_mb": 60747.5,
-          "used_mb": 32204.0,
-          "available_mb": 28543.5,
-          "usage_percent": 53.0,
+          "used_mb": 32078.9,
+          "available_mb": 28668.6,
+          "usage_percent": 52.8,
           "status": "mounted"
         }
       ]
     },
-    "cpu": {
-      "sockets": 1,
-      "cores_physical": 2,
-      "logical_threads": 2,
-      "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
-      "architecture": "x86_64"
-    },
-    "firmware": [],
     "users": [
       {
         "name": "Administrator",
@@ -152,7 +167,7 @@
           "Administrators"
         ],
         "home": "C:\\Users\\gooddit",
-        "last_access_time": "2026-03-23T00:07:43Z"
+        "last_access_time": "2026-04-01T04:36:58Z"
       },
       {
         "name": "hshwang",
@@ -361,7 +376,9 @@
         "home": null,
         "last_access_time": "2026-01-09T00:20:22Z"
       }
-    ]
+    ],
+    "bmc": null,
+    "firmware": []
   },
   "schema_version": "1"
 }

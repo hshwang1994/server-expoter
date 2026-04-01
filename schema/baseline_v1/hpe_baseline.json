@@ -1,11 +1,10 @@
 {
-  "status": "success",
-  "schema_version": "1",
   "target_type": "redfish",
   "collection_method": "redfish_api",
-  "vendor": "hpe",
   "ip": "10.50.11.231",
-  "hostname": null,
+  "hostname": "10.50.11.231",
+  "vendor": "hpe",
+  "status": "success",
   "sections": {
     "system": "not_supported",
     "hardware": "success",
@@ -18,44 +17,41 @@
     "users": "not_supported",
     "power": "success"
   },
+  "diagnosis": {
+    "reachable": true,
+    "port_open": true,
+    "protocol_supported": true,
+    "auth_success": true,
+    "failure_stage": null,
+    "failure_reason": null,
+    "details": {
+      "channel": "redfish",
+      "adapter_candidate": "redfish_hpe_ilo5",
+      "checked_ports": [
+        443
+      ],
+      "selected_port": 443,
+      "redfish_version": "1.20.0",
+      "product": "ProLiant DL380 Gen11",
+      "systems_uri": "/redfish/v1/Systems/"
+    }
+  },
+  "meta": {
+    "started_at": "2026-04-01T04:35:36.211203Z",
+    "finished_at": "2026-04-01T04:37:22.270254Z",
+    "duration_ms": 106000,
+    "adapter_id": "redfish_hpe_ilo5",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+  "correlation": {
+    "serial_number": "SGH504HNZK",
+    "system_uuid": "35323550-3433-4753-4835-3034484E5A4B",
+    "bmc_ip": "10.50.11.231",
+    "host_ip": "10.50.11.231"
+  },
+  "errors": [],
   "data": {
-    "system": {
-      "os_family": null,
-      "distribution": null,
-      "version": null,
-      "kernel": null,
-      "architecture": null,
-      "uptime_seconds": null,
-      "selinux": null,
-      "fqdn": null
-    },
-    "hardware": {
-      "vendor": "HPE",
-      "model": "ProLiant DL380 Gen11",
-      "serial": "SGH504HNZK",
-      "uuid": "35323550-3433-4753-4835-3034484E5A4B",
-      "sku": "P52534-B21",
-      "bios_version": "U54 v2.16 (03/01/2024)",
-      "bios_date": null,
-      "power_state": "On",
-      "health": "Warning",
-      "oem": {
-        "post_state": "FinishedPost",
-        "server_signature": null,
-        "aggregate_server_health": "Critical",
-        "fan_redundancy": "Redundant",
-        "psu_redundancy": "NonRedundant",
-        "subsystem_health": {
-          "fans": "OK",
-          "memory": "OK",
-          "network": "OK",
-          "power": "Critical",
-          "processors": "OK",
-          "storage": "OK",
-          "temperatures": "OK"
-        }
-      }
-    },
     "bmc": {
       "name": "iLO",
       "firmware_version": "iLO 6 v1.73",
@@ -67,13 +63,121 @@
         "ilo_version": null
       }
     },
-    "cpu": {
-      "sockets": 2,
-      "cores_physical": 64,
-      "logical_threads": 128,
-      "model": "Intel(R) Xeon(R) Gold 6430",
-      "max_speed_mhz": 4000,
-      "architecture": null
+    "network": {
+      "dns_servers": [],
+      "interfaces": [
+        {
+          "id": "9",
+          "name": "9",
+          "kind": "server_nic",
+          "mac": "8c:84:74:e9:be:84",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "none",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "10",
+          "name": "10",
+          "kind": "server_nic",
+          "mac": "8c:84:74:e9:be:85",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "none",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "11",
+          "name": "11",
+          "kind": "server_nic",
+          "mac": "8c:84:74:e9:be:86",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "none",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "12",
+          "name": "12",
+          "kind": "server_nic",
+          "mac": "8c:84:74:e9:be:87",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "linkup",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "13",
+          "name": "13",
+          "kind": "server_nic",
+          "mac": "d4:f5:ef:69:87:50",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "none",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "14",
+          "name": "14",
+          "kind": "server_nic",
+          "mac": "d4:f5:ef:69:87:58",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "none",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "77",
+          "name": "77",
+          "kind": "server_nic",
+          "mac": "d4:f5:ef:69:85:b0",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "linkup",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "78",
+          "name": "78",
+          "kind": "server_nic",
+          "mac": "d4:f5:ef:69:85:b8",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "linkup",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "141",
+          "name": "141",
+          "kind": "server_nic",
+          "mac": "00:62:0b:20:3a:f0",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "none",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "142",
+          "name": "142",
+          "kind": "server_nic",
+          "mac": "00:62:0b:20:3a:f1",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "none",
+          "is_primary": false,
+          "addresses": []
+        }
+      ],
+      "default_gateways": []
     },
     "memory": {
       "total_mb": 524288,
@@ -260,233 +364,66 @@
         }
       ]
     },
-    "storage": {
-      "filesystems": [],
-      "physical_disks": [
+    "hardware": {
+      "vendor": "HPE",
+      "model": "ProLiant DL380 Gen11",
+      "serial": "SGH504HNZK",
+      "uuid": "35323550-3433-4753-4835-3034484E5A4B",
+      "sku": "P52534-B21",
+      "bios_version": "U54 v2.16 (03/01/2024)",
+      "bios_date": null,
+      "power_state": "On",
+      "health": "Warning",
+      "oem": {
+        "post_state": "FinishedPost",
+        "server_signature": null,
+        "aggregate_server_health": "Critical",
+        "fan_redundancy": "Redundant",
+        "psu_redundancy": "NonRedundant",
+        "subsystem_health": {
+          "fans": "OK",
+          "memory": "OK",
+          "network": "OK",
+          "power": "Critical",
+          "processors": "OK",
+          "storage": "OK",
+          "temperatures": "OK"
+        }
+      }
+    },
+    "power": {
+      "power_supplies": [
         {
-          "id": "0",
-          "device": "1.92TB 6.0G SATA SSD",
-          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-          "serial": "S6ESNT0WC10211",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
-          "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 100
+          "name": "HpeServerPowerSupply",
+          "model": "P38995-B21",
+          "serial": "5XLNV0KLLJO5S5",
+          "manufacturer": "LTEON",
+          "power_capacity_w": 800,
+          "firmware_version": "2.00",
+          "health": "Critical",
+          "state": "UnavailableOffline"
         },
         {
-          "id": "1",
-          "device": "1.92TB 6.0G SATA SSD",
-          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-          "serial": "S6ESNC0W535206",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
+          "name": "HpeServerPowerSupply",
+          "model": "P38995-B21",
+          "serial": "5XLNV0KLLJO6RE",
+          "manufacturer": "LTEON",
+          "power_capacity_w": 800,
+          "firmware_version": "2.00",
           "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 100
-        },
-        {
-          "id": "2",
-          "device": "1.92TB 6.0G SATA SSD",
-          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-          "serial": "S6ESNC0W535202",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
-          "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 99
-        },
-        {
-          "id": "3",
-          "device": "1.92TB 6.0G SATA SSD",
-          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-          "serial": "S6ESNN0X204289",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
-          "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 100
+          "state": "Enabled"
         }
       ],
-      "datastores": [],
-      "controllers": [
-        {
-          "id": "DE00C000",
-          "name": "HPE MR416i-o Gen11",
-          "health": "OK",
-          "drives": [
-            {
-              "device": "1.92TB 6.0G SATA SSD",
-              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            },
-            {
-              "device": "1.92TB 6.0G SATA SSD",
-              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            },
-            {
-              "device": "1.92TB 6.0G SATA SSD",
-              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            },
-            {
-              "device": "1.92TB 6.0G SATA SSD",
-              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            }
-          ]
-        }
-      ],
-      "logical_volumes": [
-        {
-          "id": "239",
-          "name": "RAID1_OS",
-          "controller_id": "DE00C000",
-          "member_drive_ids": [
-            "0",
-            "1"
-          ],
-          "raid_level": "RAID1",
-          "total_mb": 1830880,
-          "health": "OK",
-          "state": "Enabled",
-          "boot_volume": null
-        }
-      ]
+      "power_control": {
+        "power_consumed_watts": 533,
+        "power_capacity_watts": 800,
+        "interval_in_min": 20,
+        "min_consumed_watts": 531,
+        "avg_consumed_watts": 532,
+        "max_consumed_watts": 537
+      }
     },
-    "network": {
-      "dns_servers": [],
-      "default_gateways": [],
-      "interfaces": [
-        {
-          "id": "9",
-          "name": "9",
-          "kind": "server_nic",
-          "mac": "8c:84:74:e9:be:84",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "unknown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "10",
-          "name": "10",
-          "kind": "server_nic",
-          "mac": "8c:84:74:e9:be:85",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "unknown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "11",
-          "name": "11",
-          "kind": "server_nic",
-          "mac": "8c:84:74:e9:be:86",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "unknown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "12",
-          "name": "12",
-          "kind": "server_nic",
-          "mac": "8c:84:74:e9:be:87",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "linkup",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "13",
-          "name": "13",
-          "kind": "server_nic",
-          "mac": "d4:f5:ef:69:87:50",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "unknown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "14",
-          "name": "14",
-          "kind": "server_nic",
-          "mac": "d4:f5:ef:69:87:58",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "unknown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "77",
-          "name": "77",
-          "kind": "server_nic",
-          "mac": "d4:f5:ef:69:85:b0",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "linkup",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "78",
-          "name": "78",
-          "kind": "server_nic",
-          "mac": "d4:f5:ef:69:85:b8",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "linkup",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "141",
-          "name": "141",
-          "kind": "server_nic",
-          "mac": "00:62:0b:20:3a:f0",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "unknown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "142",
-          "name": "142",
-          "kind": "server_nic",
-          "mac": "00:62:0b:20:3a:f1",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "unknown",
-          "is_primary": false,
-          "addresses": []
-        }
-      ]
-    },
+    "users": [],
     "firmware": [
       {
         "id": "1",
@@ -685,65 +622,135 @@
         "component": "28"
       }
     ],
-    "power": {
-      "power_supplies": [
+    "system": {
+      "os_family": null,
+      "distribution": null,
+      "version": null,
+      "kernel": null,
+      "architecture": null,
+      "uptime_seconds": null,
+      "selinux": null,
+      "fqdn": null
+    },
+    "storage": {
+      "datastores": [],
+      "controllers": [
         {
-          "name": "HpeServerPowerSupply",
-          "model": "P38995-B21",
-          "serial": "5XLNV0KLLJO5S5",
-          "manufacturer": "LTEON",
-          "power_capacity_w": 800,
-          "firmware_version": "2.00",
-          "health": "Critical",
-          "state": "UnavailableOffline"
-        },
-        {
-          "name": "HpeServerPowerSupply",
-          "model": "P38995-B21",
-          "serial": "5XLNV0KLLJO6RE",
-          "manufacturer": "LTEON",
-          "power_capacity_w": 800,
-          "firmware_version": "2.00",
+          "id": "DE00C000",
+          "name": "HPE MR416i-o Gen11",
           "health": "OK",
-          "state": "Enabled"
+          "drives": [
+            {
+              "device": "1.92TB 6.0G SATA SSD",
+              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            },
+            {
+              "device": "1.92TB 6.0G SATA SSD",
+              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            },
+            {
+              "device": "1.92TB 6.0G SATA SSD",
+              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            },
+            {
+              "device": "1.92TB 6.0G SATA SSD",
+              "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            }
+          ]
         }
       ],
-      "power_control": {
-        "power_consumed_watts": 531,
-        "power_capacity_watts": 800,
-        "interval_in_min": 20,
-        "min_consumed_watts": 531,
-        "avg_consumed_watts": 531,
-        "max_consumed_watts": 536
-      }
+      "physical_disks": [
+        {
+          "id": "0",
+          "device": "1.92TB 6.0G SATA SSD",
+          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+          "serial": "S6ESNT0WC10211",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 100
+        },
+        {
+          "id": "1",
+          "device": "1.92TB 6.0G SATA SSD",
+          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+          "serial": "S6ESNC0W535206",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 100
+        },
+        {
+          "id": "2",
+          "device": "1.92TB 6.0G SATA SSD",
+          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+          "serial": "S6ESNC0W535202",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 99
+        },
+        {
+          "id": "3",
+          "device": "1.92TB 6.0G SATA SSD",
+          "model": "SAMSUNGMZ7L31T9HBLT-00A07",
+          "serial": "S6ESNN0X204289",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 100
+        }
+      ],
+      "filesystems": [],
+      "logical_volumes": [
+        {
+          "id": "239",
+          "name": "RAID1_OS",
+          "controller_id": "DE00C000",
+          "member_drive_ids": [
+            "0",
+            "1"
+          ],
+          "raid_level": "RAID1",
+          "total_mb": 1830880,
+          "health": "OK",
+          "state": "Enabled",
+          "boot_volume": null
+        }
+      ]
     },
-    "users": null
-  },
-  "errors": [],
-  "correlation": {
-    "serial_number": "SGH504HNZK",
-    "system_uuid": "35323550-3433-4753-4835-3034484E5A4B",
-    "bmc_ip": "10.50.11.231",
-    "host_ip": "10.50.11.231"
-  },
-  "meta": {
-    "started_at": "2026-04-01T05:45:20.924167Z",
-    "finished_at": "2026-04-01T05:47:00.649176Z",
-    "duration_ms": null,
-    "adapter_id": "redfish_hpe_ilo5",
-    "adapter_version": "1.0.0",
-    "ansible_version": "2.20.3"
-  },
-  "diagnosis": {
-    "reachable": true,
-    "port_open": true,
-    "protocol_supported": true,
-    "auth_success": true,
-    "failure_stage": null,
-    "failure_reason": null,
-    "details": {
-      "channel": "redfish",
-      "adapter_candidate": "redfish_hpe_ilo5"
+    "cpu": {
+      "sockets": 2,
+      "cores_physical": 64,
+      "logical_threads": 128,
+      "model": "Intel(R) Xeon(R) Gold 6430",
+      "max_speed_mhz": 4000,
+      "architecture": null
     }
-  }
+  },
+  "schema_version": "1"
 }

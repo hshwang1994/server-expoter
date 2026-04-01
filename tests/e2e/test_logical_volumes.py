@@ -8,7 +8,7 @@
   5. 벤더별 볼륨 수 기대값 (실장비 라이브 프로브 기준)
      - Dell R740: 1 volume (RAID1)
      - HPE DL380 Gen11: 1 volume (RAID1)
-     - Lenovo SR650 V2: 1 volume (RAID1)
+     - Lenovo SR650 V2: 0 volumes (JBOD 모드)
      - Cisco C220 M4: 2 volumes (RAID5 + RAID0)
 
 실장비 검증일: 2026-04-01 (Cisco/HPE/Lenovo), Dell은 기존 baseline 유지
@@ -221,14 +221,11 @@ class TestVendorVolumeCount:
         assert len(volumes[0]["member_drive_ids"]) == 2
 
     def test_lenovo_volume_count(self, lenovo_baseline):
-        """Lenovo SR650 V2: 1 volume (RAID1, 2 drives).
-        실장비 프로브: Volume Id=0, Name=OS_VD_01, RAID1, Disk.0+Disk.1."""
+        """Lenovo SR650 V2: 0 volumes (JBOD 모드, 개별 디스크 4개).
+        실 파이프라인 결과 (2026-04-01): logical_volumes 빈 배열.
+        RAID 930-8i 컨트롤러에 4개 SSD가 JBOD로 연결되어 있음."""
         volumes = _get_logical_volumes(lenovo_baseline)
-        assert len(volumes) == 1, f"Lenovo: 1 volume 기대, 실제: {len(volumes)}"
-        assert volumes[0]["raid_level"] == "RAID1"
-        assert volumes[0]["id"] == "0"
-        assert volumes[0]["name"] == "OS_VD_01"
-        assert len(volumes[0]["member_drive_ids"]) == 2
+        assert len(volumes) == 0, f"Lenovo: 0 volumes 기대, 실제: {len(volumes)}"
 
     def test_cisco_volume_count(self, cisco_baseline):
         """Cisco C220 M4: 2 volumes (RAID5 + RAID0).

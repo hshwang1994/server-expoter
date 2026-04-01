@@ -1,11 +1,10 @@
 {
-  "status": "success",
-  "schema_version": "1",
   "target_type": "redfish",
   "collection_method": "redfish_api",
-  "vendor": "lenovo",
   "ip": "10.50.11.232",
-  "hostname": null,
+  "hostname": "XCC-7Z73-J30AF7LC",
+  "vendor": "lenovo",
+  "status": "success",
   "sections": {
     "system": "not_supported",
     "hardware": "success",
@@ -18,31 +17,41 @@
     "users": "not_supported",
     "power": "success"
   },
+  "diagnosis": {
+    "reachable": true,
+    "port_open": true,
+    "protocol_supported": true,
+    "auth_success": true,
+    "failure_stage": null,
+    "failure_reason": null,
+    "details": {
+      "channel": "redfish",
+      "adapter_candidate": "redfish_lenovo_xcc",
+      "checked_ports": [
+        443
+      ],
+      "selected_port": 443,
+      "redfish_version": "1.15.0",
+      "product": null,
+      "systems_uri": "/redfish/v1/Systems"
+    }
+  },
+  "meta": {
+    "started_at": "2026-04-01T04:35:36.202440Z",
+    "finished_at": "2026-04-01T04:37:22.257295Z",
+    "duration_ms": 106000,
+    "adapter_id": "redfish_lenovo_xcc",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+  "correlation": {
+    "serial_number": "J30AF7LC",
+    "system_uuid": "a394fe0c-327a-11ed-8222-3a68dd89594f",
+    "bmc_ip": "10.50.11.232",
+    "host_ip": "10.50.11.232"
+  },
+  "errors": [],
   "data": {
-    "system": {
-      "os_family": null,
-      "distribution": null,
-      "version": null,
-      "kernel": null,
-      "architecture": null,
-      "uptime_seconds": null,
-      "selinux": null,
-      "fqdn": "XCC-7Z73-J30AF7LC"
-    },
-    "hardware": {
-      "vendor": "Lenovo",
-      "model": "ThinkSystem SR650 V2",
-      "serial": "J30AF7LC",
-      "uuid": "a394fe0c-327a-11ed-8222-3a68dd89594f",
-      "sku": "7Z73CTO1WW",
-      "bios_version": "AFE136D",
-      "bios_date": null,
-      "power_state": "On",
-      "health": "Critical",
-      "oem": {
-        "product_name": null
-      }
-    },
     "bmc": {
       "name": "XCC",
       "firmware_version": "AFBT58B 5.70 2025-08-11",
@@ -52,13 +61,66 @@
       "ip": "10.50.11.232",
       "oem": {}
     },
-    "cpu": {
-      "sockets": 2,
-      "cores_physical": 64,
-      "logical_threads": 128,
-      "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
-      "max_speed_mhz": 3200,
-      "architecture": null
+    "network": {
+      "dns_servers": [],
+      "interfaces": [
+        {
+          "id": "ToManager",
+          "name": "Host Ethernet Interface",
+          "kind": "server_nic",
+          "mac": "3a:68:dd:89:59:4f",
+          "mtu": null,
+          "speed_mbps": 100,
+          "link_status": "linkup",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "NIC1",
+          "name": "External Ethernet Interface",
+          "kind": "server_nic",
+          "mac": "6C:FE:54:3C:EC:90",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "linkdown",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "NIC2",
+          "name": "External Ethernet Interface",
+          "kind": "server_nic",
+          "mac": "6C:FE:54:3C:EC:91",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "linkdown",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "NIC3",
+          "name": "External Ethernet Interface",
+          "kind": "server_nic",
+          "mac": "6C:FE:54:3C:EC:92",
+          "mtu": null,
+          "speed_mbps": null,
+          "link_status": "linkdown",
+          "is_primary": false,
+          "addresses": []
+        },
+        {
+          "id": "NIC4",
+          "name": "External Ethernet Interface",
+          "kind": "server_nic",
+          "mac": "6C:FE:54:3C:EC:93",
+          "mtu": null,
+          "speed_mbps": 1000,
+          "link_status": "linkup",
+          "is_primary": false,
+          "addresses": []
+        }
+      ],
+      "default_gateways": []
     },
     "memory": {
       "total_mb": 524288,
@@ -245,178 +307,53 @@
         }
       ]
     },
-    "storage": {
-      "filesystems": [],
-      "physical_disks": [
+    "hardware": {
+      "vendor": "Lenovo",
+      "model": "ThinkSystem SR650 V2",
+      "serial": "J30AF7LC",
+      "uuid": "a394fe0c-327a-11ed-8222-3a68dd89594f",
+      "sku": "7Z73CTO1WW",
+      "bios_version": "AFE136D",
+      "bios_date": null,
+      "power_state": "On",
+      "health": "Critical",
+      "oem": {
+        "product_name": null
+      }
+    },
+    "power": {
+      "power_supplies": [
         {
-          "id": "Disk.0",
-          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-          "model": "MZ7L31T9HBLT-00A07",
-          "serial": "S6ESNC0W626124",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
-          "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 99
+          "name": "PSU1",
+          "model": "LENOVO-SP57A80782",
+          "serial": "D1DG17W02RC",
+          "manufacturer": "DETA",
+          "power_capacity_w": null,
+          "firmware_version": "2.51",
+          "health": "Critical",
+          "state": "Enabled"
         },
         {
-          "id": "Disk.1",
-          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-          "model": "MZ7L31T9HBLT-00A07",
-          "serial": "S6ESNC0W536826",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
+          "name": "PSU2",
+          "model": "LENOVO-SP57B71359",
+          "serial": "A1DB46H1010",
+          "manufacturer": "ACBE",
+          "power_capacity_w": 750,
+          "firmware_version": "2.51",
           "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 99
-        },
-        {
-          "id": "Disk.2",
-          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-          "model": "MZ7L31T9HBLT-00A07",
-          "serial": "S6ESNN0X204291",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
-          "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 99
-        },
-        {
-          "id": "Disk.3",
-          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-          "model": "MZ7L31T9HBLT-00B7C",
-          "serial": "S6KKNT0X248790",
-          "total_mb": 1831420,
-          "media_type": "SSD",
-          "protocol": "SATA",
-          "health": "OK",
-          "failure_predicted": false,
-          "predicted_life_percent": 99
+          "state": "Enabled"
         }
       ],
-      "datastores": [],
-      "controllers": [
-        {
-          "id": "RAID_Slot3",
-          "name": "RAID Storage",
-          "health": "OK",
-          "drives": [
-            {
-              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-              "model": "MZ7L31T9HBLT-00A07",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            },
-            {
-              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-              "model": "MZ7L31T9HBLT-00A07",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            },
-            {
-              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-              "model": "MZ7L31T9HBLT-00A07",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            },
-            {
-              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
-              "model": "MZ7L31T9HBLT-00B7C",
-              "total_mb": 1831420,
-              "media_type": "SSD",
-              "protocol": "SATA",
-              "health": "OK"
-            }
-          ]
-        }
-      ],
-      "logical_volumes": [
-        {
-          "id": "0",
-          "name": "OS_VD_01",
-          "controller_id": "RAID_Slot3",
-          "member_drive_ids": [
-            "Disk.0",
-            "Disk.1"
-          ],
-          "raid_level": "RAID1",
-          "total_mb": 1830101,
-          "health": "OK",
-          "state": "Enabled",
-          "boot_volume": null
-        }
-      ]
+      "power_control": {
+        "power_consumed_watts": 392,
+        "power_capacity_watts": 750,
+        "interval_in_min": 1,
+        "min_consumed_watts": 370,
+        "avg_consumed_watts": 372,
+        "max_consumed_watts": 387
+      }
     },
-    "network": {
-      "dns_servers": [],
-      "default_gateways": [],
-      "interfaces": [
-        {
-          "id": "ToManager",
-          "name": "Host Ethernet Interface",
-          "kind": "server_nic",
-          "mac": "3a:68:dd:89:59:4f",
-          "mtu": null,
-          "speed_mbps": 100,
-          "link_status": "linkup",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "NIC1",
-          "name": "External Ethernet Interface",
-          "kind": "server_nic",
-          "mac": "6C:FE:54:3C:EC:90",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "linkdown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "NIC2",
-          "name": "External Ethernet Interface",
-          "kind": "server_nic",
-          "mac": "6C:FE:54:3C:EC:91",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "linkdown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "NIC3",
-          "name": "External Ethernet Interface",
-          "kind": "server_nic",
-          "mac": "6C:FE:54:3C:EC:92",
-          "mtu": null,
-          "speed_mbps": null,
-          "link_status": "linkdown",
-          "is_primary": false,
-          "addresses": []
-        },
-        {
-          "id": "NIC4",
-          "name": "External Ethernet Interface",
-          "kind": "server_nic",
-          "mac": "6C:FE:54:3C:EC:93",
-          "mtu": null,
-          "speed_mbps": 1000,
-          "link_status": "linkup",
-          "is_primary": false,
-          "addresses": []
-        }
-      ]
-    },
+    "users": [],
     "firmware": [
       {
         "id": "BMC-Primary",
@@ -538,65 +475,120 @@
         "component": "POWER-ACBE6c00-10"
       }
     ],
-    "power": {
-      "power_supplies": [
+    "system": {
+      "os_family": null,
+      "distribution": null,
+      "version": null,
+      "kernel": null,
+      "architecture": null,
+      "uptime_seconds": null,
+      "selinux": null,
+      "fqdn": "XCC-7Z73-J30AF7LC"
+    },
+    "storage": {
+      "datastores": [],
+      "controllers": [
         {
-          "name": "PSU1",
-          "model": "LENOVO-SP57A80782",
-          "serial": "D1DG17W02RC",
-          "manufacturer": "DETA",
-          "power_capacity_w": null,
-          "firmware_version": "2.51",
-          "health": "Critical",
-          "state": "Enabled"
-        },
-        {
-          "name": "PSU2",
-          "model": "LENOVO-SP57B71359",
-          "serial": "A1DB46H1010",
-          "manufacturer": "ACBE",
-          "power_capacity_w": 750,
-          "firmware_version": "2.51",
+          "id": "RAID_Slot3",
+          "name": "RAID Storage",
           "health": "OK",
-          "state": "Enabled"
+          "drives": [
+            {
+              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+              "model": "MZ7L31T9HBLT-00A07",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            },
+            {
+              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+              "model": "MZ7L31T9HBLT-00A07",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            },
+            {
+              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+              "model": "MZ7L31T9HBLT-00A07",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            },
+            {
+              "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+              "model": "MZ7L31T9HBLT-00B7C",
+              "total_mb": 1831420,
+              "media_type": "SSD",
+              "protocol": "SATA",
+              "health": "OK"
+            }
+          ]
         }
       ],
-      "power_control": {
-        "power_consumed_watts": 395,
-        "power_capacity_watts": 750,
-        "interval_in_min": 1,
-        "min_consumed_watts": 368,
-        "avg_consumed_watts": 371,
-        "max_consumed_watts": 374
-      }
+      "physical_disks": [
+        {
+          "id": "Disk.0",
+          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+          "model": "MZ7L31T9HBLT-00A07",
+          "serial": "S6ESNC0W626124",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 99
+        },
+        {
+          "id": "Disk.1",
+          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+          "model": "MZ7L31T9HBLT-00A07",
+          "serial": "S6ESNC0W536826",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 99
+        },
+        {
+          "id": "Disk.2",
+          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+          "model": "MZ7L31T9HBLT-00A07",
+          "serial": "S6ESNN0X204291",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 99
+        },
+        {
+          "id": "Disk.3",
+          "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
+          "model": "MZ7L31T9HBLT-00B7C",
+          "serial": "S6KKNT0X248790",
+          "total_mb": 1831420,
+          "media_type": "SSD",
+          "protocol": "SATA",
+          "health": "OK",
+          "failure_predicted": false,
+          "predicted_life_percent": 99
+        }
+      ],
+      "filesystems": [],
+      "logical_volumes": []
     },
-    "users": null
-  },
-  "errors": [],
-  "correlation": {
-    "serial_number": "J30AF7LC",
-    "system_uuid": "a394fe0c-327a-11ed-8222-3a68dd89594f",
-    "bmc_ip": "10.50.11.232",
-    "host_ip": "10.50.11.232"
-  },
-  "meta": {
-    "started_at": "2026-04-01T05:47:00.653833Z",
-    "finished_at": "2026-04-01T05:47:31.955216Z",
-    "duration_ms": null,
-    "adapter_id": "redfish_lenovo_xcc",
-    "adapter_version": "1.0.0",
-    "ansible_version": "2.20.3"
-  },
-  "diagnosis": {
-    "reachable": true,
-    "port_open": true,
-    "protocol_supported": true,
-    "auth_success": true,
-    "failure_stage": null,
-    "failure_reason": null,
-    "details": {
-      "channel": "redfish",
-      "adapter_candidate": "redfish_lenovo_xcc"
+    "cpu": {
+      "sockets": 2,
+      "cores_physical": 64,
+      "logical_threads": 128,
+      "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
+      "max_speed_mhz": 3200,
+      "architecture": null
     }
-  }
+  },
+  "schema_version": "1"
 }

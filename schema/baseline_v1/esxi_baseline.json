@@ -26,7 +26,7 @@
     "failure_reason": null,
     "details": {
       "channel": "esxi",
-      "adapter_candidate": null,
+      "adapter_candidate": "esxi_generic",
       "checked_ports": [
         443
       ],
@@ -35,9 +35,9 @@
     }
   },
   "meta": {
-    "started_at": "2026-03-23T00:07:51.717862Z",
-    "finished_at": "2026-03-23T00:08:00.534721Z",
-    "duration_ms": 9000,
+    "started_at": "2026-04-01T04:35:55.091641Z",
+    "finished_at": "2026-04-01T04:36:03.709299Z",
+    "duration_ms": 8000,
     "adapter_id": "esxi_generic",
     "adapter_version": "1.0.0",
     "ansible_version": "2.20.3"
@@ -50,14 +50,8 @@
   },
   "errors": [],
   "data": {
-    "memory": {
-      "total_mb": 1048464,
-      "total_basis": "hypervisor_visible",
-      "installed_mb": null,
-      "visible_mb": 1048464,
-      "free_mb": 520309,
-      "slots": []
-    },
+    "users": [],
+    "bmc": null,
     "hardware": {
       "vendor": "Cisco Systems Inc",
       "model": "TA-UNODE-G1",
@@ -65,6 +59,32 @@
       "uuid": "9f0190b1-ce56-d44e-a1dd-6571daaedad7",
       "bios_version": "C220M4.4.1.2c.0.0202211901",
       "bios_date": "2021-02-02T00:00:00+00:00"
+    },
+    "storage": {
+      "logical_volumes": [],
+      "filesystems": [],
+      "controllers": [],
+      "physical_disks": [],
+      "datastores": [
+        {
+          "name": "ESXi02-Local-RAID5",
+          "type": "VMFS",
+          "total_mb": 5968384,
+          "free_mb": 1019778,
+          "used_mb": 4948606,
+          "usage_percent": 82.9,
+          "accessible": true
+        },
+        {
+          "name": "ESXi02-Local-RAID0",
+          "type": "VMFS",
+          "total_mb": 10986240,
+          "free_mb": 458944,
+          "used_mb": 10527296,
+          "usage_percent": 95.8,
+          "accessible": true
+        }
+      ]
     },
     "cpu": {
       "sockets": 2,
@@ -79,11 +99,11 @@
       "version": "7.0.3",
       "kernel": "20842708",
       "architecture": null,
-      "uptime_seconds": 9150147,
+      "uptime_seconds": 9943827,
       "selinux": null,
       "fqdn": "10.100.64.2"
     },
-    "users": [],
+    "firmware": [],
     "network": {
       "default_gateways": [],
       "dns_servers": [],
@@ -109,35 +129,15 @@
         }
       ]
     },
-    "storage": {
-      "physical_disks": [],
-      "logical_volumes": [],
-      "controllers": [],
-      "filesystems": [],
-      "datastores": [
-        {
-          "name": "ESXi02-Local-RAID5",
-          "type": "VMFS",
-          "total_mb": 5968384,
-          "free_mb": 1043677,
-          "used_mb": 4924707,
-          "usage_percent": 82.5,
-          "accessible": true
-        },
-        {
-          "name": "ESXi02-Local-RAID0",
-          "type": "VMFS",
-          "total_mb": 10986240,
-          "free_mb": 458988,
-          "used_mb": 10527252,
-          "usage_percent": 95.8,
-          "accessible": true
-        }
-      ]
-    },
     "power": null,
-    "bmc": null,
-    "firmware": []
+    "memory": {
+      "total_mb": 1048464,
+      "total_basis": "hypervisor_visible",
+      "installed_mb": null,
+      "visible_mb": 1048464,
+      "free_mb": 518190,
+      "slots": []
+    }
   },
   "schema_version": "1"
 }
