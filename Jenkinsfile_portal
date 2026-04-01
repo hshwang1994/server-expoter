@@ -3,7 +3,7 @@
 //
 // ClovierONE Portal 전용 파이프라인 (Large-Scale)
 //
-// ⚠️  필수 Jenkins 설정 (1000대 호스트 대응)
+// [필수] Jenkins 설정 (1000대 호스트 대응)
 // =============================================================================
 // Jenkins 메모리 설정 (4GB 이상 권장):
 //
@@ -278,19 +278,19 @@ pipeline {
                             try {
                                 def parsed = readJSON text: line
                                 gatherResults.add(parsed)
-                                echo "[Callback] ✓ 호스트 ${gatherResults.size()} 파싱 완료: ${parsed.hostname ?: parsed.ip ?: 'unknown'}"
+                                echo "[Callback] [OK] 호스트 ${gatherResults.size()} 파싱 완료: ${parsed.hostname ?: parsed.ip ?: 'unknown'}"
                             } catch (Exception e) {
                                 failedParseCount++
                                 if (failedParseExamples.size() < 2) {
                                     failedParseExamples.add("Line ${i}: ${line.take(150)}...")
                                 }
-                                echo "[Callback] ✗ JSON 파싱 실패 (라인 ${i}): ${e.message}"
+                                echo "[Callback] [FAIL] JSON 파싱 실패 (라인 ${i}): ${e.message}"
                             }
                         }
                     }
 
                     if (gatherResults.isEmpty()) {
-                        echo "[Callback] ✗ FATAL: gather 결과 JSON 을 찾지 못했습니다"
+                        echo "[Callback] [FATAL] gather 결과 JSON 을 찾지 못했습니다"
                         if (failedParseCount > 0) {
                             echo "[Callback] 파싱 시도한 라인: ${failedParseCount}개"
                             failedParseExamples.each { echo "[Callback] 예시: ${it}" }
@@ -319,19 +319,19 @@ pipeline {
 
                     def bodySize = callbackBody.length()
                     def bodySizeMB = (bodySize / 1024.0 / 1024.0).round(2)
-                    echo "[Callback] ✓ body size=${bodySize} bytes (${bodySizeMB} MB), hosts=${gatherResults.size()}"
+                    echo "[Callback] [OK] body size=${bodySize} bytes (${bodySizeMB} MB), hosts=${gatherResults.size()}"
 
                     // 1000대 일괄 전송 대응: 크기 경고만 (배치 분할 없음)
                     // 포털 API에서 큰 body를 지원해야 함
                     if (bodySize > 10485760) {  // 10MB 초과
-                        echo "[Callback] ⚠️  WARNING: body 크기가 10MB 초과 (${bodySizeMB}MB)"
+                        echo "[Callback] [WARNING] body 크기가 10MB 초과 (${bodySizeMB}MB)"
                         echo "[Callback] - 호스트 수: ${gatherResults.size()}개"
                         echo "[Callback] - 포털 API가 큰 body를 지원하는지 확인하세요"
                         echo "[Callback] - HTTP timeout: 최소 300초 이상 권장"
                         echo "[Callback] - Jenkins heap: 4GB 이상 권장"
                     }
                     if (bodySize > 52428800) {  // 50MB 초과
-                        echo "[Callback] ⚠️  DANGER: body 크기가 50MB 초과 (${bodySizeMB}MB)"
+                        echo "[Callback] [DANGER] body 크기가 50MB 초과 (${bodySizeMB}MB)"
                         echo "[Callback] - 포털 API 제한 확인 필수"
                         echo "[Callback] - 진행을 중단하려면 콘솔에서 [Q] 입력"
                     }
@@ -370,7 +370,7 @@ pipeline {
                             try {
                                 def parsedResponse = readJSON text: responseBody
                                 if (parsedResponse.status == 'success' || parsedResponse.success == true) {
-                                    echo "[Callback] ✓ 포털 응답 성공 (${attempt}/${maxRetries}): HTTP ${response.status}"
+                                    echo "[Callback] [OK] 포털 응답 성공 (${attempt}/${maxRetries}): HTTP ${response.status}"
                                     if (parsedResponse.message) {
                                         echo "[Callback] 포털 메시지: ${parsedResponse.message}"
                                     }
@@ -378,24 +378,24 @@ pipeline {
                                     break
                                 } else {
                                     lastError = "포털 응답 오류: ${parsedResponse.message ?: responseBody.take(200)}"
-                                    echo "[Callback] ✗ 포털 비즈니스 오류 (${attempt}/${maxRetries}): ${lastError}"
+                                    echo "[Callback] [FAIL] 포털 비즈니스 오류 (${attempt}/${maxRetries}): ${lastError}"
                                 }
                             } catch (Exception parseErr) {
                                 // Response body가 JSON이 아닐 수도 있음 (HTML 오류 페이지 등)
                                 if (response.status >= 200 && response.status < 300) {
-                                    echo "[Callback] ✓ HTTP 성공이지만 응답 파싱 실패 (${attempt}/${maxRetries}): HTTP ${response.status}"
+                                    echo "[Callback] [OK] HTTP 성공이지만 응답 파싱 실패 (${attempt}/${maxRetries}): HTTP ${response.status}"
                                     echo "[Callback] 응답 샘플: ${responseBody.take(200)}"
                                     success = true
                                     break
                                 } else {
                                     lastError = "응답 파싱 실패: ${parseErr.message}"
-                                    echo "[Callback] ✗ 응답 파싱 오류: ${lastError}"
+                                    echo "[Callback] [FAIL] 응답 파싱 오류: ${lastError}"
                                 }
                             }
                         } catch (Exception e) {
                             lastError = e.message
                             lastHttpStatus = e.toString().contains('408') ? 408 : 0
-                            echo "[Callback] ✗ HTTP 요청 실패 (${attempt}/${maxRetries}): ${e.message}"
+                            echo "[Callback] [FAIL] HTTP 요청 실패 (${attempt}/${maxRetries}): ${e.message}"
                             if (attempt < maxRetries) {
                                 def waitTime = attempt * 10  // 10초, 20초, 30초
                                 echo "[Callback] ${waitTime}초 후 재시도..."
@@ -405,7 +405,7 @@ pipeline {
                     }
 
                     if (!success) {
-                        def errorMsg = "[Callback] ✗ FATAL: ${maxRetries}회 재시도 후 포털 전달 실패"
+                        def errorMsg = "[Callback] [FATAL] ${maxRetries}회 재시도 후 포털 전달 실패"
                         if (lastError) {
                             errorMsg += " -- 원인: ${lastError}"
                         }
@@ -442,7 +442,7 @@ pipeline {
         }
         success {
             script {
-                echo "[Post] ✓ 성공: Gather + Callback 완료"
+                echo "[Post] [OK] 성공: Gather + Callback 완료"
                 echo "[Post] 포털 데이터 수신 완료 (eventUuid: ${params.eventUuid})"
                 echo "[Post] 일괄 전송 또는 배치 분할 전송 성공"
             }
@@ -458,12 +458,12 @@ pipeline {
         }
         failure {
             script {
-                echo "[Post] ✗ 실패: Gather 또는 Callback 실패"
+                echo "[Post] [FAIL] 실패: Gather 또는 Callback 실패"
                 echo "[Post] 원인 분석:"
                 echo "[Post] 1. [Validate] 섹션: 파라미터 검증 오류"
                 echo "[Post] 2. [Gather] 섹션: Ansible 수집 실패"
                 echo "[Post] 3. [Callback] 섹션: 포털 전달 실패"
-                echo "[Post] 상세 로그 확인: 콘솔 로그의 ✗ 마크 부분"
+                echo "[Post] 상세 로그 확인: 콘솔 로그의 [FAIL] 마크 부분"
                 echo "[Post] 포털에 결과 미전달 (eventUuid: ${params.eventUuid})"
                 echo "[Post] 재시도: 포털에서 Job 재실행"
             }
