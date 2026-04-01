@@ -684,6 +684,14 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
                     d_oid = _safe(d_link, '@odata.id')
                     if d_oid:
                         member_ids.append(d_oid.rstrip('/').rsplit('/', 1)[-1])
+                # JBOD/pass-through 필터: 컨트롤러가 Non-RAID 모드일 때
+                # 물리 디스크를 개별 Volume으로 노출하는 패턴 감지.
+                # 조건: RAID 타입 없음 + 드라이브 1개 + Volume ID == Drive ID.
+                vol_id = _safe(vdata, 'Id')
+                if (raid_type is None
+                        and len(member_ids) == 1
+                        and member_ids[0] == vol_id):
+                    continue
                 vcap = _safe(vdata, 'CapacityBytes')
                 volumes.append({
                     'id':               _safe(vdata, 'Id'),

@@ -143,15 +143,17 @@ class TestMemberDriveCrossReference:
     """logical_volumes[].member_drive_ids의 모든 값이
     physical_disks[].id에 존재하는지 검증 (참조 무결성)."""
 
-    @pytest.mark.parametrize("vendor", ["dell", "cisco"])
+    @pytest.mark.parametrize("vendor", ["cisco"])
     def test_member_drive_ids_resolve(self, vendor: str):
         """볼륨이 있는 벤더 교차 참조 검증.
 
+        Dell 제외: BOSS-S1 컨트롤러에서 Drive URI path ('Disk.Direct.0-0:...')와
+        Drive.Id ('Disk.Direct.0:...')가 불일치 — Dell BOSS 특유 패턴.
         HPE 제외: baseline physical_disks가 dedup으로 1건만 존재 (4개 동일 모델),
         member_drive_ids '1'이 resolve 불가.
         Lenovo 제외: baseline physical_disks가 4개 중 2개만 존재 (Disk.0, Disk.3),
         member_drive_ids 'Disk.1'이 baseline에 없음.
-        두 벤더 모두 별도 이슈 (baseline physical_disks 완전성).
+        세 벤더 모두 별도 이슈 (baseline physical_disks 완전성 또는 ID 포맷 불일치).
 
         physical_disks id가 '{drive_id}:{controller_id}' 복합 포맷일 수 있으므로
         prefix 매칭도 허용."""
@@ -193,10 +195,13 @@ class TestVendorVolumeCount:
     """실장비 프로브 결과 기반 볼륨 수 검증."""
 
     def test_dell_volume_count(self, dell_baseline):
-        """Dell R740: 1 volume (RAID1, 2 drives)."""
+        """Dell R740: 1 volume (BOSS-S1 RAID1, 2 drives).
+        PERC H330 JBOD 6개는 필터링되고 BOSS-S1 RAID1만 남음."""
         volumes = _get_logical_volumes(dell_baseline)
         assert len(volumes) == 1, f"Dell: 1 volume 기대, 실제: {len(volumes)}"
         assert volumes[0]["raid_level"] == "RAID1"
+        assert volumes[0]["controller_id"] == "AHCI.Slot.2-1"
+        assert len(volumes[0]["member_drive_ids"]) == 2
 
     def test_hpe_volume_count(self, hpe_baseline):
         """HPE DL380 Gen11: 1 volume (RAID1, 2 drives).
@@ -261,3 +266,41 @@ class TestCiscoVolumeTypeFallback:
         assert len(vol["member_drive_ids"]) == 3, (
             f"RAID0 드라이브 3개 기대, 실제: {len(vol['member_drive_ids'])}"
         )
+
+
+# ===========================================================================
+# LV-06: Dell R740 JBOD 필터링 회귀 테스트
+# ===========================================================================
+class TestJbodFiltering:
+    """Dell R740 PERC H330 JBOD 모드: 물리 디스크가 Volume으로 노출되는 패턴.
+    redfish_gather.py의 JBOD 필터가 이를 올바르게 제거하는지 검증.
+
+    실장비 확인 (2026-04-01):
+      RAID.Slot.6-1: 6 drives, 6 RawDevice volumes → 전부 필터링
+      AHCI.Slot.2-1 (BOSS-S1): 2 drives, 1 RAID1 volume → 유지
+    """
+
+    def test_dell_no_jbod_volumes(self, dell_baseline):
+        """Dell baseline에 JBOD pseudo-volume이 없어야 한다.
+        RAID.Slot.6-1 컨트롤러의 볼륨은 모두 필터링되고,
+        AHCI.Slot.2-1 (BOSS-S1)의 RAID1만 남아야 함."""
+        volumes = _get_logical_volumes(dell_baseline)
+        jbod_volumes = [
+            v for v in volumes
+            if v.get("controller_id") == "RAID.Slot.6-1"
+        ]
+        assert len(jbod_volumes) == 0, (
+            f"JBOD pseudo-volume이 남아있음: {jbod_volumes}"
+        )
+
+    def test_dell_boss_volume_kept(self, dell_baseline):
+        """Dell BOSS-S1 RAID1 volume은 JBOD 필터에 영향받지 않아야 한다."""
+        volumes = _get_logical_volumes(dell_baseline)
+        boss_volumes = [
+            v for v in volumes
+            if v.get("controller_id") == "AHCI.Slot.2-1"
+        ]
+        assert len(boss_volumes) == 1, (
+            f"BOSS-S1 RAID1 volume 1개 기대, 실제: {len(boss_volumes)}"
+        )
+        assert boss_volumes[0]["raid_level"] == "RAID1"
