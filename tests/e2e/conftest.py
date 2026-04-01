@@ -236,7 +236,8 @@ def assert_channel_critical_fields(output: dict, critical_fields: dict,
 #   - P2-2 2단계
 # ---------------------------------------------------------------------------
 REDFISH_ARRAY_FIELDS = {
-    "storage.physical_disks": ["predicted_life_percent"],
+    "storage.physical_disks": ["predicted_life_percent", "id"],
+    "storage.logical_volumes": ["id", "controller_id", "member_drive_ids", "raid_level"],
     "power.power_supplies": ["state"],
     "firmware": ["component"],  # top-level 배열 (data.firmware[])
     "network.interfaces": ["link_status"],

@@ -114,6 +114,7 @@
       "filesystems": [],
       "physical_disks": [
         {
+          "id": "Drive-0:RAID_Slot3",
           "device": "1.92TB 6Gbps SATA 2.5 SSD (SED)",
           "model": "MZ7L31T9HBLT-00A07",
           "serial": "S6ESNC0W626124",
@@ -144,6 +145,19 @@
               "predicted_life_percent": 99
             }
           ]
+        }
+      ],
+      "logical_volumes": [
+        {
+          "id": "0",
+          "name": "Volume 0",
+          "controller_id": "RAID_Slot3",
+          "member_drive_ids": ["Drive-0:RAID_Slot3"],
+          "raid_level": "RAID1",
+          "total_mb": 915710,
+          "health": "OK",
+          "state": "Enabled",
+          "boot_volume": null
         }
       ]
     },

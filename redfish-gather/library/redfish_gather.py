@@ -537,9 +537,10 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             errors.append(_err('storage', f'Storage 미지원, SimpleStorage fallback 사용'))
         else:
             errors.append(_err('storage', f'Storage/SimpleStorage 모두 실패: {err or st}'))
-            return [], errors
+            return {'controllers': [], 'volumes': []}, errors
 
     controllers = []
+    volumes = []
 
     if use_simple:
         # SimpleStorage: 플랫 디바이스 목록 (컨트롤러/드라이브 분리 없음)
@@ -554,6 +555,7 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             for dev in (_safe(sdata, 'Devices') or []):
                 cap = _safe(dev, 'CapacityBytes')
                 drives.append({
+                    'id':             None,
                     'name':           _safe(dev, 'Name'),
                     'model':          _safe(dev, 'Model'),
                     'serial':         None,
@@ -629,6 +631,7 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
                 if life_pct is not None:
                     life_pct = int(life_pct)
                 drives.append({
+                    'id':             _safe(ddata, 'Id'),
                     'name':           _safe(ddata, 'Name'),
                     'model':          _safe(ddata, 'Model'),
                     'serial':         _safe(ddata, 'SerialNumber'),
@@ -648,7 +651,53 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             }
             ctrl_entry.update(ctrl_info)
             controllers.append(ctrl_entry)
-    return controllers, errors
+
+            # ── Volumes (RAID 논리 볼륨) ──────────────────────────────────
+            vol_link = _safe(sdata, 'Volumes', '@odata.id')
+            if not vol_link:
+                continue
+            vst, vcoll, verr = _get(bmc_ip, _p(vol_link), username, password, timeout, verify_ssl)
+            if verr or vst != 200:
+                # Volumes 미지원(HBA 모드 등)은 정상 — 에러 추가하지 않음
+                continue
+            for v_member in (_safe(vcoll, 'Members') or []):
+                v_uri = _safe(v_member, '@odata.id')
+                if not v_uri:
+                    continue
+                vst2, vdata, verr2 = _get(bmc_ip, _p(v_uri), username, password, timeout, verify_ssl)
+                if verr2 or vst2 != 200:
+                    errors.append(_err('storage', f'Volume {v_uri} 실패: {verr2 or vst2}'))
+                    continue
+                # RAIDType 추출 (표준 필드 우선, Dell VolumeType fallback)
+                raid_type = _safe(vdata, 'RAIDType')
+                if not raid_type:
+                    vt = _safe(vdata, 'VolumeType')
+                    vt_map = {
+                        'NonRedundant': 'RAID0', 'Mirrored': 'RAID1',
+                        'StripedWithParity': 'RAID5', 'SpannedMirrors': 'RAID10',
+                        'SpannedStripesWithParity': 'RAID50',
+                    }
+                    raid_type = vt_map.get(vt)
+                # member_drive_ids: Links.Drives[]의 @odata.id에서 마지막 path segment 추출
+                member_ids = []
+                for d_link in (_safe(vdata, 'Links', 'Drives') or []):
+                    d_oid = _safe(d_link, '@odata.id')
+                    if d_oid:
+                        member_ids.append(d_oid.rstrip('/').rsplit('/', 1)[-1])
+                vcap = _safe(vdata, 'CapacityBytes')
+                volumes.append({
+                    'id':               _safe(vdata, 'Id'),
+                    'name':             _safe(vdata, 'Name'),
+                    'controller_id':    _safe(sdata, 'Id'),
+                    'member_drive_ids': member_ids,
+                    'raid_level':       raid_type,
+                    'total_mb':         int(int(vcap) / 1048576) if vcap else None,
+                    'health':           _safe(vdata, 'Status', 'Health'),
+                    'state':            _safe(vdata, 'Status', 'State'),
+                    'boot_volume':      _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None
+                                        if _safe(vdata, 'Oem', 'Dell') else None,
+                })
+    return {'controllers': controllers, 'volumes': volumes}, errors
 
 
 def gather_network(bmc_ip, system_uri, username, password, timeout, verify_ssl):

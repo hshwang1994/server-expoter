@@ -65,6 +65,7 @@
           {%- set total_mb = (d.total | int / 1048576) | round(0,'floor') | int -%}
           {%- if total_mb > 0 -%}
             {%- set _ = out.append({
+              'id':         d.device,
               'device':     d.device,
               'model':      d.model | default(none),
               'total_mb':   total_mb,
@@ -82,10 +83,11 @@
   ansible.builtin.set_fact:
     _data_fragment:
       storage:
-        filesystems:    "{{ _w_norm_filesystems }}"
-        physical_disks: "{{ _w_physical_disks }}"
-        datastores:     []
-        controllers:    []
+        filesystems:     "{{ _w_norm_filesystems }}"
+        physical_disks:  "{{ _w_physical_disks }}"
+        datastores:      []
+        controllers:     []
+        logical_volumes: []
     _sections_supported_fragment: ['storage']
     _sections_collected_fragment: ['storage']
     _sections_failed_fragment:    []

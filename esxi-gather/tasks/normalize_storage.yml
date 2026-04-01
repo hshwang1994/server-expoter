@@ -38,10 +38,11 @@
   ansible.builtin.set_fact:
     _data_fragment:
       storage:
-        filesystems:    []
-        physical_disks: []
-        datastores:     "{{ _e_norm_datastores }}"
-        controllers:    []
+        filesystems:     []
+        physical_disks:  []
+        datastores:      "{{ _e_norm_datastores }}"
+        controllers:     []
+        logical_volumes: []
     _sections_supported_fragment: ['storage']
     _sections_collected_fragment: >-
       {{ ['storage'] if _e_ds_ok | bool else [] }}

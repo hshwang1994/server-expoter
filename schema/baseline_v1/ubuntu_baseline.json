@@ -104,6 +104,7 @@
       ],
       "physical_disks": [
         {
+          "id": "/dev/sda",
           "device": "/dev/sda",
           "model": "Virtual disk",
           "total_mb": 102400,
@@ -112,6 +113,7 @@
           "health": null
         }
       ],
+      "logical_volumes": [],
       "datastores": [],
       "controllers": []
     },

@@ -46,13 +46,14 @@ sections:
   storage:
     key: storage
     display_name: "스토리지 정보"
-    description: "파일시스템, 물리 디스크, 컨트롤러, 데이터스토어"
+    description: "파일시스템, 물리 디스크, 컨트롤러, 데이터스토어, 논리 볼륨"
     channels: [os, esxi, redfish]
     empty_value:
       filesystems: []
       physical_disks: []
       datastores: []
       controllers: []
+      logical_volumes: []
 
   network:
     key: network

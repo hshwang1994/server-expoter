@@ -226,6 +226,23 @@ fields:
       physical_disks shows all disks once without controller grouping.
       Drives with CapacityBytes=0 (Empty Bay, FlexFlash) are excluded.
 
+  "storage.physical_disks[].id":
+    type: "string|null"
+    priority: must
+    channel: [redfish, os]
+    help_ko: >-
+      물리 디스크 식별자. logical_volumes[].member_drive_ids에서 참조됨.
+      Redfish: Drive의 Id (예: Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.6-1).
+      OS(Linux): device path (예: /dev/sda).
+      OS(Windows): DeviceID (예: \\.\PhysicalDrive0).
+      ESXi: 수집하지 않음 (null).
+    help_en: >-
+      Physical disk identifier. Referenced by logical_volumes[].member_drive_ids.
+      Redfish: Drive Id (e.g., Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.6-1).
+      OS(Linux): device path (e.g., /dev/sda).
+      OS(Windows): DeviceID (e.g., \\.\PhysicalDrive0).
+      ESXi: not collected (null).
+
   "storage.physical_disks[].predicted_life_percent":
     type: "integer|null"
     priority: must
@@ -253,6 +270,142 @@ fields:
       Drives attached to this storage controller.
       Same disks as physical_disks[] but grouped by controller.
       Use this path for RAID configuration analysis.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # storage — logical volumes (RAID)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  "storage.logical_volumes[]":
+    type: "array of object"
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      RAID 논리 볼륨 목록. Redfish /Storage/{id}/Volumes에서 수집.
+      controllers[].id, physical_disks[].id와 관계를 형성:
+      logical_volumes[].controller_id → controllers[].id,
+      logical_volumes[].member_drive_ids → physical_disks[].id.
+      OS/ESXi 채널에서는 빈 배열 [].
+      HBA 모드(RAID 미구성) 서버에서도 빈 배열 [].
+    help_en: >-
+      RAID logical volume list. Collected from Redfish /Storage/{id}/Volumes.
+      Forms relationships with controllers[].id and physical_disks[].id:
+      logical_volumes[].controller_id → controllers[].id,
+      logical_volumes[].member_drive_ids → physical_disks[].id.
+      Empty array [] for OS/ESXi channels and HBA-mode servers.
+
+  "storage.logical_volumes[].raid_level":
+    type: "string|null"
+    enum: ["RAID0", "RAID1", "RAID5", "RAID6", "RAID10", "RAID50", "JBOD"]
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      RAID 레벨. 표준 RAIDType 필드 우선 사용.
+      Dell 레거시 펌웨어에서 RAIDType 미제공 시 VolumeType으로 fallback
+      (Mirrored→RAID1, StripedWithParity→RAID5 등).
+      null=RAID 레벨을 판별할 수 없는 경우.
+    help_en: >-
+      RAID level. Uses standard RAIDType field first.
+      Falls back to Dell legacy VolumeType mapping when RAIDType is absent
+      (Mirrored→RAID1, StripedWithParity→RAID5, etc.).
+      null=RAID level could not be determined.
+
+  "storage.logical_volumes[].member_drive_ids":
+    type: "array of string"
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      이 논리 볼륨을 구성하는 물리 드라이브 Id 목록.
+      physical_disks[].id와 매칭하여 물리↔논리 관계를 확인할 수 있음.
+      Redfish Volume의 Links.Drives[].@odata.id에서 추출.
+    help_en: >-
+      List of physical drive Ids composing this logical volume.
+      Match against physical_disks[].id to trace physical↔logical relationships.
+      Extracted from Redfish Volume Links.Drives[].@odata.id.
+
+  "storage.logical_volumes[].controller_id":
+    type: "string|null"
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      이 논리 볼륨이 속한 스토리지 컨트롤러의 Id.
+      controllers[].id와 매칭하여 컨트롤러↔볼륨 관계를 확인할 수 있음.
+    help_en: >-
+      Storage controller Id that this logical volume belongs to.
+      Match against controllers[].id to trace controller↔volume relationships.
+
+  "storage.logical_volumes[].id":
+    type: "string|null"
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      논리 볼륨 식별자. Redfish Volume의 Id.
+      Dell: Disk.Virtual.0:RAID.Slot.6-1 형태.
+      HPE: 숫자 (예: 1).
+      Lenovo: 숫자 (예: 0).
+    help_en: >-
+      Logical volume identifier. Redfish Volume Id.
+      Dell: Disk.Virtual.0:RAID.Slot.6-1 format.
+      HPE: numeric (e.g., 1).
+      Lenovo: numeric (e.g., 0).
+
+  "storage.logical_volumes[].name":
+    type: "string|null"
+    priority: nice
+    channel: [redfish]
+    help_ko: "논리 볼륨 이름 (예: Virtual Disk 0)."
+    help_en: "Logical volume name (e.g., Virtual Disk 0)."
+
+  "storage.logical_volumes[].total_mb":
+    type: "integer|null"
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      논리 볼륨 용량 (MB). CapacityBytes를 1048576으로 나눈 값.
+      RAID 레벨에 따라 물리 디스크 합산 용량과 다를 수 있음.
+      예: RAID1 2×480GB → 약 457GB 볼륨.
+    help_en: >-
+      Logical volume capacity (MB). CapacityBytes / 1048576.
+      May differ from raw physical disk total depending on RAID level.
+      Example: RAID1 2×480GB → ~457GB volume.
+
+  "storage.logical_volumes[].health":
+    type: "string|null"
+    enum: ["OK", "Warning", "Critical"]
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      논리 볼륨 건강 상태.
+      OK=정상, Warning=주의 필요, Critical=장애.
+      null=BMC가 이 필드를 제공하지 않는 경우.
+    help_en: >-
+      Logical volume health.
+      OK=healthy, Warning=attention needed, Critical=fault.
+      null=BMC does not provide this field.
+
+  "storage.logical_volumes[].state":
+    type: "string|null"
+    enum: ["Enabled", "Degraded", "Offline"]
+    priority: must
+    channel: [redfish]
+    help_ko: >-
+      논리 볼륨 동작 상태.
+      Enabled=정상 동작, Degraded=성능 저하 (드라이브 장애 등),
+      Offline=비활성.
+    help_en: >-
+      Logical volume operational state.
+      Enabled=operating normally, Degraded=reduced performance (drive failure etc.),
+      Offline=inactive.
+
+  "storage.logical_volumes[].boot_volume":
+    type: "boolean|null"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      부트 볼륨 여부. Dell OEM(DellVolume.BootVolumeSource)에서만 판별 가능.
+      기타 벤더에서는 null.
+    help_en: >-
+      Whether this is a boot volume. Only determinable from Dell OEM
+      (DellVolume.BootVolumeSource). null for other vendors.
 
   # ──────────────────────────────────────────────────────────────────────────
   # network

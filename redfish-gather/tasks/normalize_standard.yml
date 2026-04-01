@@ -8,7 +8,7 @@
     _rf_d_bmc:     "{{ _rf_raw_collect.data.bmc         | default(none) }}"
     _rf_d_procs:   "{{ _rf_raw_collect.data.processors  | default([]) }}"
     _rf_d_memory:  "{{ _rf_raw_collect.data.memory      | default({}) }}"
-    _rf_d_storage: "{{ _rf_raw_collect.data.storage     | default([]) }}"
+    _rf_d_storage: "{{ _rf_raw_collect.data.storage     | default({}) }}"
     _rf_d_network: "{{ _rf_raw_collect.data.network     | default([]) }}"
     _rf_d_firmware: "{{ _rf_raw_collect.data.firmware    | default([]) }}"
     _rf_d_power:   "{{ _rf_raw_collect.data.power       | default(none) }}"
@@ -65,7 +65,7 @@
   ansible.builtin.set_fact:
     _rf_norm_controllers: >-
       {%- set out = [] -%}
-      {%- for ctrl in (_rf_d_storage | default([])) -%}
+      {%- for ctrl in (_rf_d_storage.controllers | default([])) -%}
         {%- set drives = [] -%}
         {%- for drv in (ctrl.drives | default([])) -%}
           {%- set _ = drives.append({
@@ -89,12 +89,13 @@
     _rf_norm_physical_disks: >-
       {%- set out = [] -%}
       {%- set seen = [] -%}
-      {%- for ctrl in (_rf_d_storage | default([])) -%}
+      {%- for ctrl in (_rf_d_storage.controllers | default([])) -%}
         {%- for drv in (ctrl.drives | default([])) -%}
           {%- set key = (drv.name|default(''))~(drv.model|default(''))~(drv.serial|default('')) -%}
           {%- if key not in seen and (drv.name or drv.model) -%}
             {%- set _ = seen.append(key) -%}
             {%- set _ = out.append({
+              'id':         drv.id|default(none),
               'device':     drv.name|default(none),
               'model':      drv.model|default(none),
               'serial':     drv.serial|default(none),
@@ -108,6 +109,22 @@
             }) -%}
           {%- endif -%}
         {%- endfor -%}
+      {%- endfor -%}
+      {{ out }}
+    _rf_norm_logical_volumes: >-
+      {%- set out = [] -%}
+      {%- for vol in (_rf_d_storage.volumes | default([])) -%}
+        {%- set _ = out.append({
+          'id':               vol.id|default(none),
+          'name':             vol.name|default(none),
+          'controller_id':    vol.controller_id|default(none),
+          'member_drive_ids': vol.member_drive_ids|default([]),
+          'raid_level':       vol.raid_level|default(none),
+          'total_mb':         vol.total_mb|default(none),
+          'health':           vol.health|default(none),
+          'state':            vol.state|default(none),
+          'boot_volume':      vol.boot_volume|default(none)
+        }) -%}
       {%- endfor -%}
       {{ out }}
   no_log: true
@@ -174,10 +191,11 @@
         free_mb:      null
         slots:        "{{ _rf_d_memory.slots | default([]) }}"
       storage:
-        filesystems:    []
-        physical_disks: "{{ _rf_norm_physical_disks }}"
-        datastores:     []
-        controllers:    "{{ _rf_norm_controllers }}"
+        filesystems:     []
+        physical_disks:  "{{ _rf_norm_physical_disks }}"
+        datastores:      []
+        controllers:     "{{ _rf_norm_controllers }}"
+        logical_volumes: "{{ _rf_norm_logical_volumes }}"
       network:
         dns_servers:      []
         default_gateways: "{{ _rf_norm_gateways }}"

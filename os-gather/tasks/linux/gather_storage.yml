@@ -18,8 +18,10 @@
       {%- if lsblk.blockdevices is defined -%}
         {%- for dev in lsblk.blockdevices -%}
           {%- if dev.type in ['disk'] and dev.size | int > 0 -%}
+            {%- set _dev_path = '/dev/' ~ dev.name -%}
             {%- set _ = out.append({
-              'device':     '/dev/' ~ dev.name,
+              'id':         _dev_path,
+              'device':     _dev_path,
               'model':      dev.model | default(none) | trim if dev.model is defined else none,
               'total_mb':   (dev.size | int / 1048576) | round(0,'floor') | int,
               'media_type': 'HDD' if (dev.rota | string) in ['1','true','True'] else 'SSD',
@@ -61,10 +63,11 @@
   ansible.builtin.set_fact:
     _data_fragment:
       storage:
-        filesystems:    "{{ _l_norm_filesystems }}"
-        physical_disks: "{{ _l_norm_physical_disks }}"
-        datastores:     []
-        controllers:    []
+        filesystems:     "{{ _l_norm_filesystems }}"
+        physical_disks:  "{{ _l_norm_physical_disks }}"
+        datastores:      []
+        controllers:     []
+        logical_volumes: []
     _sections_supported_fragment: ['storage']
     _sections_collected_fragment: ['storage']
     _sections_failed_fragment:    []
