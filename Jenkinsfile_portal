@@ -150,15 +150,18 @@ pipeline {
                         'redfish': "${WORKSPACE}/redfish-gather/inventory.sh",
                     ]
 
-                    echo "[Gather] playbook=${playbookMap[params.target_type]}"
+                    def playbook  = playbookMap[params.target_type]
+                    def inventory = inventoryMap[params.target_type]
+                    echo "[Gather] playbook=${playbook}"
 
+                    // gather 결과를 파일로 저장 (rawBuild 대신 readFile 사용)
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                        ansiblePlaybook(
-                            playbook    : playbookMap[params.target_type],
-                            inventory   : inventoryMap[params.target_type],
-                            installation: 'ansible',
-                            colorized   : true,
-                        )
+                        sh """\
+                            /opt/ansible-env/bin/ansible-playbook \
+                                '${playbook}' \
+                                -i '${inventory}' \
+                            2>&1 | tee "\${WORKSPACE}/gather_output.log"
+                        """
                     }
                 }
             }
@@ -183,19 +186,12 @@ pipeline {
                     def callbackEndpoint = "${params.callbackUrl}/api/jenkins/gather/${params.target_type}"
                     echo "[Callback] POST -> ${callbackEndpoint}"
 
-                    // --- 콘솔 로그에서 JSON 라인 추출 ---
-                    // json_only callback 은 호스트별로 한 줄 JSON 을 출력한다.
-                    // readJSON (net.sf.json.JSONObject) 은 순환 참조로 StackOverflow 를 유발하므로
-                    // JsonSlurper + 원본 JSON 문자열 보관 + 문자열 조립 방식을 사용한다.
+                    // --- gather 출력 파일에서 JSON 라인 추출 ---
+                    def logContent = readFile("${WORKSPACE}/gather_output.log")
+                    def logLines = logContent.split('\n')
 
-                    def hostCount = new groovy.json.JsonSlurper().parseText(params.inventory_json).size()
-                    def maxLogLines = Math.max(50000, hostCount * 50 + 5000)
-                    echo "[Callback] 호스트 ${hostCount}개, 콘솔 로그 ${maxLogLines}줄 할당"
-
-                    def rawJsonLines = []   // 원본 JSON 문자열 보관
-                    def logLines = currentBuild.rawBuild.getLog(maxLogLines)
-
-                    for (int i = 0; i < logLines.size(); i++) {
+                    def rawJsonLines = []
+                    for (int i = 0; i < logLines.length; i++) {
                         def line = logLines[i].trim()
                         if (line.startsWith('{') && line.contains('"status"') && line.endsWith('}')) {
                             rawJsonLines.add(line)
