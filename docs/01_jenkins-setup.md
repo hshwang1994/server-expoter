@@ -109,6 +109,7 @@ ufw allow 8080/tcp
 | **Pipeline** | Declarative Pipeline 실행 | ★ |
 | **Pipeline Utility Steps** | `readJSON` 스텝 (Jenkinsfile 파라미터 파싱) | |
 | **AnsiColor** | `ansiColor('xterm')` 옵션 — Ansible 컬러 출력 | |
+| **HTTP Request** | `httpRequest()` 스텝 — 외부 시스템 콜백/알림 | |
 | **Git** | SCM checkout | ★ |
 
 ### 권장 플러그인
