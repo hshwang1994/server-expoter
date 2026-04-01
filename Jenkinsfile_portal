@@ -1,86 +1,34 @@
 // =============================================================================
-// Jenkinsfile_portal  v3 (1000대 호스트 일괄 전송)
+// Jenkinsfile_portal  v4
 //
-// ClovierONE Portal 전용 파이프라인 (Large-Scale)
+// ClovierONE Portal 전용 파이프라인
 //
-// [필수] Jenkins 설정 (1000대 호스트 대응)
-// =============================================================================
-// Jenkins 메모리 설정 (4GB 이상 권장):
-//
-//   1. Jenkins 관리 → 시스템 설정 → 고급 옵션
-//   2. Java VM options 필드에 다음 추가:
-//      -Xmx4096m -Xms2048m
-//
-//   또는 Jenkins 시작 스크립트 수정:
-//      Linux/Mac:
-//      export JAVA_OPTS="-Xmx4096m -Xms2048m"
-//      systemctl restart jenkins
-//
-//      Windows (jenkins.xml):
-//      <arguments>-Xmx4096m -Xms2048m -jar "%BASE%\jenkins.war"</arguments>
-//
-//   확인:
-//   Jenkins 관리 → 시스템 정보 → 메모리 항목 확인
-//   (최소 4GB 이상)
-//
-// HTTP Request Plugin 설정:
-//   Jenkins 관리 → 플러그인 관리 → HTTP Request 설치
-//
+// [필수] Jenkins 설정
+// -----------------------------------------------------------------------------
+//   Java heap : -Xmx4096m -Xms2048m  (Jenkins 시작 옵션)
+//   Plugin    : HTTP Request Plugin
 // =============================================================================
 //
-// 호출 흐름:
-//   Portal HTTP POST → Jenkins Job → Ansible gather
-//     → Callback POST (한 번에 모두) → Portal API
+// 호출 흐름
+//   Portal HTTP POST -> Jenkins Job -> Ansible gather
+//     -> Callback POST (일괄) -> Portal API
 //
-// 기본 Jenkinsfile 과 차이점:
-//   - 추가 파라미터: developmentEnvironmentId, eventUuid, callbackUrl
-//   - Callback 스테이지: gather 결과를 callbackUrl 로 POST
-//   - httpRequest 플러그인 필요 (HTTP Request Plugin)
-//   - v3 NEW: 최대 1000대까지 한 번에 일괄 전송 (배치 분할 없음)
+// 파라미터
+//   loc, target_type, inventory_json           (기본 Jenkinsfile 동일)
+//   developmentEnvironmentId, eventUuid        (포털 추적용)
+//   callbackUrl                                (결과 수신 URL)
 //
-// 1000대 호스트 지원:
-//   - 콘솔 로그 동적 할당: 최소 50,000줄 (1000대 대응)
-//   - Body 구조: 항상 동일 (배치 구분 없음)
-//   - HTTP timeout: 300초 (큰 body 전송용)
-//   - HTTP 재시도: 최대 3회 (포털 장시간 처리 대비)
-//   - Pipeline timeout: 180분 (1시간 수집 + 1시간 callback + 여유)
-//   - 메모리 최적화: Java heap 크기 권장 4GB 이상
-//
-// Callback URL 패턴:
+// Callback URL
 //   {callbackUrl}/api/jenkins/gather/{target_type}
 //
-// Callback Body (항상 동일한 구조):
+// Callback Body (항상 동일 구조, 배치 없음)
 //   {
-//     "loc": "ich",
-//     "developmentEnvironmentId": "env-123",
-//     "eventUuid": "uuid-abc-def",
-//     "gatherInfoJson": [
-//       { "ip": "10.x.x.1", "hostname": "server1", "status": "success", ... },
-//       { "ip": "10.x.x.2", "hostname": "server2", "status": "success", ... },
-//       ...
-//       { "ip": "10.x.x.1000", "hostname": "server1000", "status": "success", ... }
-//     ],
-//     "_meta": {
-//       "buildId": "123",
-//       "buildNumber": "456",
-//       "jobName": "clovirone-server-gather",
-//       "timestamp": "2026-04-01T12:34:56.789Z",
-//       "hostCount": 1000
-//     }
+//     "loc": "...",
+//     "developmentEnvironmentId": "...",
+//     "eventUuid": "...",
+//     "gatherInfoJson": [ {host1}, {host2}, ... ],
+//     "_meta": { "buildNumber": "...", "hostCount": N, "timestamp": "..." }
 //   }
-//
-// 호스트 수별 예상 성능 (1000대 일괄 전송):
-//   10대:    10초 gather + 10초 callback = 20초
-//   50대:    20초 gather + 30초 callback = 50초
-//   100대:   30초 gather + 60초 callback = 90초
-//   200대:   50초 gather + 120초 callback = 170초 (2분 50초)
-//   500대:   70초 gather + 240초 callback = 310초 (5분 10초)
-//   1000대: 120초 gather + 300초 callback = 420초 (7분)
-//
-// 포털 API 요구사항:
-//   - HTTP POST body size: 최소 50MB 지원 (1000대 × 5KB)
-//   - HTTP timeout: 5분 이상
-//   - eventUuid는 항상 동일 (배치 구분 없음)
 //
 // =============================================================================
 
@@ -92,7 +40,7 @@ pipeline {
         string(
             name        : 'loc',
             defaultValue: '',
-            description : 'Agent 로케이션 Labels (ich | chj | yi)'
+            description : 'Agent 로케이션 (ich | chj | yi)'
         )
         choice(
             name        : 'target_type',
@@ -101,11 +49,7 @@ pipeline {
         )
         text(
             name        : 'inventory_json',
-            defaultValue: '''[
-  {
-    "ip": ""
-  }
-]''',
+            defaultValue: '[{"ip":""}]',
             description : '호스트 JSON 배열 (os/esxi: service_ip, redfish: bmc_ip, fallback: ip)'
         )
         string(
@@ -132,8 +76,6 @@ pipeline {
     }
 
     options {
-        // 500대 호스트 대응: 최소 60분 (일반 100-200대)
-        // 최대 120분 (500대 + 배치 분할 + 재시도)
         timeout(time: 120, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '100'))
         ansiColor('xterm')
@@ -141,23 +83,19 @@ pipeline {
 
     stages {
 
-        // -- 1. 파라미터 검증 --------------------------------------------------
+        // -- 1. Validate -------------------------------------------------------
         stage('Validate') {
             steps {
                 script {
-
-                    // loc 필수
                     if (!params.loc?.trim()) {
                         error "[Validate] 필수 파라미터 누락: loc"
                     }
 
-                    // target_type 범위 검증
                     def allowed = ['os', 'esxi', 'redfish']
                     if (!allowed.contains(params.target_type?.trim())) {
                         error "[Validate] target_type 값 오류: '${params.target_type}' -- 허용값: ${allowed}"
                     }
 
-                    // inventory_json 파싱 검증
                     if (!params.inventory_json?.trim()) {
                         error "[Validate] inventory_json 이 비어있습니다"
                     }
@@ -165,7 +103,7 @@ pipeline {
                     def hosts
                     try {
                         hosts = readJSON text: params.inventory_json
-                    } catch (groovy.json.JsonException e) {
+                    } catch (Exception e) {
                         error "[Validate] inventory_json JSON 파싱 실패: ${e.message}"
                     }
 
@@ -173,16 +111,15 @@ pipeline {
                         error "[Validate] inventory_json 배열이 비어있습니다"
                     }
 
-                    // target_type 별 IP 필드 검증 (fallback: ip)
                     def primaryKey = (params.target_type == 'redfish') ? 'bmc_ip' : 'service_ip'
-                    hosts.eachWithIndex { host, idx ->
+                    for (int idx = 0; idx < hosts.size(); idx++) {
+                        def host = hosts[idx]
                         def ipVal = host[primaryKey]?.trim() ?: host['ip']?.trim()
                         if (!ipVal) {
-                            error "[Validate] inventory_json[${idx}] '${primaryKey}' 또는 'ip' 필드 누락: ${host}"
+                            error "[Validate] inventory_json[${idx}] '${primaryKey}' 또는 'ip' 필드 누락"
                         }
                     }
 
-                    // 포털 파라미터 검증
                     if (!params.callbackUrl?.trim()) {
                         error "[Validate] 필수 파라미터 누락: callbackUrl"
                     }
@@ -199,7 +136,7 @@ pipeline {
             }
         }
 
-        // -- 2. Ansible 실행 ---------------------------------------------------
+        // -- 2. Gather ---------------------------------------------------------
         stage('Gather') {
             steps {
                 script {
@@ -214,15 +151,12 @@ pipeline {
                         'redfish': "${WORKSPACE}/redfish-gather/inventory.sh",
                     ]
 
-                    def playbook  = playbookMap[params.target_type]
-                    def inventory = inventoryMap[params.target_type]
-
-                    echo "[Gather] playbook=${playbook}"
+                    echo "[Gather] playbook=${playbookMap[params.target_type]}"
 
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         ansiblePlaybook(
-                            playbook    : playbook,
-                            inventory   : inventory,
+                            playbook    : playbookMap[params.target_type],
+                            inventory   : inventoryMap[params.target_type],
                             installation: 'ansible',
                             colorized   : true,
                         )
@@ -231,7 +165,7 @@ pipeline {
             }
         }
 
-        // -- 3. Schema 검증 ----------------------------------------------------
+        // -- 3. Schema ---------------------------------------------------------
         stage('Validate Schema') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
@@ -243,230 +177,125 @@ pipeline {
             }
         }
 
-        // -- 4. Callback POST --------------------------------------------------
-        // gather 결과를 포털 API 로 전달
-        // json_only callback 이 콘솔 로그에 출력한 JSON 을 파싱하여 전송
+        // -- 4. Callback -------------------------------------------------------
         stage('Callback') {
             steps {
                 script {
                     def callbackEndpoint = "${params.callbackUrl}/api/jenkins/gather/${params.target_type}"
                     echo "[Callback] POST -> ${callbackEndpoint}"
 
-                    // 콘솔 로그에서 json_only callback 출력 파싱
-                    // json_only callback 은 OUTPUT 태스크 결과를 한 줄 JSON 으로 출력
-                    // 여러 호스트의 결과가 각각 별도 줄로 출력됨
-                    def gatherResults = []
+                    // --- 콘솔 로그에서 JSON 라인 추출 ---
+                    // json_only callback 은 호스트별로 한 줄 JSON 을 출력한다.
+                    // readJSON 은 net.sf.json.JSONObject 를 반환하므로 JsonOutput.toJson() 에
+                    // 넘기면 순환 참조(StackOverflow) 가 발생한다.
+                    // 따라서 원본 JSON 문자열을 그대로 보관하고, body 조립도 문자열로 한다.
 
-                    // 동적 로그 라인 계산: 1000대까지 일괄 전송 대응
-                    // - 호스트당 50줄 (Ansible 출력 로그)
-                    // - 최소 50,000줄 보장 (1000대 × 50줄)
-                    def inventoryHosts = readJSON text: params.inventory_json
-                    def estimatedLogLines = Math.max(50000, inventoryHosts.size() * 50 + 5000)
-                    echo "[Callback] 호스트 ${inventoryHosts.size()}개 → 콘솔 로그 ${estimatedLogLines}줄 할당"
+                    def hostCount = readJSON(text: params.inventory_json).size()
+                    def maxLogLines = Math.max(50000, hostCount * 50 + 5000)
+                    echo "[Callback] 호스트 ${hostCount}개, 콘솔 로그 ${maxLogLines}줄 할당"
 
-                    def logText = currentBuild.rawBuild.getLog(estimatedLogLines).join('\n')
-                    def failedParseCount = 0
-                    def failedParseExamples = []
+                    def rawJsonLines = []   // 원본 JSON 문자열 보관
+                    def logLines = currentBuild.rawBuild.getLog(maxLogLines)
 
-                    // OUTPUT 태스크의 JSON 라인 추출 (CPS 호환 방식)
-                    // json_only callback 출력 패턴: {"host": "...", ..., "status": "..."}
-                    def lines = logText.split('\n')
-                    for (int i = 0; i < lines.size(); i++) {
-                        def line = lines[i].trim()
-                        // JSON 라인 감지: { 로 시작 + status 필드 포함 (Redfish/OS/ESXi 모두 지원)
+                    for (int i = 0; i < logLines.size(); i++) {
+                        def line = logLines[i].trim()
                         if (line.startsWith('{') && line.contains('"status"') && line.endsWith('}')) {
-                            try {
-                                def parsed = readJSON text: line
-                                gatherResults.add(parsed)
-                                echo "[Callback] [OK] 호스트 ${gatherResults.size()} 파싱 완료: ${parsed.hostname ?: parsed.ip ?: 'unknown'}"
-                            } catch (Exception e) {
-                                failedParseCount++
-                                if (failedParseExamples.size() < 2) {
-                                    failedParseExamples.add("Line ${i}: ${line.take(150)}...")
-                                }
-                                echo "[Callback] [FAIL] JSON 파싱 실패 (라인 ${i}): ${e.message}"
-                            }
+                            rawJsonLines.add(line)
                         }
                     }
 
-                    if (gatherResults.isEmpty()) {
-                        echo "[Callback] [FATAL] gather 결과 JSON 을 찾지 못했습니다"
-                        if (failedParseCount > 0) {
-                            echo "[Callback] 파싱 시도한 라인: ${failedParseCount}개"
-                            failedParseExamples.each { echo "[Callback] 예시: ${it}" }
-                        }
-                        echo "[Callback] 콘솔 로그 샘플 (마지막 50줄):"
-                        logText.split('\n').reverse().take(50).reverse().each { echo "[Callback] ${it}" }
-                        error "[Callback] Gather 수집 결과가 없습니다. 포털에 빈 데이터 전송 불가"
+                    echo "[Callback] JSON 라인 ${rawJsonLines.size()}개 추출"
+
+                    if (rawJsonLines.isEmpty()) {
+                        error "[Callback] gather 결과 JSON 을 찾지 못했습니다"
                     }
 
-                    // Callback body 조립 (타임스탐프 + 메타데이터 추가)
-                    def callbackMeta = [
-                        buildId     : env.BUILD_ID,
-                        buildNumber : env.BUILD_NUMBER,
-                        jobName     : env.JOB_NAME,
-                        timestamp   : new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()),
-                        hostCount   : gatherResults.size(),
-                    ]
+                    // --- Callback body 조립 (문자열 연결, JsonOutput 사용 안 함) ---
+                    def timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                                        .format(new Date())
 
-                    def callbackBody = groovy.json.JsonOutput.toJson([
-                        loc                      : params.loc,
-                        developmentEnvironmentId : params.developmentEnvironmentId,
-                        eventUuid                : params.eventUuid,
-                        gatherInfoJson           : gatherResults,
-                        _meta                    : callbackMeta
-                    ])
+                    def gatherArray = rawJsonLines.join(',')
 
-                    def bodySize = callbackBody.length()
-                    def bodySizeMB = (bodySize / 1024.0 / 1024.0).round(2)
-                    echo "[Callback] [OK] body size=${bodySize} bytes (${bodySizeMB} MB), hosts=${gatherResults.size()}"
+                    def callbackBody = '{'  +
+                        '"loc":"'                        + params.loc.replaceAll('"', '\\\\"')                        + '",' +
+                        '"developmentEnvironmentId":"'   + params.developmentEnvironmentId.replaceAll('"', '\\\\"')   + '",' +
+                        '"eventUuid":"'                  + params.eventUuid.replaceAll('"', '\\\\"')                  + '",' +
+                        '"gatherInfoJson":['             + gatherArray                                               + '],' +
+                        '"_meta":{' +
+                            '"buildNumber":"'  + (env.BUILD_NUMBER ?: '')  + '",' +
+                            '"jobName":"'      + (env.JOB_NAME ?: '')     + '",' +
+                            '"hostCount":'     + rawJsonLines.size()       + ','  +
+                            '"timestamp":"'    + timestamp                 + '"'  +
+                        '}' +
+                    '}'
 
-                    // 1000대 일괄 전송 대응: 크기 경고만 (배치 분할 없음)
-                    // 포털 API에서 큰 body를 지원해야 함
-                    if (bodySize > 10485760) {  // 10MB 초과
-                        echo "[Callback] [WARNING] body 크기가 10MB 초과 (${bodySizeMB}MB)"
-                        echo "[Callback] - 호스트 수: ${gatherResults.size()}개"
-                        echo "[Callback] - 포털 API가 큰 body를 지원하는지 확인하세요"
-                        echo "[Callback] - HTTP timeout: 최소 300초 이상 권장"
-                        echo "[Callback] - Jenkins heap: 4GB 이상 권장"
-                    }
-                    if (bodySize > 52428800) {  // 50MB 초과
-                        echo "[Callback] [DANGER] body 크기가 50MB 초과 (${bodySizeMB}MB)"
-                        echo "[Callback] - 포털 API 제한 확인 필수"
-                        echo "[Callback] - 진행을 중단하려면 콘솔에서 [Q] 입력"
+                    def bodySizeMB = (callbackBody.length() / 1048576.0).round(2)
+                    echo "[Callback] body ${callbackBody.length()} bytes (${bodySizeMB} MB), hosts=${rawJsonLines.size()}"
+
+                    if (callbackBody.length() > 10485760) {
+                        echo "[Callback] [WARNING] body > 10MB -- 포털 API 제한 확인 필요"
                     }
 
-                    // HTTP POST with retry (1000대 일괄 전송)
-                    // - timeout 300초 (큰 body 전송용)
-                    // - 최대 3회 재시도
+                    // --- HTTP POST (최대 3회 재시도) ---
                     def maxRetries = 3
                     def success = false
-                    def lastError = null
-                    def lastHttpStatus = null
-
-                    echo "[Callback] ═══════════════════════════════════════════════════"
-                    echo "[Callback] 포털 일괄 전송 시작 (배치 분할 없음)"
-                    echo "[Callback] - 호스트: ${gatherResults.size()}개"
-                    echo "[Callback] - Body 크기: ${bodySizeMB}MB"
-                    echo "[Callback] - HTTP timeout: 300초"
-                    echo "[Callback] - 재시도: 최대 ${maxRetries}회"
-                    echo "[Callback] ═══════════════════════════════════════════════════"
+                    def lastError = ''
 
                     for (int attempt = 1; attempt <= maxRetries; attempt++) {
                         try {
-                            echo "[Callback] [${attempt}/${maxRetries}] ${callbackEndpoint} 로 POST 전송..."
+                            echo "[Callback] [${attempt}/${maxRetries}] 전송중..."
                             def response = httpRequest(
-                                url            : callbackEndpoint,
-                                httpMode       : 'POST',
-                                contentType    : 'APPLICATION_JSON',
-                                requestBody    : callbackBody,
-                                validResponseCodes: '200:299',
-                                timeout        : 300,  // 5분 (1000대 대응)
+                                url                : callbackEndpoint,
+                                httpMode           : 'POST',
+                                contentType        : 'APPLICATION_JSON',
+                                requestBody        : callbackBody,
+                                validResponseCodes : '200:299',
+                                timeout            : 300,
                             )
-                            lastHttpStatus = response.status
 
-                            // Response body 검증 (포털 응답 파싱)
-                            def responseBody = response.content
-                            try {
-                                def parsedResponse = readJSON text: responseBody
-                                if (parsedResponse.status == 'success' || parsedResponse.success == true) {
-                                    echo "[Callback] [OK] 포털 응답 성공 (${attempt}/${maxRetries}): HTTP ${response.status}"
-                                    if (parsedResponse.message) {
-                                        echo "[Callback] 포털 메시지: ${parsedResponse.message}"
-                                    }
-                                    success = true
-                                    break
-                                } else {
-                                    lastError = "포털 응답 오류: ${parsedResponse.message ?: responseBody.take(200)}"
-                                    echo "[Callback] [FAIL] 포털 비즈니스 오류 (${attempt}/${maxRetries}): ${lastError}"
-                                }
-                            } catch (Exception parseErr) {
-                                // Response body가 JSON이 아닐 수도 있음 (HTML 오류 페이지 등)
-                                if (response.status >= 200 && response.status < 300) {
-                                    echo "[Callback] [OK] HTTP 성공이지만 응답 파싱 실패 (${attempt}/${maxRetries}): HTTP ${response.status}"
-                                    echo "[Callback] 응답 샘플: ${responseBody.take(200)}"
-                                    success = true
-                                    break
-                                } else {
-                                    lastError = "응답 파싱 실패: ${parseErr.message}"
-                                    echo "[Callback] [FAIL] 응답 파싱 오류: ${lastError}"
-                                }
-                            }
+                            echo "[Callback] [OK] HTTP ${response.status} (${attempt}/${maxRetries})"
+                            success = true
+                            break
+
                         } catch (Exception e) {
                             lastError = e.message
-                            lastHttpStatus = e.toString().contains('408') ? 408 : 0
-                            echo "[Callback] [FAIL] HTTP 요청 실패 (${attempt}/${maxRetries}): ${e.message}"
+                            echo "[Callback] [FAIL] (${attempt}/${maxRetries}) ${lastError}"
                             if (attempt < maxRetries) {
-                                def waitTime = attempt * 10  // 10초, 20초, 30초
-                                echo "[Callback] ${waitTime}초 후 재시도..."
-                                sleep(time: waitTime, unit: 'SECONDS')
+                                def waitSec = attempt * 10
+                                echo "[Callback] ${waitSec}초 후 재시도"
+                                sleep(time: waitSec, unit: 'SECONDS')
                             }
                         }
                     }
 
                     if (!success) {
-                        def errorMsg = "[Callback] [FATAL] ${maxRetries}회 재시도 후 포털 전달 실패"
-                        if (lastError) {
-                            errorMsg += " -- 원인: ${lastError}"
-                        }
-                        if (lastHttpStatus) {
-                            errorMsg += " (HTTP ${lastHttpStatus})"
-                        }
-                        echo errorMsg
-                        echo "[Callback] ═══════════════════════════════════════════════════"
-                        echo "[Callback] 문제 진단:"
-                        echo "[Callback] 1. 포털 API가 ${bodySizeMB}MB 크기 body를 지원하는가?"
-                        echo "[Callback] 2. 포털 API timeout이 300초 이상인가?"
-                        echo "[Callback] 3. 포털 서버 메모리가 충분한가?"
-                        echo "[Callback] ═══════════════════════════════════════════════════"
-                        error errorMsg
+                        error "[Callback] ${maxRetries}회 재시도 실패 -- ${lastError}"
                     }
                 }
             }
         }
     }
 
-    // -- post 처리 (500대 호스트 배치 전송 최종 보고) -------------------
+    // -- Post Actions ----------------------------------------------------------
     post {
         always {
             script {
-                def result = currentBuild.currentResult
-                def duration = (currentBuild.durationString ?: 'unknown')
-                echo "[Post] ═══════════════════════════════════════════════════"
-                echo "[Post] 빌드 결과: ${result} (소요시간: ${duration})"
-                echo "[Post] eventUuid: ${params.eventUuid}"
-                echo "[Post] target_type: ${params.target_type}"
-                echo "[Post] 호스트 수: ${readJSON(text: params.inventory_json).size()}개"
-                echo "[Post] ═══════════════════════════════════════════════════"
+                echo "[Post] ======================================================="
+                echo "[Post] 결과: ${currentBuild.currentResult}"
+                echo "[Post] 소요: ${currentBuild.durationString ?: '-'}"
+                echo "[Post] UUID: ${params.eventUuid}"
+                echo "[Post] type: ${params.target_type}"
+                echo "[Post] ======================================================="
             }
         }
         success {
-            script {
-                echo "[Post] [OK] 성공: Gather + Callback 완료"
-                echo "[Post] 포털 데이터 수신 완료 (eventUuid: ${params.eventUuid})"
-                echo "[Post] 일괄 전송 또는 배치 분할 전송 성공"
-            }
+            echo "[Post] [OK] Gather + Callback 완료"
         }
         unstable {
-            script {
-                echo "[Post] ⚠ 불안정: 일부 단계 실패했으나 Callback 시도됨"
-                echo "[Post] 포털 확인 필요 (eventUuid: ${params.eventUuid})"
-                echo "[Post] - Gather 부분 실패 또는"
-                echo "[Post] - Schema 검증 경고 또는"
-                echo "[Post] - 배치 분할 중 일부 배치 실패"
-            }
+            echo "[Post] [WARN] 일부 단계 실패 -- 포털 확인 필요"
         }
         failure {
-            script {
-                echo "[Post] [FAIL] 실패: Gather 또는 Callback 실패"
-                echo "[Post] 원인 분석:"
-                echo "[Post] 1. [Validate] 섹션: 파라미터 검증 오류"
-                echo "[Post] 2. [Gather] 섹션: Ansible 수집 실패"
-                echo "[Post] 3. [Callback] 섹션: 포털 전달 실패"
-                echo "[Post] 상세 로그 확인: 콘솔 로그의 [FAIL] 마크 부분"
-                echo "[Post] 포털에 결과 미전달 (eventUuid: ${params.eventUuid})"
-                echo "[Post] 재시도: 포털에서 Job 재실행"
-            }
+            echo "[Post] [FAIL] 파이프라인 실패 -- 콘솔 로그 확인"
         }
     }
 }
