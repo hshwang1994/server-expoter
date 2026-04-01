@@ -1,5 +1,5 @@
 // =============================================================================
-// Jenkinsfile_portal  v4
+// Jenkinsfile_portal
 //
 // ClovierONE Portal 전용 파이프라인
 //
@@ -153,7 +153,6 @@ pipeline {
                     def inventory = inventoryMap[params.target_type]
                     echo "[Gather] playbook=${playbook}"
 
-                    // gather 결과를 파일로 저장 (rawBuild 대신 readFile 사용)
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         sh """\
                             /opt/ansible-env/bin/ansible-playbook \
@@ -185,7 +184,6 @@ pipeline {
                     def callbackEndpoint = "${params.callbackUrl}/api/jenkins/gather/${params.target_type}"
                     echo "[Callback] POST -> ${callbackEndpoint}"
 
-                    // --- gather 출력 파일에서 JSON 라인 추출 ---
                     def logContent = readFile("${WORKSPACE}/gather_output.log")
                     def logLines = logContent.split('\n')
 
@@ -203,7 +201,6 @@ pipeline {
                         error "[Callback] gather 결과 JSON 을 찾지 못했습니다"
                     }
 
-                    // --- Callback body 조립 (문자열 연결, JsonOutput 사용 안 함) ---
                     def gatherArray = rawJsonLines.join(',')
 
                     def callbackBody = '{'  +
