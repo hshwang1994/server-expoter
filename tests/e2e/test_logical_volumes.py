@@ -143,17 +143,15 @@ class TestMemberDriveCrossReference:
     """logical_volumes[].member_drive_ids의 모든 값이
     physical_disks[].id에 존재하는지 검증 (참조 무결성)."""
 
-    @pytest.mark.parametrize("vendor", ["cisco"])
+    @pytest.mark.parametrize("vendor", ["hpe", "cisco"])
     def test_member_drive_ids_resolve(self, vendor: str):
         """볼륨이 있는 벤더 교차 참조 검증.
 
         Dell 제외: BOSS-S1 컨트롤러에서 Drive URI path ('Disk.Direct.0-0:...')와
         Drive.Id ('Disk.Direct.0:...')가 불일치 — Dell BOSS 특유 패턴.
-        HPE 제외: baseline physical_disks가 dedup으로 1건만 존재 (4개 동일 모델),
-        member_drive_ids '1'이 resolve 불가.
         Lenovo 제외: baseline physical_disks가 4개 중 2개만 존재 (Disk.0, Disk.3),
         member_drive_ids 'Disk.1'이 baseline에 없음.
-        세 벤더 모두 별도 이슈 (baseline physical_disks 완전성 또는 ID 포맷 불일치).
+        두 벤더 모두 별도 이슈 (baseline physical_disks 완전성 또는 ID 포맷 불일치).
 
         physical_disks id가 '{drive_id}:{controller_id}' 복합 포맷일 수 있으므로
         prefix 매칭도 허용."""
@@ -176,16 +174,25 @@ class TestMemberDriveCrossReference:
                     f"사용 가능한 id: {sorted(disk_ids)}"
                 )
 
-    def test_hpe_cross_ref_known_limitation(self, hpe_baseline):
-        """HPE: physical_disks dedup으로 교차 참조 불완전 — 제한사항 기록."""
+    def test_hpe_cross_ref_strict(self, hpe_baseline):
+        """HPE: physical_disks dedup 해소 — strict 교차 참조 검증.
+
+        이전: physical_disks가 dedup으로 4→1건이어서 member_drive_ids '1'이
+        resolve 불가였음 (known limitation).
+        현재 (2026-04-01 baseline refresh): physical_disks 4건 모두 존재,
+        member_drive_ids ['0','1'] → physical_disks ids ['0','1','2','3']에 매칭."""
         volumes = _get_logical_volumes(hpe_baseline)
         disk_ids = _get_physical_disk_ids(hpe_baseline)
         assert len(volumes) == 1, "HPE: 1 volume 기대"
-        # member_drive_ids '0'은 '0:DE00C000'에 prefix 매칭되지만,
-        # '1'은 physical_disks에 없음 (dedup으로 4→1건)
-        assert len(disk_ids) < len(volumes[0]["member_drive_ids"]), (
-            "HPE dedup 제한사항이 해소됨 — 이 테스트를 strict cross-ref로 전환 필요"
+        assert len(disk_ids) >= len(volumes[0]["member_drive_ids"]), (
+            f"HPE physical_disks({len(disk_ids)})가 "
+            f"member_drive_ids({len(volumes[0]['member_drive_ids'])})보다 적음"
         )
+        for mid in volumes[0]["member_drive_ids"]:
+            assert _member_resolves(mid, disk_ids), (
+                f"HPE: member_drive_id '{mid}'가 physical_disks[].id에 "
+                f"매칭 안됨. 사용 가능한 id: {sorted(disk_ids)}"
+            )
 
 
 # ===========================================================================
