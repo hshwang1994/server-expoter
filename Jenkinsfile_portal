@@ -26,8 +26,7 @@
 //     "loc": "...",
 //     "developmentEnvironmentId": "...",
 //     "eventUuid": "...",
-//     "gatherInfoJson": [ {host1}, {host2}, ... ],
-//     "_meta": { "buildNumber": "...", "hostCount": N, "timestamp": "..." }
+//     "gatherInfoJson": [ {host1}, {host2}, ... ]
 //   }
 //
 // =============================================================================
@@ -210,30 +209,16 @@ pipeline {
                     }
 
                     // --- Callback body 조립 (문자열 연결, JsonOutput 사용 안 함) ---
-                    def timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                                        .format(new Date())
-
                     def gatherArray = rawJsonLines.join(',')
 
                     def callbackBody = '{'  +
                         '"loc":"'                        + params.loc.replaceAll('"', '\\\\"')                        + '",' +
                         '"developmentEnvironmentId":"'   + params.developmentEnvironmentId.replaceAll('"', '\\\\"')   + '",' +
                         '"eventUuid":"'                  + params.eventUuid.replaceAll('"', '\\\\"')                  + '",' +
-                        '"gatherInfoJson":['             + gatherArray                                               + '],' +
-                        '"_meta":{' +
-                            '"buildNumber":"'  + (env.BUILD_NUMBER ?: '')  + '",' +
-                            '"jobName":"'      + (env.JOB_NAME ?: '')     + '",' +
-                            '"hostCount":'     + rawJsonLines.size()       + ','  +
-                            '"timestamp":"'    + timestamp                 + '"'  +
-                        '}' +
+                        '"gatherInfoJson":['             + gatherArray                                               + ']'  +
                     '}'
 
-                    def bodySizeMB = (callbackBody.length() / 1048576.0).round(2)
-                    echo "[Callback] body ${callbackBody.length()} bytes (${bodySizeMB} MB), hosts=${rawJsonLines.size()}"
-
-                    if (callbackBody.length() > 10485760) {
-                        echo "[Callback] [WARNING] body > 10MB -- 포털 API 제한 확인 필요"
-                    }
+                    echo "[Callback] body ${callbackBody.length()} bytes, hosts=${rawJsonLines.size()}"
 
                     // --- HTTP POST (최대 3회 재시도) ---
                     def maxRetries = 3
