@@ -102,7 +102,7 @@ pipeline {
 
                     def hosts
                     try {
-                        hosts = readJSON text: params.inventory_json
+                        hosts = new groovy.json.JsonSlurper().parseText(params.inventory_json)
                     } catch (Exception e) {
                         error "[Validate] inventory_json JSON 파싱 실패: ${e.message}"
                     }
@@ -186,11 +186,10 @@ pipeline {
 
                     // --- 콘솔 로그에서 JSON 라인 추출 ---
                     // json_only callback 은 호스트별로 한 줄 JSON 을 출력한다.
-                    // readJSON 은 net.sf.json.JSONObject 를 반환하므로 JsonOutput.toJson() 에
-                    // 넘기면 순환 참조(StackOverflow) 가 발생한다.
-                    // 따라서 원본 JSON 문자열을 그대로 보관하고, body 조립도 문자열로 한다.
+                    // readJSON (net.sf.json.JSONObject) 은 순환 참조로 StackOverflow 를 유발하므로
+                    // JsonSlurper + 원본 JSON 문자열 보관 + 문자열 조립 방식을 사용한다.
 
-                    def hostCount = readJSON(text: params.inventory_json).size()
+                    def hostCount = new groovy.json.JsonSlurper().parseText(params.inventory_json).size()
                     def maxLogLines = Math.max(50000, hostCount * 50 + 5000)
                     echo "[Callback] 호스트 ${hostCount}개, 콘솔 로그 ${maxLogLines}줄 할당"
 
