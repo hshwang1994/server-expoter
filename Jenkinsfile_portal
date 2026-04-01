@@ -260,6 +260,7 @@ pipeline {
     post {
         always {
             script {
+                sh 'rm -f "${WORKSPACE}/gather_output.log"'
                 echo "[Post] ======================================================="
                 echo "[Post] 결과: ${currentBuild.currentResult}"
                 echo "[Post] 소요: ${currentBuild.durationString ?: '-'}"
