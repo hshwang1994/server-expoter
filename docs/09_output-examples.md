@@ -82,9 +82,10 @@ python3 tests/validate_field_dictionary.py
          "usage_percent": 40.0, "status": "mounted"}
       ],
       "physical_disks": [
-        {"device": "/dev/sda", "model": "SAMSUNG MZILT960", "total_mb": 953869,
+        {"id": "/dev/sda", "device": "/dev/sda", "model": "SAMSUNG MZILT960", "total_mb": 953869,
          "media_type": "SSD", "protocol": null, "health": null}
       ],
+      "logical_volumes": [],
       "datastores": [], "controllers": []
     },
     "network": {
@@ -143,7 +144,7 @@ python3 tests/validate_field_dictionary.py
              "model": "Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz", "architecture": "x86_64" },
     "memory": { "total_mb": 196608, "total_basis": "hypervisor_visible",
                 "installed_mb": null, "visible_mb": 196608, "free_mb": 131072, "slots": [] },
-    "storage": { "filesystems": [], "physical_disks": [],
+    "storage": { "filesystems": [], "physical_disks": [], "logical_volumes": [],
                  "datastores": [{"name": "datastore1", "type": "VMFS", "total_mb": 10485760,
                                  "free_mb": 2097152, "used_mb": 8388608, "usage_percent": 80.0, "accessible": true}],
                  "controllers": [] },
@@ -202,9 +203,17 @@ python3 tests/validate_field_dictionary.py
     "storage": {
       "filesystems": [],
       "physical_disks": [
-        {"device": "Disk.Bay.0", "model": "SAMSUNG MZILT960", "total_mb": 953869,
+        {"id": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1",
+         "device": "Disk.Bay.0", "model": "SAMSUNG MZILT960", "total_mb": 953869,
          "media_type": "SSD", "protocol": "SAS", "health": "OK",
          "serial": "S6ESNX0T100123", "failure_predicted": false, "predicted_life_percent": null}
+      ],
+      "logical_volumes": [
+        {"id": "Disk.Virtual.0:RAID.Slot.1-1", "name": "Virtual Disk 0",
+         "controller_id": "RAID.Slot.1-1",
+         "member_drive_ids": ["Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"],
+         "raid_level": "RAID0", "total_mb": 953344, "health": "OK", "state": "Enabled",
+         "boot_volume": null}
       ],
       "datastores": [],
       "controllers": [{"id": "RAID.Slot.1-1", "name": "PERC H755", "health": "OK", "drives": ["..."]}]

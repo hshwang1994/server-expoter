@@ -154,12 +154,14 @@ server-exporter/
 
 ```json
 "storage": {
-  "filesystems":    [{"device", "mount_point", "filesystem",
-                      "total_mb", "used_mb", "available_mb", "usage_percent"}],
-  "physical_disks": [{"device", "model", "total_mb", "media_type", "protocol", "health",
-                      "serial", "failure_predicted", "predicted_life_percent"}],
-  "datastores":     [{"name", "type", "total_mb", "free_mb", "used_mb", "usage_percent"}],
-  "controllers":    [{"id", "name", "health", "drives"}]
+  "filesystems":     [{"device", "mount_point", "filesystem",
+                       "total_mb", "used_mb", "available_mb", "usage_percent"}],
+  "physical_disks":  [{"id", "device", "model", "total_mb", "media_type", "protocol",
+                       "health", "serial", "failure_predicted", "predicted_life_percent"}],
+  "logical_volumes": [{"id", "name", "controller_id", "member_drive_ids",
+                       "raid_level", "total_mb", "health", "state", "boot_volume"}],
+  "datastores":      [{"name", "type", "total_mb", "free_mb", "used_mb", "usage_percent"}],
+  "controllers":     [{"id", "name", "health", "drives"}]
 }
 ```
 

@@ -95,6 +95,23 @@ site.yml (1 Play):
   build_sections / build_status / build_errors / build_meta / build_correlation / build_output
 ```
 
+### Redfish Storage 구조
+
+```
+storage
+├── controllers[]      ← RAID/HBA 컨트롤러 (id, name, health, drives[])
+├── physical_disks[]   ← 물리 디스크 (id, device, model, serial, ...)
+├── logical_volumes[]  ← RAID 논리 볼륨 (Redfish only, OS/ESXi는 빈 배열)
+├── filesystems[]      ← (Redfish에서는 빈 배열)
+└── datastores[]       ← (Redfish에서는 빈 배열)
+```
+
+**관계**: `logical_volumes[].controller_id` → `controllers[].id`,
+`logical_volumes[].member_drive_ids` → `physical_disks[].id`.
+
+`logical_volumes`는 Redfish `/Systems/{id}/Storage/{id}/Volumes` 엔드포인트에서 수집.
+Cisco v1_0_3 스키마는 `RAIDType` 필드가 없어 `VolumeType` → `RAIDType` fallback 매핑 사용.
+
 ### Redfish Safe Common 5 필드 (normalize_standard.yml 반영)
 
 | 위치 | 필드 | 타입 |

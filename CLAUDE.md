@@ -125,7 +125,7 @@ server-exporter/ (프로젝트 루트)
    │   └── tasks/ → collect_facts/config/datastores + normalize_*
    └── redfish-gather/
        ├── site.yml (1-Play: precheck→detect→adapter→collect→normalize)
-       ├── library/redfish_gather.py (300줄, Redfish API 엔진)
+       ├── library/redfish_gather.py (~350줄, Redfish API 엔진 — Storage+Volumes 수집)
        └── tasks/ + vendors/{dell,hpe,lenovo,supermicro,cisco}/
 
 [2] 공통 로직 (Fragment 정규화)
@@ -145,7 +145,7 @@ server-exporter/ (프로젝트 루트)
 [4] Schema & 데이터
    ├── schema/
    │   ├── sections.yml (10개: system, hardware, bmc, cpu, memory, storage, network, firmware, users, power)
-   │   ├── field_dictionary.yml (18 Must + Nice + Skip)
+   │   ├── field_dictionary.yml (28 Must + Nice + Skip)
    │   ├── baseline_v1/ (7개 벤더 baseline JSON)
    │   └── examples/ (success/partial/failed 예시)
    └── vault/ (linux.yml, windows.yml, esxi.yml, redfish/{vendor}.yml)

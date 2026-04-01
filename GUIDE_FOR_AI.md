@@ -147,6 +147,7 @@ _{채널}_{단계}_{의미}
 | `_rf_norm_gateways` | 집계된 default_gateways |
 | `_rf_norm_controllers` | 정규화된 controllers |
 | `_rf_norm_physical_disks` | controllers.drives 에서 추출 |
+| `_rf_norm_logical_volumes` | Volumes 엔드포인트에서 수집한 RAID 논리 볼륨 |
 
 #### 최종 변수
 
