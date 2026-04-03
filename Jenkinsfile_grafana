@@ -1,0 +1,249 @@
+// =============================================================================
+// Jenkinsfile_grafana
+//
+// OpsMon(Grafana) 전용 파이프라인
+//
+// [필수] Jenkins 설정
+// -----------------------------------------------------------------------------
+//   Plugin    : HTTP Request Plugin
+// =============================================================================
+//
+// 호출 흐름
+//   Jenkins Job -> Ansible gather -> HTTP POST -> OpsMon Ingest API
+//
+// 파라미터
+//   loc, target_type, inventory_json     (기본 Jenkinsfile 동일)
+//   opsmonServer                         (OpsMon 서버 IP/호스트)
+//
+// Ingest Endpoint
+//   http://{opsmonServer}:8088/ingest
+//
+// Ingest Body
+//   gather 결과 JSON 배열 (호스트 여러 대를 한 번에 전송)
+//   [ {host1_json}, {host2_json}, ... ]
+//
+// =============================================================================
+
+pipeline {
+
+    agent { label "${params.loc}" }
+
+    parameters {
+        string(
+            name        : 'loc',
+            defaultValue: '',
+            description : 'Agent 로케이션 (ich | chj | yi)'
+        )
+        choice(
+            name        : 'target_type',
+            choices     : ['os', 'esxi', 'redfish'],
+            description : '수집 대상 종류'
+        )
+        text(
+            name        : 'inventory_json',
+            defaultValue: '[{"ip":""}]',
+            description : '호스트 JSON 배열 (os/esxi: service_ip, redfish: bmc_ip, fallback: ip)'
+        )
+        string(
+            name        : 'opsmonServer',
+            defaultValue: '10.100.64.175',
+            description : 'OpsMon Ingest 서버 IP 또는 호스트명'
+        )
+    }
+
+    environment {
+        INVENTORY_JSON = "${params.inventory_json}"
+        REPO_ROOT      = "${WORKSPACE}"
+        ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+    }
+
+    options {
+        timeout(time: 120, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '100'))
+        ansiColor('xterm')
+    }
+
+    stages {
+
+        // -- 1. Validate -------------------------------------------------------
+        stage('Validate') {
+            steps {
+                script {
+                    if (!params.loc?.trim()) {
+                        error "[Validate] 필수 파라미터 누락: loc"
+                    }
+
+                    def allowed = ['os', 'esxi', 'redfish']
+                    if (!allowed.contains(params.target_type?.trim())) {
+                        error "[Validate] target_type 값 오류: '${params.target_type}' -- 허용값: ${allowed}"
+                    }
+
+                    if (!params.inventory_json?.trim()) {
+                        error "[Validate] inventory_json 이 비어있습니다"
+                    }
+
+                    def hosts
+                    try {
+                        hosts = new groovy.json.JsonSlurper().parseText(params.inventory_json)
+                    } catch (Exception e) {
+                        error "[Validate] inventory_json JSON 파싱 실패: ${e.message}"
+                    }
+
+                    if (!hosts || hosts.size() == 0) {
+                        error "[Validate] inventory_json 배열이 비어있습니다"
+                    }
+
+                    def primaryKey = (params.target_type == 'redfish') ? 'bmc_ip' : 'service_ip'
+                    for (int idx = 0; idx < hosts.size(); idx++) {
+                        def host = hosts[idx]
+                        def ipVal = host[primaryKey]?.trim() ?: host['ip']?.trim()
+                        if (!ipVal) {
+                            error "[Validate] inventory_json[${idx}] '${primaryKey}' 또는 'ip' 필드 누락"
+                        }
+                    }
+
+                    if (!params.opsmonServer?.trim()) {
+                        error "[Validate] 필수 파라미터 누락: opsmonServer"
+                    }
+
+                    echo "[Validate] OK -- target_type=${params.target_type}, hosts=${hosts.size()}, loc=${params.loc}"
+                    echo "[Validate] opsmonServer=${params.opsmonServer}"
+                }
+            }
+        }
+
+        // -- 2. Gather ---------------------------------------------------------
+        stage('Gather') {
+            steps {
+                script {
+                    def playbookMap = [
+                        'os'     : "${WORKSPACE}/os-gather/site.yml",
+                        'esxi'   : "${WORKSPACE}/esxi-gather/site.yml",
+                        'redfish': "${WORKSPACE}/redfish-gather/site.yml",
+                    ]
+                    def inventoryMap = [
+                        'os'     : "${WORKSPACE}/os-gather/inventory.sh",
+                        'esxi'   : "${WORKSPACE}/esxi-gather/inventory.sh",
+                        'redfish': "${WORKSPACE}/redfish-gather/inventory.sh",
+                    ]
+
+                    def playbook  = playbookMap[params.target_type]
+                    def inventory = inventoryMap[params.target_type]
+                    echo "[Gather] playbook=${playbook}"
+
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                        sh """\
+                            /opt/ansible-env/bin/ansible-playbook \
+                                '${playbook}' \
+                                -i '${inventory}' \
+                            2>&1 | tee "\${WORKSPACE}/gather_output.log"
+                        """
+                    }
+                }
+            }
+        }
+
+        // -- 3. Schema ---------------------------------------------------------
+        stage('Validate Schema') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    sh '''set +x
+                        cd "${WORKSPACE}"
+                        python3 tests/validate_field_dictionary.py
+                    '''
+                }
+            }
+        }
+
+        // -- 4. Ingest ---------------------------------------------------------
+        stage('Ingest') {
+            steps {
+                script {
+                    def ingestEndpoint = "http://${params.opsmonServer}:8088/ingest"
+                    echo "[Ingest] POST -> ${ingestEndpoint}"
+
+                    def logContent = readFile("${WORKSPACE}/gather_output.log")
+                    def logLines = logContent.split('\n')
+
+                    def rawJsonLines = []
+                    for (int i = 0; i < logLines.length; i++) {
+                        def line = logLines[i].trim()
+                        if (line.startsWith('{') && line.contains('"status"') && line.endsWith('}')) {
+                            rawJsonLines.add(line)
+                        }
+                    }
+
+                    echo "[Ingest] JSON 라인 ${rawJsonLines.size()}개 추출"
+
+                    if (rawJsonLines.isEmpty()) {
+                        error "[Ingest] gather 결과 JSON 을 찾지 못했습니다"
+                    }
+
+                    def ingestBody = '[' + rawJsonLines.join(',') + ']'
+
+                    echo "[Ingest] body ${ingestBody.length()} bytes, hosts=${rawJsonLines.size()}"
+
+                    // --- HTTP POST (최대 3회 재시도) ---
+                    def maxRetries = 3
+                    def success = false
+                    def lastError = ''
+
+                    for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                            echo "[Ingest] [${attempt}/${maxRetries}] 전송중..."
+                            def response = httpRequest(
+                                url                : ingestEndpoint,
+                                httpMode           : 'POST',
+                                contentType        : 'APPLICATION_JSON',
+                                requestBody        : ingestBody,
+                                validResponseCodes : '200:299',
+                                timeout            : 300,
+                            )
+
+                            echo "[Ingest] [OK] HTTP ${response.status} (${attempt}/${maxRetries})"
+                            success = true
+                            break
+
+                        } catch (Exception e) {
+                            lastError = e.message
+                            echo "[Ingest] [FAIL] (${attempt}/${maxRetries}) ${lastError}"
+                            if (attempt < maxRetries) {
+                                def waitSec = attempt * 10
+                                echo "[Ingest] ${waitSec}초 후 재시도"
+                                sleep(time: waitSec, unit: 'SECONDS')
+                            }
+                        }
+                    }
+
+                    if (!success) {
+                        error "[Ingest] ${maxRetries}회 재시도 실패 -- ${lastError}"
+                    }
+                }
+            }
+        }
+    }
+
+    // -- Post Actions ----------------------------------------------------------
+    post {
+        always {
+            script {
+                sh 'rm -f "${WORKSPACE}/gather_output.log"'
+                echo "[Post] ======================================================="
+                echo "[Post] 결과: ${currentBuild.currentResult}"
+                echo "[Post] 소요: ${currentBuild.durationString ?: '-'}"
+                echo "[Post] type: ${params.target_type}"
+                echo "[Post] opsmon: http://${params.opsmonServer}:8088"
+                echo "[Post] ======================================================="
+            }
+        }
+        success {
+            echo "[Post] [OK] Gather + Ingest 완료"
+        }
+        unstable {
+            echo "[Post] [WARN] 일부 단계 실패 -- OpsMon 로그 확인"
+        }
+        failure {
+            echo "[Post] [FAIL] 파이프라인 실패 -- 콘솔 로그 확인"
+        }
+    }
+}
