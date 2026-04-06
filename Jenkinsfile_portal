@@ -14,7 +14,7 @@
 //
 // 파라미터
 //   loc, target_type, inventory_json           (기본 Jenkinsfile 동일)
-//   developmentEnvironmentId, eventUuid        (포털 추적용)
+//   deploymentEnvironmentId, eventUuid        (포털 추적용)
 //   callbackUrl                                (결과 수신 URL)
 //
 // Callback URL
@@ -23,7 +23,7 @@
 // Callback Body (항상 동일 구조, 배치 없음)
 //   {
 //     "loc": "...",
-//     "developmentEnvironmentId": "...",
+//     "deploymentEnvironmentId": "...",
 //     "eventUuid": "...",
 //     "gatherInfoJson": [ {host1}, {host2}, ... ]
 //   }
@@ -51,7 +51,7 @@ pipeline {
             description : '호스트 JSON 배열 (os/esxi: service_ip, redfish: bmc_ip, fallback: ip)'
         )
         string(
-            name        : 'developmentEnvironmentId',
+            name        : 'deploymentEnvironmentId',
             defaultValue: '',
             description : '포털 개발환경 ID'
         )
@@ -121,8 +121,8 @@ pipeline {
                     if (!params.callbackUrl?.trim()) {
                         error "[Validate] 필수 파라미터 누락: callbackUrl"
                     }
-                    if (!params.developmentEnvironmentId?.trim()) {
-                        error "[Validate] 필수 파라미터 누락: developmentEnvironmentId"
+                    if (!params.deploymentEnvironmentId?.trim()) {
+                        error "[Validate] 필수 파라미터 누락: deploymentEnvironmentId"
                     }
                     if (!params.eventUuid?.trim()) {
                         error "[Validate] 필수 파라미터 누락: eventUuid"
@@ -205,7 +205,7 @@ pipeline {
 
                     def callbackBody = '{'  +
                         '"loc":"'                        + params.loc.replaceAll('"', '\\\\"')                        + '",' +
-                        '"developmentEnvironmentId":"'   + params.developmentEnvironmentId.replaceAll('"', '\\\\"')   + '",' +
+                        '"deploymentEnvironmentId":"'   + params.deploymentEnvironmentId.replaceAll('"', '\\\\"')   + '",' +
                         '"eventUuid":"'                  + params.eventUuid.replaceAll('"', '\\\\"')                  + '",' +
                         '"gatherInfoJson":['             + gatherArray                                               + ']'  +
                     '}'
