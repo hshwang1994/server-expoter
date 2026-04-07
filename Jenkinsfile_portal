@@ -14,7 +14,7 @@
 //
 // 파라미터
 //   loc, target_type, inventory_json           (기본 Jenkinsfile 동일)
-//   deploymentEnvironmentId, eventUuid        (포털 추적용)
+//   deploymentEnvironmentId                    (포털 추적용)
 //   callbackUrl                                (결과 수신 URL)
 //
 // Callback URL
@@ -24,7 +24,6 @@
 //   {
 //     "loc": "...",
 //     "deploymentEnvironmentId": "...",
-//     "eventUuid": "...",
 //     "gatherInfoJson": [ {host1}, {host2}, ... ]
 //   }
 //
@@ -53,11 +52,6 @@ pipeline {
             name        : 'deploymentEnvironmentId',
             defaultValue: '',
             description : '포털 개발환경 ID'
-        )
-        string(
-            name        : 'eventUuid',
-            defaultValue: '',
-            description : '포털 이벤트 UUID (요청 추적용)'
         )
         string(
             name        : 'callbackUrl',
@@ -123,12 +117,9 @@ pipeline {
                     if (!params.deploymentEnvironmentId?.trim()) {
                         error "[Validate] 필수 파라미터 누락: deploymentEnvironmentId"
                     }
-                    if (!params.eventUuid?.trim()) {
-                        error "[Validate] 필수 파라미터 누락: eventUuid"
-                    }
 
                     echo "[Validate] OK -- target_type=${params.target_type}, hosts=${hosts.size()}, loc=${params.loc}"
-                    echo "[Validate] callback=${params.callbackUrl}, eventUuid=${params.eventUuid}"
+                    echo "[Validate] callback=${params.callbackUrl}"
                 }
             }
         }
@@ -205,7 +196,6 @@ pipeline {
                     def callbackBody = '{'  +
                         '"loc":"'                        + params.loc.replaceAll('"', '\\\\"')                        + '",' +
                         '"deploymentEnvironmentId":"'   + params.deploymentEnvironmentId.replaceAll('"', '\\\\"')   + '",' +
-                        '"eventUuid":"'                  + params.eventUuid.replaceAll('"', '\\\\"')                  + '",' +
                         '"gatherInfoJson":['             + gatherArray                                               + ']'  +
                     '}'
 
@@ -259,7 +249,6 @@ pipeline {
                 echo "[Post] ======================================================="
                 echo "[Post] 결과: ${currentBuild.currentResult}"
                 echo "[Post] 소요: ${currentBuild.durationString ?: '-'}"
-                echo "[Post] UUID: ${params.eventUuid}"
                 echo "[Post] type: ${params.target_type}"
                 echo "[Post] ======================================================="
             }
