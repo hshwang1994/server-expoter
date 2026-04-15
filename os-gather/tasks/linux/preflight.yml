@@ -1,45 +1,74 @@
 ---
 # os-gather/tasks/linux/preflight.yml
 #
-# Linux 호스트 실행 가능성 사전 점검
-# - Python 경로 감지
-# - 필수 명령 존재 여부 확인 (없어도 gather 는 계속)
+# Linux 호스트 사전 점검 — Python 버전 감지 + 명령 존재 확인
+# 모든 태스크는 ansible.builtin.raw 사용 (Python 불필요)
 #
 # 출력 변수:
-#   _l_python   : str  — Python 실행 경로
-#   _l_has_lsblk: bool — lsblk 존재 여부
-#   _l_has_dmi  : bool — dmidecode 존재 여부
-#   _l_has_last : bool — last 명령 존재 여부
+#   _l_python_mode    : str  — 'python_ok' | 'python_missing' | 'python_incompatible' | 'raw_forced'
+#   _l_python_path    : str  — Python 경로 (없으면 'none')
+#   _l_python_version : str  — Python 버전 문자열 (예: '3.9.16', 없으면 '')
+#   _l_python         : str  — setup 모듈이 사용할 Python 경로 (backward compat)
+#   _l_has_lsblk      : bool
+#   _l_has_dmi        : bool
+#   _l_has_last       : bool
+#   _l_has_lastlog    : bool
+#   _l_has_lscpu      : bool
+#   _l_has_ip         : bool
 
-- name: "linux | preflight | detect python"
-  ansible.builtin.raw: >
-    command -v python3 2>/dev/null ||
-    command -v python  2>/dev/null ||
-    echo "none"
-  register: _l_python_raw
-  changed_when: false
-  no_log: true
-
-- name: "linux | preflight | set python path"
-  ansible.builtin.set_fact:
-    _l_python: "{{ _l_python_raw.stdout_lines[0] | default('python3') | trim }}"
-  no_log: true
-
-- name: "linux | preflight | check optional commands"
+- name: "linux | preflight | detect python + commands"
   ansible.builtin.raw: |
-    echo "lsblk=$(command -v lsblk >/dev/null 2>&1 && echo 1 || echo 0)"
-    echo "dmidecode=$(command -v dmidecode >/dev/null 2>&1 && echo 1 || echo 0)"
-    echo "last=$(command -v last >/dev/null 2>&1 && echo 1 || echo 0)"
-    echo "lastlog=$(command -v lastlog >/dev/null 2>&1 && echo 1 || echo 0)"
+    py_path="none"
+    py_ver=""
+    for cmd in python3 python; do
+      p=$(command -v "$cmd" 2>/dev/null) && py_path="$p" && break
+    done
+    if [ "$py_path" != "none" ]; then
+      py_ver=$("$py_path" --version 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+      [ -z "$py_ver" ] && py_ver="0.0.0"
+    fi
+    echo "PY_PATH=$py_path"
+    echo "PY_VER=$py_ver"
+    echo "HAS_LSBLK=$(command -v lsblk >/dev/null 2>&1 && echo 1 || echo 0)"
+    echo "HAS_DMIDECODE=$(command -v dmidecode >/dev/null 2>&1 && echo 1 || echo 0)"
+    echo "HAS_LAST=$(command -v last >/dev/null 2>&1 && echo 1 || echo 0)"
+    echo "HAS_LASTLOG=$(command -v lastlog >/dev/null 2>&1 && echo 1 || echo 0)"
+    echo "HAS_LSCPU=$(command -v lscpu >/dev/null 2>&1 && echo 1 || echo 0)"
+    echo "HAS_IP=$(command -v ip >/dev/null 2>&1 && echo 1 || echo 0)"
   register: _l_preflight_raw
   changed_when: false
   failed_when: false
   no_log: true
 
-- name: "linux | preflight | parse command availability"
+- name: "linux | preflight | parse results"
   ansible.builtin.set_fact:
-    _l_has_lsblk: "{{ 'lsblk=1' in _l_preflight_raw.stdout | default('') }}"
-    _l_has_dmi:   "{{ 'dmidecode=1' in _l_preflight_raw.stdout | default('') }}"
-    _l_has_last:  "{{ 'last=1' in _l_preflight_raw.stdout | default('') }}"
-    _l_has_lastlog: "{{ 'lastlog=1' in _l_preflight_raw.stdout | default('') }}"
+    _l_pf: >-
+      {{ dict(_l_preflight_raw.stdout_lines | default([])
+              | select('search', '=')
+              | map('split', '=', 1)
+              | list) }}
+  no_log: true
+
+- name: "linux | preflight | set python mode + command flags"
+  ansible.builtin.set_fact:
+    _l_python_path:    "{{ (_l_pf.PY_PATH | default('none')) | trim }}"
+    _l_python_version: "{{ (_l_pf.PY_VER  | default(''))     | trim }}"
+    _l_python_mode: >-
+      {%- set force_raw = lookup('env', 'SE_FORCE_LINUX_RAW_FALLBACK') | default('') | lower -%}
+      {%- set py_path   = (_l_pf.PY_PATH | default('none')) | trim -%}
+      {%- set py_ver    = (_l_pf.PY_VER  | default(''))     | trim -%}
+      {%- if force_raw in ['1', 'true', 'yes'] -%}raw_forced
+      {%- elif py_path == 'none' or py_ver == '' -%}python_missing
+      {%- elif py_ver is version('3.9', '>=') -%}python_ok
+      {%- else -%}python_incompatible
+      {%- endif -%}
+    # backward compat — setup 모듈의 ansible_python_interpreter 용
+    _l_python: "{{ (_l_pf.PY_PATH | default('python3')) | trim }}"
+    # 명령 존재 플래그
+    _l_has_lsblk:   "{{ ((_l_pf.HAS_LSBLK    | default('0')) | trim) == '1' }}"
+    _l_has_dmi:     "{{ ((_l_pf.HAS_DMIDECODE | default('0')) | trim) == '1' }}"
+    _l_has_last:    "{{ ((_l_pf.HAS_LAST      | default('0')) | trim) == '1' }}"
+    _l_has_lastlog: "{{ ((_l_pf.HAS_LASTLOG   | default('0')) | trim) == '1' }}"
+    _l_has_lscpu:   "{{ ((_l_pf.HAS_LSCPU     | default('0')) | trim) == '1' }}"
+    _l_has_ip:      "{{ ((_l_pf.HAS_IP        | default('0')) | trim) == '1' }}"
   no_log: true

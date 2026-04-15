@@ -113,6 +113,84 @@ _{채널}_{단계}_{의미}
 | `_l_has_lsblk`, `_l_has_dmi`, `_l_has_last` | 명령 존재 여부 (preflight) |
 | `_l_fb` | Linux raw fallback 파싱 결과 |
 
+#### Linux 2-Tier Gather 참고사항
+
+- **Memory**: raw fallback 경로에서 dmidecode 접근이 성공하면 `physical_installed` (물리 장착 메모리)를 반환한다. Python 경로의 `ansible_memtotal_mb`는 커널 예약 후 `os_visible` 값이므로, raw 경로가 하드웨어 인벤토리 용도에 더 정밀하다.
+- **SELinux**: `getenforce` 출력(`Enforcing`/`Permissive`/`Disabled`)은 Ansible 컨벤션에 맞게 `enabled`/`disabled`로 정규화된다.
+- **Ubuntu SELinux**: Ubuntu에서는 `getenforce`가 미설치이므로 `selinux = null`이 정상이다 (Python 경로의 `disabled`와 다르지만 허용 범위).
+
+#### Network 수집 정책
+
+##### primary 판단 규칙
+
+| 경로 | primary 판단 기준 |
+|------|-------------------|
+| Python 경로 | `ansible_default_ipv4.interface` = primary |
+| Raw 경로 | `ip route show default \| head -1`의 `dev` 필드 = primary (lowest metric wins) |
+
+양쪽 모두 **"IPv4 default route가 걸린 인터페이스 = primary"** 원칙이다.
+
+- **bond master**에 default route가 걸리면 bond master가 primary
+- **bridge**에 default route가 걸리면 bridge가 primary
+- slave/port 인터페이스는 IP가 없으므로 primary 불가
+
+##### default_gateways 추출
+
+| 경로 | 추출 방식 |
+|------|----------|
+| Python 경로 | `ansible_default_ipv4.gateway` |
+| Raw 경로 | `ip route show default \| head -1` → 3번째 필드 (gateway IP) |
+
+- 다중 default route 존재 시: metric 순으로 정렬된 **첫 번째만** 사용
+- IPv6 default gateway: 현재 미수집 (P3)
+
+##### skip 패턴 (제외되는 가상 인터페이스)
+
+아래 패턴에 매칭되는 인터페이스는 수집에서 제외된다:
+
+| 패턴 | 대상 |
+|------|------|
+| `lo` | loopback |
+| `docker*`, `br-*` | Docker bridge networks |
+| `veth*` | container veth pairs |
+| `virbr*`, `vir*` | libvirt virtual bridges |
+| `cni*`, `flannel*`, `cali*` | Kubernetes CNI |
+| `tunl*`, `dummy*` | tunnel, dummy interfaces |
+| `kube-*` | Kubernetes internal |
+
+**중요**: `br0`, `bond0`, `team0`, `eth0.100`(VLAN) 등 일반 네트워크 인터페이스는 제외 대상이 아니다. 이들은 IP가 할당된 정상 인터페이스이므로 수집된다.
+
+##### bond/team/bridge/VLAN 해석
+
+| 유형 | 수집 여부 | 비고 |
+|------|----------|------|
+| bond master | IP 있으면 수집됨 | kind=os_nic, slave는 IP 없어 자동 제외 |
+| bridge (br0) | IP 있으면 수집됨 | 하위 port는 IP 없어 자동 제외 |
+| VLAN (eth0.100) | IP 있으면 수집됨 | — |
+
+- **speed**: bond/bridge는 `/sys/class/net/*/speed`가 없거나 `-1` → `null`
+
+##### speed/link_status 해석
+
+| 필드 | 소스 | 비고 |
+|------|------|------|
+| `speed` | `/sys/class/net/*/speed` | 가상 NIC는 `-1` 또는 미보고 → `null` |
+| `link_status` | `/sys/class/net/*/operstate` | `up`/`down`/`unknown` |
+
+- bond master speed는 kernel이 보고 안 할 수 있음 → `null`
+
+##### DNS 해석
+
+- `/etc/resolv.conf`의 `nameserver` 행에서 추출
+- `127.0.0.53` = systemd-resolved stub resolver (실제 upstream DNS가 아님)
+- **운영 해석**: stub resolver가 보이면 `resolvectl status`로 실제 DNS 확인 필요
+
+##### 현재 한계
+
+- IPv6 주소/gateway 미수집
+- policy routing (`ip rule`, `table`) 미반영
+- 다중 default route 중 첫 번째만 사용
+
 #### ESXi 수집 변수
 
 | 변수 | 설명 |

@@ -228,6 +228,8 @@
                 detected_os:       "linux"
                 selected_port:     22
                 checked_ports:     [22]
+                gather_mode:       "{{ _l_python_mode | default('python_ok') }}"
+                python_version:    "{{ _l_python_version | default('') }}"
 
         # ── meta & correlation ───────────────────────────────────────────
         - name: "linux | set output meta vars"

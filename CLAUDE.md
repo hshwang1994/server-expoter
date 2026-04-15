@@ -265,6 +265,24 @@ score = priority × 1000 + specificity × 10 + match_score
     password: "{{ _rf_vault.password }}"
 ```
 
+### Medium: Linux 2-Tier Gather (Python 감지 + Raw Fallback)
+
+Linux OS gather는 `preflight.yml`에서 Python 버전을 감지하여 `_l_python_mode`를 설정한다.
+
+| 모드 | 조건 | 수집 방식 |
+|------|------|----------|
+| `python_ok` | Python 3.9+ | 기존 Python 경로 (setup/shell/command/getent) |
+| `python_missing` / `python_incompatible` | Python 미설치 또는 3.8 이하 | raw-only 경로 |
+| `raw_forced` | `SE_FORCE_LINUX_RAW_FALLBACK=true` | raw-only (개발/검증 전용) |
+
+**raw fallback 원칙:**
+- remote 실행은 `raw` 모듈만 사용, controller-side `set_fact`/Jinja2 파싱은 허용
+- 6개 섹션 모두 수집 가능, JSON 스키마 호환성 100% 유지
+- `diagnosis.details`에 `gather_mode`, `python_version` 추가
+- SELinux: `getenforce` 출력을 `enabled`/`disabled`로 정규화 (Round 2에서 수정)
+- Memory: raw 경로는 dmidecode 기반으로 `physical_installed`를 반환 (Python 경로의 `os_visible`보다 정밀)
+- 검증 완료: RHEL 8.10 (py3.6→auto raw), RHEL 9.2, 9.6, Rocky 9.6, Ubuntu 24.04, 5대 31필드 전수 검증
+
 ### Low: OEM 확장 (선택)
 
 OEM이 없으면:

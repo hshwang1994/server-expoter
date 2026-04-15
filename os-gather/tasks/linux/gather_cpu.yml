@@ -1,43 +1,105 @@
 ---
 # os-gather/tasks/linux/gather_cpu.yml
 # CPU 정보 수집 → data.cpu fragment 생성
+#
+# Python 경로: shell + setup facts (ansible_processor_count 등)
+# Raw fallback: /proc/cpuinfo 파싱 (raw only)
 
-- name: "linux | cpu | cores per socket"
-  ansible.builtin.shell: >
-    grep -m1 'cpu cores' /proc/cpuinfo 2>/dev/null | awk '{print $4}' || echo ""
-  register: _l_cpu_cores_raw
-  changed_when: false
-  failed_when: false
-  no_log: true
+# =============================================================================
+# Python Path
+# =============================================================================
+- block:
+    - name: "linux | cpu | cores per socket"
+      ansible.builtin.shell: >
+        grep -m1 'cpu cores' /proc/cpuinfo 2>/dev/null | awk '{print $4}' || echo ""
+      register: _l_cpu_cores_raw
+      changed_when: false
+      failed_when: false
+      no_log: true
 
-- name: "linux | cpu | model"
-  ansible.builtin.shell: >
-    grep -m1 'model name' /proc/cpuinfo 2>/dev/null
-    | cut -d: -f2 | sed 's/^ *//' || echo ""
-  register: _l_cpu_model_raw
-  changed_when: false
-  failed_when: false
-  no_log: true
+    - name: "linux | cpu | model"
+      ansible.builtin.shell: >
+        grep -m1 'model name' /proc/cpuinfo 2>/dev/null
+        | cut -d: -f2 | sed 's/^ *//' || echo ""
+      register: _l_cpu_model_raw
+      changed_when: false
+      failed_when: false
+      no_log: true
 
-- name: "linux | cpu | build fragment"
-  ansible.builtin.set_fact:
-    _data_fragment:
-      cpu:
-        sockets:         "{{ ansible_processor_count   | default(none) }}"
-        cores_physical:  >-
-          {{ (_l_cpu_cores_raw.stdout | trim | int)
-             * (ansible_processor_count | default(1) | int)
-             if _l_cpu_cores_raw.stdout | trim | length > 0
-             else none }}
-        logical_threads: "{{ ansible_processor_vcpus   | default(none) }}"
-        model:           "{{ _l_cpu_model_raw.stdout   | trim | default(none) }}"
-        architecture:    "{{ ansible_architecture      | default(none) }}"
-    _sections_supported_fragment: ['cpu']
-    _sections_collected_fragment: ['cpu']
-    _sections_failed_fragment:    []
-    _errors_fragment:             []
-  no_log: true
+    - name: "linux | cpu | build fragment"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          cpu:
+            sockets:         "{{ ansible_processor_count   | default(none) }}"
+            cores_physical:  >-
+              {{ (_l_cpu_cores_raw.stdout | trim | int)
+                 * (ansible_processor_count | default(1) | int)
+                 if _l_cpu_cores_raw.stdout | trim | length > 0
+                 else none }}
+            logical_threads: "{{ ansible_processor_vcpus   | default(none) }}"
+            model:           "{{ _l_cpu_model_raw.stdout   | trim | default(none) }}"
+            architecture:    "{{ ansible_architecture      | default(none) }}"
+        _sections_supported_fragment: ['cpu']
+        _sections_collected_fragment: ['cpu']
+        _sections_failed_fragment:    []
+        _errors_fragment:             []
+      no_log: true
+  when: _l_python_mode == 'python_ok'
 
+# =============================================================================
+# Raw Fallback Path — /proc/cpuinfo + uname
+# =============================================================================
+- block:
+    - name: "linux | cpu | raw gather"
+      ansible.builtin.raw: |
+        echo "CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ *//')"
+        echo "CPU_CPS=$(grep -m1 'cpu cores' /proc/cpuinfo 2>/dev/null | awk '{print $4}')"
+        echo "CPU_SOCKETS=$(grep 'physical id' /proc/cpuinfo 2>/dev/null | sort -u | wc -l)"
+        echo "CPU_LOGICAL=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null || nproc 2>/dev/null || echo 0)"
+        echo "CPU_ARCH=$(uname -m 2>/dev/null)"
+      register: _l_cpu_raw_result
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "linux | cpu | parse raw"
+      ansible.builtin.set_fact:
+        _l_cpu_parsed: >-
+          {{ dict(_l_cpu_raw_result.stdout_lines | default([])
+                  | select('search', '=')
+                  | map('split', '=', 1)
+                  | list) }}
+      no_log: true
+
+    - name: "linux | cpu | build fragment (raw)"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          cpu:
+            sockets: >-
+              {%- set s = (_l_cpu_parsed.CPU_SOCKETS | default('0')) | trim | int -%}
+              {{ s if s > 0 else 1 }}
+            cores_physical: >-
+              {%- set cps = (_l_cpu_parsed.CPU_CPS | default('0')) | trim | int -%}
+              {%- set sockets = (_l_cpu_parsed.CPU_SOCKETS | default('0')) | trim | int -%}
+              {%- set sockets = sockets if sockets > 0 else 1 -%}
+              {{ (cps * sockets) if cps > 0 else (_l_cpu_parsed.CPU_LOGICAL | default('0')) | trim | int }}
+            logical_threads: "{{ (_l_cpu_parsed.CPU_LOGICAL | default('0')) | trim | int }}"
+            model: >-
+              {%- set m = (_l_cpu_parsed.CPU_MODEL | default('')) | trim -%}
+              {{ m if m else none }}
+            architecture: >-
+              {%- set a = (_l_cpu_parsed.CPU_ARCH | default('')) | trim -%}
+              {{ a if a else none }}
+        _sections_supported_fragment: ['cpu']
+        _sections_collected_fragment: ['cpu']
+        _sections_failed_fragment:    []
+        _errors_fragment:             []
+      no_log: true
+  when: _l_python_mode != 'python_ok'
+
+# =============================================================================
+# Shared: merge
+# =============================================================================
 - name: "linux | cpu | merge fragment"
   ansible.builtin.include_tasks:
     file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/merge_fragment.yml"

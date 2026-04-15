@@ -1,6 +1,6 @@
 # 의사결정 로그
 
-> 최종 갱신: 2026-03-18
+> 최종 갱신: 2026-04-15
 
 ## 1. 코드 점검 1차/2차 결과 요약
 
@@ -155,3 +155,88 @@ OEM 구현을 재검토해야 하는 상황:
 | 단위 변환 헬퍼 통일 | 검증 시점에 코드 동작 확인됨, 우선순위 낮음 |
 | Thermal 수집 추가 | normalize 스키마 미정의, 향후 요구 시 구현 |
 | Supermicro/다중 System member/Session Auth/iLO5 차이 | 실장비 미보유로 검증 불가, 장비 확보 시 재검토 |
+
+## 9. Linux Raw Fallback Round 2 검증 (2026-04-15)
+
+### 배경
+
+Round 1에서 Linux 2-Tier Gather (Python 감지 + Raw Fallback) 기본 구현을 완료했다. Round 2에서는 5대 서버에 대해 31개 필드 전수 비교 검증을 수행했다.
+
+### SELinux 정규화 버그 수정
+
+`gather_system.yml`의 raw 경로에서 `getenforce` 출력값(`Enforcing`/`Permissive`/`Disabled`)을 Ansible 컨벤션(`enabled`/`disabled`)으로 정규화하지 않는 버그를 발견하고 수정했다.
+
+- **수정 전**: `getenforce` 출력 그대로 반환 (예: `Enforcing`)
+- **수정 후**: `Enforcing`/`Permissive` → `enabled`, `Disabled` → `disabled`로 정규화
+
+### 5대 서버 필드 전수 비교 결과
+
+| 서버 | OS | Python | 감지 모드 | 결과 | 비고 |
+|------|-----|--------|----------|------|------|
+| RHEL 8.10 | RHEL 8.10 | 3.6.8 | `python_incompatible` (자동) | 31/31 MATCH | auto fallback과 forced raw 간 완전 일치 |
+| RHEL 9.2 | RHEL 9.2 | 3.9+ | `python_ok` | memory 차이만 | raw 경로가 더 정밀 (아래 분석 참조) |
+| RHEL 9.6 | RHEL 9.6 | 3.9+ | `python_ok` | memory 차이만 | 동일 |
+| Rocky 9.6 | Rocky 9.6 | 3.9+ | `python_ok` | memory 차이만 | 동일 |
+| Ubuntu 24.04 | Ubuntu 24.04 | 3.9+ | `python_ok` | selinux 1건 차이 | 허용 범위 (아래 분석 참조) |
+
+### Memory 차이 분석 (버그 아님)
+
+RHEL 9.x / Rocky 9.6에서 Python 경로와 raw 경로 간 memory 값 차이가 발생한다. 이는 **버그가 아니라 raw 경로가 더 정확**한 결과이다.
+
+| 경로 | 수집 방식 | 값 (예시) | 의미 |
+|------|----------|----------|------|
+| Python 경로 | `ansible_memtotal_mb` (OS 보고) | 7680 MB | 커널 예약 후 OS 가시 메모리 (`os_visible`) |
+| Raw 경로 | `dmidecode --type 17` (하드웨어 직접) | 8192 MB | 물리 장착 메모리 (`physical_installed`) |
+
+→ raw 경로의 dmidecode 기반 수집이 실제 물리 메모리를 반환하므로 하드웨어 인벤토리 용도에 더 적합하다.
+
+### Ubuntu SELinux 차이 (허용)
+
+Ubuntu 24.04에서 `selinux` 필드 차이 1건 발생:
+- Python 경로: `disabled` (Ansible이 SELinux 미설치를 disabled로 보고)
+- Raw 경로: `null` (`getenforce` 명령 미설치)
+
+→ Ubuntu는 SELinux를 기본 탑재하지 않으므로 `null` 반환이 의미적으로 정확하다. 허용 범위로 판정.
+
+### 결론
+
+5대 서버, 31개 필드 전수 검증 완료. Raw fallback은 Python 경로와 동등하거나 더 정밀한 결과를 제공한다. 프로덕션 적용 가능.
+
+## 10. Network 심층 검증 (Round 3, 2026-04-15)
+
+### 배경
+
+Round 2 이후 Network 섹션에 대해 심층 검증을 수행했다. 가상 인터페이스 skip 패턴 확장, 다중 default route 동작 확인, primary 판단 규칙 명확화가 주요 내용이다.
+
+### skip 패턴 확장
+
+기존 skip 패턴(`lo`, `docker*`, `br-*`, `veth*`, `virbr*`, `vir*`)에 아래 패턴을 추가했다:
+
+| 추가 패턴 | 대상 | 추가 근거 |
+|----------|------|----------|
+| `cni*` | Kubernetes CNI 인터페이스 | K8s 노드에서 불필요한 가상 인터페이스 수집 방지 |
+| `flannel*` | Flannel CNI overlay | 동일 |
+| `cali*` | Calico CNI | 동일 |
+| `tunl*` | tunnel 인터페이스 | IPIP 터널 등 가상 인터페이스 제외 |
+| `dummy*` | dummy 인터페이스 | 테스트/라우팅 용도 가상 인터페이스 제외 |
+| `kube-*` | Kubernetes internal | kube-proxy 등 내부 인터페이스 제외 |
+
+**주의**: `br0`, `bond0`, `team0`, `eth0.100`(VLAN) 등 실 네트워크 인터페이스는 skip 대상이 아니다.
+
+### 5대 서버 다중 default route 동작 확인
+
+5대 서버(RHEL 8.10, RHEL 9.2, RHEL 9.6, Rocky 9.6, Ubuntu 24.04)에서 다중 default route가 존재하는 경우 metric 기준 정렬 후 첫 번째만 사용하는 동작을 확인했다. Python 경로(`ansible_default_ipv4`)와 raw 경로(`ip route show default | head -1`) 모두 동일한 결과를 반환한다.
+
+### primary 판단 규칙 명확화
+
+| 결정 | 내용 |
+|------|------|
+| primary 정의 | IPv4 default route가 걸린 인터페이스 = primary |
+| bond master | default route가 bond master에 걸리면 bond master가 primary |
+| bridge | default route가 bridge에 걸리면 bridge가 primary |
+| slave/port | IP가 없으므로 primary 불가 |
+| 다중 default route | lowest metric wins (첫 번째만 사용) |
+
+### 결론
+
+Network 수집 정책을 GUIDE_FOR_AI.md에 문서화 완료. skip 패턴 확장으로 Kubernetes/tunnel/dummy 가상 인터페이스를 추가 제외하고, primary 판단 규칙과 다중 default route 처리를 명확화했다.
