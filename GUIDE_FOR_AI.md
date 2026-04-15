@@ -193,6 +193,52 @@ _{채널}_{단계}_{의미}
 - policy routing (`ip rule`, `table`) 미반영
 - 다중 default route 중 첫 번째만 사용
 
+##### 배포판별 명령어 지원 매트릭스
+
+실측 기준 (5대 서버 검증, SLES 15는 공식 문서 기준 예측):
+
+| 명령/소스 | 패키지 | RHEL 8 | RHEL 9 | Rocky 9 | Ubuntu 24 | SLES 15 | gather 사용 | fallback |
+|-----------|--------|--------|--------|---------|-----------|---------|------------|---------|
+| `ip` | iproute | ✅ | ✅ | ✅ | ✅ | ✅ | 핵심 (addr/route/link) | 없음 — 필수 |
+| `getent` | glibc-common | ✅ | ✅ | ✅ | ✅ | ✅ | users 수집 | 없음 — 필수 |
+| `lsblk` | util-linux | ✅ | ✅ | ✅ | ✅ | ✅ | storage 물리디스크 | 빈 배열 반환 |
+| `df` | coreutils | ✅ | ✅ | ✅ | ✅ | ✅ | storage 파일시스템 | 빈 배열 반환 |
+| `getenforce` | libselinux-utils | ✅ | ✅ | ✅ | ❌ | ❌ | system.selinux | null |
+| `lastlog` | shadow-utils/login | ✅ | ✅ | ✅ | ✅ | ✅ | users.last_access_time | last → utmpdump |
+| `utmpdump` | util-linux | ✅ | ✅ | ✅ | ✅ | ✅ | users 3차 fallback | null |
+| `systemd-detect-virt` | systemd | ✅ | ✅ | ✅ | ✅ | ✅ | system.hosting_type | unknown |
+| `dmidecode` | dmidecode | ✅ | ✅ | ✅ | ✅ | ✅ | memory, serial/uuid | 권한 의존 |
+| `resolvectl` | systemd-resolved | ✅(8) | ❌(9) | ❌ | ✅ | ❌ | 미사용 (참고용) | — |
+| `nmcli` | NetworkManager | ✅ | ✅ | ✅ | ❌ | ❌ | 미사용 | — |
+| `networkctl` | systemd | ❌ | ❌ | ❌ | ✅ | ❌ | 미사용 | — |
+| `/sys/class/net/*` | kernel sysfs | ✅ | ✅ | ✅ | ✅ | ✅ | network 핵심 (mac/mtu/speed/state/master) | — |
+| `/proc/cpuinfo` | kernel | ✅ | ✅ | ✅ | ✅ | ✅ | cpu 수집 | — |
+| `/proc/meminfo` | kernel | ✅ | ✅ | ✅ | ✅ | ✅ | memory 수집 | — |
+| `/etc/os-release` | filesystem | ✅ | ✅ | ✅ | ✅ | ✅ | system 수집 | — |
+| `/etc/resolv.conf` | filesystem | ✅ | ✅ | ✅ | ✅ | ✅ | dns_servers | — |
+
+- SLES 15 값은 공식 문서 기준 예측 (실증 미완)
+- `ip`, `getent`, `/sys/class/net`, `/proc/*`, `/etc/os-release`는 모든 배포판에서 보장
+- `nmcli`, `resolvectl`, `networkctl`은 배포판/네트워크 스택에 따라 상이하므로 gather 주 수집 소스로 사용하지 않음
+- gather는 kernel sysfs + POSIX 명령 + /proc 의존 → 배포판 무관 동작 설계
+
+##### Network raw fallback source 우선순위
+
+| 데이터 | 1순위 | 2순위 | 3순위 | 미지원 시 |
+|--------|-------|-------|-------|----------|
+| IPv4 주소/프리픽스 | `ip -o -4 addr show` | — | — | 빈 addresses |
+| IPv6 주소 | — | — | — | **미수집 (P3)** |
+| default gateway | `ip route show default \| head -1` | — | — | 빈 default_gateways |
+| primary 판정 | default route의 `dev` 필드 | — | — | 전체 is_primary=false |
+| DNS | `/etc/resolv.conf` nameserver 행 | — | — | 빈 dns_servers |
+| MAC | `/sys/class/net/*/address` | — | — | 인터페이스 제외 |
+| MTU | `/sys/class/net/*/mtu` | — | — | null |
+| speed | `/sys/class/net/*/speed` | — | — | null (-1 → null) |
+| link state | `/sys/class/net/*/operstate` | — | — | unknown |
+| slave/port 판정 | `/sys/class/net/*/master` sysfs | — | — | slave 미감지 → 수집 |
+| bridge 판정 | `/sys/class/net/*/bridge/` dir | — | — | bridge 미감지 |
+| bond 판정 | `/sys/class/net/*/bonding/` dir | — | — | bond 미감지 |
+
 #### ESXi 수집 변수
 
 | 변수 | 설명 |

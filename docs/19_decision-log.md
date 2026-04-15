@@ -298,3 +298,63 @@ raw path에 bridge slave / bond slave 자동 필터를 추가했다:
 ### 결론
 
 복잡 토폴로지(bridge + VLAN + container NIC + policy routing)에서 수집 정확성을 실증했다. bridge slave/bond slave 자동 필터 추가로 불필요한 하위 포트 수집이 제거되었다. 4개 인터페이스만 정확히 수집되며, primary 판단도 정확하다.
+
+## 12. Network 운영 해석 기준 확정 + bond 실증 (Round 5, 2026-04-15)
+
+### 배경
+
+Round 4까지 skip 패턴, primary 판단, bridge slave 필터를 검증했다. Round 5에서는 5대 서버 명령어 존재성 매트릭스 실측과 bond 토폴로지 실증을 수행하여 운영 해석 기준을 확정했다.
+
+### 명령어 존재성 매트릭스 실측
+
+15개 명령 x 5대 서버(RHEL 8.10, RHEL 9.2, RHEL 9.6, Rocky 9.6, Ubuntu 24.04)에 대해 명령어 존재 여부를 실측했다.
+
+핵심 발견:
+- RHEL 9는 `resolvectl` 미설치 (systemd-resolved 패키지 미포함)
+- Ubuntu는 `nmcli` 미설치 (NetworkManager 미사용)
+- `ip`, `getent`, `/sys/class/net`, `/proc/*`, `/etc/os-release`는 모든 배포판에서 보장
+
+→ 배포판 무관 소스(`ip`, sysfs, `/proc`, `/etc`) 사용 전략의 정당성을 실측으로 확인했다.
+
+### bond 실증
+
+Ubuntu 24.04에 bond 토폴로지를 구성하여 수집 정확성을 실증했다:
+
+| 구성 | 내용 |
+|------|------|
+| bond0 | active-backup 모드, 2개 dummy slave |
+| bond0.200 | VLAN-on-bond (bond0 위 VLAN 서브인터페이스) |
+| br_test | bridge (테스트용) |
+
+검증 결과:
+
+| 항목 | 결과 |
+|------|------|
+| bond master 수집 | ✅ bond0 수집됨 |
+| slave 제외 | ✅ dummy slave 제외됨 (master sysfs 감지) |
+| VLAN-on-bond 수집 | ✅ bond0.200 수집됨 |
+| bridge port 제외 | ✅ bridge 하위 port 제외됨 |
+
+### source 우선순위 체계 확정
+
+```
+kernel sysfs > POSIX 명령 > /proc > /etc
+```
+
+- kernel sysfs (`/sys/class/net/*`): MAC, MTU, speed, operstate, master, bridge/bonding 판정
+- POSIX 명령 (`ip`): IPv4 주소, default gateway, primary 판정
+- `/proc`: cpuinfo, meminfo
+- `/etc`: resolv.conf (DNS), os-release (system)
+
+### 운영 해석 정책 확정
+
+| 항목 | 해석 |
+|------|------|
+| `is_primary` | IPv4 main table default route device (운영 대표 IP와 동일하지 않을 수 있음) |
+| `speed=null` | kernel 미보고 (bond/bridge master, 가상 NIC) |
+| `dns 127.0.0.53` | stub resolver (systemd-resolved, 실제 upstream DNS가 아님) |
+| policy routing / IPv6 / VRF | 미지원 |
+
+### 결론
+
+명령어 매트릭스 실측으로 배포판 무관 설계를 검증하고, bond 실증으로 bond master/slave/VLAN-on-bond 수집 정확성을 확인했다. source 우선순위와 운영 해석 정책을 확정하여 GUIDE_FOR_AI.md에 반영했다.
