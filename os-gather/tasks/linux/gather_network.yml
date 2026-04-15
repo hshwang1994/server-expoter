@@ -106,6 +106,10 @@
         # --- Interfaces ---
         for dev in $(ls /sys/class/net/ 2>/dev/null); do
           case "$dev" in lo|docker*|br-*|veth*|virbr*|vir*|cni*|flannel*|cali*|tunl*|dummy*|kube-*) continue;; esac
+          # Skip bond slave / bridge port (has master but is not the master itself)
+          if [ -e "/sys/class/net/$dev/master" ] && [ ! -d "/sys/class/net/$dev/bridge" ] && [ ! -d "/sys/class/net/$dev/bonding" ]; then
+            continue
+          fi
           mac=$(cat /sys/class/net/$dev/address 2>/dev/null)
           [ -z "$mac" ] || [ "$mac" = "00:00:00:00:00:00" ] && continue
           mtu=$(cat /sys/class/net/$dev/mtu 2>/dev/null || echo 0)

@@ -160,6 +160,8 @@ _{채널}_{단계}_{의미}
 
 **중요**: `br0`, `bond0`, `team0`, `eth0.100`(VLAN) 등 일반 네트워크 인터페이스는 제외 대상이 아니다. 이들은 IP가 할당된 정상 인터페이스이므로 수집된다.
 
+- **bond slave / bridge port 자동 제외**: `/sys/class/net/$dev/master`가 존재하면서 자신이 bridge/bond master가 아닌 인터페이스는 수집 제외 (raw path). Python path에서는 IP 없는 인터페이스가 자동 제외됨
+
 ##### bond/team/bridge/VLAN 해석
 
 | 유형 | 수집 여부 | 비고 |

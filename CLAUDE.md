@@ -282,6 +282,7 @@ Linux OS gather는 `preflight.yml`에서 Python 버전을 감지하여 `_l_pytho
 - SELinux: `getenforce` 출력을 `enabled`/`disabled`로 정규화 (Round 2에서 수정)
 - Memory: raw 경로는 dmidecode 기반으로 `physical_installed`를 반환 (Python 경로의 `os_visible`보다 정밀)
 - 검증 완료: RHEL 8.10 (py3.6→auto raw), RHEL 9.2, 9.6, Rocky 9.6, Ubuntu 24.04, 5대 31필드 전수 검증
+- 복잡 토폴로지 실증 완료 (bridge+VLAN+container NIC+policy routing, Round 4)
 
 ### Low: OEM 확장 (선택)
 
