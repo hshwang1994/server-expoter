@@ -206,7 +206,9 @@ pipeline {
                     // 에이전트에서 stash 한 결과 파일을 마스터 workspace 에 복원
                     unstash 'gather-log'
 
-                    def callbackEndpoint = "${params.callbackUrl}/api/jenkins/gather/${params.target_type}"
+                    // callbackUrl 전처리: 공백 제거 + 후행 슬래시 제거 (호출자 입력 방어)
+                    def baseUrl = params.callbackUrl.trim().replaceAll('/+$', '')
+                    def callbackEndpoint = baseUrl + '/api/jenkins/gather/' + params.target_type.trim()
                     echo "[Callback] POST -> ${callbackEndpoint}"
 
                     def logContent = readFile("${WORKSPACE}/gather_output.log")

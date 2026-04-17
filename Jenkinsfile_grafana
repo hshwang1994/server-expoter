@@ -159,7 +159,8 @@ pipeline {
         stage('Ingest') {
             steps {
                 script {
-                    def ingestEndpoint = "http://${params.opsmonServer}:8088/ingest"
+                    // opsmonServer 전처리: 공백 제거 (호출자 입력 방어)
+                    def ingestEndpoint = 'http://' + params.opsmonServer.trim() + ':8088/ingest'
                     echo "[Ingest] POST -> ${ingestEndpoint}"
 
                     def logContent = readFile("${WORKSPACE}/gather_output.log")
