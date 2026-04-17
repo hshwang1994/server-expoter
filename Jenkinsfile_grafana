@@ -1,15 +1,27 @@
 // =============================================================================
 // Jenkinsfile_grafana
 //
-// OpsMon(Grafana) 전용 파이프라인
+// OpsMon(Grafana) 전용 파이프라인 (에이전트-마스터 망 분리 구조)
+//
+// 실행 위치:
+//   [에이전트]  Validate, Gather, Validate Schema     — 수집 망
+//   [마스터]    Ingest                                — OpsMon 망
+//
+// 전송 경로:
+//   Agent (gather) -> stash (기존 SSH 22 터널) -> Master -> httpRequest -> OpsMon
 //
 // [필수] Jenkins 설정
 // -----------------------------------------------------------------------------
 //   Plugin    : HTTP Request Plugin
+//   Built-in  : Executor >= 1 (Manage Jenkins -> Nodes -> Built-In Node)
+//               Usage: "Only build jobs with label expressions matching this node"
 // =============================================================================
 //
 // 호출 흐름
-//   Jenkins Job -> Ansible gather -> HTTP POST -> OpsMon Ingest API
+//   Jenkins Job
+//     -> [Agent]  Ansible gather + stash
+//     -> [Master] unstash + Ingest POST (일괄)
+//     -> OpsMon Ingest API
 //
 // 파라미터
 //   loc, target_type, inventory_json     (기본 Jenkinsfile 동일)
@@ -26,7 +38,7 @@
 
 pipeline {
 
-    agent { label "${params.loc}" }
+    agent none
 
     parameters {
         string(
@@ -53,8 +65,6 @@ pipeline {
 
     environment {
         INVENTORY_JSON = "${params.inventory_json}"
-        REPO_ROOT      = "${WORKSPACE}"
-        ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
     }
 
     options {
@@ -65,8 +75,9 @@ pipeline {
 
     stages {
 
-        // -- 1. Validate -------------------------------------------------------
+        // -- 1. Validate [Agent] -----------------------------------------------
         stage('Validate') {
+            agent { label "${params.loc}" }
             steps {
                 script {
                     if (!params.loc?.trim()) {
@@ -112,8 +123,13 @@ pipeline {
             }
         }
 
-        // -- 2. Gather ---------------------------------------------------------
+        // -- 2. Gather [Agent] -------------------------------------------------
         stage('Gather') {
+            agent { label "${params.loc}" }
+            environment {
+                REPO_ROOT      = "${WORKSPACE}"
+                ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+            }
             steps {
                 script {
                     def playbookMap = [
@@ -140,11 +156,25 @@ pipeline {
                         """
                     }
                 }
+
+                // --- 마스터로 결과 파일 전달 (기존 SSH 22 터널 사용) ---
+                stash(
+                    name       : 'gather-log',
+                    includes   : 'gather_output.log',
+                    allowEmpty : true,
+                )
+            }
+            post {
+                always {
+                    // 에이전트 workspace 에서 결과 파일 삭제
+                    sh 'rm -f "${WORKSPACE}/gather_output.log"'
+                }
             }
         }
 
-        // -- 3. Schema ---------------------------------------------------------
+        // -- 3. Validate Schema [Agent] ----------------------------------------
         stage('Validate Schema') {
+            agent { label "${params.loc}" }
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                     sh '''set +x
@@ -155,10 +185,16 @@ pipeline {
             }
         }
 
-        // -- 4. Ingest ---------------------------------------------------------
+        // -- 4. Ingest [Master] ------------------------------------------------
+        // 에이전트는 OpsMon 망에 접근 불가. 마스터 노드에서 OpsMon 으로 POST.
         stage('Ingest') {
+            agent { label 'built-in' }
+            options { skipDefaultCheckout(true) }
             steps {
                 script {
+                    // 에이전트에서 stash 한 결과 파일을 마스터 workspace 에 복원
+                    unstash 'gather-log'
+
                     // opsmonServer 전처리: 공백 제거 (호출자 입력 방어)
                     def ingestEndpoint = 'http://' + params.opsmonServer.trim() + ':8088/ingest'
                     echo "[Ingest] POST -> ${ingestEndpoint}"
@@ -221,21 +257,24 @@ pipeline {
                     }
                 }
             }
+            post {
+                always {
+                    // 마스터 workspace 에서 결과 파일 삭제
+                    sh 'rm -f "${WORKSPACE}/gather_output.log"'
+                }
+            }
         }
     }
 
     // -- Post Actions ----------------------------------------------------------
     post {
         always {
-            script {
-                sh 'rm -f "${WORKSPACE}/gather_output.log"'
-                echo "[Post] ======================================================="
-                echo "[Post] 결과: ${currentBuild.currentResult}"
-                echo "[Post] 소요: ${currentBuild.durationString ?: '-'}"
-                echo "[Post] type: ${params.target_type}"
-                echo "[Post] opsmon: http://${params.opsmonServer}:8088"
-                echo "[Post] ======================================================="
-            }
+            echo "[Post] ======================================================="
+            echo "[Post] 결과: ${currentBuild.currentResult}"
+            echo "[Post] 소요: ${currentBuild.durationString ?: '-'}"
+            echo "[Post] type: ${params.target_type}"
+            echo "[Post] opsmon: http://${params.opsmonServer}:8088"
+            echo "[Post] ======================================================="
         }
         success {
             echo "[Post] [OK] Gather + Ingest 완료"
