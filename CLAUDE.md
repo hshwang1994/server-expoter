@@ -145,7 +145,7 @@ server-exporter/ (프로젝트 루트)
 [4] Schema & 데이터
    ├── schema/
    │   ├── sections.yml (10개: system, hardware, bmc, cpu, memory, storage, network, firmware, users, power)
-   │   ├── field_dictionary.yml (28 Must + Nice + Skip)
+   │   ├── field_dictionary.yml (29 Must + 8 Nice + Skip — 실측 2026-04-27)
    │   ├── baseline_v1/ (7개 벤더 baseline JSON)
    │   └── examples/ (success/partial/failed 예시)
    └── vault/ (linux.yml, windows.yml, esxi.yml, redfish/{vendor}.yml)
@@ -548,7 +548,7 @@ scripts/ai/       # 자동화 스크립트 (Python 27, OS 중립)
 - **Linux 2-tier**: Python 3.9+ ok / raw fallback 자동 분기
 - **JSON envelope**: status / sections / data / errors / meta / diagnosis (6 필드 고정)
 - **4단계 Precheck**: ping → port → protocol → auth
-- **Jenkins 4-Stage**: Validate → Gather → Validate Schema → E2E Regression
+- **Jenkins 4-Stage**: Validate → Gather → Validate Schema → **(pipeline별)** Stage 4 (`Jenkinsfile`=E2E Regression / `Jenkinsfile_grafana`=Ingest / `Jenkinsfile_portal`=Callback)
 - **벤더 추가 3단계**: vendor_aliases.yml + adapter YAML + (선택) OEM tasks (site.yml 수정 불필요)
 
 ### 갭 리포트 해석 주의

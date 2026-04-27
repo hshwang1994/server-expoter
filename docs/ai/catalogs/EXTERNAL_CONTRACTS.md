@@ -83,9 +83,57 @@
 3. `CONVENTION_DRIFT.md` — DRIFT-NNN
 4. 해당 adapter / 상수 origin 주석
 
+## redfish_gather.py 실측 endpoint / field (2026-04-27 cycle-003)
+
+`redfish-gather/library/redfish_gather.py` 실 사용 path / field:
+
+### Endpoint 진입 순서
+
+1. `/redfish/v1/` (ServiceRoot) — 무인증, Manufacturer 추출
+2. ServiceRoot에서 `Systems`.`@odata.id` link 따라가기
+3. ServiceRoot에서 `Managers`.`@odata.id`
+4. ServiceRoot에서 `Chassis`.`@odata.id`
+5. Systems members[0] `@odata.id` → System 본체
+6. System.`EthernetInterfaces`.`@odata.id` → 각 NIC member
+7. System.`Storage`.`@odata.id` → controllers / Drives / Volumes
+8. Manager.`Oem.Dell.DellManager` 등 vendor OEM (분기)
+
+### 핵심 field (모든 vendor 공통 / dot path)
+
+| Field | 위치 | server-exporter section |
+|---|---|---|
+| `Manufacturer` | ServiceRoot / System / Drive / Controller / Memory / NIC | meta.vendor (정규화) + 각 섹션 vendor |
+| `Model` | System / Drive / Memory / NIC | hardware / storage / memory / network |
+| `SerialNumber` | System / Chassis | hardware |
+| `BiosVersion` | System | hardware / firmware |
+| `BIOSReleaseDate` | System | firmware |
+| `ProcessorSummary.{Count, Model, ...}` | System | cpu |
+| `MemorySummary.TotalSystemMemoryGiB` | System | memory |
+| `EthernetInterfaces` | System | network |
+| `Storage` | System | storage |
+| `Drives` | Storage/{id}/Drives | storage.physical_disks |
+| `Volumes` | Storage/{id}/Volumes | storage.logical_volumes |
+| `CapacityBytes` / `CapacityMiB` | Drive / Volume | storage 크기 |
+| `Status.{State, Health, HealthRollup}` | 모든 resource | 헬스 모니터링 |
+| `Power.PowerSupplies[]` | Chassis/{id}/Power | power |
+| `AverageConsumedWatts` | Power | power.consumption |
+| `UpdateService/FirmwareInventory/Members[]` | UpdateService | firmware |
+| `AccountService/Accounts/Members[]` | AccountService | users (BMC accounts) |
+
+### Vendor OEM 분기 (실측)
+
+```python
+# redfish_gather.py에서 발견:
+'Dell' / 'DellSystem' / 'DellVolume'  # Dell OEM
+# (HPE / Lenovo / Supermicro / Cisco는 OEM 별도 처리 — adapter YAML)
+```
+
 ## 정본 reference
 
+- `redfish-gather/library/redfish_gather.py` (정본 — 약 350줄, stdlib only)
 - `docs/ai/references/redfish/redfish-spec.md`
+- `docs/ai/references/redfish/python-clients.md` (stdlib vs library 비교)
+- `docs/ai/references/redfish/vendor-bmc-guides.md` (5 vendor BMC)
 - `docs/ai/references/winrm/pywinrm.md`
 - `docs/ai/references/python/pyvmomi.md`
 - `docs/ai/references/vmware/community-vmware-modules.md`

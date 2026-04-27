@@ -26,7 +26,7 @@
 - **설명**: 하네스 도입 문서들 (`rule 13`, `Plan 1 design`, `CLAUDE.md`, 일부 catalog)에서 `Field Dictionary 28 Must`로 표기했으나, 실측 결과 **Must 29 + Nice 8**.
 - **영향**: 문서/문서 간 불일치. 실 운영에 영향 없음 (코드는 정상).
 - **제안**: 차기 cycle / harness-cycle에서 일괄 갱신 (Tier 2 — rule 23 R1 4요소 승인 후).
-- **상태**: open
+- **상태**: resolved (2026-04-27 cycle-003)
 - **관련**: rule 13 (output-schema-fields), `docs/ai/catalogs/SCHEMA_FIELDS.md`
 
 ## DRIFT-002 (2026-04-27)
@@ -39,7 +39,7 @@
   - `Jenkinsfile_portal`: Stage 4 = **Callback** (호출자 통보)
 - **영향**: 문서/문서 간 불일치. 실 운영에 영향 없음.
 - **제안**: rule 80 (ci-jenkins-policy) 본문 정정 — Stage 4가 Jenkinsfile별로 다름을 명시. CLAUDE.md / design / Plan 1 동시 갱신.
-- **상태**: open
+- **상태**: resolved (2026-04-27 cycle-003)
 - **관련**: rule 80, `docs/ai/catalogs/JENKINS_PIPELINES.md`, `docs/01_jenkins-setup.md`, `docs/17_jenkins-pipeline.md`
 
 ## DRIFT-003 (2026-04-27)
@@ -52,5 +52,5 @@
   - Lenovo: `lenovo_xcc_legacy.yml` (없음) → 실제 `lenovo_imm2.yml`
 - **영향**: reference 문서 stale. VENDOR_ADAPTERS.md는 실측으로 정정됨.
 - **제안**: vendor-bmc-guides.md 동기화 (다음 cycle).
-- **상태**: planned
+- **상태**: resolved (2026-04-27 cycle-003)
 - **관련**: `docs/ai/catalogs/VENDOR_ADAPTERS.md`, `docs/ai/references/redfish/vendor-bmc-guides.md`

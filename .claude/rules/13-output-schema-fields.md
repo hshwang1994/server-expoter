@@ -8,10 +8,11 @@
 ## 현재 관찰된 현실
 
 - 10 sections (system / hardware / bmc / cpu / memory / storage / network / firmware / users / power)
-- field_dictionary.yml: 28 Must + Nice + Skip
+- field_dictionary.yml: **29 Must + 8 Nice** + Skip (실측 2026-04-27, DRIFT-001 정리)
 - baseline_v1: vendor별 회귀 기준선
-- Jenkins Stage 3 (Validate Schema) + Stage 4 (E2E Regression)이 FAIL 게이트
-- Flyway 같은 DB schema는 없음 — 본 schema가 동등 역할
+- Jenkins Stage 3 (Validate Schema) + Stage 4가 FAIL 게이트
+  (Stage 4는 pipeline별 다름 — Jenkinsfile=E2E Regression / Jenkinsfile_grafana=Ingest / Jenkinsfile_portal=Callback, DRIFT-002 정리)
+- DB schema 없음 — 본 출력 schema가 동등 역할
 
 ## 목표 규칙
 

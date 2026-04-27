@@ -13,10 +13,10 @@
 | cpu | os, esxi, redfish | 소켓 / 코어 / 스레드 / 모델 |
 | memory | os, esxi, redfish | 총 용량 / 슬롯별 상세 / 사용량 |
 | storage | os, esxi, redfish | 파일시스템 / 물리 디스크 / 컨트롤러 / 데이터스토어 / 논리 볼륨 |
-| network | (확인 필요 — sections.yml 후속 라인) | NIC / VLAN / 라우팅 |
-| firmware | (확인 필요) | BIOS / BMC / 컴포넌트 |
-| users | (확인 필요) | 시스템 계정 |
-| power | (확인 필요) | PSU / 전력 |
+| network | os, esxi, redfish | 인터페이스 / IP 주소 / DNS / 게이트웨이 |
+| firmware | redfish | 설치된 펌웨어 / 드라이버 인벤토리 |
+| users | os | 로컬 시스템 사용자 계정 |
+| power | redfish | PSU 상태 / 전력 정보 |
 
 ## Field Dictionary (실측 카운트)
 

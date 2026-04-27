@@ -44,14 +44,14 @@
 - **Boot order**: OEM 별도 endpoint
 - **Authentication**: Basic + Session-based
 
-### server-exporter Adapter 매핑
+### server-exporter Adapter 매핑 (실측 2026-04-27 — DRIFT-003 정리)
 
 | Adapter | priority |
 |---|---|
 | hpe_ilo6.yml | 100 |
-| hpe_ilo5.yml | 80 |
-| hpe_synergy.yml | 60 |
-| hpe_ilo.yml | 10 |
+| hpe_ilo5.yml | 100 |
+| hpe_ilo4.yml | 50 |
+| hpe_ilo.yml | 10 (generic HPE) |
 
 ---
 
@@ -69,12 +69,12 @@
 - **UpdateService**: 표준
 - **PowerSupplies**: 표준
 
-### server-exporter Adapter 매핑
+### server-exporter Adapter 매핑 (실측 2026-04-27)
 
 | Adapter | priority |
 |---|---|
 | lenovo_xcc.yml | 100 |
-| lenovo_xcc_legacy.yml | 50 (구 IMM2 / 초기 XCC) |
+| lenovo_imm2.yml | 50 (구 IBM IMM2) |
 
 ---
 
@@ -90,13 +90,13 @@
 - IPMI 동시 활성 (Redfish 미지원 펌웨어 fallback 가능)
 - 펌웨어 버전별 일부 path 차이
 
-### server-exporter Adapter 매핑
+### server-exporter Adapter 매핑 (실측 2026-04-27)
 
 | Adapter | priority |
 |---|---|
-| supermicro_x12.yml | 100 |
-| supermicro_x11.yml | 80 |
-| supermicro_legacy.yml | 30 |
+| supermicro_x11.yml | 100 |
+| supermicro_x9.yml | 50 |
+| supermicro_bmc.yml | 10 (generic SMC) |
 
 ---
 

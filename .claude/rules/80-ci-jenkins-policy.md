@@ -10,8 +10,8 @@
 
 - Jenkins multi-pipeline 3종 (main / grafana / portal)
 - Bitbucket Pipelines 사용 안 함
-- 4-Stage: Validate / Gather / Validate Schema / E2E Regression
-- agent-master 망 분리: Ingest는 master, gather는 agent
+- 4-Stage: Validate / Gather / Validate Schema / **(pipeline별 Stage 4)** — 아래 R1 참조 (DRIFT-002 정리, 2026-04-27)
+- agent-master 망 분리: Ingest / Callback은 master, gather는 agent
 
 ## 목표 규칙
 
@@ -24,8 +24,18 @@
 | 1. Validate | 입력값 (loc / target_type / inventory_json) 형식 검증 | YES |
 | 2. Gather | ansible-playbook 실행 (해당 채널 site.yml) | YES |
 | 3. Validate Schema | field_dictionary 정합 (`output_schema_drift_check`) | YES |
-| 4. E2E Regression | pytest baseline 회귀 (영향 vendor) | YES |
+| 4. (pipeline별, 아래 R1-A 참조) | YES |
 | Post | json_only callback → JSON 출력 | NO (advisory) |
+
+### R1-A. Stage 4 (pipeline별 차이)
+
+| Pipeline | Stage 4 | 책임 |
+|---|---|---|
+| `Jenkinsfile` | E2E Regression | pytest baseline 회귀 (영향 vendor) |
+| `Jenkinsfile_grafana` | Ingest | Grafana 데이터 적재 (master 실행) |
+| `Jenkinsfile_portal` | Callback | 호출자 통보 (master 실행, rule 31 무결성) |
+
+상세: `docs/ai/catalogs/JENKINS_PIPELINES.md`.
 
 ### R2. cron 변경 사용자 승인
 
