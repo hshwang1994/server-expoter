@@ -1,0 +1,72 @@
+# Output JSON / Callback 규칙
+
+## 적용 대상
+- `callback_plugins/json_only.py`
+- `common/tasks/normalize/build_*.yml`
+- callback URL 무결성 (rule 31과 연동)
+
+## 현재 관찰된 현실
+
+- callback_plugins/json_only.py가 stdout callback. OUTPUT 태스크만 JSON 직렬화
+- 호출자가 stdout 파싱하여 envelope 추출
+- Ansible 자체 verbose 출력 (PLAY/TASK/OK/CHANGED)을 차단
+
+## 목표 규칙
+
+### R1. JSON envelope 6 필드 고정 (rule 13 R5)
+
+```json
+{
+  "status": "success | partial | failed",
+  "sections": ["system", "cpu", ...],
+  "data": { "cpu": {...}, ... },
+  "errors": [...],
+  "meta": { "loc": "...", "target_type": "...", "vendor": "...", "host_id": "..." },
+  "diagnosis": { "precheck": {...}, "gather_mode": "...", "details": [...] }
+}
+```
+
+- **Forbidden**: 6 필드 외 추가, envelope 형식 변경
+- **Why**: 호출자 시스템 계약 안정성
+
+### R2. callback_plugins/json_only.py 보호
+
+- **Default**: 본 callback은 ansible.cfg `stdout_callback = json_only`로 활성. 수정 시 사용자 승인 필수
+- **Why**: callback 변경은 모든 호출자의 stdout 파싱에 영향
+
+### R3. OUTPUT 태스크 식별
+
+- **Default**: OUTPUT 태스크는 `name: "OUTPUT: <description>"`로 시작. callback이 이 prefix로 식별
+- **Forbidden**: 다른 prefix로 OUTPUT 태스크 (callback이 인식 못함)
+
+### R4. Jinja2 출력 변수 정합성
+
+- **Default**: build_output.yml에서 envelope dict 조립 시 모든 6 필드가 정의되어야 함
+- **Allowed**: 일부 필드는 빈 list/dict 허용 (`errors: []`, `data: {}`)
+- **Forbidden**: 필드 자체 누락 (key 부재)
+
+post_edit_jinja_check.py가 자동 검증.
+
+### R5. 호출자 callback URL 무결성
+
+본 rule 본문은 rule 31 (integration-callback)에서 자세히 다룸. 핵심: URL 공백/후행 슬래시 방어 (commit 4ccc1d7 fix).
+
+## 금지 패턴
+
+- envelope 6 필드 외 추가 — R1
+- json_only.py 임의 수정 — R2
+- OUTPUT prefix 누락 — R3
+- envelope 필드 자체 누락 — R4
+
+## 리뷰 포인트
+
+- [ ] envelope 6 필드 모두 존재
+- [ ] OUTPUT prefix 일관성
+- [ ] Jinja2 정합성
+- [ ] callback URL 처리 무결성
+
+## 관련
+
+- rule: `13-output-schema-fields`, `21-output-baseline-fixtures`, `31-integration-callback`
+- skill: `verify-json-output`
+- 정본: `docs/09_output-examples.md`
