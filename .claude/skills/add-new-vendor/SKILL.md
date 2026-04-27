@@ -1,0 +1,110 @@
+---
+name: add-new-vendor
+description: server-exporter에 새 벤더(예: Huawei iBMC, Inspur, Ampere)를 3단계로 추가하는 절차 안내. vendor_aliases.yml + adapters/{channel}/{vendor}_*.yml + (선택) OEM tasks + vault + baseline + ai-context + docs 동시 갱신. 사용자가 "Huawei vendor 추가", "새 벤더 추가", "Huawei 지원하자" 등 요청 시 자동 호출. - 새 vendor가 호출자 시스템에서 요청됨 / 펌웨어 프로파일링 후 정식 지원 / 기존 generic fallback 한계 시
+---
+
+# add-new-vendor
+
+## 목적
+
+server-exporter에 새 벤더를 도입하는 일관 절차. rule 50 R2의 9단계 가이드 + rule 12 R3의 3단계 코드 변경 + rule 96 R1 origin 주석.
+
+## 입력
+
+- 새 vendor 이름 (예: "Huawei")
+- vendor의 BMC 종류 (예: "iBMC")
+- 검증 가능한 실장비 (Round 검증 가능)
+- 펌웨어 시작 버전
+
+## 출력 / 결과 (9 변경 파일)
+
+```markdown
+## 새 vendor 추가 — Huawei (iBMC)
+
+### 1. vendor_aliases.yml — Manufacturer 정규화
+common/vars/vendor_aliases.yml에 추가:
+  Huawei: huawei
+  Huawei Technologies: huawei
+  iBMC: huawei
+
+### 2. Adapter YAML — adapters/redfish/huawei_ibmc.yml (신규)
+priority: 50
+match:
+  manufacturer: ["Huawei", "Huawei Technologies"]
+  model_patterns: ["FusionServer*", "TaiShan*"]
+  firmware_patterns: ["3.x", "5.x"]
+specificity: 20
+capabilities: [...]
+collect:
+  strategy: standard+oem
+  oem_tasks: redfish-gather/tasks/vendors/huawei/collect_oem.yml
+normalize:
+  ...
+metadata:
+  vendor: huawei
+  tested_against: ["3.10.x"]
+  oem_path: /redfish/v1/...
+  origin_check: 2026-04-27 (hshwang)
+
+### 3. OEM tasks (선택) — redfish-gather/tasks/vendors/huawei/collect_oem.yml
+
+### 4. Vault — vault/redfish/huawei.yml (encrypt)
+vault_redfish_username: ...
+vault_redfish_password: ...
+
+### 5. Baseline — schema/baseline_v1/huawei_ibmc_baseline.json
+실장비 검증 (probe-redfish-vendor skill) 후 갱신
+
+### 6. ai-context — .claude/ai-context/vendors/huawei.md
+벤더 식별 / OEM 특이사항 / 검증 이력
+
+### 7. policy — .claude/policy/vendor-boundary-map.yaml
+huawei 섹션 추가 (adapter list, oem_tasks, vault, aliases)
+
+### 8. 운영 문서 — docs/13_redfish-live-validation.md
+Round X 추가 (Huawei iBMC 3.x 검증)
+
+### 9. 의사결정 — docs/19_decision-log.md
+"Huawei vendor 추가 (2026-04-27)"
+```
+
+## 절차
+
+1. **PO 단계** — 사용자 결정 (rule 50 R2): 우선순위 / 일정 / 실장비 확보
+2. **probe** — `probe-redfish-vendor` skill로 펌웨어 프로파일링 (deep_probe_redfish.py)
+3. **9 파일 변경** (위 출력 list)
+4. **dry-run** — `ansible-playbook --syntax-check redfish-gather/site.yml`
+5. **adapter score 디버깅** — `score-adapter-match` skill로 새 vendor adapter가 의도대로 선택되는지
+6. **실장비 검증** — Round 검증 (rule 40 R2)
+7. **baseline 갱신** — `update-vendor-baseline` skill
+8. **PR 생성** — squash 머지 (rule 93 R5)
+9. **REQUIREMENTS.md 갱신** — 검증 완료된 펌웨어 목록 추가
+
+## site.yml 수정 불필요
+
+`adapter_loader`가 동적 감지 (rule 12 R3). 새 adapter YAML 파일만 추가하면 됨.
+
+## server-exporter 도메인 적용
+
+- 영향 채널: 주로 redfish (os / esxi는 vendor-agnostic)
+- 영향 schema: baseline_v1에 vendor JSON 추가
+- 영향 vault: vault/redfish/{vendor}.yml 신규
+- 영향 정본: REQUIREMENTS.md / docs/13_redfish-live-validation.md / docs/19_decision-log.md
+
+## 실패 / 오탐 처리
+
+- 실장비 부재 → Round 검증 불가 → 일단 OEM 없이 standard_only 전략으로 부분 지원 + REQUIREMENTS.md에 "초기 지원" 표기
+- 펌웨어 다양성 → 한 vendor에 여러 generation adapter (priority 차등)
+- vendor가 IPMI만 지원 (Redfish 미지원) → server-exporter 현재 미지원 (향후 IPMI fallback 검토)
+
+## 적용 rule / 관련
+
+- **rule 12** (adapter-vendor-boundary) R3 (3단계 절차)
+- **rule 50** (vendor-adapter-policy) R2 (9 파일 list)
+- rule 96 R1 (origin 주석)
+- rule 60 (vault encrypt)
+- rule 40 (baseline 회귀)
+- skill: `probe-redfish-vendor`, `update-vendor-baseline`, `score-adapter-match`, `vendor-change-impact`
+- agent: `vendor-onboarding-worker` (이 skill의 메인 실행자), `adapter-author`
+- 정본: `docs/14_add-new-gather.md`, `docs/13_redfish-live-validation.md`
+- reference: `docs/ai/references/redfish/redfish-spec.md` (BMC 매핑)
