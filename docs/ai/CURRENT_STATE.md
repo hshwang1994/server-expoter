@@ -28,17 +28,23 @@ server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-004 완료**. cycl
 ## 검증 결과 (cycle-004 후)
 
 ```
+[정적 — Windows]
 verify_harness_consistency.py        : PASS (rules 29 / skills 43 / agents 51 / policies 10)
 validate_claude_structure.py         : OK
 check_project_map_drift.py           : fingerprint 일치
 scan_suspicious_patterns.py          : 185 → 114건 (38% 감소)
 verify_vendor_boundary.py --full     : 57 → 33건 (24건 false positive 자동 제거)
 output_schema_drift_check.py         : 1건 진짜 drift (DRIFT-004 — users 섹션)
+
+[ansible / pytest — WSL, 사용자 승인 후]
+ansible-playbook --syntax-check 3-channel : ALL PASS
+validate_field_dictionary.py         : PASS (10 checks, 1 warning, DRIFT-007 발견)
+pytest tests/ -v                     : 95 passed (영향 vendor baseline 회귀 0건)
 ```
 
 도메인 코드:
 - redfish_gather.py / detect_vendor.yml AST PASS
-- 영향 vendor baseline 회귀: 본 sweep은 운영 동작 유지 (cap_int / vcap_int 분기 보존)
+- 영향 vendor baseline 회귀: **PASS** (95 tests, Dell/HPE/Lenovo/Cisco/ESXi/Ubuntu/Windows)
 
 ## 카탈로그 (실측, 2026-04-27 cycle-004 후)
 

@@ -75,6 +75,19 @@
 - **상태**: open (사용자 결정 대기)
 - **관련**: rule 12 R1, rule 50 R2 (새 vendor 추가 9단계 — 동기화 단계 추가 후보), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
 
+## DRIFT-007 (2026-04-27, 후보)
+
+- **발견 위치**: `schema/field_dictionary.yml` 실측 ↔ cycle-003 DRIFT-001 정정값 (rule 13 / CLAUDE.md / SCHEMA_FIELDS.md)
+- **분류**: catalog-stale
+- **설명**: cycle-004 verifier에서 `python3 tests/validate_field_dictionary.py` 실행 결과 분포 "**Must 28 / Nice 7 / Skip 5**". cycle-003에서 정정한 "Must 29 / Nice 8" 표기와 차이.
+- **영향**: 운영 영향 없음 (코드 정상). 문서 정합 차이 — 외부 시스템이 field 카운트 기준 사용 시 혼동 가능.
+- **제안**: cycle-005에서:
+  1. field_dictionary.yml 실측 재확인 (validate_field_dictionary.py 결과 기준)
+  2. rule 13 / CLAUDE.md / SCHEMA_FIELDS.md "29 Must + 8 Nice" → "28 Must + 7 Nice + 5 Skip" 정정 (또는 그 역)
+  3. 명세 일관성 확보
+- **상태**: open (cycle-005 catalog 정합 정리)
+- **관련**: rule 13, DRIFT-001 (resolved이지만 정정값 자체 검토 필요), `tests/validate_field_dictionary.py`
+
 ## DRIFT-006 (2026-04-27, 후보)
 
 - **발견 위치**: `redfish-gather/library/redfish_gather.py:221-450, 705-706, 747` (vendor 분기 17건)

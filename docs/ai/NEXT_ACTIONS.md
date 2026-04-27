@@ -26,6 +26,9 @@
 - [ ] **DRIFT-006**: `redfish_gather.py` vendor 분기 17건 — 옵션 (1)/(2)/(3) 결정 (`docs/ai/impact/2026-04-27-vendor-boundary-57.md`)
 - [ ] **W2 (b)**: os-gather/tasks/{linux,windows}/gather_system.yml Jinja2 OEM list — vendor_aliases 참조 / 동기화 주석 / 무시 결정
 
+### 사용자 명시 승인 추가 발견 (cycle-004 verifier WSL pytest)
+- [ ] **DRIFT-007**: `field_dictionary.yml` 실측 ("Must 28 + Nice 7 + Skip 5") ↔ cycle-003 DRIFT-001 정정값 ("Must 29 + Nice 8") 불일치 — rule 13 / CLAUDE.md / SCHEMA_FIELDS.md 일괄 정정 필요
+
 ### 외부 의존
 - [ ] **새 vendor 추가** (Huawei iBMC / NEC / Inspur 등) — PO 결정 + 실장비
 - [ ] **Round 11 실장비 검증** — 새 펌웨어 / 새 모델 (probe-redfish-vendor) — 실장비 + Round 일정

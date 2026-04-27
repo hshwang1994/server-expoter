@@ -76,6 +76,8 @@ vendor 경계 57건 분석 (W2):
 
 ## 6. Verifier (검증)
 
+### 6.1 정적 검증 (Windows / PowerShell)
+
 ```bash
 $ python scripts/ai/verify_harness_consistency.py
 rules: 29, skills: 43, agents: 51, policies: 10
@@ -98,8 +100,74 @@ $ python scripts/ai/validate_claude_structure.py
 .claude/ 구조: OK
 
 $ python scripts/ai/check_project_map_drift.py
-PROJECT_MAP fingerprint 일치
+PROJECT_MAP fingerprint 일치 (5 디렉터리 갱신 후 재산정)
 ```
+
+### 6.2 ansible / 런타임 검증 (WSL)
+
+사용자 명시 (2026-04-27): 메인 셸은 PowerShell이지만 ansible/pytest는 WSL에서 실행 가능.
+
+```bash
+$ wsl bash -c "cd /mnt/c/github/server-exporter && ansible-playbook --syntax-check os-gather/site.yml"
+playbook: os-gather/site.yml   [PASS]
+
+$ wsl bash -c "cd /mnt/c/github/server-exporter && ansible-playbook --syntax-check esxi-gather/site.yml"
+playbook: esxi-gather/site.yml [PASS]
+
+$ wsl bash -c "cd /mnt/c/github/server-exporter && ansible-playbook --syntax-check redfish-gather/site.yml"
+playbook: redfish-gather/site.yml [PASS]
+
+$ wsl python3 tests/validate_field_dictionary.py
+[OK] YAML parse: 40 keys found
+[OK] fields section: 40 entries
+[OK] duplicate keys: no duplicates
+[OK] help_ko presence: all 40 have help_ko
+[OK] help_en presence: all 40 have help_en
+[OK] priority values: all valid (must/nice/skip)
+[OK] channel values: all valid (redfish/os/esxi)
+[OK] path vs schema: 2 schema files, 1 unmatched
+[INFO] priority distribution: must=28, nice=7, skip=5
+[INFO] channel distribution: redfish=37, os=18, esxi=15
+[WARN] system.hosting_type: no match in schema examples (may be valid)
+RESULT: PASS  (10 checks, 8 passed, 0 failed, 1 warnings)
+```
+
+### 6.3 pytest 회귀 (WSL — 사용자 승인 후 설치)
+
+사용자 추가 승인 (2026-04-27): "테스트에 필요한 것들은 모두 설치하는 것을 승인. 향후 테스트도 WSL에서 하는 것을 승인."
+
+```bash
+$ wsl pip3 install --user --break-system-packages pytest paramiko
+$ wsl bash -c "cd /mnt/c/github/server-exporter && PYTHONPATH=. ~/.local/bin/pytest tests/ \
+       --ignore=tests/scripts/remote_identifier_test.py"
+============================== 95 passed in 2.35s ==============================
+```
+
+PASSED 95건 분포:
+- e2e/test_os_output.py — Linux (RHEL / Ubuntu) + Windows baseline 회귀
+- e2e/test_output_schema.py — 7 vendor baseline (cisco / dell / esxi / hpe / lenovo / ubuntu / windows) common top-keys + correlation
+- e2e/test_redfish_baseline.py — Dell / HPE / Lenovo + Dell R760 baseline (common structure / adapter_id / critical_fields / sections / hardware OEM / array element)
+
+**핵심 검증**: cycle-004 도메인 코드 변경 (`_safe_int` helper / `default('unknown')` / `# rule 95 R1 #5 ok` silence) 이 **영향 vendor baseline 회귀 0건**. 기존 동작 100% 유지.
+
+### 6.4 미실행 (의도된 dev 환경 외)
+
+- `tests/scripts/remote_identifier_test.py` — 실 SSH 호스트 의존 (paramiko로 직접 connect). dev 환경에서 ignore (의도).
+- `tests/scripts/os_esxi_verify.sh` — 운영 Agent 경로 (`/home/cloviradmin/...`) 의존. dev 환경 미실행 (의도).
+
+### 6.5 신규 발견 (cycle-005 후보)
+
+- **DRIFT-007 후보**: `validate_field_dictionary.py` 결과 "Must 28 / Nice 7 / Skip 5" — cycle-003에서 DRIFT-001로 정정한 "Must 29 / Nice 8" 표기와 차이. 정정값 자체 stale 가능성. cycle-005에서:
+  - field_dictionary.yml 실측 재확인
+  - rule 13 / CLAUDE.md / SCHEMA_FIELDS.md 정정값 통일
+- **system.hosting_type** schema examples 미매칭 — 정상 동작 가능 (warning), 다음 cycle examples 갱신 후보.
+
+### 6.4 신규 발견 (cycle-005 후보)
+
+- **DRIFT-007 후보**: `validate_field_dictionary.py` 결과 "Must 28 / Nice 7 / Skip 5" — cycle-003에서 DRIFT-001로 정정한 "Must 29 / Nice 8" 표기와 차이. 정정값 자체 stale 가능성. cycle-005에서:
+  - field_dictionary.yml 실측 재확인
+  - rule 13 / CLAUDE.md / SCHEMA_FIELDS.md 정정값 통일
+- **system.hosting_type** schema examples 미매칭 — 정상 동작 가능 (warning), 다음 cycle examples 갱신 후보.
 
 ## 결과
 
