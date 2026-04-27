@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Edit(**)",
+      "Write(**)",
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(sudo *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git push * main)",
+      "Bash(git push * main *)",
+      "Bash(git push * master)",
+      "Bash(git push * master *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -fd *)",
+      "Bash(git clean -fdx *)",
+      "Bash(git rebase -i *)",
+      "Bash(git filter-branch *)",
+      "Bash(git update-ref *)",
+      "Bash(curl * | sh)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | sh)",
+      "Bash(wget * | bash)",
+      "Bash(docker system prune *)",
+      "Bash(docker rm -f *)",
+      "Edit(vault/**)",
+      "Edit(**/*.env)",
+      "Edit(**/credentials*)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.key)",
+      "Edit(**/*.jks)",
+      "Edit(**/*.p12)",
+      "Edit(schema/baseline_v1/**)",
+      "Edit(Jenkinsfile)",
+      "Edit(Jenkinsfile_grafana)",
+      "Edit(Jenkinsfile_portal)"
+    ],
+    "ask": [],
+    "defaultMode": "acceptEdits",
+    "disableBypassPermissionsMode": "disable"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python scripts/ai/hooks/session_start.py", "timeout": 15 }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "python scripts/ai/hooks/pre_edit_guard.py", "timeout": 10 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "python scripts/ai/hooks/post_edit_hint.py", "timeout": 10 },
+          { "type": "command", "command": "python scripts/ai/hooks/skill_edit_validate.py", "timeout": 10 },
+          { "type": "command", "command": "python scripts/ai/hooks/post_edit_jinja_check.py", "timeout": 10 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python scripts/ai/hooks/stop_writeback.py", "timeout": 15 }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python scripts/ai/hooks/notification_log.py", "timeout": 10 }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python scripts/ai/hooks/subagent_stop_log.py", "timeout": 10 },
+          { "type": "command", "command": "python scripts/ai/hooks/detect_self_approval.py", "timeout": 10 }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python scripts/ai/hooks/user_prompt_router.py", "timeout": 5 }
+        ]
+      }
+    ]
+  },
+  "sandbox": { "enabled": false },
+  "autoMemoryEnabled": false,
+  "enabledPlugins": {}
+}
