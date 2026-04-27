@@ -6,13 +6,17 @@
 
 또한 server-exporter 어휘 whitelist 적용 — clovirone 잔재 (Java/Spring/MyBatis/...) 검출.
 
+추가 게이트 (cycle-005, DRIFT-005 옵션 (2)):
+- redfish-gather/library/redfish_gather.py의 _BUILTIN_VENDOR_MAP ↔
+  common/vars/vendor_aliases.yml 정규화 동기화 검사 (advisory)
+
 Usage:
     python scripts/ai/verify_harness_consistency.py [--strict]
 
 Exit codes:
     0 = 통과
     1 = 실행 에러
-    2 = 일관성 위반 발견
+    2 = 일관성 위반 발견 (rule reference 위반 + --strict 잔재 어휘)
 """
 
 from __future__ import annotations
@@ -162,6 +166,9 @@ def main() -> int:
         for fw in forbidden:
             forbidden_total.append(f"{rel}: {fw}")
 
+    # ── vendor alias 동기화 검사 (cycle-005 게이트 — DRIFT-005 옵션 (2)) ─────────
+    vendor_alias_drift: List[str] = _check_vendor_alias_sync(repo_root)
+
     print("=== 하네스 일관성 검증 ===")
     print(f"rules: {len(existing_rules)}, skills: {len(existing_skills)}, "
           f"agents: {len(existing_agents)}, policies: {len(existing_policies)}")
@@ -180,11 +187,92 @@ def main() -> int:
         if len(forbidden_total) > 20:
             print(f"  ... ({len(forbidden_total) - 20}건 추가)")
 
+    if vendor_alias_drift:
+        print(f"\n[advisory] vendor alias 동기화 drift: {len(vendor_alias_drift)}건")
+        for d in vendor_alias_drift:
+            print(f"  - {d}")
+        print("  → redfish_gather.py _BUILTIN_VENDOR_MAP과 vendor_aliases.yml 동기화 확인")
+
     if issues or (args.strict and forbidden_total):
         return 2
 
     print("\n통과: 모든 참조 정합 확인")
     return 0
+
+
+# ── vendor alias 동기화 검사 ─────────────────────────────────────────────────
+
+def _check_vendor_alias_sync(repo_root: Path) -> List[str]:
+    """redfish_gather.py _BUILTIN_VENDOR_MAP ↔ vendor_aliases.yml 동기화 (lower-strip 비교)."""
+    py_path = repo_root / "redfish-gather" / "library" / "redfish_gather.py"
+    yml_path = repo_root / "common" / "vars" / "vendor_aliases.yml"
+    if not py_path.is_file() or not yml_path.is_file():
+        return []
+
+    py_alias_map = _extract_python_vendor_map(py_path)
+    yml_alias_map = _extract_yaml_vendor_aliases(yml_path)
+
+    drift: List[str] = []
+    all_canon = set(py_alias_map.keys()) | set(yml_alias_map.keys())
+    for canon in sorted(all_canon):
+        py_set = py_alias_map.get(canon, set())
+        yml_set = yml_alias_map.get(canon, set())
+        only_py = py_set - yml_set
+        only_yml = yml_set - py_set
+        if only_py:
+            drift.append(f"vendor '{canon}': Python에만 있음 — {sorted(only_py)}")
+        if only_yml:
+            drift.append(f"vendor '{canon}': YAML에만 있음 — {sorted(only_yml)}")
+    return drift
+
+
+def _extract_python_vendor_map(path: Path) -> dict:
+    """_BUILTIN_VENDOR_MAP dict literal에서 alias → canonical 매핑 추출 (canonical 별 set)."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return {}
+    # _BUILTIN_VENDOR_MAP = { ... } 블록 추출
+    m = re.search(r"_BUILTIN_VENDOR_MAP\s*=\s*\{(.*?)\n\}", text, re.DOTALL)
+    if not m:
+        return {}
+    body = m.group(1)
+    # 'alias': 'canonical', 패턴 매칭 (loose)
+    pair_re = re.compile(r"'([^']+)'\s*:\s*'([^']+)'")
+    result: dict = {}
+    for alias, canon in pair_re.findall(body):
+        result.setdefault(canon.strip().lower(), set()).add(alias.strip().lower())
+    return result
+
+
+def _extract_yaml_vendor_aliases(path: Path) -> dict:
+    """vendor_aliases.yml에서 canonical → alias set 추출 (간단 indent parser)."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return {}
+    in_section = False
+    current_canon: str = ""
+    result: dict = {}
+    for raw in lines:
+        line = raw.rstrip()
+        if not line or line.lstrip().startswith("#"):
+            continue
+        stripped = line.lstrip()
+        indent = len(line) - len(stripped)
+        if indent == 0 and stripped == "vendor_aliases:":
+            in_section = True
+            continue
+        if not in_section:
+            continue
+        if indent == 2 and stripped.endswith(":"):
+            current_canon = stripped[:-1].strip().lower()
+            result.setdefault(current_canon, set())
+        elif indent >= 4 and stripped.startswith("-"):
+            alias = stripped[1:].strip().strip('"').strip("'").lower()
+            if current_canon:
+                result.setdefault(current_canon, set()).add(alias)
+    return result
 
 
 if __name__ == "__main__":

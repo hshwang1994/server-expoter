@@ -69,14 +69,21 @@ PATTERNS = [
     },
     {
         "id": 2,
-        "name": "set_fact 재정의 — fragment 침범 의심 (rule 22)",
+        "name": "set_fact로 누적 변수 직접 수정 — fragment 침범 (rule 22)",
         "regex": re.compile(r"set_fact\s*:\s*$"),
         "files": (".yml", ".yaml"),
-        # rule 11 R1: common/tasks/normalize/ 안의 build_*.yml은 누적 변수 set_fact 허용 (builder 패턴)
-        # → 침범 의심 검사 대상에서 제외
+        # rule 11 R1: common/tasks/normalize/ 안의 builder는 누적 변수 set_fact 허용
         "exclude_paths": [re.compile(r"common/tasks/normalize/")],
-        "advisory": "set_fact 다음 라인 검토 — _sections_<other>_*_fragment / _collected_* 직접 수정 금지 "
-                    "(common/tasks/normalize/ builder는 rule 11 R1 허용으로 제외)",
+        # set_fact 다음 indent 블록의 변수 키가 누적 변수와 매치되면 침범
+        "set_fact_check_keys": [
+            re.compile(r"^\s+_collected_data\s*:"),
+            re.compile(r"^\s+_collected_errors\s*:"),
+            re.compile(r"^\s+_supported_sections\s*:"),
+            re.compile(r"^\s+_collected_supported\s*:"),
+        ],
+        "advisory": "set_fact로 누적 변수 (_collected_data / _collected_errors / _supported_sections) "
+                    "직접 수정은 rule 22 fragment 침범. 자기 fragment만 만들어야 함 "
+                    "(_data_fragment / _sections_<self>_*_fragment / _errors_fragment).",
     },
     {
         "id": 3,
@@ -198,6 +205,29 @@ def scan_file(path: Path, repo_root: Path) -> List[Tuple[int, str, int, str]]:
                 findings.append((pattern["id"], rel, 1, pattern["advisory"]))
             continue
 
+        # set_fact 다음 indent 블록 분석 (rule 22 — 누적 변수 침범만 검출)
+        if pattern.get("set_fact_check_keys"):
+            for lineno, line in enumerate(lines, start=1):
+                if not pattern["regex"].search(line):
+                    continue
+                # set_fact 라인의 indent 측정 후, 다음 라인부터 더 큰 indent 블록 추출
+                set_fact_indent = len(line) - len(line.lstrip())
+                for offset in range(1, 30):  # 최대 30 라인 lookahead
+                    nxt_idx = lineno - 1 + offset
+                    if nxt_idx >= len(lines):
+                        break
+                    nxt = lines[nxt_idx]
+                    if not nxt.strip():
+                        continue
+                    nxt_indent = len(nxt) - len(nxt.lstrip())
+                    if nxt_indent <= set_fact_indent:
+                        break  # 같은 또는 더 적은 indent → 블록 끝
+                    # 누적 변수 키 매치 검사
+                    for ex in pattern["set_fact_check_keys"]:
+                        if ex.search(nxt):
+                            findings.append((pattern["id"], rel, nxt_idx + 1, nxt.strip()[:80]))
+            continue
+
         for lineno, line in enumerate(lines, start=1):
             if not pattern["regex"].search(line):
                 continue
@@ -213,14 +243,53 @@ def scan_file(path: Path, repo_root: Path) -> List[Tuple[int, str, int, str]]:
     return findings
 
 
+_SPECIFICITY_KEYS = (
+    "distribution_patterns",
+    "version_patterns",
+    "firmware_patterns",
+    "model_patterns",
+    "manufacturer_patterns",
+)
+
+
+def _adapter_has_specificity(rel: str, repo_root: Path) -> bool:
+    """adapter YAML의 match 블록이 distribution/version/firmware/model_patterns 중 하나라도
+    포함하면 specificity 확보 (priority 동률이라도 정렬 결과 결정 가능)."""
+    try:
+        text = (repo_root / rel).read_text(encoding="utf-8")
+    except Exception:
+        return False
+    # match: 블록 안에 specificity 키가 있는지 (얕은 검사)
+    in_match = False
+    for raw in text.splitlines():
+        line = raw.rstrip()
+        stripped = line.lstrip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(line) - len(stripped)
+        if indent == 0 and stripped.startswith("match:"):
+            in_match = True
+            continue
+        if in_match:
+            if indent == 0:
+                # 다른 top-level key 진입 → match 블록 끝
+                in_match = False
+                continue
+            for key in _SPECIFICITY_KEYS:
+                if stripped.startswith(f"{key}:"):
+                    return True
+    return False
+
+
 def _filter_priority_dupes_by_vendor(
     findings: List[Tuple[int, str, int, str]],
+    repo_root: Path,
 ) -> List[Tuple[int, str, int, str]]:
-    """Pattern #4 후처리: 같은 (channel, vendor) 그룹 안에서 priority 값이 2번 이상 나올 때만 남긴다."""
+    """Pattern #4 후처리: 같은 (channel, vendor) 그룹 안에서 priority 값이 2번 이상이고
+    해당 adapter들이 specificity 분리 키를 안 갖는 경우만 진짜 의심."""
     pid4 = [f for f in findings if f[0] == 4]
     others = [f for f in findings if f[0] != 4]
 
-    # group by (channel, vendor)
     groups: dict[Tuple[str, str], List[Tuple[int, str, int, str, int]]] = {}
     for pid, rel, lineno, snippet in pid4:
         m = re.match(r"^priority:\s*(\d+)", snippet)
@@ -232,13 +301,16 @@ def _filter_priority_dupes_by_vendor(
 
     kept: List[Tuple[int, str, int, str]] = []
     for key, items in groups.items():
-        # priority 값별 카운트 — 2개 이상이면 동률
         prio_counts: dict[int, int] = {}
         for it in items:
             prio_counts[it[4]] = prio_counts.get(it[4], 0) + 1
         for pid, rel, lineno, snippet, prio in items:
-            if prio_counts[prio] >= 2:
-                kept.append((pid, rel, lineno, f"{snippet}  [vendor={key[1]} 동률]"))
+            if prio_counts[prio] < 2:
+                continue
+            # specificity 분리 키 보유하면 silence (의도된 동률)
+            if _adapter_has_specificity(rel, repo_root):
+                continue
+            kept.append((pid, rel, lineno, f"{snippet}  [vendor={key[1]} 동률, specificity 키 부재]"))
 
     return others + kept
 
@@ -263,8 +335,8 @@ def main() -> int:
             if f.is_file() and f.suffix in (".py", ".yml", ".yaml"):
                 all_findings.extend(scan_file(f, repo_root))
 
-    # Pattern #4 후처리: 같은 vendor 내 동률만 남김
-    all_findings = _filter_priority_dupes_by_vendor(all_findings)
+    # Pattern #4 후처리: 같은 vendor 내 동률 + specificity 분리 키 부재만 남김
+    all_findings = _filter_priority_dupes_by_vendor(all_findings, repo_root)
 
     if not all_findings:
         print("=== 의심 패턴 스캔 결과 ===")

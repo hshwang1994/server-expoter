@@ -60,6 +60,43 @@ def _is_excluded(rel_path: str) -> bool:
     return any(p.search(rel_path) for p in EXCLUDE_PATTERNS)
 
 
+def _python_docstring_lines(lines: List[str]) -> set:
+    """Python 파일 triple-quote docstring 라인 번호 set (1-indexed).
+
+    docstring 안의 vendor 이름은 코드 분기 아니므로 검사 제외.
+    """
+    in_doc = False
+    quote = None
+    result: set = set()
+    for i, line in enumerate(lines, start=1):
+        if not in_doc:
+            # 둘 중 먼저 나오는 triple-quote 위치 비교
+            triple_idx_3d = line.find('"""')
+            triple_idx_3s = line.find("'''")
+            candidates = [(idx, q) for idx, q in
+                          [(triple_idx_3d, '"""'), (triple_idx_3s, "'''")]
+                          if idx >= 0]
+            if not candidates:
+                continue
+            # 가장 먼저 나오는 quote
+            candidates.sort(key=lambda x: x[0])
+            idx, q = candidates[0]
+            after = line[idx + 3:]
+            if q in after:
+                # 같은 라인에 닫는 quote — 한 줄 docstring
+                result.add(i)
+            else:
+                in_doc = True
+                quote = q
+                result.add(i)
+        else:
+            result.add(i)
+            if quote in line:
+                in_doc = False
+                quote = None
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="벤더 경계 검증")
     parser.add_argument("--strict", action="store_true",
@@ -95,11 +132,21 @@ def main() -> int:
             except Exception:
                 continue
 
+            # Python 파일 triple-quote docstring 영역 (--strict 아닐 때만 skip 대상)
+            ds_lines: set = (
+                _python_docstring_lines(lines)
+                if f.suffix == ".py" and not args.strict
+                else set()
+            )
+
             for lineno, line in enumerate(lines, start=1):
                 stripped = line.strip()
                 # comment 라인 skip (--strict 아니면)
                 if not args.strict:
                     if stripped.startswith("#") or stripped.startswith("//"):
+                        continue
+                    # Python triple-quote docstring 영역 skip
+                    if lineno in ds_lines:
                         continue
                     # YAML 안의 # comment는 라인 끝 부분만
                     if "#" in line and vendor_re.search(line.split("#", 1)[0]) is None:
