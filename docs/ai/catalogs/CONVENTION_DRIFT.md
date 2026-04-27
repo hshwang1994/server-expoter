@@ -54,3 +54,33 @@
 - **제안**: vendor-bmc-guides.md 동기화 (다음 cycle).
 - **상태**: resolved (2026-04-27 cycle-003)
 - **관련**: `docs/ai/catalogs/VENDOR_ADAPTERS.md`, `docs/ai/references/redfish/vendor-bmc-guides.md`
+
+## DRIFT-004 (2026-04-27)
+
+- **발견 위치**: `schema/sections.yml` ↔ `schema/field_dictionary.yml`
+- **분류**: convention-violation
+- **설명**: cycle-004 W3-C `output_schema_drift_check.py` 정밀화 후 검출. `sections.yml`의 `users` 섹션 (channels: [os], OS gather에서 사용자 list 수집)이 `field_dictionary.yml`의 `fields:` 등록 prefix에 없음.
+- **영향**: 운영자/외부 시스템이 `data.users[].name`, `data.users[].uid`, `data.users[].groups` 등 필드 의미를 field_dictionary에서 찾을 수 없음. 출력 자체는 정상.
+- **제안**: cycle-005에서 `field_dictionary.yml`에 `users[].*` 항목 추가 — schema 변경이라 rule 92 R5 사용자 승인 필요.
+- **상태**: open (사용자 결정 대기)
+- **관련**: rule 13 R1 / R2, `schema/sections.yml`, `schema/field_dictionary.yml`, `tests/baseline_v1/{vendor}_baseline.json` 사용자 항목
+
+## DRIFT-005 (2026-04-27, 후보)
+
+- **발견 위치**: `redfish-gather/library/redfish_gather.py:103-109` ↔ `common/vars/vendor_aliases.yml`
+- **분류**: convention-violation (Source-of-Truth 중복)
+- **설명**: cycle-004 W2 vendor 경계 57건 분석에서 확인. `_VENDOR_ALIASES` dict (Python module)와 `vendor_aliases.yml` (Ansible) 두 곳에서 동일 매핑 정의. 신규 alias 추가 시 두 곳 동시 갱신 필요 → drift 잠재.
+- **영향**: 운영 영향 없음 (현재 동기화 상태). 향후 vendor alias 추가 시 한 곳만 수정하면 redfish 검출 누락 가능.
+- **제안**: cycle-005에서 옵션 결정 — (1) `_VENDOR_ALIASES` → YAML import / (2) 동기화 주석 + verify_harness_consistency 게이트 추가 / (3) 무시.
+- **상태**: open (사용자 결정 대기)
+- **관련**: rule 12 R1, rule 50 R2 (새 vendor 추가 9단계 — 동기화 단계 추가 후보), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
+
+## DRIFT-006 (2026-04-27, 후보)
+
+- **발견 위치**: `redfish-gather/library/redfish_gather.py:221-450, 705-706, 747` (vendor 분기 17건)
+- **분류**: convention-violation
+- **설명**: cycle-004 W2 vendor 경계 57건 분석에서 확인. Python module 안에 `if vendor == 'hpe':` / `oem = _safe(data, 'Oem', 'Dell', 'DellSystem')` 같은 vendor 분기 17건. rule 12 R1상 분기는 `redfish-gather/tasks/vendors/` 또는 adapter YAML capabilities에만 허용.
+- **영향**: 운영 영향 없음 (현재 정상 동작). 새 vendor 추가 시 adapter YAML만 변경해서는 OEM 추출 안 됨 → 라이브러리 수정 필요.
+- **제안**: cycle-005에서 옵션 결정 — (1) adapter origin 주석에 OEM 매핑 명시 (rule 96 강화) / (2) 라이브러리 vendor-agnostic 리팩토링 (`oem_extractor` 매핑을 capabilities에서 받음) / (3) rule 12 R1에 redfish_gather.py 예외 명시.
+- **상태**: open (사용자 결정 대기)
+- **관련**: rule 12 R1, rule 50 R2 (새 vendor 추가), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
