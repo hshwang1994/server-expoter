@@ -4,63 +4,70 @@
 
 ## 요약
 
-server-exporter AI 하네스 Plan 1 (Foundation) 완료. clovirone-base 풀스펙 하네스를 server-exporter 도메인으로 1:1 포팅. 신규 약 100 파일 추가. 기존 코드/문서 무수정.
+server-exporter AI 하네스 **Plan 1 + Plan 2 완료**. clovirone-base 풀스펙 하네스를 server-exporter 도메인으로 1:1 포팅. 약 200 파일 신규. 기존 코드/문서 무수정.
 
-## Plan 1 Phase 완료 현황
+## 완료된 Plan / Phase
 
-| Phase | 산출물 | 파일 수 | commit |
-|---|---|---|---|
-| 1. Skeleton | settings.json + 19 hooks + 8 supporting scripts | 28 | d87af96 |
-| 2. Policy/Meta | 10 policy + 6 role + 12 ai-context + 10 templates + 5 commands | 43 | 31526c3 |
-| 3. Rules | 29 rules (00, 10-13, 20-22, 23-28, 30-31, 40-41, 50, 60, 70, 80, 90-93, 95-97) | 29 | ee82f1b |
-| 4. Verify + CLAUDE.md | CLAUDE.md Tier 0 보강 + verify 통과 | 1 mod + baseline 갱신 | (이번 commit) |
+| Plan | Phase | 산출물 | 파일 수 | commit |
+|---|---|---|---|---|
+| 1 | Phase 1 (Skeleton) | settings.json + 19 hooks + 8 supporting scripts | 28 | d87af96 |
+| 1 | Phase 2 (Policy/Meta) | 10 policy + 6 role + 12 ai-context + 10 templates + 5 commands | 43 | 31526c3 |
+| 1 | Phase 3 (Rules) | 29 rules | 29 | ee82f1b |
+| 1 | Phase 4 (Verify+CLAUDE.md) | CLAUDE.md Tier 0 보강 + verify baseline | 5 | 031b32e |
+| (refs) | 외부 시스템 reference | 7 docs (ansible / redfish / vmware / pyvmomi / pywinrm / vault) | 8 | 63eaceb |
+| 2 | Phase A (Skills) | 43 skills | 43 | 183a79e |
+| 2 | Phase B (Agents) | 51 agents | 51 | 2b3268f |
 
-## 채널별 상태
+## 검증 결과
 
-| 채널 | 상태 | 비고 |
+- `verify_harness_consistency.py`: **PASS** (참조 위반 0 + 잔재 어휘 0)
+- `session_start.py`: **PASS** (브랜치 main 인지 + 측정 대상 출력)
+- `commit_msg_check.py --self-test`: PASS
+- 모든 Python 파일 ast.parse PASS
+
+## 카탈로그 (실측, 2026-04-27)
+
+| 카테고리 | 카운트 |
+|---|---|
+| rules | 29 |
+| skills | 43 |
+| agents | 51 |
+| policies | 10 |
+| roles | 6 |
+| ai-context | 12 |
+| templates | 10 |
+| commands | 5 |
+| hooks (Python) | 19 + supporting 8 |
+| references (외부 docs) | 7 |
+
+## 채널별 / Vendor 상태 (기존 — 무수정)
+
+| 채널 | 상태 | adapter |
 |---|---|---|
-| os-gather | ok | 기존 그대로 |
-| esxi-gather | ok | 기존 그대로 |
-| redfish-gather | ok | 기존 그대로 |
+| os-gather | ok | adapters/os/ 7 |
+| esxi-gather | ok | adapters/esxi/ 4 |
+| redfish-gather | ok | adapters/redfish/ 14 |
 
-## 어댑터 매트릭스 (기존)
-
-| Vendor | 어댑터 수 | 검증된 펌웨어 | Baseline |
-|---|---|---|---|
-| Dell | 3 (idrac8 / idrac9 / idrac generic) | 5.x / 6.x | 있음 |
-| HPE | 4 (ilo5 / ilo6 / synergy / generic) | 2.x | 있음 |
-| Lenovo | 2 (xcc / xcc_legacy) | XCC | 있음 |
-| Supermicro | 3 (x12 / x11 / legacy) | 일부 | 일부 |
-| Cisco | 1 (cimc) | 초기 | 일부 |
-| generic | 1 (redfish_generic) | — | — |
-
-## Schema 상태 (기존)
-
-- sections.yml: 10 섹션
-- field_dictionary.yml: 28 Must + Nice + Skip
-- baseline_v1: 7+ vendor
-
-## 다음 작업 (Plan 2)
-
-- [ ] `.claude/skills/` — 약 38 skills
-- [ ] `.claude/agents/` — 약 49 agents
-- [ ] surface-counts.yaml 자동 갱신
+| Vendor | adapter | baseline |
+|---|---|---|
+| Dell | 3 (idrac8/9/generic) | 있음 |
+| HPE | 4 (ilo5/6/synergy/generic) | 있음 |
+| Lenovo | 2 (xcc/xcc_legacy) | 있음 |
+| Supermicro | 3 (x12/x11/legacy) | 일부 |
+| Cisco | 1 (cimc) | 일부 |
 
 ## 다음 작업 (Plan 3)
 
-- [ ] `docs/ai/` 운영 메타 문서 골격
-  - CURRENT_STATE.md (본 파일, 추가 갱신)
-  - NEXT_ACTIONS.md
-  - catalogs/ (8종)
-  - decisions/ (ADR)
-  - policy/, workflows/, harness/, handoff/, impact/, incoming-review/, roadmap/, onboarding/
-- [ ] 자기개선 루프 dry-run 검증
-- [ ] verify_harness_consistency.py final 통과 (skills/agents 작성 후)
+- [ ] `docs/ai/` 운영 메타 문서 골격 (catalogs / decisions / policy / workflows / harness / handoff / impact / incoming-review / roadmap / onboarding)
+- [ ] 자기개선 루프 dry-run 검증 (harness-cycle 1회 실행)
+- [ ] 첫 ADR 작성 (이번 하네스 도입 결정)
+- [ ] CONVENTION_DRIFT.md / FAILURE_PATTERNS.md / EXTERNAL_CONTRACTS.md / VENDOR_ADAPTERS.md / SCHEMA_FIELDS.md / JENKINS_PIPELINES.md 초기 골격
 
 ## 정본 reference
 
-- `CLAUDE.md` Tier 0 정본
+- `CLAUDE.md` (Tier 0 정본, 보강됨)
 - `GUIDE_FOR_AI.md`, `REQUIREMENTS.md`, `README.md`
 - `docs/01_jenkins-setup` ~ `docs/19_decision-log`
 - 설계서: `docs/superpowers/specs/2026-04-27-harness-refactor-design.md`
 - 실행 계획: `docs/superpowers/plans/2026-04-27-harness-refactor-plan-1-foundation.md`
+- 외부 시스템 reference: `docs/ai/references/`

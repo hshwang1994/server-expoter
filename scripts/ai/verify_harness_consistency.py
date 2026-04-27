@@ -75,9 +75,10 @@ def _scan_file(path: Path) -> Tuple[List[str], List[str], List[str], List[str], 
     forbidden = []
     # 의도적 인용/명시 표현 — false positive 방지
     allow_markers = (
-        "clovirone-base", "출처", "변환", "잔재", "금지 패턴", "Forbidden",
-        "사용 안 함", "동등 역할", "동일 정신", "대신", "→", "(과거)",
-        "관찰된", "이전", "deprecate", "polyfill",
+        "clovirone-base", "clovirone", "출처", "변환", "잔재", "금지 패턴",
+        "Forbidden", "사용 안 함", "동등 역할", "동일 정신", "대신", "→",
+        "(과거)", "관찰된", "이전", "deprecate", "polyfill",
+        "와 달리", "에 대응", "DBA", "etc",
     )
     for word in FORBIDDEN_WORDS:
         if word in text:
