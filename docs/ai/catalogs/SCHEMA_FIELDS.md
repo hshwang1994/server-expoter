@@ -30,11 +30,12 @@ $ grep -cE "priority: nice" schema/field_dictionary.yml
 
 | 분류 | 카운트 | 의미 |
 |---|---|---|
-| Must | **29** | 모든 vendor baseline에 존재 필수 |
-| Nice | 8 | vendor-specific 허용 |
-| Skip | (미등록 — 자명한 필드) |
+| Must | **28** | 모든 vendor baseline에 존재 필수 |
+| Nice | **7** | vendor-specific 허용 |
+| Skip | **5** | 의도적 미수집 |
+| **합계** | **40 entries** | YAML key 기준 (validate_field_dictionary.py) |
 
-**[INFO]** rule 13 / design doc / 일부 catalog에서 "28 Must"로 적힌 것은 stale 정보. **실측 29 Must**로 갱신 필요.
+**[INFO]** cycle-002 분석에서 "29 Must / 8 Nice"로 정정한 값이 실측과 차이 — 헤더 주석 (line 46~48)의 priority 설명이 grep 카운트에 포함되어 발생한 오인. cycle-005 (2026-04-28) `validate_field_dictionary.py` 실행으로 YAML 파싱 기준 **28 Must / 7 Nice / 5 Skip**로 재정정 (DRIFT-007).
 
 ## 갱신 trigger (rule 28 #1)
 
@@ -47,8 +48,11 @@ $ grep -cE "priority: nice" schema/field_dictionary.yml
 
 ```bash
 grep "^  [a-z]" schema/sections.yml | wc -l   # 섹션 수
-grep -cE "priority: must" schema/field_dictionary.yml   # Must 카운트
-grep -cE "priority: nice" schema/field_dictionary.yml   # Nice
+# Must / Nice / Skip 카운트는 YAML 파싱 기반 권장 (헤더 주석 noise 제거):
+python3 -c "import yaml; from collections import Counter; \
+    d=yaml.safe_load(open('schema/field_dictionary.yml')); \
+    print(Counter(e.get('priority') for e in d['fields'].values()))"
+python3 tests/validate_field_dictionary.py    # 표준 검증
 python scripts/ai/hooks/output_schema_drift_check.py
 ```
 
@@ -57,16 +61,12 @@ python scripts/ai/hooks/output_schema_drift_check.py
 | 일자 | 변경 | commit |
 |---|---|---|
 | 2026-04-27 | Plan 3 초기 골격 | 145a0b1 |
-| 2026-04-27 | 실측 갱신 (Must 28 → 29 정정) | (이번) |
+| 2026-04-27 | cycle-002에서 Must 28 → 29 정정 (잘못된 정정 — grep 헤더 noise) | 4b5ec30 |
+| 2026-04-28 | cycle-005에서 DRIFT-007 재정정: **Must 28 / Nice 7 / Skip 5** (validate_field_dictionary.py 기준) | (cycle-005) |
 
 ## 정본 reference
 
 - `schema/sections.yml`, `schema/field_dictionary.yml`, `schema/baseline_v1/`
+- `tests/validate_field_dictionary.py` (표준 검증 도구)
 - `docs/09_output-examples.md`, `docs/16_os-esxi-mapping.md`
 - skill: `update-output-schema-evidence`, `plan-schema-change`
-
-## 후속 작업 (사용자 결정)
-
-- [ ] rule 13 본문의 "28 Must" → "29 Must" 갱신 결정 (Tier 2 변경)
-- [ ] CLAUDE.md / 다른 catalog의 "28 Must" 표현 일관 갱신
-- [ ] 본 catalog에 sections.yml의 network / firmware / users / power 섹션 상세 추가 실측

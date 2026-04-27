@@ -40,7 +40,7 @@
 #   2. 운영자: 출력 JSON의 특정 필드가 무엇인지 이 파일에서 검색
 #   3. 개발자: 새 필드 추가 시 코드 반영 후 이 파일에 설명 추가
 #
-# 등록 현황: Must 18개 / Nice 0개 (2차 등록 예정) / Skip 미등록
+# 등록 현황: Must 28개 / Nice 7개 / Skip 5개 = 40 entries (실측 2026-04-28 cycle-005, validate_field_dictionary.py)
 #
 # 분류:
 #   priority: must    — 해석이 반드시 필요한 필드 (혼동 가능성 높음)

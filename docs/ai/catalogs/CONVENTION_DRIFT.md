@@ -23,11 +23,10 @@
 
 - **발견 위치**: 본 하네스 도입 시점 catalog (Plan 3) ↔ 실 코드 (`schema/field_dictionary.yml`)
 - **분류**: catalog-stale
-- **설명**: 하네스 도입 문서들 (`rule 13`, `Plan 1 design`, `CLAUDE.md`, 일부 catalog)에서 `Field Dictionary 28 Must`로 표기했으나, 실측 결과 **Must 29 + Nice 8**.
+- **설명**: 하네스 도입 문서들 (`rule 13`, `Plan 1 design`, `CLAUDE.md`, 일부 catalog)에서 `Field Dictionary 28 Must`로 표기. cycle-002 분석에서 grep 카운트 기반으로 "Must 29 + Nice 8"로 정정.
 - **영향**: 문서/문서 간 불일치. 실 운영에 영향 없음 (코드는 정상).
-- **제안**: 차기 cycle / harness-cycle에서 일괄 갱신 (Tier 2 — rule 23 R1 4요소 승인 후).
-- **상태**: resolved (2026-04-27 cycle-003)
-- **관련**: rule 13 (output-schema-fields), `docs/ai/catalogs/SCHEMA_FIELDS.md`
+- **상태**: resolved (2026-04-27 cycle-003) — **단, 정정값 자체가 잘못됨**, DRIFT-007에서 재정정.
+- **관련**: rule 13 (output-schema-fields), `docs/ai/catalogs/SCHEMA_FIELDS.md`, **DRIFT-007**
 
 ## DRIFT-002 (2026-04-27)
 
@@ -75,18 +74,19 @@
 - **상태**: open (사용자 결정 대기)
 - **관련**: rule 12 R1, rule 50 R2 (새 vendor 추가 9단계 — 동기화 단계 추가 후보), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
 
-## DRIFT-007 (2026-04-27, 후보)
+## DRIFT-007 (2026-04-27, resolved 2026-04-28)
 
 - **발견 위치**: `schema/field_dictionary.yml` 실측 ↔ cycle-003 DRIFT-001 정정값 (rule 13 / CLAUDE.md / SCHEMA_FIELDS.md)
 - **분류**: catalog-stale
-- **설명**: cycle-004 verifier에서 `python3 tests/validate_field_dictionary.py` 실행 결과 분포 "**Must 28 / Nice 7 / Skip 5**". cycle-003에서 정정한 "Must 29 / Nice 8" 표기와 차이.
-- **영향**: 운영 영향 없음 (코드 정상). 문서 정합 차이 — 외부 시스템이 field 카운트 기준 사용 시 혼동 가능.
-- **제안**: cycle-005에서:
-  1. field_dictionary.yml 실측 재확인 (validate_field_dictionary.py 결과 기준)
-  2. rule 13 / CLAUDE.md / SCHEMA_FIELDS.md "29 Must + 8 Nice" → "28 Must + 7 Nice + 5 Skip" 정정 (또는 그 역)
-  3. 명세 일관성 확보
-- **상태**: open (cycle-005 catalog 정합 정리)
-- **관련**: rule 13, DRIFT-001 (resolved이지만 정정값 자체 검토 필요), `tests/validate_field_dictionary.py`
+- **설명**: cycle-004 verifier에서 `python3 tests/validate_field_dictionary.py` 실행 결과 분포 "**Must 28 / Nice 7 / Skip 5**". cycle-003에서 정정한 "Must 29 / Nice 8" 표기와 차이. 원인: cycle-002 분석에서 `grep -cE "priority: must"` 사용 시 헤더 주석 (line 46~48 priority 설명 텍스트)이 카운트에 포함되어 +1씩 오인.
+- **영향**: 운영 영향 없음 (코드 정상). 문서 정합 차이.
+- **수정 (cycle-005)**:
+  1. validate_field_dictionary.py + YAML 파싱 기준 실측 확정: **28 Must / 7 Nice / 5 Skip = 40 entries**
+  2. CLAUDE.md / rule 13 / SCHEMA_FIELDS.md / field_dictionary.yml 헤더 / SKILL.md `update-output-schema-evidence` 일괄 정정
+  3. SCHEMA_FIELDS.md 측정 명령을 grep → YAML 파싱으로 변경 (헤더 noise 제거)
+  4. DRIFT-001 상태 코멘트 갱신 ("정정값 자체 잘못 — DRIFT-007에서 재정정")
+- **상태**: resolved (2026-04-28 cycle-005)
+- **관련**: rule 13, DRIFT-001 (cycle-003 정정 자체 stale), `tests/validate_field_dictionary.py`, cycle-002 분석 오인
 
 ## DRIFT-006 (2026-04-27, 후보)
 

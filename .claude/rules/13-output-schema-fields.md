@@ -8,7 +8,7 @@
 ## 현재 관찰된 현실
 
 - 10 sections (system / hardware / bmc / cpu / memory / storage / network / firmware / users / power)
-- field_dictionary.yml: **29 Must + 8 Nice** + Skip (실측 2026-04-27, DRIFT-001 정리)
+- field_dictionary.yml: **28 Must + 7 Nice + 5 Skip = 40 entries** (실측 2026-04-28 cycle-005, validate_field_dictionary.py — DRIFT-001 정정값이 stale이었음, DRIFT-007로 재정정)
 - baseline_v1: vendor별 회귀 기준선
 - Jenkins Stage 3 (Validate Schema) + Stage 4가 FAIL 게이트
   (Stage 4는 pipeline별 다름 — Jenkinsfile=E2E Regression / Jenkinsfile_grafana=Ingest / Jenkinsfile_portal=Callback, DRIFT-002 정리)
