@@ -1,0 +1,82 @@
+# server-exporter 보호 경로 정책
+# AI가 자율 수정할 수 없는 경로.
+
+absolute_protection:
+  description: "절대 수정 금지 — 어떤 경우에도 AI가 자동 수정하면 안 되는 경로"
+  paths:
+    - ".git/"
+    - "vault/"
+    - "vault/**"
+    - "*.log"
+    - "*.env"
+    - ".env"
+    - ".env.*"
+    - "*.pem"
+    - "*.key"
+    - "id_rsa"
+    - "id_rsa.pub"
+    - "*.p12"
+    - "*.jks"
+    - "CLAUDE.local.md"
+    - ".claude/settings.local.json"
+
+ticket_required:
+  description: "전용 티켓 없이 수정 금지 — 변경 시 이유/영향/롤백/검증 문서화 필수"
+  paths:
+    - "ansible.cfg"
+    - "Jenkinsfile"
+    - "Jenkinsfile_grafana"
+    - "Jenkinsfile_portal"
+    - "schema/sections.yml"
+    - "schema/field_dictionary.yml"
+    - "schema/baseline_v1/**"
+    - "schema/examples/**"
+
+vendor_boundary:
+  description: "벤더 경계 — 수정 시 경계 분석 + 영향 벤더 명시 필수"
+  paths:
+    - "adapters/redfish/**"
+    - "adapters/os/**"
+    - "adapters/esxi/**"
+    - "redfish-gather/library/**"
+    - "redfish-gather/tasks/vendors/**"
+    - "common/library/**"
+    - "common/vars/vendor_aliases.yml"
+
+docs_baseline:
+  description: "문서 기준선 — 실제 변경이 있을 때만 수정 (하네스 control plane 포함)"
+  # 운영 문서 (docs/ai/CURRENT_STATE.md, docs/ai/NEXT_ACTIONS.md, docs/ai/catalogs/*)
+  # 는 매 작업마다 갱신되는 스냅샷이므로 의도적으로 제외.
+  paths:
+    - "CLAUDE.md"
+    - "GUIDE_FOR_AI.md"
+    - "REQUIREMENTS.md"
+    - "README.md"
+    - ".claude/rules/**"
+    - ".claude/policy/**"
+    - ".claude/skills/**"
+    - ".claude/agents/**"
+    - ".claude/ai-context/**"
+    - ".claude/templates/**"
+    - "docs/ai/policy/**"
+    - "docs/ai/decisions/**"
+    - "docs/ai/roadmap/**"
+    - "docs/ai/workflows/**"
+    - "docs/01_jenkins-setup.md"
+    - "docs/02_redis-install.md"
+    - "docs/03_agent-setup.md"
+    - "docs/04_job-registration.md"
+    - "docs/05_inventory-json-spec.md"
+    - "docs/06_gather-structure.md"
+    - "docs/07_normalize-flow.md"
+    - "docs/08_failure-handling.md"
+    - "docs/09_output-examples.md"
+    - "docs/10_adapter-system.md"
+    - "docs/11_precheck-module.md"
+    - "docs/12_diagnosis-output.md"
+    - "docs/13_redfish-live-validation.md"
+    - "docs/14_add-new-gather.md"
+    - "docs/16_os-esxi-mapping.md"
+    - "docs/17_jenkins-pipeline.md"
+    - "docs/18_ansible-project-config.md"
+    - "docs/19_decision-log.md"

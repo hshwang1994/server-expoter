@@ -1,0 +1,53 @@
+# 보안 redaction 정책 — 로그/출력에 비밀값 마스킹
+# log/output에 등장하면 안 되는 패턴 + 대체 문자열.
+# 정규식은 모두 single-quote literal block scalar로 작성 (YAML flow sequence 충돌 방지).
+
+redaction_patterns:
+  - name: "vault_variable_leak"
+    pattern: "(?i)(vault_\\w+|_vault\\w*)\\s*[:=]\\s*[\"']?([^\"'\\s]+)"
+    replacement: "vault_*: <REDACTED>"
+    severity: critical
+
+  - name: "bmc_password"
+    pattern: "(?i)(bmc[_-]?password|idrac[_-]?password|ilo[_-]?password|xcc[_-]?password|cimc[_-]?password)\\s*[:=]\\s*[\"']?([^\"'\\s]+)"
+    replacement: "bmc_password: <REDACTED>"
+    severity: critical
+
+  - name: "redfish_basic_auth"
+    pattern: "(?i)(authorization)\\s*:\\s*basic\\s+([a-zA-Z0-9+/=]+)"
+    replacement: "Authorization: Basic <REDACTED>"
+    severity: critical
+
+  - name: "winrm_credential"
+    pattern: "(?i)(ansible_password|ansible_winrm_password)\\s*[:=]\\s*[\"']?([^\"'\\s]+)"
+    replacement: "ansible_password: <REDACTED>"
+    severity: critical
+
+  - name: "ssh_credential"
+    pattern: "(?i)(ansible_ssh_pass|ansible_become_pass)\\s*[:=]\\s*[\"']?([^\"'\\s]+)"
+    replacement: "ansible_ssh_pass: <REDACTED>"
+    severity: critical
+
+  - name: "private_key_block"
+    pattern: "-----BEGIN\\s+(RSA\\s+)?PRIVATE\\s+KEY-----.*?-----END\\s+(RSA\\s+)?PRIVATE\\s+KEY-----"
+    replacement: "-----BEGIN PRIVATE KEY-----\\n<REDACTED>\\n-----END PRIVATE KEY-----"
+    severity: critical
+
+  - name: "internal_ip_examples"
+    pattern: "\\b10\\.100\\.\\d+\\.\\d+\\b"
+    replacement: "10.x.x.x"
+    severity: medium  # 내부 IP는 advisory
+
+# 적용 대상
+targets:
+  - "callback message body"
+  - "Jenkins console log"
+  - "ansible -vvv 출력 redirect"
+  - "json_only callback의 errors 필드"
+  - "docs/ai/incoming-review/*.md"
+  - "docs/ai/handoff/*.md"
+
+# 적용 안 함
+exclude:
+  - "vault/**.yml (의도적으로 평문 보관, ansible-vault encrypt로 암호화)"
+  - "tests/fixtures/ (mock data, 실 비밀값 아님)"
