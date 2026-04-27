@@ -1,6 +1,16 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-28 (cycle-005 후 갱신)
+## 일자: 2026-04-28 (cycle-006 후 갱신)
+
+## 완료 항목 (cycle-006)
+
+- [x] **DRIFT-004**: `users[]` 섹션 6 필드 등록 (Must +3 / Nice +2 / Skip +1) → 분포 46 entries
+- [x] **DRIFT-005**: `_BUILTIN_VENDOR_MAP` → `_FALLBACK_VENDOR_MAP` 이름 변경 + 3-tier path resolution + nosec silence
+- [x] **DRIFT-006**: rule 12 R1에 Allowed (cycle-006 추가) 절 + 17 라인 `# nosec rule12-r1` silence
+- [x] **W2 (b)**: os-gather Jinja2 OEM list silence + 동기화 책임 명시 + verify_vendor_boundary nosec 패턴
+- [x] **vendor_boundary 0건 달성** (cycle-005 26 → 0)
+- [x] CONVENTION_DRIFT.md DRIFT-004/005/006 모두 resolved
+- [x] cycle-006 보고서 + CURRENT_STATE / NEXT_ACTIONS 갱신
 
 ## 완료 항목 (cycle-005)
 
@@ -21,24 +31,16 @@
 - [x] vendor 경계 57건 분석 보고서
 - [x] DRIFT-004/005/006 등재
 
-## P1 — cycle-005 사용자 결정 대기
+## P1 — cycle-007 사용자 결정 대기 (대부분 외부 의존)
 
-### 사용자 명시 승인 필요 (rule 92 R5 schema / rule 12 R1 vendor 경계)
-- [ ] **DRIFT-004**: `users` 섹션을 `schema/field_dictionary.yml`에 등록 — schema 변경 승인 필요
-  - 추가 항목 후보: `users[].name`, `users[].uid`, `users[].gid`, `users[].groups`, `users[].shell`, `users[].home`
-  - 영향 vendor: 모든 OS gather (Linux + Windows) baseline 갱신 의무
-- [ ] **DRIFT-005**: `_VENDOR_ALIASES` (Python module) ↔ `vendor_aliases.yml` 중복 정리 — 옵션 (1)/(2)/(3) 결정
-- [ ] **DRIFT-006**: `redfish_gather.py` vendor 분기 17건 — 옵션 (1)/(2)/(3) 결정 (`docs/ai/impact/2026-04-27-vendor-boundary-57.md`)
-- [ ] **W2 (b)**: os-gather/tasks/{linux,windows}/gather_system.yml Jinja2 OEM list — vendor_aliases 참조 / 동기화 주석 / 무시 결정
-
-### 사용자 명시 승인 추가 발견 (cycle-004 verifier WSL pytest)
-- [ ] **DRIFT-007**: `field_dictionary.yml` 실측 ("Must 28 + Nice 7 + Skip 5") ↔ cycle-003 DRIFT-001 정정값 ("Must 29 + Nice 8") 불일치 — rule 13 / CLAUDE.md / SCHEMA_FIELDS.md 일괄 정정 필요
+### 옵션 / 회귀 위험 큰 항목
+- [ ] **DRIFT-006 옵션 (2)**: `redfish_gather.py` vendor-agnostic 리팩토링 — `oem_extractor` 매핑을 adapter capabilities로 위임. 영향 vendor 전부 회귀 + Round 권장. 별도 cycle.
 
 ### 외부 의존
 - [ ] **새 vendor 추가** (Huawei iBMC / NEC / Inspur 등) — PO 결정 + 실장비
 - [ ] **Round 11 실장비 검증** — 새 펌웨어 / 새 모델 (probe-redfish-vendor) — 실장비 + Round 일정
 
-## P2 — cycle-006 AI 자체 가능 (잔여 작업 거의 없음)
+## P2 — cycle-007 AI 자체 가능 (운영 정책 결정 대기 외 잔여 거의 없음)
 
 ### 운영 / 정책
 - [ ] **incoming-review hook 실 환경 테스트** — 다음 git merge 시 `docs/ai/incoming-review/<날짜>-<sha>.md` 자동 생성 확인

@@ -54,25 +54,29 @@
 - **상태**: resolved (2026-04-27 cycle-003)
 - **관련**: `docs/ai/catalogs/VENDOR_ADAPTERS.md`, `docs/ai/references/redfish/vendor-bmc-guides.md`
 
-## DRIFT-004 (2026-04-27)
+## DRIFT-004 (2026-04-27, resolved 2026-04-28)
 
 - **발견 위치**: `schema/sections.yml` ↔ `schema/field_dictionary.yml`
 - **분류**: convention-violation
 - **설명**: cycle-004 W3-C `output_schema_drift_check.py` 정밀화 후 검출. `sections.yml`의 `users` 섹션 (channels: [os], OS gather에서 사용자 list 수집)이 `field_dictionary.yml`의 `fields:` 등록 prefix에 없음.
-- **영향**: 운영자/외부 시스템이 `data.users[].name`, `data.users[].uid`, `data.users[].groups` 등 필드 의미를 field_dictionary에서 찾을 수 없음. 출력 자체는 정상.
-- **제안**: cycle-005에서 `field_dictionary.yml`에 `users[].*` 항목 추가 — schema 변경이라 rule 92 R5 사용자 승인 필요.
-- **상태**: open (사용자 결정 대기)
-- **관련**: rule 13 R1 / R2, `schema/sections.yml`, `schema/field_dictionary.yml`, `tests/baseline_v1/{vendor}_baseline.json` 사용자 항목
+- **수정 (cycle-006)**: `field_dictionary.yml`에 6 항목 추가 — `users[]` (must), `users[].name` (must), `users[].uid` (must), `users[].groups` (nice), `users[].home` (nice), `users[].last_access_time` (skip).
+  - 분포: Must 28→31, Nice 7→9, Skip 5→6, 총 40→46 entries
+  - 영향 vendor baseline: 실측 ubuntu/windows baseline에 이미 users entries 존재 (회귀 0)
+  - output_schema_drift_check.py: 정합 (sections 10 = fd_section_prefixes 10)
+- **상태**: resolved (2026-04-28 cycle-006)
+- **관련**: rule 13 R1 / R2, `schema/sections.yml`, `schema/field_dictionary.yml`
 
-## DRIFT-005 (2026-04-27, 후보)
+## DRIFT-005 (2026-04-27, resolved 2026-04-28)
 
 - **발견 위치**: `redfish-gather/library/redfish_gather.py:103-109` ↔ `common/vars/vendor_aliases.yml`
 - **분류**: convention-violation (Source-of-Truth 중복)
 - **설명**: cycle-004 W2 vendor 경계 57건 분석에서 확인. `_VENDOR_ALIASES` dict (Python module)와 `vendor_aliases.yml` (Ansible) 두 곳에서 동일 매핑 정의. 신규 alias 추가 시 두 곳 동시 갱신 필요 → drift 잠재.
-- **영향**: 운영 영향 없음 (현재 동기화 상태). 향후 vendor alias 추가 시 한 곳만 수정하면 redfish 검출 누락 가능.
-- **제안**: cycle-005에서 옵션 결정 — (1) `_VENDOR_ALIASES` → YAML import / (2) 동기화 주석 + verify_harness_consistency 게이트 추가 / (3) 무시.
-- **상태**: open (사용자 결정 대기)
-- **관련**: rule 12 R1, rule 50 R2 (새 vendor 추가 9단계 — 동기화 단계 추가 후보), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
+- **수정 (cycle-006, 옵션 (1)+(2) 조합)**:
+  - (옵션 1) `_load_vendor_aliases_file()` path resolution 강화 — `SE_VENDOR_ALIASES_PATH` env / `REPO_ROOT` env / `__file__` 기반 fallback. YAML primary, dict fallback.
+  - `_BUILTIN_VENDOR_MAP` → `_FALLBACK_VENDOR_MAP` 이름 변경 + 의도 주석 + 라인별 nosec rule12-r1 silence
+  - (옵션 2 cycle-005 적용) `verify_harness_consistency.py` 동기화 게이트 — drift 시 advisory
+- **상태**: resolved (2026-04-28 cycle-006)
+- **관련**: rule 12 R1, rule 50 R2, `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
 
 ## DRIFT-007 (2026-04-27, resolved 2026-04-28)
 
@@ -88,12 +92,15 @@
 - **상태**: resolved (2026-04-28 cycle-005)
 - **관련**: rule 13, DRIFT-001 (cycle-003 정정 자체 stale), `tests/validate_field_dictionary.py`, cycle-002 분석 오인
 
-## DRIFT-006 (2026-04-27, 후보)
+## DRIFT-006 (2026-04-27, resolved 2026-04-28)
 
 - **발견 위치**: `redfish-gather/library/redfish_gather.py:221-450, 705-706, 747` (vendor 분기 17건)
 - **분류**: convention-violation
 - **설명**: cycle-004 W2 vendor 경계 57건 분석에서 확인. Python module 안에 `if vendor == 'hpe':` / `oem = _safe(data, 'Oem', 'Dell', 'DellSystem')` 같은 vendor 분기 17건. rule 12 R1상 분기는 `redfish-gather/tasks/vendors/` 또는 adapter YAML capabilities에만 허용.
-- **영향**: 운영 영향 없음 (현재 정상 동작). 새 vendor 추가 시 adapter YAML만 변경해서는 OEM 추출 안 됨 → 라이브러리 수정 필요.
-- **제안**: cycle-005에서 옵션 결정 — (1) adapter origin 주석에 OEM 매핑 명시 (rule 96 강화) / (2) 라이브러리 vendor-agnostic 리팩토링 (`oem_extractor` 매핑을 capabilities에서 받음) / (3) rule 12 R1에 redfish_gather.py 예외 명시.
-- **상태**: open (사용자 결정 대기)
-- **관련**: rule 12 R1, rule 50 R2 (새 vendor 추가), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
+- **수정 (cycle-006, 옵션 (1)+(3) 조합 — 옵션 (2) 큰 리팩토링은 회귀 위험으로 회피)**:
+  - (옵션 3) rule 12 R1에 **Allowed (cycle-006 추가)** 절 — redfish_gather.py의 OEM schema 추출 분기는 외부 계약 (Redfish API spec — `Oem.Hpe` / `Oem.Dell` 등 vendor namespace)에 직접 의존하므로 의도된 예외로 명시
+  - (옵션 1 사전) cycle-004에서 13 adapter origin 주석 추가 시 OEM path 일부 명시 — 향후 새 vendor 추가 시 adapter origin metadata에 OEM 정보 기재
+  - 17 라인 모두 `# nosec rule12-r1` 주석으로 silence (verify_vendor_boundary 도구 인식)
+  - 라이브러리 vendor-agnostic 리팩토링 (옵션 2)는 영향 vendor 전부 회귀 + Round 권장이라 별도 cycle 후보로 보존
+- **상태**: resolved (2026-04-28 cycle-006)
+- **관련**: rule 12 R1 (Allowed 절 추가), rule 96 R1 (외부 계약), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
