@@ -145,7 +145,7 @@ server-exporter/ (프로젝트 루트)
 [4] Schema & 데이터
    ├── schema/
    │   ├── sections.yml (10개: system, hardware, bmc, cpu, memory, storage, network, firmware, users, power)
-   │   ├── field_dictionary.yml (28 Must + 7 Nice + 5 Skip = 40 entries — 실측 2026-04-28 cycle-005, validate_field_dictionary.py)
+   │   ├── field_dictionary.yml (31 Must + 9 Nice + 6 Skip = 46 entries — 실측 2026-04-28 cycle-006, users 섹션 +6 추가)
    │   ├── baseline_v1/ (7개 벤더 baseline JSON)
    │   └── examples/ (success/partial/failed 예시)
    └── vault/ (linux.yml, windows.yml, esxi.yml, redfish/{vendor}.yml)

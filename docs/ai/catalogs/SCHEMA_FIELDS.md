@@ -30,10 +30,10 @@ $ grep -cE "priority: nice" schema/field_dictionary.yml
 
 | 분류 | 카운트 | 의미 |
 |---|---|---|
-| Must | **28** | 모든 vendor baseline에 존재 필수 |
-| Nice | **7** | vendor-specific 허용 |
-| Skip | **5** | 의도적 미수집 |
-| **합계** | **40 entries** | YAML key 기준 (validate_field_dictionary.py) |
+| Must | **31** | 모든 vendor baseline에 존재 필수 |
+| Nice | **9** | vendor-specific 허용 |
+| Skip | **6** | 의도적 미수집 |
+| **합계** | **46 entries** | YAML key 기준 (validate_field_dictionary.py) |
 
 **[INFO]** cycle-002 분석에서 "29 Must / 8 Nice"로 정정한 값이 실측과 차이 — 헤더 주석 (line 46~48)의 priority 설명이 grep 카운트에 포함되어 발생한 오인. cycle-005 (2026-04-28) `validate_field_dictionary.py` 실행으로 YAML 파싱 기준 **28 Must / 7 Nice / 5 Skip**로 재정정 (DRIFT-007).
 
@@ -62,7 +62,8 @@ python scripts/ai/hooks/output_schema_drift_check.py
 |---|---|---|
 | 2026-04-27 | Plan 3 초기 골격 | 145a0b1 |
 | 2026-04-27 | cycle-002에서 Must 28 → 29 정정 (잘못된 정정 — grep 헤더 noise) | 4b5ec30 |
-| 2026-04-28 | cycle-005에서 DRIFT-007 재정정: **Must 28 / Nice 7 / Skip 5** (validate_field_dictionary.py 기준) | (cycle-005) |
+| 2026-04-28 | cycle-005에서 DRIFT-007 재정정: Must 28 / Nice 7 / Skip 5 (validate_field_dictionary.py 기준) | (cycle-005) |
+| 2026-04-28 | cycle-006에서 DRIFT-004 resolved: users 섹션 +6 추가 → **Must 31 / Nice 9 / Skip 6 = 46 entries** | (cycle-006) |
 
 ## 정본 reference
 

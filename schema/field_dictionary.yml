@@ -40,7 +40,7 @@
 #   2. 운영자: 출력 JSON의 특정 필드가 무엇인지 이 파일에서 검색
 #   3. 개발자: 새 필드 추가 시 코드 반영 후 이 파일에 설명 추가
 #
-# 등록 현황: Must 28개 / Nice 7개 / Skip 5개 = 40 entries (실측 2026-04-28 cycle-005, validate_field_dictionary.py)
+# 등록 현황: Must 31개 / Nice 9개 / Skip 6개 = 46 entries (실측 2026-04-28 cycle-006, users 섹션 +6 추가)
 #
 # 분류:
 #   priority: must    — 해석이 반드시 필요한 필드 (혼동 가능성 높음)
@@ -489,6 +489,83 @@ fields:
       Firmware software identifier (Redfish SoftwareId).
       Format varies by vendor.
       Raw string "null" is converted to None.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # users (DRIFT-004 cycle-006 신규)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  "users[]":
+    type: "array of object"
+    priority: must
+    channel: [os]
+    help_ko: >-
+      OS 채널 사용자 계정 목록.
+      Linux: getent passwd 결과.
+      Windows: Get-LocalUser cmdlet 결과.
+      Redfish/ESXi: 수집 안 함 ([] 빈 배열).
+    help_en: >-
+      OS-channel user account list.
+      Linux: getent passwd output. Windows: Get-LocalUser cmdlet output.
+      Not collected for Redfish/ESXi (empty []).
+
+  "users[].name":
+    type: "string"
+    priority: must
+    channel: [os]
+    help_ko: >-
+      사용자 계정 이름.
+      Linux: passwd 첫 필드.
+      Windows: SamAccountName.
+    help_en: >-
+      User account name.
+      Linux: passwd first field. Windows: SamAccountName.
+
+  "users[].uid":
+    type: "string|integer"
+    priority: must
+    channel: [os]
+    help_ko: >-
+      사용자 ID.
+      Linux: 정수 UID (예: 0 = root).
+      Windows: SID 문자열 (예: S-1-5-21-...).
+    help_en: >-
+      User ID.
+      Linux: integer UID (e.g., 0 = root). Windows: SID string.
+
+  "users[].groups":
+    type: "array of string"
+    priority: nice
+    channel: [os]
+    help_ko: >-
+      소속 그룹 목록.
+      Linux: getent group으로 추출. Windows: 로컬 그룹.
+      Vendor-specific 또는 미수집 환경에서는 [].
+    help_en: >-
+      Group membership list.
+      Linux: getent group. Windows: local groups.
+      [] when vendor-specific or unavailable.
+
+  "users[].home":
+    type: "string|null"
+    priority: nice
+    channel: [os]
+    help_ko: >-
+      홈 디렉터리 경로.
+      Linux: passwd 6번째 필드 (예: /root, /home/<user>).
+      Windows: 프로파일 경로 (예: C:\Users\<user>).
+    help_en: >-
+      Home directory path.
+      Linux: passwd 6th field. Windows: profile path.
+
+  "users[].last_access_time":
+    type: "string|null"
+    priority: skip
+    channel: [os]
+    help_ko: >-
+      마지막 로그인/접근 시각 (ISO8601). 수집 환경에 따라 null.
+      현재 baseline에서는 보편적 미수집 (null).
+    help_en: >-
+      Last login/access timestamp (ISO8601). Often null.
 
   # ──────────────────────────────────────────────────────────────────────────
   # bmc / correlation
