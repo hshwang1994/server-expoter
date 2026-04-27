@@ -64,7 +64,7 @@ PATTERNS = [
         "name": "Ansible default(omit) 누락",
         "regex": re.compile(r"\{\{\s*[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*\s*\}\}"),
         "files": (".yml", ".yaml"),
-        "exclude_lines": [re.compile(r"\|\s*default\s*\("), re.compile(r"^#")],
+        "exclude_lines": [re.compile(r"\|\s*default\s*\("), re.compile(r"^\s*#")],
         "advisory": "변수 참조에 default(...) 또는 default(omit) 권장",
     },
     {
@@ -72,7 +72,11 @@ PATTERNS = [
         "name": "set_fact 재정의 — fragment 침범 의심 (rule 22)",
         "regex": re.compile(r"set_fact\s*:\s*$"),
         "files": (".yml", ".yaml"),
-        "advisory": "set_fact 다음 라인 검토 — _sections_<other>_*_fragment / _collected_* 직접 수정 금지",
+        # rule 11 R1: common/tasks/normalize/ 안의 build_*.yml은 누적 변수 set_fact 허용 (builder 패턴)
+        # → 침범 의심 검사 대상에서 제외
+        "exclude_paths": [re.compile(r"common/tasks/normalize/")],
+        "advisory": "set_fact 다음 라인 검토 — _sections_<other>_*_fragment / _collected_* 직접 수정 금지 "
+                    "(common/tasks/normalize/ builder는 rule 11 R1 허용으로 제외)",
     },
     {
         "id": 3,
@@ -83,19 +87,21 @@ PATTERNS = [
     },
     {
         "id": 4,
-        "name": "Adapter priority 동률 의심",
+        "name": "Adapter priority 동률 의심 (같은 vendor 내)",
         "regex": re.compile(r"^priority:\s*(\d+)\s*$"),
         "files": (".yml",),
         "scope": "adapters/",
         "advisory": "같은 vendor 내 priority 동률 시 정렬 결과 불확정 — score-adapter-match로 확인",
-        "aggregate": True,
+        "vendor_grouped": True,  # post-process: 같은 (channel, vendor) 그룹 안에서만 동률 판정
     },
     {
         "id": 5,
         "name": "is none / is undefined / length == 0 혼동",
         "regex": re.compile(r"(is\s+none|is\s+undefined|\|\s*length\s*==\s*0)"),
         "files": (".yml", ".yaml"),
-        "advisory": "Ansible 변수 상태 분기 — 의도 명확히 (none vs undefined vs 빈 list 의도 다름)",
+        "exclude_lines": [re.compile(r"#\s*rule\s*95\s*R1\s*#5\s*ok", re.IGNORECASE)],
+        "advisory": "Ansible 변수 상태 분기 — 의도 명확히 (none vs undefined vs 빈 list 의도 다름). "
+                    "의도된 분기는 라인 끝에 '# rule 95 R1 #5 ok: <의도>' 주석으로 silence",
     },
     {
         "id": 6,
@@ -109,8 +115,16 @@ PATTERNS = [
         "name": "int() cast 미방어",
         "regex": re.compile(r"\bint\(\s*[a-z_][a-z0-9_.\[\]'\"]*\s*\)"),
         "files": (".py",),
-        "exclude_lines": [re.compile(r"try\s*:"), re.compile(r"except"), re.compile(r"^#")],
-        "advisory": "int() ValueError 처리 — try/except 또는 .get(default=0) 권장",
+        "exclude_lines": [
+            re.compile(r"try\s*:"),
+            re.compile(r"except"),
+            re.compile(r"^\s*#"),
+            re.compile(r"_safe_int\s*\("),  # helper 사용은 안전
+            re.compile(r"def\s+_safe_int"),
+            re.compile(r"#\s*rule\s*95\s*R1\s*#?7\s*ok", re.IGNORECASE),  # 인라인 silence
+        ],
+        "advisory": "int() ValueError 처리 — try/except 또는 _safe_int(...) helper 권장. "
+                    "의도된 분기는 라인 끝에 '# rule 95 R1 #7 ok: <의도>' 주석으로 silence",
     },
     {
         "id": 9,
@@ -118,6 +132,8 @@ PATTERNS = [
         "regex": re.compile(r"include\s*:\s*adapter_loader|lookup\(\s*['\"]adapter_loader"),
         "files": (".py", ".yml"),
         "scope": "lookup_plugins/",
+        # docstring + 주석 라인은 분기 코드 아님 → false positive
+        "exclude_lines": [re.compile(r"^\s*#"), re.compile(r"^\s*['\"]{3}")],
         "advisory": "adapter_loader가 자기 자신을 호출하는 경로 검토 (순환)",
     },
     {
@@ -130,6 +146,25 @@ PATTERNS = [
         "check_metadata_comment": True,
     },
 ]
+
+
+def _adapter_vendor_key(rel: str) -> Tuple[str, str]:
+    """adapters/<channel>/<vendor>_<rest>.yml 에서 (channel, vendor) 추출.
+
+    예: adapters/redfish/dell_idrac9.yml → ('redfish', 'dell')
+        adapters/esxi/esxi_8x.yml      → ('esxi', 'esxi')
+        adapters/registry.yml          → ('registry', 'registry')
+    """
+    parts = rel.split("/")
+    if len(parts) < 2 or parts[0] != "adapters":
+        return ("", "")
+    channel = parts[1] if len(parts) >= 3 else "registry"
+    if len(parts) < 3:
+        stem = parts[1].rsplit(".", 1)[0]
+    else:
+        stem = parts[2].rsplit(".", 1)[0]
+    vendor = stem.split("_", 1)[0]
+    return (channel, vendor)
 
 
 def scan_file(path: Path, repo_root: Path) -> List[Tuple[int, str, int, str]]:
@@ -151,6 +186,9 @@ def scan_file(path: Path, repo_root: Path) -> List[Tuple[int, str, int, str]]:
             continue
         if "scope" in pattern and pattern["scope"] not in rel:
             continue
+        if "exclude_paths" in pattern:
+            if any(ex.search(rel) for ex in pattern["exclude_paths"]):
+                continue
 
         # Adapter origin 주석 검사 (특수 처리 — rule 96 R1)
         if pattern.get("check_metadata_comment"):
@@ -175,6 +213,36 @@ def scan_file(path: Path, repo_root: Path) -> List[Tuple[int, str, int, str]]:
     return findings
 
 
+def _filter_priority_dupes_by_vendor(
+    findings: List[Tuple[int, str, int, str]],
+) -> List[Tuple[int, str, int, str]]:
+    """Pattern #4 후처리: 같은 (channel, vendor) 그룹 안에서 priority 값이 2번 이상 나올 때만 남긴다."""
+    pid4 = [f for f in findings if f[0] == 4]
+    others = [f for f in findings if f[0] != 4]
+
+    # group by (channel, vendor)
+    groups: dict[Tuple[str, str], List[Tuple[int, str, int, str, int]]] = {}
+    for pid, rel, lineno, snippet in pid4:
+        m = re.match(r"^priority:\s*(\d+)", snippet)
+        if not m:
+            continue
+        prio = int(m.group(1))
+        key = _adapter_vendor_key(rel)
+        groups.setdefault(key, []).append((pid, rel, lineno, snippet, prio))
+
+    kept: List[Tuple[int, str, int, str]] = []
+    for key, items in groups.items():
+        # priority 값별 카운트 — 2개 이상이면 동률
+        prio_counts: dict[int, int] = {}
+        for it in items:
+            prio_counts[it[4]] = prio_counts.get(it[4], 0) + 1
+        for pid, rel, lineno, snippet, prio in items:
+            if prio_counts[prio] >= 2:
+                kept.append((pid, rel, lineno, f"{snippet}  [vendor={key[1]} 동률]"))
+
+    return others + kept
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="rule 95 R1 의심 패턴 자동 검출")
     parser.add_argument("--target", default=None, help="검사 디렉터리 (기본: 전체)")
@@ -194,6 +262,9 @@ def main() -> int:
         for f in path.rglob("*"):
             if f.is_file() and f.suffix in (".py", ".yml", ".yaml"):
                 all_findings.extend(scan_file(f, repo_root))
+
+    # Pattern #4 후처리: 같은 vendor 내 동률만 남김
+    all_findings = _filter_priority_dupes_by_vendor(all_findings)
 
     if not all_findings:
         print("=== 의심 패턴 스캔 결과 ===")

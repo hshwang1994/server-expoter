@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Output schema drift check — sections.yml ↔ field_dictionary.yml ↔ baseline_v1 정합 (← db_schema_drift_check 대체).
+"""Output schema drift check — sections.yml ↔ field_dictionary.yml ↔ baseline_v1 정합.
+
+매칭 로직:
+- sections.yml: top-level 'sections:' 아래 indent 2 key (10 섹션 — system/hardware/bmc/cpu/memory/...)
+- field_dictionary.yml: top-level 'fields:' 아래 indent 2 key (dotted path 형식 — 'hardware.health', 'cpu.cores_physical', 'status', ...)
+  → dotted path의 prefix (첫 '.' 앞)을 section 후보로 추출. 단 envelope 필드 (status / meta / diagnosis / correlation)는 섹션 아님 → 제외.
 
 검사:
-- sections.yml에 정의된 섹션이 field_dictionary.yml에 누락 없는지
-- field_dictionary.yml의 28 Must 필드가 baseline_v1 vendor JSON에 모두 존재하는지
-- baseline_v1 안의 새 필드가 field_dictionary.yml에 누락 없는지
+- sections.yml의 섹션이 field_dictionary.yml prefix에 누락 없는지
+- baseline_v1 vendor JSON 파싱 가능 여부
 
 Usage:
     python scripts/ai/hooks/output_schema_drift_check.py
@@ -50,10 +54,20 @@ def _read_yaml_keys(path: Path, section: str = None) -> list[str]:
                 break
             target_indent = 2 if section is not None else 0
             if in_section and indent == target_indent and stripped.endswith(":"):
-                keys.append(stripped[:-1].strip())
+                key = stripped[:-1].strip()
+                # YAML quoted key: "storage.physical_disks[]" → storage.physical_disks[]
+                if len(key) >= 2 and key[0] == key[-1] and key[0] in ('"', "'"):
+                    key = key[1:-1]
+                # array notation: firmware[] / firmware[].component → firmware
+                # (prefix 추출은 호출자 책임이지만, 키 자체는 원형 보존)
+                keys.append(key)
     except Exception:
         pass
     return keys
+
+
+# envelope 필드 (섹션 아님 — JSON envelope 6 필드 중 data 외 5개)
+ENVELOPE_FIELDS = {"status", "sections", "errors", "meta", "diagnosis", "correlation"}
 
 
 def main() -> int:
@@ -64,17 +78,31 @@ def main() -> int:
 
     issues = []
 
-    # sections.yml은 'sections:' 아래 nested. field_dictionary.yml은 'fields:' 또는 다른 구조 가능.
+    # sections.yml: 'sections:' 아래 indent 2 (10 섹션 이름)
     sections = _read_yaml_keys(sections_path, section="sections")
     if not sections:
-        # fallback: top-level
         sections = _read_yaml_keys(sections_path)
-    fd_keys = _read_yaml_keys(fd_path)
 
-    # sections.yml ↔ field_dictionary.yml
-    missing_in_fd = [s for s in sections if s not in fd_keys]
+    # field_dictionary.yml: 'fields:' 아래 indent 2 (dotted path 형식)
+    fd_paths = _read_yaml_keys(fd_path, section="fields")
+
+    # dotted path → prefix 추출 (envelope 필드 제외, array 표기 [] 제거)
+    fd_section_prefixes = set()
+    for p in fd_paths:
+        prefix = p.split(".", 1)[0]
+        # firmware[] 같은 array notation에서 [] 제거
+        prefix = prefix.split("[", 1)[0]
+        if not prefix or prefix in ENVELOPE_FIELDS:
+            continue
+        fd_section_prefixes.add(prefix)
+
+    # sections.yml ↔ field_dictionary.yml prefix 비교
+    missing_in_fd = [s for s in sections if s not in fd_section_prefixes]
     if missing_in_fd:
-        issues.append(f"sections.yml에 있지만 field_dictionary.yml에 없는 섹션: {missing_in_fd}")
+        issues.append(
+            f"sections.yml에 있지만 field_dictionary.yml에 prefix 없는 섹션: {missing_in_fd} "
+            f"(field_dictionary 등록 prefix: {sorted(fd_section_prefixes)})"
+        )
 
     # baseline JSON 점검 — 각 vendor baseline 안에 sections list 존재
     if baseline_dir.is_dir():
@@ -101,7 +129,10 @@ def main() -> int:
             print(f"  - {i}")
         return 2
 
-    print(f"output schema 정합: sections={len(sections)} fd_keys={len(fd_keys)}")
+    print(
+        f"output schema 정합: sections={len(sections)} "
+        f"fd_paths={len(fd_paths)} fd_section_prefixes={len(fd_section_prefixes)}"
+    )
     return 0
 
 

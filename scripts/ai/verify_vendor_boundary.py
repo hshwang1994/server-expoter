@@ -28,6 +28,13 @@ import sys
 from pathlib import Path
 from typing import List
 
+# Windows cp949 환경에서 비-ASCII 출력 시 UnicodeEncodeError 방지
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+except Exception:
+    pass
+
 
 # 벤더 이름 (대소문자 구분 없이)
 VENDORS = ["Dell", "HPE", "Hewlett", "Lenovo", "Supermicro", "Cisco", "iDRAC", "iLO", "XCC", "CIMC"]
@@ -36,11 +43,16 @@ VENDORS = ["Dell", "HPE", "Hewlett", "Lenovo", "Supermicro", "Cisco", "iDRAC", "
 SCAN_DIRS = ["common", "os-gather", "esxi-gather", "redfish-gather"]
 
 # 제외 (벤더 분기가 정상인 경로)
+# rule 12 R1 Allowed:
+#   - redfish-gather/tasks/vendors/{vendor}/  (OEM tasks)
+#   - adapters/{channel}/{vendor}_*.yml       (어댑터 YAML)
+#   - common/vars/vendor_aliases.yml          (vendor alias 정규화 메타)
 EXCLUDE_PATTERNS = [
     re.compile(r"redfish-gather/tasks/vendors/"),
     re.compile(r"adapters/"),
     re.compile(r"vault/"),
     re.compile(r"tests/"),
+    re.compile(r"common/vars/vendor_aliases\.yml$"),
 ]
 
 
@@ -52,6 +64,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="벤더 경계 검증")
     parser.add_argument("--strict", action="store_true",
                         help="comment 안의 vendor 이름도 위반 처리")
+    parser.add_argument("--full", action="store_true",
+                        help="위반 30건 초과 시 전체 출력")
     parser.add_argument("--repo-root", default=".")
     args = parser.parse_args()
 
@@ -93,14 +107,19 @@ def main() -> int:
 
                 m = vendor_re.search(line)
                 if m:
-                    violations.append(f"{rel}:{lineno}: {m.group(1)} — {stripped[:80]}")
+                    violations.append(f"{rel}:{lineno}: {m.group(1)} - {stripped[:80]}")
 
     if violations:
         print(f"벤더 경계 위반: {len(violations)}건")
-        for v in violations[:30]:
+        head = 30
+        for v in violations[:head]:
             print(f"  - {v}")
-        if len(violations) > 30:
-            print(f"  ... ({len(violations) - 30}건 추가)")
+        if len(violations) > head:
+            if args.full:
+                for v in violations[head:]:
+                    print(f"  - {v}")
+            else:
+                print(f"  ... ({len(violations) - head}건 추가, --full 로 전체 출력)")
         return 2
 
     print("벤더 경계 통과: common/ + 3-channel gather에 vendor 이름 하드코딩 없음")
