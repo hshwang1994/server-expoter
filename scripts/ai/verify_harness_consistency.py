@@ -232,8 +232,8 @@ def _extract_python_vendor_map(path: Path) -> dict:
         text = path.read_text(encoding="utf-8")
     except Exception:
         return {}
-    # _BUILTIN_VENDOR_MAP = { ... } 블록 추출
-    m = re.search(r"_BUILTIN_VENDOR_MAP\s*=\s*\{(.*?)\n\}", text, re.DOTALL)
+    # _BUILTIN_VENDOR_MAP / _FALLBACK_VENDOR_MAP = { ... } 블록 추출
+    m = re.search(r"_(?:BUILTIN|FALLBACK)_VENDOR_MAP\s*=\s*\{(.*?)\n\}", text, re.DOTALL)
     if not m:
         return {}
     body = m.group(1)

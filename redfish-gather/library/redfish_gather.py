@@ -113,39 +113,70 @@ def _err(section, message, detail=None):
 # 내장 벤더 매핑 (vendor_aliases.yml 로드 불가 시 fallback)
 # ※ common/vars/vendor_aliases.yml과 동기화 필요 — 변경 시 양쪽 모두 수정할 것
 # canonical vendors: dell, hpe, lenovo, supermicro, cisco
-_BUILTIN_VENDOR_MAP = {
-    'dell': 'dell', 'dell inc.': 'dell',
-    'hpe': 'hpe', 'hewlett packard enterprise': 'hpe', 'hp enterprise': 'hpe', 'hp': 'hpe',
-    'lenovo': 'lenovo',
-    'supermicro': 'supermicro', 'super micro computer, inc.': 'supermicro',
-    'super micro computer': 'supermicro',
-    'cisco': 'cisco', 'cisco systems inc': 'cisco', 'cisco systems inc.': 'cisco',
-    'cisco systems': 'cisco',
+# nosec rule12-r1: 아래 dict는 vendor 분기 코드가 아니라 Ansible runtime 외 환경
+# (pytest / 직접 invoke)에서 vendor_aliases.yml load 실패 시 fallback 정규화 맵.
+# vendor_aliases.yml이 primary, 본 dict는 secondary. 신규 alias 추가 시 vendor_aliases.yml만
+# 갱신하면 충분 (verify_harness_consistency.py 동기화 게이트로 drift 검출).
+_FALLBACK_VENDOR_MAP = {
+    'dell': 'dell', 'dell inc.': 'dell',                                    # nosec rule12-r1
+    'hpe': 'hpe', 'hewlett packard enterprise': 'hpe',                      # nosec rule12-r1
+    'hp enterprise': 'hpe', 'hp': 'hpe',                                    # nosec rule12-r1
+    'lenovo': 'lenovo',                                                     # nosec rule12-r1
+    'supermicro': 'supermicro', 'super micro computer, inc.': 'supermicro', # nosec rule12-r1
+    'super micro computer': 'supermicro',                                   # nosec rule12-r1
+    'cisco': 'cisco', 'cisco systems inc': 'cisco',                         # nosec rule12-r1
+    'cisco systems inc.': 'cisco', 'cisco systems': 'cisco',                # nosec rule12-r1
 }
+# 호환 alias (외부 코드가 _BUILTIN_VENDOR_MAP 이름 참조 시)
+_BUILTIN_VENDOR_MAP = _FALLBACK_VENDOR_MAP
+
 
 def _load_vendor_aliases_file():
-    """vendor_aliases.yml을 로드합니다. 실패 시 빈 dict 반환."""
+    """vendor_aliases.yml을 로드합니다. 실패 시 빈 dict 반환.
+
+    Path resolution 우선순위:
+      1. SE_VENDOR_ALIASES_PATH 환경변수 (명시 override)
+      2. REPO_ROOT 환경변수 + common/vars/vendor_aliases.yml
+      3. __file__ 기반 ../../common/vars/vendor_aliases.yml (Ansible 표준 배치)
+    """
     import os
     try:
         import yaml
     except ImportError:
         return {}
-    # yaml 사용 시작
-    # REPO_ROOT 기반 경로
+
+    candidates = []
+    # 1. 명시 override
+    explicit = os.environ.get('SE_VENDOR_ALIASES_PATH', '')
+    if explicit:
+        candidates.append(explicit)
+    # 2. REPO_ROOT 기반
     repo_root = os.environ.get('REPO_ROOT', '')
-    if not repo_root:
-        return {}
-    path = os.path.join(repo_root, 'common', 'vars', 'vendor_aliases.yml')
+    if repo_root:
+        candidates.append(os.path.join(repo_root, 'common', 'vars', 'vendor_aliases.yml'))
+    # 3. __file__ 기반 (redfish-gather/library/redfish_gather.py → common/vars/...)
     try:
-        with open(path, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f) or {}
-        mapping = {}
-        for canonical, alias_list in data.get('vendor_aliases', {}).items():
-            for alias in alias_list:
-                mapping[alias.strip().lower()] = canonical
-        return mapping
-    except (IOError, OSError, yaml.YAMLError, AttributeError, TypeError):
-        return {}
+        here = os.path.dirname(os.path.abspath(__file__))
+        # __file__ → redfish-gather/library/ → ../../common/vars/
+        candidates.append(os.path.normpath(os.path.join(here, '..', '..', 'common', 'vars', 'vendor_aliases.yml')))
+    except NameError:
+        pass
+
+    for path in candidates:
+        if not path or not os.path.isfile(path):
+            continue
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f) or {}
+            mapping = {}
+            for canonical, alias_list in data.get('vendor_aliases', {}).items():
+                for alias in alias_list:
+                    mapping[alias.strip().lower()] = canonical
+            if mapping:
+                return mapping
+        except (IOError, OSError, yaml.YAMLError, AttributeError, TypeError):
+            continue
+    return {}
 
 def _normalize_vendor_from_aliases(mfr_lower):
     """
@@ -154,9 +185,10 @@ def _normalize_vendor_from_aliases(mfr_lower):
     2차: 내장 fallback 맵
     3차: 부분 매칭 (substring)
     """
-    # vendor_aliases.yml 시도
+    # vendor_aliases.yml 시도 (primary)
     aliases = _load_vendor_aliases_file()
-    merged = {**_BUILTIN_VENDOR_MAP, **aliases}  # aliases 우선
+    # aliases (YAML primary) 우선, fallback dict는 보조
+    merged = {**_FALLBACK_VENDOR_MAP, **aliases}
 
     # 정확 매칭
     if mfr_lower in merged:
@@ -232,8 +264,9 @@ def _detect_vendor_from_service_root(root):
         for alias, canonical in vm.items():
             if alias in p:
                 return canonical
-        if 'ilo' in p or 'proliant' in p:
-            return 'hpe'
+        # nosec rule12-r1: HPE iLO/ProLiant 시그니처 → vendor 식별 (외부 spec)
+        if 'ilo' in p or 'proliant' in p:                                     # nosec rule12-r1
+            return 'hpe'                                                      # nosec rule12-r1
 
     # 4. Name 필드에 벤더명 포함 확인
     name = _safe(root, 'Name')
@@ -363,10 +396,11 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
         'oem': {},
     }
 
-    # 벤더별 OEM 확장
-    if vendor == 'hpe':
+    # 벤더별 OEM 확장 — Redfish API spec 자체가 vendor namespace 정의 (Oem.Hpe / Oem.Dell ...)
+    # nosec rule12-r1: 외부 계약 (rule 96 R1) 직접 의존 — adapter YAML로 위임 불가
+    if vendor == 'hpe':                                                       # nosec rule12-r1
         # iLO 5/6 = Oem.Hpe, iLO 4 이하 = Oem.Hp
-        oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}
+        oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}     # nosec rule12-r1
         ahs = _safe(oem, 'AggregateHealthStatus') or {}
         result['oem'] = {
             'post_state':              _safe(oem, 'PostState'),
@@ -384,8 +418,8 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
                 'temperatures': _safe(ahs, 'Temperatures', 'Status', 'Health'),
             },
         }
-    elif vendor == 'dell':
-        oem = _safe(data, 'Oem', 'Dell', 'DellSystem') or {}
+    elif vendor == 'dell':                                                    # nosec rule12-r1
+        oem = _safe(data, 'Oem', 'Dell', 'DellSystem') or {}                  # nosec rule12-r1
         result['oem'] = {
             'lifecycle_version':       _safe(oem, 'LifecycleControllerVersion'),
             'bios_release_date':       _safe(oem, 'BIOSReleaseDate'),
@@ -399,11 +433,11 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
             'express_service_code':    _safe(oem, 'ExpressServiceCode'),
             'estimated_exhaust_temp':  _safe(oem, 'EstimatedExhaustTemperatureCel'),
         }
-    elif vendor == 'lenovo':
-        oem = _safe(data, 'Oem', 'Lenovo') or {}
+    elif vendor == 'lenovo':                                                  # nosec rule12-r1
+        oem = _safe(data, 'Oem', 'Lenovo') or {}                              # nosec rule12-r1
         result['oem'] = {'product_name': _safe(oem, 'ProductName')}
-    elif vendor == 'supermicro':
-        oem = _safe(data, 'Oem', 'Supermicro') or {}
+    elif vendor == 'supermicro':                                              # nosec rule12-r1
+        oem = _safe(data, 'Oem', 'Supermicro') or {}                          # nosec rule12-r1
         result['oem'] = {
             'board_id':   _safe(oem, 'BoardID'),
             'node_id':    _safe(oem, 'NodeID'),
@@ -426,6 +460,7 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
         errors.append(_err('bmc', f'BMC 수집 실패: {err or st}'))
         return {}, errors
 
+    # nosec rule12-r1: vendor → BMC 표시명 매핑 (외부 spec 기반 표준 이름)
     bmc_names = {'dell': 'iDRAC', 'hpe': 'iLO', 'lenovo': 'XCC', 'supermicro': 'BMC'}
     result = {
         'name':             bmc_names.get(vendor, 'BMC'),
@@ -457,11 +492,12 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
                 if result['ip']:
                     break
 
-    if vendor == 'hpe':
-        oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}
+    # 벤더별 BMC OEM 확장 (Redfish API spec)
+    if vendor == 'hpe':                                                       # nosec rule12-r1
+        oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}     # nosec rule12-r1
         result['oem'] = {'ilo_version': _safe(oem, 'Type')}
-    elif vendor == 'supermicro':
-        oem = _safe(data, 'Oem', 'Supermicro') or {}
+    elif vendor == 'supermicro':                                              # nosec rule12-r1
+        oem = _safe(data, 'Oem', 'Supermicro') or {}                          # nosec rule12-r1
         result['oem'] = {'bmc_ip': _safe(oem, 'BMCIPv4Address')}
         if not result['ip'] and result['oem'].get('bmc_ip'):
             result['ip'] = result['oem']['bmc_ip']
@@ -721,8 +757,9 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
                     'total_mb':         int(vcap_int / 1048576) if vcap_int else None,
                     'health':           _safe(vdata, 'Status', 'Health'),
                     'state':            _safe(vdata, 'Status', 'State'),
-                    'boot_volume':      _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None
-                                        if _safe(vdata, 'Oem', 'Dell') else None,
+                    # nosec rule12-r1: Dell 전용 boot_volume 표시 (Redfish Oem.Dell namespace)
+                    'boot_volume':      _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None  # nosec rule12-r1
+                                        if _safe(vdata, 'Oem', 'Dell') else None,                                   # nosec rule12-r1
                 })
     return {'controllers': controllers, 'volumes': volumes}, errors
 

@@ -19,11 +19,17 @@
 
 - **Default**: `common/`, `os-gather/`, `esxi-gather/`, `redfish-gather/` (단 `tasks/vendors/` 제외) 코드에 vendor 이름 하드코딩 금지
 - **Allowed**: `redfish-gather/tasks/vendors/{vendor}/` 안, `adapters/{channel}/{vendor}_*.yml` 안, `common/vars/vendor_aliases.yml`
-- **Forbidden**: `if vendor == "Dell"` 같은 분기 코드, `Dell` / `HPE` / `Lenovo` / `Supermicro` / `Cisco` 문자열 비교
-- **Why**: gather 코드는 vendor-agnostic. 분기는 adapter score + lookup으로 동적 처리. vendor 이름 하드코딩하면 새 vendor 추가 시 코드 수정 부담
+- **Allowed (cycle-006 추가)**: `redfish-gather/library/redfish_gather.py` 의 다음 영역
+  - `_FALLBACK_VENDOR_MAP` (vendor_aliases.yml load 실패 시 fallback)
+  - OEM schema 추출 분기 (`if vendor == 'hpe': oem = _safe(data, 'Oem', 'Hpe')` 등) — Redfish API spec 자체가 vendor namespace를 정의 (`Oem.Hpe`, `Oem.Dell`, `Oem.Lenovo`, `Oem.Supermicro`). 외부 계약 (rule 96)에 직접 의존
+  - `_detect_from_product` 의 vendor 시그니처 매핑 (`if 'idrac' in p: return 'dell'` 등)
+  - `bmc_names = {'dell': 'iDRAC', 'hpe': 'iLO', ...}` 같은 BMC 표시명 매핑
+- **Allowed (cycle-006 추가)**: `os-gather/tasks/{linux,windows}/gather_system.yml` 의 hosting_type 판정용 OEM vendor 인식 list — 분기 코드 (`if vendor == 'X'`)가 아닌 set membership (`vendor in oem_vendors`) 패턴
+- **Forbidden**: 위 Allowed 영역 외 코드의 `if vendor == "Dell"` 분기, `Dell` / `HPE` / `Lenovo` / `Supermicro` / `Cisco` 문자열 비교
+- **Why**: gather 코드는 vendor-agnostic 원칙. 단, **Redfish API의 OEM 영역은 spec 자체가 vendor namespace 사용 (rule 96 외부 계약)** 이라 라이브러리에서 추출 외 대안이 없음. set membership 패턴도 분기 의미가 약함.
 - **재검토**: 6개월 vendor 추가 0건 시 일부 완화 가능
 
-`scripts/ai/verify_vendor_boundary.py`가 자동 검출.
+`scripts/ai/verify_vendor_boundary.py`가 자동 검출. 의도된 예외 라인은 라인 또는 직전 라인에 `# nosec rule12-r1` (또는 `{# nosec rule12-r1 ... #}`) 주석으로 silence.
 
 ### R2. Adapter 점수 일관성
 
