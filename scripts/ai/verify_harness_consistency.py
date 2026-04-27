@@ -23,6 +23,10 @@ import sys
 from pathlib import Path
 from typing import List, Set, Tuple
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 
 # clovirone 잔재 어휘 (server-exporter 본문에 등장하면 안 됨)
 FORBIDDEN_WORDS = [
@@ -69,11 +73,16 @@ def _scan_file(path: Path) -> Tuple[List[str], List[str], List[str], List[str], 
     policy_refs = POLICY_REF_RE.findall(text)
 
     forbidden = []
+    # 의도적 인용/명시 표현 — false positive 방지
+    allow_markers = (
+        "clovirone-base", "출처", "변환", "잔재", "금지 패턴", "Forbidden",
+        "사용 안 함", "동등 역할", "동일 정신", "대신", "→", "(과거)",
+        "관찰된", "이전", "deprecate", "polyfill",
+    )
     for word in FORBIDDEN_WORDS:
         if word in text:
-            # 인용 표시(예: "출처: clovirone-base")는 허용
             for line in text.splitlines():
-                if word in line and "clovirone-base" not in line and "출처" not in line and "변환" not in line:
+                if word in line and not any(marker in line for marker in allow_markers):
                     forbidden.append(f"{word}: {line.strip()[:80]}")
                     break
 

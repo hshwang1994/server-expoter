@@ -1,17 +1,14 @@
 # PROJECT_MAP fingerprint — 디렉터리별 SHA-1 (앞 12자)
 # scripts/ai/check_project_map_drift.py --update 로 갱신
-# baseline은 Plan 1 완료 후 갱신 (이 파일은 placeholder)
-#
-# session_start hook이 자동 drift 체크 (rule 28 #2).
 
-adapters: pending
-callback_plugins: pending
-common: pending
-esxi-gather: pending
-filter_plugins: pending
-lookup_plugins: pending
-module_utils: pending
-os-gather: pending
-redfish-gather: pending
-schema: pending
-tests: pending
+adapters: c276814a87fb
+callback_plugins: c4212651c9aa
+common: bece3daf87d9
+esxi-gather: 1f2f9541bf5c
+filter_plugins: c836e0f20a22
+lookup_plugins: fad89f364630
+module_utils: 193d3922c115
+os-gather: 9d31e145d087
+redfish-gather: 8721f9af953b
+schema: e6eac6ac2173
+tests: f8a20bc59942

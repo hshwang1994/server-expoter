@@ -404,4 +404,160 @@ cat common/vars/vendor_aliases.yml | grep "{{ detected_vendor }}"
 
 ---
 
-**프로젝트 상태: 핵심 수집 경로 검증 완료**
+## AI 하네스 운영 (Tier 0)
+
+> 본 절은 2026-04-27 추가. clovirone 풀스펙 하네스를 server-exporter 도메인으로 1:1 포팅한 결과.
+
+### 세션 시작 프로세스
+
+**원칙**: 자동 추론 먼저, 질문은 최소한.
+
+#### Step 1: 자동 감지
+
+`git branch --show-current`로 브랜치명을 읽고:
+
+```
+server-exporter — 운영 기준선 (브랜치: main)
+```
+
+또는 작업 브랜치면:
+```
+server-exporter — 기능 작업 (huawei-vendor) (브랜치: feature/huawei-vendor)
+```
+
+#### Step 2: 작업 요청에서 역할 자동 추론
+
+| 키워드/패턴 | 추론 역할 |
+|---|---|
+| Ansible / playbook / gather / 채널 / Fragment | gather |
+| schema / sections / field_dictionary / baseline / callback / output | output-schema |
+| Jenkins / cron / agent / vault / Redis / 인프라 | infra |
+| pytest / probe / fixture / 회귀 / Round | qa |
+| 요구사항 / 기획 / 명세 | po |
+| 일정 / 릴리즈 / 진행률 | tpm |
+
+#### Step 3: 컨텍스트 로드
+
+- `.claude/role/{역할}/README.md`
+- 거기 명시된 ai-context 문서들
+- 정본: `GUIDE_FOR_AI.md` / `REQUIREMENTS.md` / `docs/01~19`
+
+#### Step 4: 코드 변경 요청 → task-impact-preview 먼저
+
+- 단순 오타 외의 코드 변경 시 **반드시** `task-impact-preview` 먼저 (rule 91 R1)
+- 사용자가 "그냥 진행해줘" / "프리뷰 skip" 명시하면 건너뜀
+- 5 섹션 출력 (영향 모듈 / 영향 vendor / 함께 바뀔 것 / 리스크 top 3 / 진행 확인)
+
+#### Step 5: AI 커뮤니케이션 원칙
+
+- 일상어 + WHY + WHAT + IMPACT + 결정 주체 명시 (rule 23)
+- 승인 요청 4요소 (무엇 / 왜 / 영향 / 결정 필요)
+- 완료 보고 6 체크리스트 (rule 24)
+
+#### Step 6: 자율 판단 원칙
+
+**R1. 자율 진행** (묻지 말고 바로):
+- 사용자가 "모두 진행", "계속" 명시
+- 이미 승인받은 범위 내 세부 선택
+- 검증 (ansible-playbook --syntax-check / pytest / verify_*)
+- 문서 갱신, commit, push (이미 승인된 흐름)
+
+**R2. 명시 승인 필요**:
+1. 보호 경로 변경 (vault / Jenkinsfile / schema/baseline_v1)
+2. main 직접 push / force push (rule 93)
+3. 의존성 추가/삭제 (requirements 변경)
+4. schema 버전 결정 (rule 92 R5)
+5. cron 변경 (rule 80)
+6. 새 Vendor 추가 (rule 50)
+
+**R3. "완료" 직전 체크**: rule 24 6체크 모두 PASS여야 완료 선언.
+
+### 절대 금지사항
+
+1. **비밀값 하드코딩 금지** — vault/{linux,windows,esxi}.yml + vault/redfish/{vendor}.yml만 사용. 평문 commit 금지.
+2. **보호 경로 자율 수정 금지** — `.git/, vault/**, schema/baseline_v1/**, Jenkinsfile*`. 상세: `.claude/policy/protected-paths.yaml`
+3. **벤더 경계 위반 금지** — `common/`, `os-gather/`, `esxi-gather/`, `redfish-gather/` (단 `tasks/vendors/` 제외) 코드에 vendor 이름 (Dell/HPE/...) 하드코딩 금지. 분기는 adapter YAML 또는 OEM tasks 안에만 (rule 12).
+4. **Fragment 침범 금지** — 각 gather는 자기 fragment만 만든다. 다른 gather의 fragment 변수 / 누적 변수 직접 수정 금지 (rule 22).
+5. **외부 라이브러리 추가 금지 (redfish library)** — `redfish-gather/library/redfish_gather.py`는 stdlib만 (urllib / ssl / json) (rule 10).
+6. **문서 갱신 누락 금지** — 코드 변경 시 관련 증거 문서 갱신 필수 (rule 70).
+7. **bypassPermissions 금지** — settings.json `disableBypassPermissionsMode: "disable"`로 강제. CLI 플래그 우회 금지.
+8. **전역 설정 자율 수정 금지** — `~/.claude/settings.json` 수정 안 함. 팀 정책은 `.claude/settings.json` (이미 commit됨).
+
+### 하네스 자기개선 루프
+
+server-exporter는 두 개 루프 분리:
+
+| 루프 | Orchestrator | 대상 | 금지 |
+|---|---|---|---|
+| 제품 루프 | `wave-coordinator` | os-gather / esxi-gather / redfish-gather / common / adapters / schema / tests | 하네스 파일 수정 |
+| 하네스 루프 | `harness-evolution-coordinator` | .claude/, docs/ai/, scripts/ai/ | 제품 코드 수정 |
+
+#### 6단계 파이프라인
+
+```
+observer (관측+1차해석) → architect → reviewer → governor → updater → verifier
+```
+
+- 자유방임 자기수정 금지 — 교차검증 + 승인
+- control plane 완화 자동 금지 — 권한/보호/경계 변경은 사람만 승인
+
+#### 변경 등급 (Tier)
+
+| Tier | 예시 | 승인 |
+|---|---|---|
+| 1 (자동허용) | docs 초안, stale 정정, 보고서 | reviewer APPROVE 후 진행 |
+| 2 (승인필요) | rules / agents / skills 변경 | governor 심사 |
+| 3 (절대금지) | settings 권한 완화, 보호 경로 제거 | 사용자 에스컬레이션만 |
+
+### 컨텍스트 자동 로드 매핑
+
+작업 파일에 따라 아래 ai-context 자동 적용:
+
+```
+os-gather/, esxi-gather/, redfish-gather/, common/library/   → ai-context/gather/convention.md
+schema/, common/tasks/normalize/, callback_plugins/          → ai-context/output-schema/convention.md
+Jenkinsfile*, ansible.cfg, scripts/                          → ai-context/infra/convention.md
+tests/                                                       → role/qa/README.md
+adapters/{vendor}_*.yml, redfish-gather/tasks/vendors/{v}/   → ai-context/vendors/{vendor}.md
+외부 시스템 (Redfish/IPMI/SSH/WinRM/vSphere) 응답 처리        → ai-context/external/integration.md
+```
+
+### 하네스 구조
+
+```
+.claude/
+├── rules/        # 29 상시 규칙
+├── skills/       # 호출형 작업 플레이북 (Plan 2 예정)
+├── agents/       # 서브에이전트 정의 (Plan 2 예정)
+├── role/         # 6 역할 README (gather / output-schema / infra / qa / po / tpm)
+├── ai-context/   # 도메인별 컨벤션
+├── policy/       # 10 YAML
+├── templates/    # 10 문서 템플릿
+├── commands/     # 5 사용 가이드
+└── settings.json # 16 hooks 등록 + 보호 경로 deny
+
+docs/ai/          # AI 협업 메타 (Plan 3 예정)
+scripts/ai/       # 자동화 스크립트 (Python 27, OS 중립)
+```
+
+### 핵심 컨벤션 요약
+
+- **Fragment 철학** (rule 22): 각 gather 자기 fragment만, merge_fragment.yml이 누적
+- **Adapter 점수**: `priority × 1000 + specificity × 10 + match_score`
+- **Vault 2단계 로딩** (Redfish): 무인증 detect → vendor vault 로드 → 인증 수집
+- **Linux 2-tier**: Python 3.9+ ok / raw fallback 자동 분기
+- **JSON envelope**: status / sections / data / errors / meta / diagnosis (6 필드 고정)
+- **4단계 Precheck**: ping → port → protocol → auth
+- **Jenkins 4-Stage**: Validate → Gather → Validate Schema → E2E Regression
+- **벤더 추가 3단계**: vendor_aliases.yml + adapter YAML + (선택) OEM tasks (site.yml 수정 불필요)
+
+### 갭 리포트 해석 주의
+
+- `session_start` hook이 origin/main 갭 출력
+- ahead = 내 브랜치 앞선 commit 수
+- behind = origin/main이 앞선 commit 수
+- behind > 0이면 `pull-and-analyze-main` skill 또는 `git diff HEAD..origin/main`으로 분석
+
+---
+
+**프로젝트 상태: 핵심 수집 경로 검증 완료 + AI 하네스 풀스펙 도입 (Plan 1 Foundation)**
