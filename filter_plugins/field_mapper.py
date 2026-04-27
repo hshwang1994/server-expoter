@@ -30,7 +30,7 @@ def _coerce_type(value, field_type):
                 m = re.match(r"^[\s]*([0-9]+\.?[0-9]*)", str(value))
                 if m:
                     return int(float(m.group(1)))
-            return int(value)
+            return int(value)  # rule 95 R1 #7 ok: try/except로 둘러쌈 (line 26~)
         elif field_type == "float":
             if isinstance(value, str):
                 m = re.match(r"^[\s]*([0-9]+\.?[0-9]*)", str(value))

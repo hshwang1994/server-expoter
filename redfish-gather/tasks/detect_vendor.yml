@@ -32,7 +32,7 @@
           {%- endif -%}
         {%- endfor -%}
       {%- endfor -%}
-      {{ found.canon }}
+      {{ found.canon | default('unknown') }}
     _rf_probe_facts:
       vendor: "{{ _rf_probe_result.vendor | default('') }}"
       firmware: "{{ (_rf_probe_result.data | default({})).get('bmc', {}).get('firmware_version', '') if _rf_probe_result.data is defined else '' }}"

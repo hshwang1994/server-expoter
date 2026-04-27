@@ -44,7 +44,7 @@
         _precheck_raw.reachable | default(false) | bool
         and _precheck_raw.port_open | default(false) | bool
         and _precheck_raw.protocol_supported | default(false) | bool
-        and (_precheck_raw.failure_stage is none or _precheck_raw.failure_stage | default('') == '')
+        and (_precheck_raw.failure_stage is none or _precheck_raw.failure_stage | default('') == '')  {# rule 95 R1 #5 ok: 진단 통과 = failure_stage 부재 #}
       }}
 
 - name: "precheck | 공통 diagnosis 생성"

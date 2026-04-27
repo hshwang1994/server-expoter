@@ -35,6 +35,20 @@ def _removeprefix(s, prefix):
         return s[len(prefix):]
     return s
 
+
+def _safe_int(x, default=None):
+    """Redfish 응답 robustness — string/None/non-numeric → default.
+
+    rule 96 외부 계약 drift 대비. 펌웨어 변경으로 capacity 필드가 비-숫자
+    문자열 또는 None을 반환할 때 ValueError로 모듈 자체가 죽는 사고 차단.
+    """
+    if x is None:
+        return default
+    try:
+        return int(x)  # rule 95 R1 #7 ok: try/except 보호 안
+    except (ValueError, TypeError):
+        return default
+
 try:
     import urllib.request as urlreq
     import urllib.error as urlerr
@@ -506,11 +520,13 @@ def gather_memory(bmc_ip, system_uri, username, password, timeout, verify_ssl):
         if _safe(mdata, 'Status', 'State') == 'Absent':
             continue
         cap = _safe(mdata, 'CapacityMiB') or 0
-        if cap: total_mib += int(cap)
+        cap_int = _safe_int(cap)
+        if cap_int:
+            total_mib += cap_int
         slots.append({
             'id':           _safe(mdata, 'Id'),
             'name':         _safe(mdata, 'Name'),
-            'capacity_mib': int(cap) if cap else None,
+            'capacity_mib': cap_int,
             'type':         _safe(mdata, 'MemoryDeviceType'),
             'speed_mhz':    _safe(mdata, 'OperatingSpeedMhz'),
             'manufacturer': _safe(mdata, 'Manufacturer'),
@@ -554,6 +570,7 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             drives = []
             for dev in (_safe(sdata, 'Devices') or []):
                 cap = _safe(dev, 'CapacityBytes')
+                cap_int = _safe_int(cap)
                 drives.append({
                     'id':             None,
                     'name':           _safe(dev, 'Name'),
@@ -562,8 +579,8 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
                     'manufacturer':   _safe(dev, 'Manufacturer'),
                     'media_type':     None,
                     'protocol':       None,
-                    'capacity_bytes': int(cap) if cap else None,
-                    'capacity_gb':    round(int(cap) / 1e9, 2) if cap else None,
+                    'capacity_bytes': cap_int,
+                    'capacity_gb':    round(cap_int / 1e9, 2) if cap_int else None,
                     'health':         _safe(dev, 'Status', 'Health'),
                 })
             controllers.append({
@@ -622,14 +639,15 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
                 # Q-09: HPE Empty Bay 필터 — CapacityBytes가 없거나 Name에 "Empty" 포함 시 스킵
                 cap = _safe(ddata, 'CapacityBytes')
                 drive_name = _safe(ddata, 'Name') or ''
-                if not cap or int(cap) == 0:
+                cap_int = _safe_int(cap, default=0)
+                if not cap_int:
                     continue
                 if 'empty' in drive_name.lower():
                     continue
                 # PredictedMediaLifeLeftPercent: HPE returns float, others int → normalize to int
                 life_pct = _safe(ddata, 'PredictedMediaLifeLeftPercent')
                 if life_pct is not None:
-                    life_pct = int(life_pct)
+                    life_pct = _safe_int(life_pct)
                 drives.append({
                     'id':             _safe(ddata, 'Id'),
                     'name':           _safe(ddata, 'Name'),
@@ -638,8 +656,8 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
                     'manufacturer':   _safe(ddata, 'Manufacturer'),
                     'media_type':     _safe(ddata, 'MediaType'),
                     'protocol':       _safe(ddata, 'Protocol'),
-                    'capacity_bytes': int(cap) if cap else None,
-                    'capacity_gb':    round(int(cap) / 1e9, 2) if cap else None,
+                    'capacity_bytes': cap_int,
+                    'capacity_gb':    round(cap_int / 1e9, 2) if cap_int else None,
                     'health':         _safe(ddata, 'Status', 'Health') or _safe(ddata, 'Status', 'HealthRollup'),
                     'failure_predicted':       _safe(ddata, 'FailurePredicted'),
                     'predicted_life_percent':  life_pct,
@@ -693,13 +711,14 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
                         and member_ids[0] == vol_id):
                     continue
                 vcap = _safe(vdata, 'CapacityBytes')
+                vcap_int = _safe_int(vcap)
                 volumes.append({
                     'id':               _safe(vdata, 'Id'),
                     'name':             _safe(vdata, 'Name'),
                     'controller_id':    _safe(sdata, 'Id'),
                     'member_drive_ids': member_ids,
                     'raid_level':       raid_type,
-                    'total_mb':         int(int(vcap) / 1048576) if vcap else None,
+                    'total_mb':         int(vcap_int / 1048576) if vcap_int else None,
                     'health':           _safe(vdata, 'Status', 'Health'),
                     'state':            _safe(vdata, 'Status', 'State'),
                     'boot_volume':      _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None

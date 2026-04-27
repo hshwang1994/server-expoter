@@ -26,7 +26,7 @@
             {%- for p in skip_pfx -%}
               {%- if iface.startswith(p) -%}{%- set _ = skip.append(1) -%}{%- endif -%}
             {%- endfor -%}
-            {%- if skip | length == 0 -%}
+            {%- if skip | length == 0 -%}  {# rule 95 R1 #5 ok: skip prefix 매치 0 = 실 인터페이스 #}
               {%- set d   = hostvars[inventory_hostname]['ansible_' ~ iface] | default({}) -%}
               {%- set ipv4 = d.ipv4.address | default(none) if d.ipv4 is defined else none -%}
               {%- if ipv4 and ipv4 != '127.0.0.1' and d.macaddress is defined -%}

@@ -226,11 +226,11 @@
 - name: "linux | system | DMI direct-read fallback"
   when: >
     _l_python_mode == 'python_ok' and
-    ((_l_serial_from_setup | default(none)) is none or
-     (_l_uuid_from_setup | default(none)) is none)
+    ((_l_serial_from_setup | default(none)) is none or {# rule 95 R1 #5 ok: setup serial 미제공 #}
+     (_l_uuid_from_setup | default(none)) is none)    {# rule 95 R1 #5 ok: setup uuid 미제공 #}
   block:
     - name: "linux | system | DMI direct-read serial"
-      when: (_l_serial_from_setup | default(none)) is none
+      when: (_l_serial_from_setup | default(none)) is none  # rule 95 R1 #5 ok: serial raw fallback 진입
       ansible.builtin.command: cat /sys/class/dmi/id/product_serial
       become: true
       register: _l_dmi_serial_direct
@@ -239,7 +239,7 @@
       no_log: true
 
     - name: "linux | system | DMI direct-read uuid"
-      when: (_l_uuid_from_setup | default(none)) is none
+      when: (_l_uuid_from_setup | default(none)) is none  # rule 95 R1 #5 ok: uuid raw fallback 진입
       ansible.builtin.command: cat /sys/class/dmi/id/product_uuid
       become: true
       register: _l_dmi_uuid_direct
@@ -285,8 +285,8 @@
   ansible.builtin.set_fact:
     _l_id_diagnostics: >-
       {%- set diags = [] -%}
-      {%- set serial_na = (_l_serial_val | default(none)) is none -%}
-      {%- set uuid_na   = (_l_uuid_val   | default(none)) is none -%}
+      {%- set serial_na = (_l_serial_val | default(none)) is none -%}  {# rule 95 R1 #5 ok: serial 최종 미수집 분기 #}
+      {%- set uuid_na   = (_l_uuid_val   | default(none)) is none -%}  {# rule 95 R1 #5 ok: uuid 최종 미수집 분기 #}
       {%- set dmi_block_failed = (_l_dmi_fallback_failed | default(false)) | bool -%}
       {%- set serial_dmi_tried  = _l_dmi_serial_direct is defined -%}
       {%- set serial_dmi_failed = serial_dmi_tried and (_l_dmi_serial_direct.rc | default(1)) != 0 -%}
