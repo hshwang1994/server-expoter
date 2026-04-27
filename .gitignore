@@ -27,3 +27,11 @@ tests/inventory/local/*
 # Conditional review targets and local credentials — never tracked
 tests/scripts/local/*
 !tests/scripts/local/.gitkeep
+
+# AI 하네스 — 로컬 캐시 / 개인 설정 (commit 금지)
+.claude/.cache/
+.claude/settings.local.json
+
+# Incoming-review 자동 보고서 (각 머지마다 생성, 정리 후 후속 PR)
+docs/ai/incoming-review/*-*.md
+!docs/ai/incoming-review/.gitkeep

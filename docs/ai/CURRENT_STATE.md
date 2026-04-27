@@ -35,10 +35,10 @@ server-exporter AI 하네스 **Plan 1 + Plan 2 완료**. clovirone-base 풀스�
 | policies | 10 |
 | roles | 6 |
 | ai-context | 12 |
-| templates | 10 |
+| templates | 8 (중복 제거: SKILL.template.md / DISCOVERY_STATE_TEMPLATE.json) |
 | commands | 5 |
 | hooks (Python) | 19 + supporting 8 |
-| references (외부 docs) | 7 |
+| references (외부 docs) | 13 (Plan 3 후 보강: ansible 7 + redfish 3 + python 2 + winrm 1 + jenkins 1 = 14, 단 README 별도) |
 
 ## 채널별 / Vendor 상태 (기존 — 무수정)
 
