@@ -120,6 +120,28 @@ def main() -> int:
     issues: List[str] = []
     forbidden_total: List[str] = []
 
+    # SKILL.md frontmatter name ↔ 폴더명 일치 검사 (NEXT_ACTIONS P2 — 2026-04-27 추가)
+    skill_name_re = re.compile(r"^name:\s*(.+?)\s*$", re.MULTILINE)
+    for skill_dir in (claude_dir / "skills").iterdir() if (claude_dir / "skills").is_dir() else []:
+        if not skill_dir.is_dir():
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            issues.append(f".claude/skills/{skill_dir.name}/SKILL.md: 누락")
+            continue
+        try:
+            text = skill_md.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        m = skill_name_re.search(text)
+        if not m:
+            issues.append(f".claude/skills/{skill_dir.name}/SKILL.md: frontmatter 'name' 누락")
+        elif m.group(1).strip().strip('"').strip("'") != skill_dir.name:
+            issues.append(
+                f".claude/skills/{skill_dir.name}/SKILL.md: name '{m.group(1).strip()}' "
+                f"↔ 폴더 '{skill_dir.name}' 불일치"
+            )
+
     for path in claude_dir.rglob("*.md"):
         rule_refs, skill_refs, agent_refs, policy_refs, forbidden = _scan_file(path)
         rel = path.relative_to(repo_root).as_posix()

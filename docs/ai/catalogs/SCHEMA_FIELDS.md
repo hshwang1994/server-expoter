@@ -1,39 +1,40 @@
 # SCHEMA_FIELDS — server-exporter
 
 > sections.yml + field_dictionary.yml 카탈로그. rule 28 #1 측정 대상 (TTL 14일).
+> 실측 — 2026-04-27.
 
-## 일자: 2026-04-27
+## 10 섹션 (sections.yml — 실측)
 
-## 10 섹션 (sections.yml)
-
-| 섹션 | 용도 | 주 source |
+| 섹션 | 채널 | 용도 |
 |---|---|---|
-| system | 호스트 식별 (hostname / os_family / fqdn) | OS gather + Redfish System |
-| hardware | 모델 / 시리얼 / 메인보드 | Redfish Chassis + dmidecode |
-| bmc | BMC IP / 펌웨어 / 사용자 (Redfish only) | Redfish Managers |
-| cpu | 모델 / 코어 / 소켓 | OS setup + Redfish ProcessorSummary |
-| memory | 용량 / DIMM list | dmidecode + Redfish MemorySummary |
-| storage | 디스크 / 컨트롤러 / 볼륨 | OS lsblk + Redfish Storage/Volumes |
-| network | NIC / VLAN / 라우팅 | ip / Redfish EthernetInterfaces |
-| firmware | BIOS / BMC / 컴포넌트 | Redfish UpdateService/FirmwareInventory |
-| users | 시스템 계정 (Linux/Windows) | getent / win_user |
-| power | 전원 공급 장치 / 정책 | Redfish Chassis/Power |
+| system | os, esxi, redfish | 운영체제 / 호스트명 / 가동시간 |
+| hardware | esxi, redfish | 벤더 / 모델 / 시리얼 / BIOS |
+| bmc | redfish | BMC (iDRAC/iLO/XCC) 펌웨어 / 상태 |
+| cpu | os, esxi, redfish | 소켓 / 코어 / 스레드 / 모델 |
+| memory | os, esxi, redfish | 총 용량 / 슬롯별 상세 / 사용량 |
+| storage | os, esxi, redfish | 파일시스템 / 물리 디스크 / 컨트롤러 / 데이터스토어 / 논리 볼륨 |
+| network | (확인 필요 — sections.yml 후속 라인) | NIC / VLAN / 라우팅 |
+| firmware | (확인 필요) | BIOS / BMC / 컴포넌트 |
+| users | (확인 필요) | 시스템 계정 |
+| power | (확인 필요) | PSU / 전력 |
 
-## Field Dictionary (28 Must + Nice + Skip)
+## Field Dictionary (실측 카운트)
 
-상세는 `schema/field_dictionary.yml` (정본). 본 catalog는 카운트 / 갱신 이력만.
+```bash
+$ grep -cE "priority: must" schema/field_dictionary.yml
+29
 
-### Must (28) — 모든 vendor baseline에 존재 필수
+$ grep -cE "priority: nice" schema/field_dictionary.yml
+8
+```
 
-(상세 list는 schema/field_dictionary.yml 정본 참조)
+| 분류 | 카운트 | 의미 |
+|---|---|---|
+| Must | **29** | 모든 vendor baseline에 존재 필수 |
+| Nice | 8 | vendor-specific 허용 |
+| Skip | (미등록 — 자명한 필드) |
 
-### Nice — vendor-specific 허용
-
-(상세 동일)
-
-### Skip — 의도적 미수집
-
-(상세 동일)
+**[INFO]** rule 13 / design doc / 일부 catalog에서 "28 Must"로 적힌 것은 stale 정보. **실측 29 Must**로 갱신 필요.
 
 ## 갱신 trigger (rule 28 #1)
 
@@ -45,7 +46,9 @@
 ## 측정 명령
 
 ```bash
-grep -E "^[a-z_]+:" schema/sections.yml | wc -l  # 섹션 수
+grep "^  [a-z]" schema/sections.yml | wc -l   # 섹션 수
+grep -cE "priority: must" schema/field_dictionary.yml   # Must 카운트
+grep -cE "priority: nice" schema/field_dictionary.yml   # Nice
 python scripts/ai/hooks/output_schema_drift_check.py
 ```
 
@@ -54,11 +57,16 @@ python scripts/ai/hooks/output_schema_drift_check.py
 | 일자 | 변경 | commit |
 |---|---|---|
 | 2026-04-27 | Plan 3 초기 골격 | 145a0b1 |
-
-(이후 갱신은 append)
+| 2026-04-27 | 실측 갱신 (Must 28 → 29 정정) | (이번) |
 
 ## 정본 reference
 
 - `schema/sections.yml`, `schema/field_dictionary.yml`, `schema/baseline_v1/`
 - `docs/09_output-examples.md`, `docs/16_os-esxi-mapping.md`
 - skill: `update-output-schema-evidence`, `plan-schema-change`
+
+## 후속 작업 (사용자 결정)
+
+- [ ] rule 13 본문의 "28 Must" → "29 Must" 갱신 결정 (Tier 2 변경)
+- [ ] CLAUDE.md / 다른 catalog의 "28 Must" 표현 일관 갱신
+- [ ] 본 catalog에 sections.yml의 network / firmware / users / power 섹션 상세 추가 실측

@@ -25,11 +25,16 @@ if sys.platform == "win32":
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
-def _read_yaml_keys(path: Path) -> list[str]:
-    """간단한 키 목록 파서 (stdlib only)."""
+def _read_yaml_keys(path: Path, section: str = None) -> list[str]:
+    """간단한 키 목록 파서 (stdlib only).
+
+    section 인자 명시 시: section: 아래 indent 2 키 추출 (sections.yml의 'sections:' 패턴).
+    없으면: indent 0 top-level 키.
+    """
     if not path.is_file():
         return []
     keys = []
+    in_section = section is None  # section 명시 안 됐으면 처음부터 수집
     try:
         for raw in path.read_text(encoding="utf-8").splitlines():
             line = raw.rstrip()
@@ -37,7 +42,14 @@ def _read_yaml_keys(path: Path) -> list[str]:
                 continue
             stripped = line.lstrip()
             indent = len(line) - len(stripped)
-            if indent == 0 and stripped.endswith(":"):
+            if section is not None and indent == 0 and stripped == f"{section}:":
+                in_section = True
+                continue
+            if section is not None and indent == 0 and stripped.endswith(":") and in_section:
+                # 다른 top-level 진입 → section 끝
+                break
+            target_indent = 2 if section is not None else 0
+            if in_section and indent == target_indent and stripped.endswith(":"):
                 keys.append(stripped[:-1].strip())
     except Exception:
         pass
@@ -52,7 +64,11 @@ def main() -> int:
 
     issues = []
 
-    sections = _read_yaml_keys(sections_path)
+    # sections.yml은 'sections:' 아래 nested. field_dictionary.yml은 'fields:' 또는 다른 구조 가능.
+    sections = _read_yaml_keys(sections_path, section="sections")
+    if not sections:
+        # fallback: top-level
+        sections = _read_yaml_keys(sections_path)
     fd_keys = _read_yaml_keys(fd_path)
 
     # sections.yml ↔ field_dictionary.yml
