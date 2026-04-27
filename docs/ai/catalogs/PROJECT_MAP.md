@@ -1,0 +1,102 @@
+# PROJECT_MAP — server-exporter
+
+> 디렉터리 구조 카탈로그. session_start hook이 fingerprint drift 자동 검사.
+> fingerprint: `.claude/policy/project-map-fingerprint.yaml`
+
+## 일자: 2026-04-27
+
+## 최상위 트리
+
+```
+server-exporter/
+├── CLAUDE.md, README.md, GUIDE_FOR_AI.md, REQUIREMENTS.md  (정본)
+├── ansible.cfg                                              (Ansible 설정)
+├── Jenkinsfile, Jenkinsfile_grafana, Jenkinsfile_portal     (3종 4-Stage 파이프라인)
+├── adapters/                # 25 YAML — vendor/세대별 추상화
+│   ├── redfish/             # 14 (generic + dell×3 + hpe×4 + lenovo×2 + supermicro×3 + cisco)
+│   ├── os/                  # 7 (linux_*/windows_*)
+│   └── esxi/                # 4 (generic + 6x/7x/8x)
+├── callback_plugins/        # json_only.py (stdout callback, OUTPUT만 JSON)
+├── common/
+│   ├── library/             # precheck_bundle.py (4단계 진단)
+│   ├── tasks/normalize/     # init_fragments / merge_fragment / build_*.yml (10개)
+│   └── vars/                # vendor_aliases.yml + supported_sections.yml
+├── filter_plugins/          # diagnosis_mapper.py + field_mapper.py
+├── lookup_plugins/          # adapter_loader.py
+├── module_utils/            # adapter_common.py
+├── os-gather/               # 3-Play (포트감지 → Linux → Windows)
+├── esxi-gather/             # 1-Play (community.vmware)
+├── redfish-gather/          # 1-Play (precheck → detect → adapter → collect → normalize)
+│   ├── library/redfish_gather.py    (~350줄, stdlib only)
+│   └── tasks/vendors/{vendor}/      (OEM tasks)
+├── schema/
+│   ├── sections.yml         # 10 섹션 정의
+│   ├── field_dictionary.yml # 28 Must + Nice + Skip
+│   ├── fields/              # 섹션별 상세
+│   ├── baseline_v1/         # 7+ vendor baseline JSON
+│   └── examples/            # success/partial/failed
+├── tests/
+│   ├── redfish-probe/       # probe_redfish.py + deep_probe_redfish.py
+│   ├── fixtures/            # 145+ 실장비 JSON
+│   ├── baseline_v1/         # 회귀 기준선
+│   ├── evidence/            # Round 검증 결과
+│   └── scripts/             # conditional_review.py + os_esxi_verify.sh
+├── tools/                   # 운영 도우미
+├── vault/                   # ansible-vault encrypted
+│   ├── linux.yml, windows.yml, esxi.yml
+│   └── redfish/{vendor}.yml
+├── docs/
+│   ├── 01_jenkins-setup ~ 19_decision-log    (19 운영 문서)
+│   ├── superpowers/specs/                    (설계서)
+│   ├── superpowers/plans/                    (실행 계획)
+│   └── ai/                                   (AI 협업 메타 — 본 디렉터리)
+├── scripts/
+│   └── ai/
+│       ├── (8 supporting: policy_loader / detect_session_context /
+│       │   validate_claude_structure / collect_repo_facts /
+│       │   check_project_map_drift / check_gap_against_main /
+│       │   verify_harness_consistency / verify_vendor_boundary)
+│       └── hooks/ (19 Python hooks + install-git-hooks.sh)
+└── .claude/
+    ├── settings.json                         (16 hooks 등록 + 보호 경로)
+    ├── settings.local.json                   (개인)
+    ├── rules/         (29 .md)
+    ├── skills/        (43 SKILL.md, 폴더당 1)
+    ├── agents/        (51 .md)
+    ├── policy/        (10 YAML)
+    ├── role/          (6 README: gather/output-schema/infra/qa/po/tpm)
+    ├── ai-context/    (12: common 5 + gather/output-schema/infra/external + vendors 5)
+    ├── templates/     (10)
+    └── commands/      (5: harness-cycle / harness-full-sweep / review-guide / scheduler-guide / usage-guide)
+```
+
+## 채널 흐름 (호출자 → 결과)
+
+```
+호출자 (HTTP POST + inventory_json)
+  ↓
+Jenkins Job (Jenkinsfile / _grafana / _portal, 4-Stage)
+  ├─ [1 Validate] 입력값
+  ├─ [2 Gather] ansible-playbook
+  │   ├─ os-gather/site.yml (3-Play: 포트 → Linux → Windows)
+  │   ├─ esxi-gather/site.yml
+  │   └─ redfish-gather/site.yml (precheck → detect → adapter → collect → normalize)
+  ├─ [3 Validate Schema] field_dictionary 정합 (FAIL 게이트)
+  ├─ [4 E2E Regression] pytest baseline (FAIL 게이트)
+  └─ [Post] callback_plugins/json_only.py → JSON envelope → callback URL
+```
+
+## fingerprint 갱신
+
+```bash
+python scripts/ai/check_project_map_drift.py --update
+```
+
+세션 시작 시 자동 drift 체크 (rule 28 #2).
+
+## 정본 reference
+
+- `CLAUDE.md` "파일 구조" — 가장 상세 (정본)
+- `docs/06_gather-structure.md`
+- `docs/07_normalize-flow.md`
+- `docs/10_adapter-system.md`
