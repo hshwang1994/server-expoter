@@ -139,6 +139,10 @@ def main() -> int:
                 else set()
             )
 
+            # 라인별 silence 마커 매칭 — 라인 또는 직전 라인에 nosec rule12-r1
+            # 형식: # nosec rule12-r1 / {# nosec rule12-r1 ... #} / {#- nosec rule12-r1 ... -#}
+            nosec_re = re.compile(r"\bnosec\s+rule12-r1", re.IGNORECASE)
+
             for lineno, line in enumerate(lines, start=1):
                 stripped = line.strip()
                 # comment 라인 skip (--strict 아니면)
@@ -150,6 +154,12 @@ def main() -> int:
                         continue
                     # YAML 안의 # comment는 라인 끝 부분만
                     if "#" in line and vendor_re.search(line.split("#", 1)[0]) is None:
+                        continue
+                    # 라인 자체에 nosec rule12-r1 silence
+                    if nosec_re.search(line):
+                        continue
+                    # 직전 라인 (또는 직전 직전, Jinja2 {#...#} 줄바꿈)에 nosec 주석
+                    if lineno >= 2 and nosec_re.search(lines[lineno - 2]):
                         continue
 
                 m = vendor_re.search(line)
