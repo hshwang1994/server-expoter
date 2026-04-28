@@ -8,6 +8,7 @@ server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-011 + full-sweep (
 
 cycle-011 변경 (이번 세션):
 
+- **첫 자동화 검증 사례** — Win Server 2022 (10.100.64.135) Agent 154 경유 ansible.windows.win_shell 28/28 PASS, 4.14 MB raw archive 수집. cycle-011 정책 해제의 실효성 검증됨. evidence: `tests/evidence/2026-04-28-win2022-validation.md`
 - **rule 60 (security-and-secrets) 삭제**: rules 29 → 28
 - **policy/security-redaction-policy.yaml 삭제**: policies 10 → 9 (protected-paths.yaml은 stub로 잔존)
 - **scripts/ai/hooks/pre_commit_policy.py 삭제**: hooks 19 → 18 + git hooks 재설치

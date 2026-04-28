@@ -11,9 +11,13 @@
 - [x] **ADR 작성** (rule 70 R8 두 번째 적용)
 - [x] **surface-counts.yaml 갱신** (28/43/49/9)
 - [x] **verify_harness_consistency / verify_vendor_boundary** PASS
+- [x] **SSH/WinRM 자동화 재시도** — Win Server 2022 (10.100.64.135) 28/28 PASS, 4.14 MB raw archive 수집 → `tests/reference/os/win2022/10_100_64_135/`
+- [x] **evidence 작성** — `tests/evidence/2026-04-28-win2022-validation.md`
+- [ ] **Win10 (10.100.64.120) 자격 재확인** — `gooddit/[vault]` NTLM+Basic 모두 reject. 사용자 측 자격 정정 또는 다른 사용자 계정 정보 필요
+- [ ] **WinServer2022 (10.100.64.132) WinRM 활성화** — `winrm quickconfig` 사용자 측 작업 (현재 5985/5986 모두 closed)
 - [ ] **settings.local.json** — AI self-modification 차단으로 사용자 직접 편집 필요 (또는 settings.json만으로 충분 시 skip)
-- [ ] **SSH/WinRM 자동화 재시도** — Win10 10.100.64.120 수집 (cycle-012 진입 예정)
 - [ ] **25개 stale reference cleanup** — advisory, 후속 incremental
+- [ ] **Linux/ESXi 자동 reference 수집** — gather_os_full.py 같은 패턴으로 RHEL/Rocky/Ubuntu/ESXi 일괄 (사용 가능한 자격 정보 채팅 공유분 활용)
 
 ## 완료 항목 (cycle-010 — T3-04/05/06 일괄 + rule 70 R8 신설)
 
