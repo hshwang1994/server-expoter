@@ -1,7 +1,9 @@
 # VENDOR_ADAPTERS — server-exporter
 
 > 5 vendor x 채널별 adapter 매트릭스 (rule 28 #3 측정 대상, TTL 14일).
-> 실측 (`grep adapter_id|priority adapters/`) — 2026-04-28 (cycle-008 갱신).
+> 실측 (`grep adapter_id|priority adapters/`) — 2026-04-28 (cycle-010 갱신).
+>
+> **cycle-010 변경**: 27 adapter (redfish 16 + os 7 + esxi 4) 모두에서 placeholder `version: "1.0.0"` 1줄 일괄 삭제 (T3-04 04-A 채택). 매트릭스 자체 (adapter_id / priority / vendor) 영향 없음.
 
 ## Redfish 채널 (16 adapters)
 
