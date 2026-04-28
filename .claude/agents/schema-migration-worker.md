@@ -1,6 +1,6 @@
 ---
 name: schema-migration-worker
-description: 새 섹션 / 새 필드 / Must↔Nice 재분류 마이그레이션. clovirone migration-worker (Flyway) → server-exporter schema. **호출 시점**: schema 변경 SUB 진입.
+description: 새 섹션 / 새 필드 / Must↔Nice 재분류 마이그레이션. **호출 시점**: schema 변경 SUB 진입.
 tools: ["Read", "Write", "Edit", "Grep", "Glob"]
 model: sonnet
 ---

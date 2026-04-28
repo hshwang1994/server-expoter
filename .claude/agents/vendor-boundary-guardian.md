@@ -1,6 +1,6 @@
 ---
 name: vendor-boundary-guardian
-description: gather / common 코드에 vendor 이름 (Dell/HPE/Lenovo/Supermicro/Cisco) 하드코딩 검출. clovirone customer-boundary-guardian 등가. **호출 시점**: code-reviewer의 vendor_boundary 축 / verify-adapter-boundary 결과 강화.
+description: gather / common 코드에 vendor 이름 (Dell/HPE/Lenovo/Supermicro/Cisco) 하드코딩 검출. **호출 시점**: code-reviewer의 vendor_boundary 축 / verify-adapter-boundary 결과 강화.
 tools: ["Read", "Grep", "Glob", "Bash"]
 model: sonnet
 ---
@@ -27,7 +27,7 @@ server-exporter **벤더 경계** 보호 전문 에이전트.
 
 ## 분류
 
-리뷰어 (clovirone customer-boundary-guardian → server-exporter vendor)
+리뷰어 (server-exporter vendor 경계 가드)
 
 ## 참조
 

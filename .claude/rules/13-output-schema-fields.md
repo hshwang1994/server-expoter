@@ -11,7 +11,7 @@
 - field_dictionary.yml: **31 Must + 9 Nice + 6 Skip = 46 entries** (실측 2026-04-28 cycle-006, users 섹션 +6 추가로 DRIFT-004 resolved)
 - baseline_v1: vendor별 회귀 기준선
 - Jenkins Stage 3 (Validate Schema) + Stage 4가 FAIL 게이트
-  (Stage 4는 pipeline별 다름 — Jenkinsfile=E2E Regression / Jenkinsfile_grafana=Ingest / Jenkinsfile_portal=Callback, DRIFT-002 정리)
+  (Stage 4는 pipeline별 다름 — `Jenkinsfile`=E2E Regression / `Jenkinsfile_grafana`=Ingest / `Jenkinsfile_portal`=Callback, 정본은 rule 80 R1-A)
 - DB schema 없음 — 본 출력 schema가 동등 역할
 
 ## 목표 규칙
@@ -49,11 +49,16 @@
 - **Forbidden**: AI가 임의로 baseline 수정 (실측 없이)
 - **Why**: baseline은 회귀 기준선. 실측 없는 수정은 회귀를 무력화
 
-### R5. JSON envelope 6 필드
+### R5. JSON envelope 13 필드 (`common/tasks/normalize/build_output.yml` 정본)
 
-- **Default**: callback_plugins/json_only.py 출력은 정확히 6 필드: `status / sections / data / errors / meta / diagnosis`
-- **Forbidden**: envelope 필드 추가/삭제 (호출자 호환성 깨짐)
-- **Why**: rule 31 callback URL 무결성 + 호출자 시스템 계약
+- **Default**: 출력 envelope은 정확히 13 필드 (작성 순서):
+  ```
+  target_type, collection_method, ip, hostname, vendor,
+  status, sections, diagnosis, meta, correlation, errors, data,
+  schema_version (inject 후)
+  ```
+- **Forbidden**: envelope 필드 추가/삭제 (호출자 호환성 깨짐). 정본은 `build_output.yml`이며, baseline + examples 모두 동일 13 필드 보장.
+- **Why**: rule 31 callback URL 무결성 + 호출자 시스템 계약. 분석 카테고리(status/sections/data/errors/meta/diagnosis)는 핵심 6 분류이고, 추가 7 필드(target_type/collection_method/ip/hostname/vendor/correlation/schema_version)는 라우팅·식별·버전 추적 메타.
 
 ### R6. Build_*.yml 빌더 패턴 일관성
 

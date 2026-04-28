@@ -7,7 +7,7 @@ model: haiku
 
 # Build Verifier
 
-server-exporter 정적 검증 (clovirone Gradle build → server-exporter ansible/pytest).
+server-exporter 정적 검증 (ansible-playbook --syntax-check + pytest + verify_*.py).
 
 ## 검증 명령
 

@@ -28,7 +28,7 @@ model: sonnet
 
 ## 분류
 
-도메인 워커 (clovirone frontend-refactor-worker → server-exporter output-schema)
+도메인 워커 (server-exporter output-schema refactor)
 
 ## 참조
 

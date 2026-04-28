@@ -3,7 +3,7 @@
 > 디렉터리 구조 카탈로그. session_start hook이 fingerprint drift 자동 검사.
 > fingerprint: `.claude/policy/project-map-fingerprint.yaml`
 
-## 일자: 2026-04-27
+## 일자: 2026-04-28 (full-sweep 갱신)
 
 ## 최상위 트리
 
@@ -31,7 +31,7 @@ server-exporter/
 │   └── tasks/vendors/{vendor}/      (OEM tasks)
 ├── schema/
 │   ├── sections.yml         # 10 섹션 정의
-│   ├── field_dictionary.yml # 28 Must + Nice + Skip
+│   ├── field_dictionary.yml # 31 Must + 9 Nice + 6 Skip = 46 entries
 │   ├── fields/              # 섹션별 상세
 │   ├── baseline_v1/         # 7+ vendor baseline JSON
 │   └── examples/            # success/partial/failed

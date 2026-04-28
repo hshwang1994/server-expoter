@@ -1,6 +1,6 @@
 ---
 name: schema-mapping-reviewer
-description: sections.yml ↔ field_dictionary.yml ↔ baseline_v1 정합 리뷰. clovirone mybatis-reviewer 등가. **호출 시점**: schema 변경 PR / output-schema-refactor-worker 결과 검증.
+description: sections.yml ↔ field_dictionary.yml ↔ baseline_v1 정합 리뷰. **호출 시점**: schema 변경 PR / output-schema-refactor-worker 결과 검증.
 tools: ["Read", "Grep", "Glob"]
 model: sonnet
 ---
@@ -23,7 +23,7 @@ server-exporter **출력 schema 3종 정합** 리뷰어.
 
 ## 분류
 
-리뷰어 (clovirone mybatis-reviewer → server-exporter schema)
+리뷰어 (server-exporter schema 매핑 검증)
 
 ## 참조
 

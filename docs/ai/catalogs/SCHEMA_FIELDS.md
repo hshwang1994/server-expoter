@@ -1,7 +1,7 @@
 # SCHEMA_FIELDS — server-exporter
 
 > sections.yml + field_dictionary.yml 카탈로그. rule 28 #1 측정 대상 (TTL 14일).
-> 실측 — 2026-04-27.
+> 실측 — 2026-04-28 (cycle-006 + full-sweep).
 
 ## 10 섹션 (sections.yml — 실측)
 
@@ -18,14 +18,13 @@
 | users | os | 로컬 시스템 사용자 계정 |
 | power | redfish | PSU 상태 / 전력 정보 |
 
-## Field Dictionary (실측 카운트)
+## Field Dictionary (실측 카운트, 2026-04-28)
 
 ```bash
-$ grep -cE "priority: must" schema/field_dictionary.yml
-29
-
-$ grep -cE "priority: nice" schema/field_dictionary.yml
-8
+$ python3 -c "import yaml; from collections import Counter; \
+    d=yaml.safe_load(open('schema/field_dictionary.yml')); \
+    print(Counter(e.get('priority') for e in d['fields'].values()))"
+Counter({'must': 31, 'nice': 9, 'skip': 6})
 ```
 
 | 분류 | 카운트 | 의미 |
@@ -35,7 +34,7 @@ $ grep -cE "priority: nice" schema/field_dictionary.yml
 | Skip | **6** | 의도적 미수집 |
 | **합계** | **46 entries** | YAML key 기준 (validate_field_dictionary.py) |
 
-**[INFO]** cycle-002 분석에서 "29 Must / 8 Nice"로 정정한 값이 실측과 차이 — 헤더 주석 (line 46~48)의 priority 설명이 grep 카운트에 포함되어 발생한 오인. cycle-005 (2026-04-28) `validate_field_dictionary.py` 실행으로 YAML 파싱 기준 **28 Must / 7 Nice / 5 Skip**로 재정정 (DRIFT-007).
+**[INFO]** 정본 분포는 cycle-006에서 users[] 6 항목 추가 후 **31 Must / 9 Nice / 6 Skip = 46 entries**. grep 기반 카운트는 헤더 주석 noise를 잡으므로 YAML 파싱 기반 (위 명령) 권장. 과거 stale 분포 (28/7/5, 29/8/?, etc.)는 갱신 이력에 기록.
 
 ## 갱신 trigger (rule 28 #1)
 

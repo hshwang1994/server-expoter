@@ -30,7 +30,7 @@ model: sonnet
 
 ## 분류
 
-도메인 워커 (clovirone backend-refactor-worker → server-exporter gather)
+도메인 워커 (server-exporter gather refactor)
 
 ## 참조
 

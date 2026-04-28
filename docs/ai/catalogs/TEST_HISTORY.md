@@ -38,3 +38,30 @@
 - ansible-playbook --syntax-check (실 ansible 환경 + collections 필요 — 검증 기준 Agent에서 별도 실행)
 - 실장비 probe (Round 검증) — 다음 vendor onboarding 시
 - Jenkins 4-Stage dry-run — Jenkins controller 환경 필요
+
+---
+
+## 2026-04-27~28 — cycle-002 ~ cycle-006 (정적 검증 누적)
+
+- 환경: Windows 11 + Python 3.11.9 (verify_* 스크립트 OS 중립)
+- 명령 / 결과 (각 cycle 보고서 `docs/ai/harness/cycle-00[2-6].md` 정본):
+  - `verify_harness_consistency.py`: PASS (rules 29 / skills 43 / agents 51 / policies 10)
+  - `verify_vendor_boundary.py`: 26건 → 0건 (cycle-005~006 정밀화 + nosec silence)
+  - `check_project_map_drift.py`: PASS (fingerprint 일치)
+  - `scan_suspicious_patterns.py`: PASS (rule 95 R1 11 패턴 0건)
+  - `validate_claude_structure.py`: PASS
+  - `output_schema_drift_check.py`: PASS (cycle-002~006 모두 sections=10 / fd_paths=46 / fd_section_prefixes=10)
+  - `validate_field_dictionary.py`: PASS (cycle-006 이후 31 Must / 9 Nice / 6 Skip = 46)
+- Baseline 갱신: 없음 (하네스 + schema 보강만 — 실장비 검증 없음)
+- 회귀: 도메인 코드 영향 영역 (redfish_gather.py vendor 분기 silence) — 기능 미변경, baseline 회귀 SKIP
+
+## 2026-04-28 — full-sweep 적용 (Tier 1+2)
+
+- 환경: Windows 11 + WSL Python 3.11
+- 명령:
+  - `verify_harness_consistency.py` (sweep 전 PASS)
+  - `verify_vendor_boundary.py` (sweep 전 PASS)
+  - `check_project_map_drift.py` (sweep 전 PASS)
+  - `scan_suspicious_patterns.py` (sweep 전 PASS)
+- 결과: full-sweep 보고서 `docs/ai/harness/full-sweep-2026-04-28.md` 참조
+- 회귀: docs/rule/policy/code 정합 변경 — 영향 vendor baseline 회귀 별도 결정 필요

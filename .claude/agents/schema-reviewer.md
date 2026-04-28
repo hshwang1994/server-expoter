@@ -1,6 +1,6 @@
 ---
 name: schema-reviewer
-description: schema YAML 구조 리뷰 — Must/Nice/Skip 분류 적절성, 새 섹션 의도, 필드명 일관성. clovirone dba-reviewer 등가. **호출 시점**: plan-schema-change 결과 / schema-migration-worker 결과 검증.
+description: schema YAML 구조 리뷰 — Must/Nice/Skip 분류 적절성, 새 섹션 의도, 필드명 일관성. **호출 시점**: plan-schema-change 결과 / schema-migration-worker 결과 검증.
 tools: ["Read", "Grep", "Glob"]
 model: sonnet
 ---
@@ -23,7 +23,7 @@ server-exporter **schema YAML 구조** 리뷰어.
 
 ## 분류
 
-리뷰어 (clovirone dba-reviewer → server-exporter schema)
+리뷰어 (server-exporter schema YAML 구조 검증)
 
 ## 참조
 

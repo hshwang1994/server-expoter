@@ -1,6 +1,6 @@
 ---
 name: ansible-perf-investigator
-description: ansible-playbook 작업 시간 분석 / 병목 식별. clovirone query-tuning-investigator → server-exporter ansible. **호출 시점**: Jenkins Stage 2 (Gather) 시간 초과 / 일부 task 느림 의심.
+description: ansible-playbook 작업 시간 분석 / 병목 식별. **호출 시점**: Jenkins Stage 2 (Gather) 시간 초과 / 일부 task 느림 의심.
 tools: ["Read", "Bash", "Grep", "Glob"]
 model: sonnet
 ---

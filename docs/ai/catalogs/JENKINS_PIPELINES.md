@@ -70,5 +70,5 @@ grep -E "callback_url|triggers|cron" Jenkinsfile*
 
 ## 후속 작업 (사용자 결정)
 
-- [ ] rule 80 / Plan 1 design / CLAUDE.md의 "Stage 4 = E2E Regression" 일반화 표현 정정 검토 (Tier 2 변경)
+- [x] rule 80 R1-A에 pipeline별 Stage 4 차이 명시 (cycle-006, 2026-04-27 commit `211a0c7`) — closed 2026-04-28 full-sweep
 - [ ] Jenkins console에서 cron 표현식 실측 + 본 catalog 갱신

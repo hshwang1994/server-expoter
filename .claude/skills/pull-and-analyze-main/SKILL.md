@@ -1,13 +1,13 @@
 ---
 name: pull-and-analyze-main
-description: origin/main 최신 변경을 fetch하여 자동 분석 (clovirone pull-and-analyze-dev의 단일 main 단순화). 갭 / rule 95 의심 / 하네스 기준 준수 / 영향 vendor 식별. 사용자가 "main 최신 가져와서 체크", "origin 분석", "최근 변경 봐줘" 등 요청 시. - main 최신 동기화 / feature 브랜치 작업 시작 전 / 다른 작업자 머지 후
+description: origin/main 최신 변경을 fetch하여 자동 분석. 갭 / rule 95 의심 / 하네스 기준 준수 / 영향 vendor 식별. 사용자가 "main 최신 가져와서 체크", "origin 분석", "최근 변경 봐줘" 등 요청 시. - main 최신 동기화 / feature 브랜치 작업 시작 전 / 다른 작업자 머지 후
 ---
 
 # pull-and-analyze-main
 
 ## 목적
 
-server-exporter는 단일 main + feature/* 운영. clovirone 3계층 (배포 / dev / personal)에 비해 단순. main 최신 동기화 시 변경 분석.
+server-exporter는 단일 main + feature/* 운영 (단순 브랜치 정책). main 최신 동기화 시 변경 분석.
 
 ## 입력
 

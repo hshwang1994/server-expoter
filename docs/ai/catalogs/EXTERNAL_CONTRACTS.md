@@ -2,7 +2,7 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
-## 일자: 2026-04-27 (Plan 3 초기 골격)
+## 일자: 2026-04-28 (cycle-006 + full-sweep 갱신 — redfish_gather.py 변경 trigger 반영)
 
 ## Redfish API
 

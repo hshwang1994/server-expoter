@@ -7,7 +7,7 @@ description: schema/sections.yml + schema/field_dictionary.yml + schema/baseline
 
 ## 목적
 
-server-exporter 출력 schema 3종 (sections.yml + field_dictionary.yml + baseline_v1/{vendor}.json)의 정합성을 갱신. clovirone의 update-db-schema-evidence (Flyway+Mapper)에 대응 — server-exporter는 DB 없으므로 출력 schema 정본.
+server-exporter 출력 schema 3종 (sections.yml + field_dictionary.yml + baseline_v1/{vendor}.json)의 정합성을 갱신. server-exporter는 DB 없으므로 출력 schema가 정본.
 
 ## 입력
 
@@ -36,7 +36,7 @@ server-exporter 출력 schema 3종 (sections.yml + field_dictionary.yml + baseli
 | lenovo | (영향 없음) | SKIP |
 
 ### docs/ai/catalogs/SCHEMA_FIELDS.md
-- validate_field_dictionary.py 기준 분포 갱신 (예: Must 28 / Nice 7 / Skip 5 = 40 entries)
+- validate_field_dictionary.py 기준 분포 갱신 (예: Must 31 / Nice 9 / Skip 6 = 46 entries)
 ```
 
 ## 절차

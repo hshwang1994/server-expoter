@@ -13,7 +13,7 @@
 | **Adapter 점수** | `score = priority × 1000 + specificity × 10 + match_score`. 높을수록 우선. priority=0(generic) / 10(기본 벤더) / 50-100(세대별) / +match.model_patterns. |
 | **adapter_loader** | lookup plugin (`lookup_plugins/adapter_loader.py`). adapters/ 스캔 → match 평가 → 점수 계산 → 정렬 → 최고 점수 반환 (또는 generic fallback). |
 | **Sections (10)** | system, hardware, bmc, cpu, memory, storage, network, firmware, users, power. `schema/sections.yml`에 정의. |
-| **Field Dictionary** | `schema/field_dictionary.yml`. 28 Must (모든 vendor 필수) + Nice (vendor-specific 허용) + Skip (의도적 미수집). |
+| **Field Dictionary** | `schema/field_dictionary.yml`. 31 Must (모든 vendor 필수) + 9 Nice (vendor-specific 허용) + 6 Skip (의도적 미수집) = 46 entries. |
 | **Baseline** | `tests/baseline_v1/{vendor}_baseline.json`. 실장비 회귀 기준선. schema 변경 시 영향 vendor 전수 회귀. |
 | **target_type** | `os` / `esxi` / `redfish` 셋 중 하나. inventory_json + 입력으로 채널 결정. |
 | **loc** | 운영 사이트 (ich / chj / yi). Jenkins agent + inventory 분리 용도. 코드 분기 없음. |
@@ -50,7 +50,7 @@
 
 | 용어 | 풀이 |
 |---|---|
-| **Tier 0/1/2/3** | 정본 / 진입 인덱스 / 상세 정책 / 이력 감사 (clovirone에서 계승). |
+| **Tier 0/1/2/3** | 정본 / 진입 인덱스 / 상세 정책 / 이력 감사 (server-exporter 도입 시 계승된 4계층 분류). |
 | **자기개선 루프** | observer → architect → reviewer → governor → updater → verifier 6단계. `harness-evolution-coordinator`가 조율. |
 | **measurement-targets** | rule 28 R1 카탈로그 11종. TTL + 무효화 trigger 미리 확립 → 매번 재측정 vs 캐시 사용 자동 판정. |
 

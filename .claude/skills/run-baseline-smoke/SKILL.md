@@ -1,13 +1,13 @@
 ---
 name: run-baseline-smoke
-description: vendor fixture 기반 빠른 baseline 회귀 (clovirone run-ui-smoke 등가). 실장비 없이 mock fixture로 핵심 회귀 점검. 사용자가 "빠른 회귀", "smoke test", "baseline smoke" 등 요청 시 또는 PR 머지 직전. - PR 직전 빠른 점검 / common 변경 후 / 실장비 없는 환경 / Jenkins Stage 4 dry-run
+description: vendor fixture 기반 빠른 baseline 회귀. 실장비 없이 mock fixture로 핵심 회귀 점검. 사용자가 "빠른 회귀", "smoke test", "baseline smoke" 등 요청 시 또는 PR 머지 직전. - PR 직전 빠른 점검 / common 변경 후 / 실장비 없는 환경 / Jenkins Stage 4 dry-run
 ---
 
 # run-baseline-smoke
 
 ## 목적
 
-server-exporter baseline 회귀를 빠르게 (실장비 없이 fixture만) 실행. clovirone run-ui-smoke (5개 화면 시나리오)에 대응 — server-exporter는 5 vendor x 1 fixture.
+server-exporter baseline 회귀를 빠르게 (실장비 없이 fixture만) 실행. 5 vendor x 1 fixture 단위 smoke.
 
 ## 절차
 

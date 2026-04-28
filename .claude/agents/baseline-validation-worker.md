@@ -1,6 +1,6 @@
 ---
 name: baseline-validation-worker
-description: schema/baseline_v1/ 갱신 / 회귀 검증 자동화. clovirone chrome-ui-e2e-worker → server-exporter는 UI 없으므로 baseline 회귀로 등가. **호출 시점**: update-vendor-baseline 후 / Jenkins Stage 4 dry-run.
+description: schema/baseline_v1/ 갱신 / 회귀 검증 자동화. server-exporter는 UI 없음 -> baseline 회귀로 동등 역할. **호출 시점**: update-vendor-baseline 후 / Jenkins Stage 4 dry-run.
 tools: ["Read", "Bash", "Grep", "Glob"]
 model: sonnet
 ---

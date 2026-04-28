@@ -104,3 +104,42 @@
   - 라이브러리 vendor-agnostic 리팩토링 (옵션 2)는 영향 vendor 전부 회귀 + Round 권장이라 별도 cycle 후보로 보존
 - **상태**: resolved (2026-04-28 cycle-006)
 - **관련**: rule 12 R1 (Allowed 절 추가), rule 96 R1 (외부 계약), `docs/ai/impact/2026-04-27-vendor-boundary-57.md`
+
+## DRIFT-008 (2026-04-28, resolved 2026-04-28 full-sweep)
+
+- **발견 위치** (full-sweep, 영역 2 HIGH-2):
+  - `.claude/rules/00-core-repo.md:16` — `Field Dictionary 28 Must`
+  - `.claude/rules/23-communication-style.md:63` — 어휘 치환표
+  - `.claude/role/output-schema/README.md:4,8,51` (3곳)
+  - `.claude/ai-context/output-schema/convention.md:42,45` (2곳)
+  - `.claude/ai-context/common/repo-facts.md:47`
+  - `.claude/ai-context/common/coding-glossary-ko.md:16`
+  - `.claude/skills/update-output-schema-evidence/SKILL.md:39`
+  - `docs/ai/catalogs/PROJECT_MAP.md:34`
+  - `docs/ai/catalogs/SCHEMA_FIELDS.md:23-29,38`
+- **분류**: catalog-stale (cycle-006 schema users[] 6 항목 추가 후 미반영)
+- **설명**: cycle-006 (2026-04-28)에서 schema users[] 섹션 6 항목 추가 + field_dictionary "31 Must / 9 Nice / 6 Skip = 46 entries" 갱신. CLAUDE.md / rule 13 본문은 갱신됐으나 위 11곳 (rule / role / ai-context / skill / catalog) 미반영. cycle-006 직후 full-sweep에서 발견.
+- **수정 (full-sweep, Tier 1)**: 11곳 모두 `31 Must / 9 Nice / 6 Skip = 46 entries`로 일괄 정정
+- **상태**: resolved (2026-04-28 full-sweep)
+- **관련**: rule 13 R1 (3종 동반 갱신), rule 70 (catalog 갱신 trigger), full-sweep 보고서
+
+## DRIFT-009 (2026-04-28, resolved 2026-04-28 full-sweep)
+
+- **발견 위치**: `.claude/rules/23-communication-style.md:87,90,137` (`5체크`) ↔ `.claude/rules/24-completion-gate.md:3,53,70,85,90` + `CLAUDE.md:455` (`6 체크`)
+- **분류**: convention-violation (rule 본문 모순)
+- **설명**: rule 23 R4 본문이 "5체크"로 명시됐으나 정본 (rule 24 + CLAUDE.md)은 "6 체크". 사용자가 rule 23 따르면 한 항목 누락 위험.
+- **수정 (full-sweep, Tier 2-A1)**: rule 23 R4 → "6체크"로 정정 (rule 24 = 정본)
+- **상태**: resolved (2026-04-28 full-sweep)
+- **관련**: rule 24 (정본), CLAUDE.md Step 7
+
+## DRIFT-010 (2026-04-28, resolved 2026-04-28 full-sweep)
+
+- **발견 위치** (full-sweep 영역 6 HIGH-1):
+  - `common/tasks/normalize/init_fragments.yml:42-46`
+  - `common/tasks/normalize/build_empty_data.yml:24-28`
+  - `common/tasks/normalize/build_failed_output.yml:79-80`
+- **분류**: convention-violation (rule 13 R5 envelope 정합 위반)
+- **설명**: storage 섹션 빈값 정의 3 빌더에 `logical_volumes: []` 누락. `schema/sections.yml:51-56`은 `storage.empty_value` 명시. field_dictionary는 `storage.logical_volumes[]` 8 Must 필드 정의. 현재 baseline은 gather 코드가 채워주고 있어 우연히 통과 중. precheck 실패 또는 Redfish 외 채널이면 호출자 파싱 NG 가능.
+- **수정 (full-sweep, Tier 2-D1)**: 3 빌더에 `logical_volumes: []` 추가
+- **상태**: resolved (2026-04-28 full-sweep)
+- **관련**: rule 13 R5, rule 22 R1 (3 파일 동기화 의무)

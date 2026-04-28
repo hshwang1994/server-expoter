@@ -105,21 +105,23 @@ pytest tests/                        : 95 passed in 2.13s (영향 vendor baselin
 
 **모든 등재 DRIFT resolved.** cycle-007 진입 시 새 DRIFT 발견은 그 시점 catalog 추가.
 
-## 다음 작업 (cycle-005 후보)
+## 다음 작업 (cycle-007 후보)
 
-> `docs/ai/NEXT_ACTIONS.md` 참조.
+> `docs/ai/NEXT_ACTIONS.md` 참조. 2026-04-28 full-sweep 보고서: `docs/ai/harness/full-sweep-2026-04-28.md`
 
 ### 사용자 결정 / 외부 의존
-- DRIFT-004: `users` 섹션 field_dictionary 등록 (rule 92 R5 schema 변경 승인)
-- DRIFT-005/006: vendor 경계 33건 옵션 결정 (`docs/ai/impact/2026-04-27-vendor-boundary-57.md`)
+- T2-D2: `schema/baseline_v1/cisco_baseline.json` `data.users: null` → `[]` (rule 13 R4 — 실측 evidence 필요)
+- T2-A7: rule 24 / 26 / 41 / 50 / 60 / 70 / 90 본문 R-번호 + Default/Allowed/Forbidden/Why 5요소 보강 (큰 재구조화)
+- T3-01~T3-06 (full-sweep Tier 3): precheck `requests` 의존 / iLO5/6 priority / Lenovo generic / adapter 버전 / BMC IP 최적화 / ADR 필수 정책
 - 새 vendor 추가 (PO 결정)
 - Round 11 검증 (실장비)
 
-### AI 자체 가능 (cycle-005)
+### AI 자체 가능 (cycle-007)
 - scan_suspicious_patterns.py #2 재설계 (set_fact 다음 라인 분석)
 - scan_suspicious_patterns.py #4 specificity 분석 (priority 동률 + match.distribution_patterns 결합)
 - verify_vendor_boundary.py Python `"""` docstring 인식 추가
 - verify_harness_consistency.py에 `_VENDOR_ALIASES` ↔ `vendor_aliases.yml` 동기화 게이트
+- verify_harness_consistency.py FORBIDDEN_WORDS default 모드 검사 활성화 (T2-B2)
 
 ## 정본 reference
 

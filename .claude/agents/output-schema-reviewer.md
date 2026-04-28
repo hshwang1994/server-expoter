@@ -1,6 +1,6 @@
 ---
 name: output-schema-reviewer
-description: callback_plugins/json_only.py + build_*.yml 빌더 + envelope 형식 리뷰. clovirone frontend-ftl-vue-reviewer 등가. **호출 시점**: output-schema 변경 PR / build_*.yml 수정 후.
+description: callback_plugins/json_only.py + build_*.yml 빌더 + envelope 형식 리뷰. **호출 시점**: output-schema 변경 PR / build_*.yml 수정 후.
 tools: ["Read", "Grep", "Glob"]
 model: sonnet
 ---
@@ -23,7 +23,7 @@ server-exporter **출력 envelope** 형식 / 빌더 / callback 리뷰어.
 
 ## 분류
 
-리뷰어 (clovirone frontend-ftl-vue → server-exporter output)
+리뷰어 (server-exporter output envelope 검증)
 
 ## 참조
 

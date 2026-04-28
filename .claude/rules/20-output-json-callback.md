@@ -13,21 +13,30 @@
 
 ## 목표 규칙
 
-### R1. JSON envelope 6 필드 고정 (rule 13 R5)
+### R1. JSON envelope 13 필드 고정 (rule 13 R5와 동일 정본)
+
+정본 = `common/tasks/normalize/build_output.yml`. 13 필드:
 
 ```json
 {
+  "schema_version": "1",
+  "target_type": "os | esxi | redfish",
+  "collection_method": "ansible | redfish | vmware",
+  "ip": "<service_ip | bmc_ip>",
+  "hostname": "<resolved hostname or ip>",
+  "vendor": "dell | hpe | lenovo | supermicro | cisco | null",
   "status": "success | partial | failed",
-  "sections": ["system", "cpu", ...],
-  "data": { "cpu": {...}, ... },
+  "sections": { "system": "supported", "cpu": "not_supported", ... },
+  "diagnosis": { "precheck": {...}, "gather_mode": "...", "details": [...] },
+  "meta": { "loc": "...", "duration_ms": ..., ... },
+  "correlation": { "host_ip": "...", "request_id": "..." },
   "errors": [...],
-  "meta": { "loc": "...", "target_type": "...", "vendor": "...", "host_id": "..." },
-  "diagnosis": { "precheck": {...}, "gather_mode": "...", "details": [...] }
+  "data": { "cpu": {...}, "memory": {...}, ... }
 }
 ```
 
-- **Forbidden**: 6 필드 외 추가, envelope 형식 변경
-- **Why**: 호출자 시스템 계약 안정성
+- **Forbidden**: 13 필드 외 추가, envelope 형식 변경
+- **Why**: 호출자 시스템 계약 안정성. 분석 6 카테고리(status/sections/data/errors/meta/diagnosis) + 라우팅 5 메타(target_type/collection_method/ip/hostname/vendor) + 추적 2(correlation/schema_version).
 
 ### R2. callback_plugins/json_only.py 보호
 
@@ -41,9 +50,9 @@
 
 ### R4. Jinja2 출력 변수 정합성
 
-- **Default**: build_output.yml에서 envelope dict 조립 시 모든 6 필드가 정의되어야 함
-- **Allowed**: 일부 필드는 빈 list/dict 허용 (`errors: []`, `data: {}`)
-- **Forbidden**: 필드 자체 누락 (key 부재)
+- **Default**: build_output.yml에서 envelope dict 조립 시 모든 13 필드가 정의되어야 함
+- **Allowed**: 일부 필드는 빈 list/dict 허용 (`errors: []`, `data: {}`, `vendor: null`)
+- **Forbidden**: 필드 자체 누락 (key 부재). 실패 fallback envelope (각 채널 site.yml `always` 블록)도 13 필드 모두 채워야 함.
 
 post_edit_jinja_check.py가 자동 검증.
 

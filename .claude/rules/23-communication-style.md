@@ -60,7 +60,7 @@
 | `Vault 2단계` | "Vault 2단계 로딩 (무인증 detect → vendor vault → 인증 수집)" |
 | `Linux 2-tier` | "Linux 2-tier (Python ok / raw fallback)" |
 | `Sections 10` | "10 섹션 (system/hardware/bmc/cpu/memory/storage/network/firmware/users/power)" |
-| `Field Dictionary 28 Must` | "Field Dictionary (28 Must + Nice + Skip)" |
+| `Field Dictionary 31 Must` | "Field Dictionary (31 Must + 9 Nice + 6 Skip = 46 entries)" |
 | `Baseline` | "Baseline (실장비 회귀 기준선 JSON)" |
 | `loc` | "loc (운영 사이트: ich/chj/yi)" |
 | `target_type` | "target_type (os/esxi/redfish)" |
@@ -84,10 +84,10 @@
 - 주어 없이 결정 선언
 - "추천합니다" 만 있고 결정 주체 누락
 
-### R4. 완료 보고 5체크 (rule 24 참조)
+### R4. 완료 보고 6체크 (rule 24 참조)
 
 상세는 rule 24 (completion-gate). 본 rule은 어휘만:
-- 5체크 통과 전 "완료" / "끝났다" / "완결" / "다 했다" 사용 금지
+- 6체크 통과 전 "완료" / "끝났다" / "완결" / "다 했다" 사용 금지
 
 ### R5. 육하원칙 (사람용 문서)
 
@@ -134,7 +134,7 @@
 - 4요소 중 누락 — R1
 - 약어 단독 (첫 등장 풀이 없이) — R2 / R7
 - 결정 주체 생략 / 수동태 — R3
-- 5체크 전 "완료" — R4
+- 6체크 전 "완료" — R4
 - 사람 문서에서 5W1H 중 2개 이상 누락 — R5
 - 사람 문서에 AI체 / AI 문서에 사람체 — R6
 - 이모지로 상태 표시 — R8

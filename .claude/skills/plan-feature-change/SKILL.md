@@ -7,7 +7,7 @@ description: 기능 변경 / 추가 / 리팩토링의 구현 계획 수립. API 
 
 ## 목적
 
-server-exporter 기능 변경 구현 계획. clovirone API (Spring REST) 대신 server-exporter는 callback 호출 + Jenkinsfile + 3-channel + adapter.
+server-exporter 기능 변경 구현 계획. server-exporter API surface = callback 호출 + Jenkinsfile + 3-channel + adapter.
 
 ## 계획 항목
 

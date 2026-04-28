@@ -1,6 +1,6 @@
 ---
 name: adapter-boundary-reviewer
-description: adapter YAML 경계 리뷰 — priority 일관성, metadata origin 주석, OEM tasks 분리. clovirone plugin-boundary-reviewer 등가. **호출 시점**: adapter-author 결과 검증 / 새 adapter PR.
+description: adapter YAML 경계 리뷰 — priority 일관성, metadata origin 주석, OEM tasks 분리. **호출 시점**: adapter-author 결과 검증 / 새 adapter PR.
 tools: ["Read", "Grep", "Glob"]
 model: sonnet
 ---
@@ -24,7 +24,7 @@ server-exporter **vendor adapter 경계** 리뷰어.
 
 ## 분류
 
-리뷰어 (clovirone plugin-boundary-reviewer → server-exporter adapter)
+리뷰어 (server-exporter adapter 경계 검증)
 
 ## 참조
 

@@ -8,9 +8,9 @@
 
 ## 현재 관찰된 현실
 
-- Jenkins multi-pipeline 3종 (main / grafana / portal)
-- Bitbucket Pipelines 사용 안 함
-- 4-Stage: Validate / Gather / Validate Schema / **(pipeline별 Stage 4)** — 아래 R1 참조 (DRIFT-002 정리, 2026-04-27)
+- Jenkins multi-pipeline 3종 (`Jenkinsfile` / `Jenkinsfile_grafana` / `Jenkinsfile_portal`)
+- 외부 CI 시스템 미사용 (Jenkins 단독)
+- 4-Stage: Validate / Gather / Validate Schema / **(pipeline별 Stage 4)** — 아래 R1-A 참조
 - agent-master 망 분리: Ingest / Callback은 master, gather는 agent
 
 ## 목표 규칙

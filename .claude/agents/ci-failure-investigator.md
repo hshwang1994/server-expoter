@@ -7,7 +7,7 @@ model: sonnet
 
 # CI Failure Investigator
 
-server-exporter Jenkins 4-Stage 실패 분석. clovirone Bitbucket Pipeline → Jenkins multi-pipeline.
+server-exporter Jenkins 4-Stage 실패 분석. Jenkins multi-pipeline 3종 단독 사용.
 
 ## 분석 패턴
 

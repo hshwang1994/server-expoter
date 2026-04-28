@@ -2,8 +2,7 @@
 
 ## 적용 대상
 - `tests/fixtures/**`
-- `tests/baseline_v1/**`
-- `schema/baseline_v1/**`
+- `schema/baseline_v1/**` (정본 — vendor별 회귀 기준선)
 - `tests/evidence/**`
 
 ## 현재 관찰된 현실

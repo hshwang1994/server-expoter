@@ -49,7 +49,7 @@
 
 ### R5. Schema 버전 사용자 확인
 
-- **Default**: `schema/sections.yml` + `schema/field_dictionary.yml` 버전 변경은 **사용자 명시 확인** 필수 (Flyway 버전 사용자 확인과 동일 정신)
+- **Default**: `schema/sections.yml` + `schema/field_dictionary.yml` 버전 변경은 **사용자 명시 확인** 필수 (다른 작업자/세션에서 같은 버전 사용 가능 → 충돌 방지 정책)
 - **Forbidden**: AI 임의로 버전 결정
 - **Why**: 다른 작업자/세션에서 같은 버전 사용 가능
 
@@ -67,9 +67,9 @@
 
 - 기존 site.yml에 include_tasks 추가 시 의존 변수 / 외부 시스템 의존 명시
 
-### R9. 회귀 검사 자동 포함 (rule 91 R7과 동일)
+### R9. 회귀 검사 자동 포함
 
-- 공통 fragment / adapter / callback / Jenkinsfile cron / 출력 schema 변경 시 회귀 검사 자동 포함
+본 rule R3 + R4 + R8과 회귀 영역 정의가 겹치므로, 자동 식별 정본은 **rule 91 R7**에 위임. 본 rule은 회귀 검사 결과의 게이트(통과/차단) 책임만 보유.
 
 ### R10. 대형 기능 영향 체크리스트 선통과
 

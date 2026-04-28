@@ -1,13 +1,13 @@
 ---
 name: plan-schema-change
-description: 새 섹션 / 새 필드 / Must↔Nice 재분류 / baseline 일괄 갱신 등 schema 변경 계획 (clovirone plan-db-change 등가). 사용자가 "새 섹션 추가하자", "field dictionary에 X 추가", "schema 변경 계획", "Must 필드 추가" 등 요청 시. - 새 섹션 / 새 필드 도입 / 펌웨어 업그레이드로 응답 변경 / Must↔Nice 재분류
+description: 새 섹션 / 새 필드 / Must↔Nice 재분류 / baseline 일괄 갱신 등 schema 변경 계획. 사용자가 "새 섹션 추가하자", "field dictionary에 X 추가", "schema 변경 계획", "Must 필드 추가" 등 요청 시. - 새 섹션 / 새 필드 도입 / 펌웨어 업그레이드로 응답 변경 / Must↔Nice 재분류
 ---
 
 # plan-schema-change
 
 ## 목적
 
-server-exporter 출력 schema 변경 계획. clovirone DB 스키마 (Flyway) 변경에 대응 — server-exporter는 `schema/sections.yml + schema/field_dictionary.yml + baseline_v1/`.
+server-exporter 출력 schema 변경 계획. 정본 = `schema/sections.yml + schema/field_dictionary.yml + baseline_v1/`. (server-exporter는 DB 없음 — 출력 schema가 동등 역할)
 
 ## 입력
 

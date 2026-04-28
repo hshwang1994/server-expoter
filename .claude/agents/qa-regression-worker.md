@@ -23,7 +23,7 @@ server-exporter **회귀 테스트** 전문 에이전트.
 
 ## 분류
 
-도메인 워커 (clovirone qa-regression-worker → server-exporter pytest)
+도메인 워커 (server-exporter pytest + baseline 회귀)
 
 ## 참조
 

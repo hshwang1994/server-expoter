@@ -7,7 +7,7 @@ description: Jenkins 빌드 / 테스트 실패 로그 분석. 4-Stage 어디서 
 
 ## 목적
 
-server-exporter Jenkins 4-Stage 실패 분석. clovirone Bitbucket Pipelines와 달리 Jenkins multi-pipeline (3종).
+server-exporter Jenkins 4-Stage 실패 분석. Jenkins multi-pipeline 3종 (Jenkinsfile / Jenkinsfile_grafana / Jenkinsfile_portal) 단독 사용.
 
 ## 4-Stage 실패 패턴
 

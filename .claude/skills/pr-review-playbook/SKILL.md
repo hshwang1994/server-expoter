@@ -1,6 +1,6 @@
 ---
 name: pr-review-playbook
-description: PR 생성 전 server-exporter 최종 체크리스트 (clovirone bitbucket-pr-review-playbook의 server-exporter 등가). Jenkins 4-Stage 통과 / 4축 리뷰 / 회귀 / docs 갱신 검증. 사용자가 "PR 올리기 전에 확인해줘", "PR 준비됐어?", "체크리스트" 등 요청 시. - PR push 직전 / 머지 직전 최종 검증
+description: PR 생성 전 server-exporter 최종 체크리스트. Jenkins 4-Stage 통과 / 4축 리뷰 / 회귀 / docs 갱신 검증. 사용자가 "PR 올리기 전에 확인해줘", "PR 준비됐어?", "체크리스트" 등 요청 시. - PR push 직전 / 머지 직전 최종 검증
 ---
 
 # pr-review-playbook

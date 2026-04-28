@@ -22,7 +22,7 @@ model: sonnet
 
 ## 분류
 
-도메인 워커 (clovirone scheduler-refactor-worker → server-exporter Jenkins)
+도메인 워커 (server-exporter Jenkinsfile refactor)
 
 ## 참조
 

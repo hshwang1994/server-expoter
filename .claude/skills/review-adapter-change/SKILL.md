@@ -1,13 +1,13 @@
 ---
 name: review-adapter-change
-description: adapters/{redfish,os,esxi}/*.yml 변경을 DBA 관점 (clovirone의 review-sql-change 등가)으로 리뷰. 점수 일관성 / metadata 주석 / OEM 분기 / 영향 vendor. 사용자가 "adapter 리뷰", "이 YAML 변경 봐줘", "adapter score 검토" 등 요청 시. - adapter YAML 추가/수정 후 / 새 vendor 추가 / OEM tasks 변경
+description: adapters/{redfish,os,esxi}/*.yml 변경을 점수 / metadata / OEM 분기 / 영향 vendor 4축으로 리뷰. 사용자가 "adapter 리뷰", "이 YAML 변경 봐줘", "adapter score 검토" 등 요청 시. - adapter YAML 추가/수정 후 / 새 vendor 추가 / OEM tasks 변경
 ---
 
 # review-adapter-change
 
 ## 목적
 
-adapter YAML 변경 전문 리뷰. clovirone DBA가 SQL/MyBatis/Flyway 리뷰하던 자리에 server-exporter는 adapter (vendor 분기 메타).
+adapter YAML 변경 전문 리뷰. server-exporter의 adapter는 vendor 분기 메타 정본 (점수 / capabilities / collect / normalize 4 키).
 
 ## 검증 항목
 

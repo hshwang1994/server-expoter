@@ -1,13 +1,13 @@
 ---
 name: verify-json-output
-description: callback_plugins/json_only.py가 출력하는 JSON envelope 6 필드 (status / sections / data / errors / meta / diagnosis) 정합 검증. UI 변경 (clovirone의 verify-ui-rendering)에 대응 — server-exporter는 UI 없음. 사용자가 "envelope 검증", "callback 출력 형식 맞아?", "JSON 출력 확인" 등 요청 시 또는 callback_plugins / build_*.yml 변경 후. - callback_plugins/json_only.py 수정 / build_output.yml 수정 / envelope 형식 변경 의심 / 호출자 시스템 호환성 확인
+description: callback_plugins/json_only.py가 출력하는 JSON envelope 13 필드 정합 검증. server-exporter는 UI 없음 -> 호출자 시스템은 stdout JSON 파싱. 사용자가 "envelope 검증", "callback 출력 형식 맞아?", "JSON 출력 확인" 등 요청 시 또는 callback_plugins / build_*.yml 변경 후. - callback_plugins/json_only.py 수정 / build_output.yml 수정 / envelope 형식 변경 의심 / 호출자 시스템 호환성 확인
 ---
 
 # verify-json-output
 
 ## 목적
 
-server-exporter 출력 envelope의 호출자 호환성 검증. clovirone verify-ui-rendering의 server-exporter 등가물 — UI 대신 JSON envelope.
+server-exporter 출력 envelope의 호출자 호환성 검증. UI 없음 — JSON envelope이 호출자 계약면.
 
 ## 입력
 

@@ -35,12 +35,12 @@
 #### Bad vs Good
 
 ```yaml
-# Bad — 다른 섹션의 fragment 수정 (금지)
+# [NG] — 다른 섹션의 fragment 수정 (금지)
 - name: 메모리 섹션 보강
   set_fact:
-    _sections_memory_collected_fragment: [...]  # ❌ 다른 gather 영역
+    _sections_memory_collected_fragment: [...]  # [NG] 다른 gather 영역
 
-# Good — 자신의 fragment만
+# [OK] — 자신의 fragment만
 - name: CPU 섹션 수집
   set_fact:
     _data_fragment:

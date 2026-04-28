@@ -46,22 +46,27 @@
 - [ ] **incoming-review hook 실 환경 테스트** — 다음 git merge 시 `docs/ai/incoming-review/<날짜>-<sha>.md` 자동 생성 확인
 - [ ] **harness-cycle 정기 주기 결정** — 매주 / 격주 / 수동만 (사용자 결정)
 
-## 결정 필요 (사용자, cycle-005 진입 시점)
+## 결정 필요 (사용자, cycle-007 진입 시점)
 
 | 항목 | 옵션 | 비고 |
 |---|---|---|
-| DRIFT-004 (users 섹션 등록) | 등록 / 보류 | rule 92 R5 schema 변경 |
-| DRIFT-005 (`_VENDOR_ALIASES` 중복) | YAML import / 동기화 게이트 / 무시 | rule 50 R2 9단계 영향 |
-| DRIFT-006 (vendor 분기 17건) | adapter origin OEM 매핑 / 라이브러리 리팩토링 / rule 12 예외 | 영향 큼 — 별도 cycle 권장 |
-| W2 (b) Jinja2 OEM list | vendor_aliases 참조 / 동기화 주석 / 무시 | os-gather 영향 |
+| T2-D2 (cisco_baseline.json data.users) | `null` → `[]` | rule 13 R4 — 실측 evidence 필요 |
+| T2-A7 (rule 7개 5요소 보강) | 진행 / 보류 | rule 24/26/41/50/60/70/90 큰 재구조화 |
+| T3-01 (precheck requests 의존) | stdlib only / 유지 | 의존 정책 |
+| T3-02 (HPE iLO5/6 priority 동률) | 차등 / 유지 | adapter 매칭 일관성 |
+| T3-03 (Lenovo generic fallback) | 추가 / 유지 | adapter 정책 일관성 |
+| T3-04 (adapter version 추적) | 의미 있는 버전 / 무시 | 추적 메커니즘 |
+| T3-05 (redfish BMC IP N+1) | 첫 멤버만 / 병렬 / 유지 | 성능 vs 단순성 |
+| T3-06 (governance 결정 ADR 필수) | 의무 / 선택 | trace 강도 |
 | 새 vendor 추가 일정 | Huawei / NEC / Inspur | PO + 실장비 |
 | Round 11 검증 | 새 펌웨어 / 새 모델 | 실장비 + 일정 |
 | harness-cycle 정기 주기 | 자동 trigger 도입? | 운영 정책 |
 
 ## 정본 reference
 
-- `docs/ai/CURRENT_STATE.md` (cycle-004 후 갱신)
-- `docs/ai/harness/cycle-004.md` (이번 cycle 보고서)
+- `docs/ai/CURRENT_STATE.md` (cycle-006 후 + 2026-04-28 full-sweep 갱신)
+- `docs/ai/harness/cycle-006.md` (직전 cycle 보고서)
+- `docs/ai/harness/full-sweep-2026-04-28.md` (이번 full-sweep 보고서)
 - `docs/ai/impact/2026-04-27-vendor-boundary-57.md` (vendor 경계 분석)
 - `docs/ai/catalogs/CONVENTION_DRIFT.md` (DRIFT 6건)
 - `docs/ai/decisions/ADR-2026-04-27-harness-import.md` (Plan 1~3 ADR)

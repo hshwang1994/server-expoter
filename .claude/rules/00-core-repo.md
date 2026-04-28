@@ -13,7 +13,7 @@
 - Ansible 2.20.3 + Python 3.12.3 + Java 21 (Jenkins Agent)
 - 멀티벤더 (Dell / HPE / Lenovo / Supermicro / Cisco)
 - Adapter 25개 (Redfish 14 + OS 7 + ESXi 4)
-- Schema 10 sections + Field Dictionary 28 Must
+- Schema 10 sections + Field Dictionary 31 Must + 9 Nice + 6 Skip = 46 entries (cycle-006 실측)
 - 145+ Test fixtures + 7+ baseline JSON
 - Jenkins multi-pipeline (Jenkinsfile / _grafana / _portal) — Bitbucket 미사용
 - 운영: 단일 main + feature/* 브랜치
@@ -99,7 +99,7 @@ callback_plugins/json_only.py → JSON envelope
 
 - **문서 갱신 없이 코드만 변경** — 근거: 작업 이력과 컨벤션 위반을 추적할 수 없어 향후 유지보수자가 변경 의도 파악 불가
 - **테스트 없이 기능 추가** — 근거: 회귀 테스트 부재로 기존 기능 오동작 여부 검증 불가
-- **clovirone 잔재 어휘 사용** — Java/Spring Boot/MyBatis/FTL/Vue/jQuery/Gradle/MariaDB/Flyway/Spock/Playwright는 server-exporter 본문에 등장하면 안 됨 (`verify_harness_consistency.py` 검출)
+- **타 프로젝트 잔재 어휘 사용** — Java/Spring Boot/MyBatis/FTL/Vue/jQuery/Gradle/MariaDB/Flyway/Spock/Playwright/Bitbucket Pipelines는 server-exporter 본문에 등장하면 안 됨 (`verify_harness_consistency.py` 검출). **예외 (Allowed)**: 본 rule 본문 (정의 목적 인용), `.claude/ai-context/common/ecc-adoption-summary.md` (도입 배경 단일 메타 위치), `.claude/ai-context/common/convention-drift.md` (drift 출처 메타), `.claude/policy/test-selection-map.yaml` (검출 도구 설명)
 
 ## 보호 경로
 

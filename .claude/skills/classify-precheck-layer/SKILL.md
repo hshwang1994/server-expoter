@@ -1,6 +1,6 @@
 ---
 name: classify-precheck-layer
-description: 새 검증을 어느 layer (Jenkins Stage 1 / precheck 1-4 / Stage 3 / adapter capabilities)에 배치할지 분류 (rule 27 R5). clovirone classify-validation-layer의 server-exporter 등가물. 사용자가 "이 검증 어디에 넣지?", "precheck 단계 분류", "validation layer" 등 요청 시. - 새 입력 검증 / 새 graceful degradation 단계 / Validator 작성 / 사용자가 "프론트에서 막아도 돼?" 같은 질의 (server-exporter는 호출자/Stage1)
+description: 새 검증을 어느 layer (Jenkins Stage 1 / precheck 1-4 / Stage 3 / adapter capabilities)에 배치할지 분류 (rule 27 R5). 사용자가 "이 검증 어디에 넣지?", "precheck 단계 분류", "validation layer" 등 요청 시. - 새 입력 검증 / 새 graceful degradation 단계 / Validator 작성 / "어느 단계에서 막을까?" 같은 질의 (server-exporter는 호출자/Stage1)
 ---
 
 # classify-precheck-layer

@@ -1,6 +1,6 @@
 ---
 name: verify-adapter-boundary
-description: common / 3-channel 코드에 vendor 이름 하드코딩 검출 (rule 12 R1). clovirone verify-plugin-boundary의 server-exporter 등가물. 사용자가 "벤더 경계 검증", "이 변경 boundary 위반?", "verify boundary" 등 요청 시. - 코드 변경 후 / 새 vendor 추가 후 / PR 머지 전
+description: common / 3-channel 코드에 vendor 이름 하드코딩 검출 (rule 12 R1). 사용자가 "벤더 경계 검증", "이 변경 boundary 위반?", "verify boundary" 등 요청 시. - 코드 변경 후 / 새 vendor 추가 후 / PR 머지 전
 ---
 
 # verify-adapter-boundary
