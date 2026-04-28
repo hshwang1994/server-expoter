@@ -1,11 +1,19 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: Supermicro / Super Micro Computer
+# Firmware: BMC firmware 1.x / 2.x
+# Origin: Supermicro BMC Redfish API documentation
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: generic Supermicro BMC fallback. 세대 무관.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_supermicro_bmc
 channel: redfish
 priority: 10
 version: "1.0.0"
 
 match:
-  vendor: ["Supermicro", "Super Micro Computer, Inc.", "SUPERMICRO"]
+  vendor: ["Supermicro", "Super Micro Computer, Inc.", "Super Micro Computer", "SUPERMICRO"]
 
 capabilities:
   sections_supported:

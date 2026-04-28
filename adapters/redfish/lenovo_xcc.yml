@@ -1,4 +1,12 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: Lenovo
+# Firmware: XCC — 1.x / 2.x / 3.x
+# Origin: Lenovo XCC Redfish API documentation
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: ThinkSystem 모던 세대 (SR/ST). Redfish 1.x 표준 호환.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_lenovo_xcc
 channel: redfish
 priority: 100

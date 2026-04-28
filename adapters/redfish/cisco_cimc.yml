@@ -1,4 +1,12 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: Cisco
+# Firmware: 4.x / 5.x
+# Origin: Cisco UCS Manager / CIMC Redfish API documentation
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: UCS C-Series. strategy: standard_only (OEM 디렉터리 미생성).
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_cisco_cimc
 channel: redfish
 priority: 100

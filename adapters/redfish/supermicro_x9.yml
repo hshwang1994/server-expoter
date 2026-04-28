@@ -1,11 +1,19 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: Supermicro / Super Micro Computer
+# Firmware: X9 generation BMC
+# Origin: Supermicro X9 BMC documentation
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: X9 메인보드 세대 (구). Redfish 부분 지원.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_supermicro_x9
 channel: redfish
 priority: 50
 version: "1.0.0"
 
 match:
-  vendor: ["Supermicro", "Super Micro Computer, Inc.", "SUPERMICRO"]
+  vendor: ["Supermicro", "Super Micro Computer, Inc.", "Super Micro Computer", "SUPERMICRO"]
   model_patterns: ["X9", "x9"]
 
 capabilities:

@@ -1,11 +1,19 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: Supermicro / Super Micro Computer
+# Firmware: X11 generation BMC
+# Origin: Supermicro X11 BMC documentation
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: X11 메인보드 세대. Redfish 1.x 표준 호환.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_supermicro_x11
 channel: redfish
 priority: 100
 version: "1.0.0"
 
 match:
-  vendor: ["Supermicro", "Super Micro Computer, Inc.", "SUPERMICRO"]
+  vendor: ["Supermicro", "Super Micro Computer, Inc.", "Super Micro Computer", "SUPERMICRO"]
   model_patterns: ["X11", "x11"]
 
 capabilities:

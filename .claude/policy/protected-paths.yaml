@@ -1,5 +1,14 @@
 # server-exporter 보호 경로 정책
 # AI가 자율 수정할 수 없는 경로.
+#
+# 정책 의도:
+#   - .claude/settings.json `permissions.deny`는 본 YAML의 `absolute_protection` + `ticket_required`를
+#     반영해야 한다 (단방향 동기화 — pre_edit_guard.py 가 런타임 보강).
+#   - `Bash(*)` allow + `acceptEdits` defaultMode는 의도적: 작업 효율 최우선, 위험 작업은 deny 패턴으로 차단.
+#   - `disableBypassPermissionsMode: "disable"`로 CLI 플래그 우회 차단 (rule 60 본문).
+#   - 본 YAML이 정본. settings.json은 **보강 layer** — drift 발견 시 본 YAML 기준으로 settings.json 갱신.
+#
+# 마지막 동기화 검증: 2026-04-28 (full-sweep)
 
 absolute_protection:
   description: "절대 수정 금지 — 어떤 경우에도 AI가 자동 수정하면 안 되는 경로"

@@ -1,4 +1,12 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: Dell Inc. / Dell EMC
+# Firmware: iDRAC 9 — 4.x / 5.x / 6.x / 7.x
+# Origin: Dell support.dell.com / Redfish API guide (iDRAC 9)
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: PowerEdge 14G/15G/16G. Storage Volumes 5.x+ 표준.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_dell_idrac9
 channel: redfish
 priority: 100

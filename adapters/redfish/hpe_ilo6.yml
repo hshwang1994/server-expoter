@@ -1,4 +1,12 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: HPE / Hewlett Packard Enterprise
+# Firmware: iLO 6 — 1.x / 2.x
+# Origin: HPE iLO 6 Redfish API documentation
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: ProLiant Gen11. Redfish 1.x 표준 호환.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_hpe_ilo6
 channel: redfish
 priority: 100

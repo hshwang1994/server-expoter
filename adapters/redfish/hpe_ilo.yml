@@ -1,4 +1,12 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: HPE / Hewlett Packard Enterprise
+# Firmware: iLO 모든 세대
+# Origin: HPE iLO Redfish API documentation
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: generic hpe fallback (priority=10). 세대별 미매치 시 사용.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_hpe_ilo
 channel: redfish
 priority: 10

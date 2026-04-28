@@ -1,63 +1,66 @@
 # server-exporter 벤더 경계 매핑
 # 각 벤더는 adapter YAML + (선택) OEM tasks + vault credential을 가진다.
 # common/ + 3-channel gather 코드는 vendor-agnostic.
+#
+# 갱신 일자: 2026-04-28 (full-sweep — 실디렉터리 기준 정합)
+# 검증: `find adapters -name "*.yml" -type f | wc -l` = 25, `ls redfish-gather/tasks/vendors/` = 4 (cisco 미존재)
 
 vendors:
   dell:
     description: "Dell PowerEdge / iDRAC8 / iDRAC9"
     adapters:
-      - "adapters/redfish/dell_idrac8.yml"
-      - "adapters/redfish/dell_idrac9.yml"
-      - "adapters/redfish/dell_idrac.yml"  # generic dell
+      - "adapters/redfish/dell_idrac.yml"   # generic dell (priority=10)
+      - "adapters/redfish/dell_idrac8.yml"  # iDRAC8 (priority=50)
+      - "adapters/redfish/dell_idrac9.yml"  # iDRAC9 (priority=100)
     oem_tasks: "redfish-gather/tasks/vendors/dell/"
     vault: "vault/redfish/dell.yml"
     aliases: ["Dell", "Dell Inc.", "Dell EMC", "iDRAC"]
     firmware_examples: ["3.x", "4.x", "5.x", "6.x", "7.x"]
 
   hpe:
-    description: "HPE ProLiant / iLO5 / iLO6"
+    description: "HPE ProLiant / iLO4 / iLO5 / iLO6"
     adapters:
-      - "adapters/redfish/hpe_ilo5.yml"
-      - "adapters/redfish/hpe_ilo6.yml"
-      - "adapters/redfish/hpe_synergy.yml"
-      - "adapters/redfish/hpe_ilo.yml"  # generic hpe
+      - "adapters/redfish/hpe_ilo.yml"   # generic hpe (priority=10)
+      - "adapters/redfish/hpe_ilo4.yml"  # iLO4
+      - "adapters/redfish/hpe_ilo5.yml"  # iLO5 (priority=100)
+      - "adapters/redfish/hpe_ilo6.yml"  # iLO6 (priority=100)
     oem_tasks: "redfish-gather/tasks/vendors/hpe/"
     vault: "vault/redfish/hpe.yml"
     aliases: ["HPE", "Hewlett Packard Enterprise", "Hewlett-Packard", "HP", "iLO"]
     firmware_examples: ["2.x", "3.x"]
 
   lenovo:
-    description: "Lenovo ThinkSystem / XCC"
+    description: "Lenovo ThinkSystem / XCC / IMM2"
     adapters:
       - "adapters/redfish/lenovo_xcc.yml"
-      - "adapters/redfish/lenovo_xcc_legacy.yml"
+      - "adapters/redfish/lenovo_imm2.yml"
     oem_tasks: "redfish-gather/tasks/vendors/lenovo/"
     vault: "vault/redfish/lenovo.yml"
     aliases: ["Lenovo", "XCC", "IBM"]
     firmware_examples: ["1.x", "2.x", "3.x"]
 
   supermicro:
-    description: "Supermicro / BMC"
+    description: "Supermicro X9 / X11 / 일반 BMC"
     adapters:
-      - "adapters/redfish/supermicro_x12.yml"
-      - "adapters/redfish/supermicro_x11.yml"
-      - "adapters/redfish/supermicro_legacy.yml"
+      - "adapters/redfish/supermicro_bmc.yml"  # 일반 BMC
+      - "adapters/redfish/supermicro_x9.yml"   # X9 세대
+      - "adapters/redfish/supermicro_x11.yml"  # X11 세대
     oem_tasks: "redfish-gather/tasks/vendors/supermicro/"
     vault: "vault/redfish/supermicro.yml"
-    aliases: ["Supermicro", "Super Micro", "SMCI"]
+    aliases: ["Supermicro", "Super Micro Computer, Inc.", "Super Micro Computer", "SMCI"]
     firmware_examples: ["1.x", "2.x"]
 
   cisco:
-    description: "Cisco UCS / CIMC"
+    description: "Cisco UCS / CIMC (OEM 미구현 — strategy: standard_only)"
     adapters:
       - "adapters/redfish/cisco_cimc.yml"
-    oem_tasks: "redfish-gather/tasks/vendors/cisco/"
+    oem_tasks: null  # cisco는 strategy: standard_only — OEM 디렉터리 미생성 (2026-04-28 실측)
     vault: "vault/redfish/cisco.yml"
-    aliases: ["Cisco", "Cisco Systems", "CIMC", "UCS"]
+    aliases: ["Cisco", "Cisco Systems", "Cisco Systems Inc", "Cisco Systems Inc.", "CIMC", "UCS"]
     firmware_examples: ["4.x", "5.x"]
 
   generic:
-    description: "Vendor-agnostic Redfish (fallback)"
+    description: "Vendor-agnostic Redfish (fallback, priority=0)"
     adapters:
       - "adapters/redfish/redfish_generic.yml"
     oem_tasks: null
@@ -65,16 +68,35 @@ vendors:
     aliases: []
     firmware_examples: []
 
+# OS / ESXi 채널 adapter (vendor 별 OS 분류)
+os_adapters:
+  - "adapters/os/linux_generic.yml"
+  - "adapters/os/linux_rhel.yml"
+  - "adapters/os/linux_suse.yml"
+  - "adapters/os/linux_ubuntu.yml"
+  - "adapters/os/windows_generic.yml"
+  - "adapters/os/windows_2019.yml"
+  - "adapters/os/windows_2022.yml"
+
+esxi_adapters:
+  - "adapters/esxi/esxi_generic.yml"
+  - "adapters/esxi/esxi_6x.yml"
+  - "adapters/esxi/esxi_7x.yml"
+  - "adapters/esxi/esxi_8x.yml"
+
 # 벤더 경계 원칙
 boundary_principles:
-  - "common/ + os-gather/ + esxi-gather/ + redfish-gather/ 코드는 vendor 이름 하드코딩 금지"
+  - "common/ + os-gather/ + esxi-gather/ + redfish-gather/ 코드는 vendor 이름 하드코딩 금지 (rule 12 R1)"
   - "vendor-specific 로직은 adapters/{channel}/{vendor}_*.yml 또는 redfish-gather/tasks/vendors/{vendor}/ 안에만"
+  - "예외 (cycle-006 추가): redfish_gather.py의 OEM 추출 분기 / `_FALLBACK_VENDOR_MAP` / `_detect_from_product` / BMC names — Redfish API spec의 vendor namespace는 외부 계약"
   - "adapter 점수: priority * 1000 + specificity * 10 + match_score (높을수록 우선)"
   - "vendor_aliases.yml은 어떤 코드에서도 정규화 메타로 참조 가능"
 
 # 새 벤더 추가 절차 (3단계, docs/14_add-new-gather.md 참조)
 add_vendor_steps:
   1: "common/vars/vendor_aliases.yml에 벤더 이름 매핑 추가"
-  2: "adapters/redfish/{vendor}_*.yml adapter YAML 생성 (match / capabilities / collect / normalize)"
+  2: "adapters/redfish/{vendor}_*.yml adapter YAML 생성 (match / capabilities / collect / normalize 4 키 + metadata origin 주석)"
   3: "(선택) redfish-gather/tasks/vendors/{vendor}/ OEM 태스크 추가"
+  4: "vault/redfish/{vendor}.yml ansible-vault encrypt"
+  5: "schema/baseline_v1/{vendor}_baseline.json (실장비 검증 후)"
   note: "site.yml 수정 불필요 — adapter_loader가 동적 감지"

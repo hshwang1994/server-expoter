@@ -1,4 +1,12 @@
 ---
+# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# Vendor: Dell Inc. / Dell EMC
+# Firmware: iDRAC 8 — 2.x / 3.x
+# Origin: Dell support.dell.com / Redfish API guide (iDRAC 8)
+# Last sync: 2026-04-28 (full-sweep)
+# Notes: PowerEdge R630/R730 등 13G 시스템. 일부 endpoint 비표준 가능.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_dell_idrac8
 channel: redfish
 priority: 50
