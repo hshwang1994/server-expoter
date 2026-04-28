@@ -53,6 +53,8 @@ normalize:
 credentials:
   profile: "cisco"
   fallback_profiles: []
+  # P2 AccountService 진입점 — Cisco CIMC AccountService 표준 미지원 가능, recovery 미정의
+  recovery_accounts: []
 
 graceful_degradation:
   on_section_fail: continue

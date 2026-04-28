@@ -84,6 +84,14 @@
             msg: "Redfish 수집 완전 실패 — BMC 연결 또는 인증 문제. BMC IP/포트(443) 접근, 방화벽 규칙, Redfish 서비스 활성화 여부, 자격증명(vault)을 확인하세요."
           when: not (_rf_collect_ok | bool)
 
+        # ── P2 (cycle 2026-04-28): recovery 자격 사용 시 공통계정 자동 복구 ──
+        # 사용자 결정 #4: dryrun ON default, lab 검증 후 OFF 전환
+        - name: "redfish | account_service (recovery → primary)"
+          when:
+            - (_rf_used_account | default({})).role | default('primary') == 'recovery'
+            - _rf_collect_ok | bool
+          ansible.builtin.include_tasks: tasks/account_service.yml
+
         # ── normalize standard ───────────────────────────────────────────
         - name: "redfish | normalize standard"
           ansible.builtin.include_tasks: tasks/normalize_standard.yml
@@ -119,7 +127,17 @@
             _out_collection_method: "redfish_api"
             _out_ip:                "{{ _rf_ip }}"
             _out_vendor:            "{{ _rf_vendor | default(none) }}"
-            _diagnosis: "{{ _diagnosis | combine({'auth_success': true, 'details': _diagnosis.details | combine({'adapter_candidate': _selected_adapter.adapter_id | default(none)})}) }}"
+            # P1: meta.auth — 사용자 결정 #3 (fallback_used 노출)
+            # P2: meta.account_service — recovery 자격으로 공통계정 자동 복구 시 노출
+            _diagnosis: >-
+              {{ _diagnosis | combine({
+                   'auth_success': true,
+                   'details': _diagnosis.details | combine({
+                     'adapter_candidate': _selected_adapter.adapter_id | default(none),
+                     'auth': _rf_attempts_meta | default({}),
+                     'account_service': _rf_account_service_meta | default({})
+                   })
+                 }) }}
 
         # ── meta & correlation (Phase 3) ─────────────────────────────────
         - name: "redfish | build_meta"

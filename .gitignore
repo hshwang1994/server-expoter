@@ -19,6 +19,11 @@ Thumbs.db
 
 # Vault (실제 비밀은 커밋하지 않음)
 # vault/*.yml 은 ansible-vault 로 암호화된 상태로만 커밋
+.vault_pass
+.vault_pass.*
+*.vault_password
+vault/*.unencrypted.yml
+vault/redfish/*.unencrypted.yml
 
 # Supplemental test inventory (local credentials — never tracked)
 tests/inventory/local/*

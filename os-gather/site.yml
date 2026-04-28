@@ -176,6 +176,26 @@
     - name: "linux | gather"
       block:
 
+        # P1 (cycle 2026-04-28): vault accounts 후보 순차 시도.
+        # 성공 시 ansible_user/password 갱신 후 본 gather 진행.
+        # 실패 시 _os_auth_ok=false → block 안에서 fail → rescue 진입.
+        - name: "linux | try credentials"
+          ansible.builtin.include_tasks: tasks/try_credentials.yml
+          vars:
+            _os_type:     "linux"
+            _os_accounts: "{{ accounts | default([]) }}"
+
+        - name: "linux | abort if all credentials failed"
+          ansible.builtin.fail:
+            msg: >-
+              Linux SSH 인증 후보 {{ _os_accounts | default([]) | length }}개 모두 실패 —
+              vault/linux.yml accounts 와 대상 서버 sshd 설정을 확인하세요.
+          when:
+            - (_os_accounts | default([])) | length > 0
+            - not (_os_auth_ok | default(false) | bool)
+          vars:
+            _os_accounts: "{{ accounts | default([]) }}"
+
         - name: "linux | preflight"
           ansible.builtin.include_tasks: tasks/linux/preflight.yml
 
@@ -212,6 +232,10 @@
         - name: "linux | gather users"
           ansible.builtin.include_tasks: tasks/linux/gather_users.yml
 
+        # P5 (cycle 2026-04-28): 운영 런타임 (NTP/firewall/listening ports/swap)
+        - name: "linux | gather runtime"
+          ansible.builtin.include_tasks: tasks/linux/gather_runtime.yml
+
         # ── diagnosis (성공 경로) ───────────────────────────────────────
         - name: "linux | build diagnosis (success path)"
           ansible.builtin.set_fact:
@@ -230,6 +254,8 @@
                 checked_ports:     [22]
                 gather_mode:       "{{ _l_python_mode | default('python_ok') }}"
                 python_version:    "{{ _l_python_version | default('') }}"
+                # P1: meta.auth — 사용자 결정 #3 (fallback_used 노출)
+                auth:              "{{ _os_attempts_meta | default({}) }}"
 
         # ── meta & correlation ───────────────────────────────────────────
         - name: "linux | set output meta vars"
@@ -311,15 +337,33 @@
 
   tasks:
 
-    - name: "windows | setup"
-      ansible.builtin.setup:
-        gather_subset: ['hardware', 'network']
-      register:    _w_setup
-      failed_when: false
-      no_log: true
-
     - name: "windows | gather"
       block:
+
+        # P1 (cycle 2026-04-28): vault accounts 후보 순차 시도 (WinRM).
+        - name: "windows | try credentials"
+          ansible.builtin.include_tasks: tasks/try_credentials.yml
+          vars:
+            _os_type:     "windows"
+            _os_accounts: "{{ accounts | default([]) }}"
+
+        - name: "windows | abort if all credentials failed"
+          ansible.builtin.fail:
+            msg: >-
+              Windows WinRM 인증 후보 {{ _os_accounts | default([]) | length }}개 모두 실패 —
+              vault/windows.yml accounts 와 대상 서버 WinRM 설정을 확인하세요.
+          when:
+            - (_os_accounts | default([])) | length > 0
+            - not (_os_auth_ok | default(false) | bool)
+          vars:
+            _os_accounts: "{{ accounts | default([]) }}"
+
+        - name: "windows | setup"
+          ansible.builtin.setup:
+            gather_subset: ['hardware', 'network']
+          register:    _w_setup
+          failed_when: false
+          no_log: true
 
         - name: "windows | init fragments"
           ansible.builtin.include_tasks:
@@ -370,6 +414,8 @@
                 detected_os:       "windows"
                 selected_port:     "{{ ansible_port | default(5986) }}"
                 checked_ports:     [5985, 5986]
+                # P1: meta.auth — 사용자 결정 #3 (fallback_used 노출)
+                auth:              "{{ _os_attempts_meta | default({}) }}"
 
         # ── meta & correlation ───────────────────────────────────────────
         - name: "windows | set output meta vars"

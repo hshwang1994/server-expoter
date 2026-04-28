@@ -148,12 +148,22 @@ pipeline {
                     echo "[Gather] playbook=${playbook}"
 
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                        sh """\
-                            /opt/ansible-env/bin/ansible-playbook \
-                                '${playbook}' \
-                                -i '${inventory}' \
-                            2>&1 | tee "\${WORKSPACE}/gather_output.log"
-                        """
+                        // P0: Jenkins credentials store 의 Secret File 등록 vault password
+                        //     credentialsId='ansible-vault-password' (docs/01_jenkins-setup.md)
+                        withCredentials([
+                            file(
+                                credentialsId: 'ansible-vault-password',
+                                variable     : 'VAULT_PASSWORD_FILE',
+                            ),
+                        ]) {
+                            sh """\
+                                /opt/ansible-env/bin/ansible-playbook \
+                                    '${playbook}' \
+                                    -i '${inventory}' \
+                                    --vault-password-file=\"\${VAULT_PASSWORD_FILE}\" \
+                                2>&1 | tee \"\${WORKSPACE}/gather_output.log\"
+                            """
+                        }
                     }
                 }
 

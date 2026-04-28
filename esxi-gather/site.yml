@@ -58,6 +58,23 @@
               ESXi 호스트 전원, 네트워크, vSphere API(443) 포트를 확인하세요.
           when: not (_precheck_ok | bool)
 
+        # P1 (cycle 2026-04-28): vault accounts 후보 순차 시도.
+        - name: "esxi | try credentials"
+          ansible.builtin.include_tasks: tasks/try_credentials.yml
+          vars:
+            _e_accounts: "{{ accounts | default([]) }}"
+
+        - name: "esxi | abort if all credentials failed"
+          ansible.builtin.fail:
+            msg: >-
+              ESXi 인증 후보 {{ _e_accounts | default([]) | length }}개 모두 실패 —
+              vault/esxi.yml accounts 와 ESXi 호스트 lockdown/local user 설정을 확인하세요.
+          when:
+            - (_e_accounts | default([])) | length > 0
+            - not (_e_auth_ok | default(false) | bool)
+          vars:
+            _e_accounts: "{{ accounts | default([]) }}"
+
         # ── adapter 선택 ─────────────────────────────────────────────────
         - name: "esxi | select adapter"
           ansible.builtin.set_fact:
@@ -112,10 +129,12 @@
 
         - name: "esxi | enrich diagnosis with adapter"
           ansible.builtin.set_fact:
+            # P1: meta.auth — 사용자 결정 #3 (fallback_used 노출)
             _diagnosis: >-
               {{ _diagnosis | default({}) | combine({
                    'details': (_diagnosis | default({})).get('details', {}) | combine({
-                     'adapter_candidate': (_selected_adapter | default({})).adapter_id | default(none)
+                     'adapter_candidate': (_selected_adapter | default({})).adapter_id | default(none),
+                     'auth': _e_attempts_meta | default({})
                    })
                  }) }}
 
