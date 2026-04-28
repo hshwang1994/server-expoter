@@ -51,13 +51,21 @@ class CallbackModule(CallbackBase):
     # ── 내부 유틸 ────────────────────────────────────────────────────────────
 
     def _emit(self, data, file=None):
-        """dict/list/str → compact JSON → stdout (또는 file)"""
+        """dict/list/str → compact JSON → stdout (또는 file).
+
+        문자열 입력은 JSON 파싱 시도 후 실패하면 문자열 그대로 출력 (호출자 호환성).
+        파싱 실패 시 JSON_ONLY_DEBUG=1 환경변수로 stderr 경고 활성화 (디버그 가시성).
+        """
         target = file or sys.stdout
         if isinstance(data, str):
             try:
                 data = json.loads(data)
-            except (json.JSONDecodeError, ValueError):
-                pass  # 그냥 문자열로 출력
+            except (json.JSONDecodeError, ValueError) as e:
+                if os.getenv('JSON_ONLY_DEBUG', '').lower() in ('1', 'true', 'yes'):
+                    sys.stderr.write(
+                        '[json_only] _emit: JSON 파싱 실패, 문자열 그대로 출력 '
+                        '(reason={}, head={!r})\n'.format(type(e).__name__, data[:120])
+                    )
         print(json.dumps(data, ensure_ascii=False, separators=(',', ':')),
               file=target, flush=True)
 

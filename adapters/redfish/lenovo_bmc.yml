@@ -1,24 +1,19 @@
 ---
 # ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
 # Vendor: Lenovo / IBM
-# Firmware: IMM2 — 1.x (legacy)
-# Origin: Lenovo IMM2 Redfish API documentation (legacy)
-# Last sync: 2026-04-28 (full-sweep)
-# Notes: 구세대 System x 또는 IBM 시절 BMC. Redfish 부분 지원.
-# Tested against:
-#   - System x3650 M5 (IMM2 v6.x 펌웨어) — 가이드 기준선
-#   - System x3550 M5 / x3850 X6 — 동일 IMM2 계열 (펌웨어 1.x ~ 2.x)
-#   - 실장비 검증은 schema/baseline_v1/lenovo_imm2_baseline.json + tests/evidence/ 참조 (해당 시)
-#   - DRIFT 발견 시: docs/ai/catalogs/EXTERNAL_CONTRACTS.md에 즉시 기록 (rule 96 R4)
+# Firmware: 모든 세대 (XCC / IMM2 / IMM 미매치 시 fallback)
+# Origin: Lenovo Redfish API documentation
+# Last sync: 2026-04-28 (T3-03)
+# Notes: generic Lenovo fallback (priority=10). 세대별 미매치 시 사용 — Dell/HPE/Supermicro와 동일 패턴.
+# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
 # ──────────────────────────────────────────────────────────────────────────────
-adapter_id: redfish_lenovo_imm2
+adapter_id: redfish_lenovo_bmc
 channel: redfish
-priority: 50
+priority: 10
 version: "1.0.0"
 
 match:
-  vendor: ["Lenovo", "LENOVO"]
-  firmware_patterns: ["IMM2"]
+  vendor: ["Lenovo", "LENOVO", "IBM"]
 
 capabilities:
   sections_supported:
@@ -27,8 +22,10 @@ capabilities:
     - bmc
     - cpu
     - memory
+    - storage
     - network
     - firmware
+    - power
 
 collect:
   strategy: standard_plus_oem
@@ -50,8 +47,8 @@ graceful_degradation:
   on_section_fail: continue
   on_auth_fail: abort
   critical_sections: [system, hardware]
-  optional_sections: [firmware]
+  optional_sections: [firmware, power]
 
 diagnosis:
   protocol_name: redfish
-  not_supported_message: "Lenovo IMM2 장비 — Redfish 제한적 지원."
+  not_supported_message: "Lenovo 장비이나 Redfish를 지원하지 않습니다 (구세대 BMC 추정)."

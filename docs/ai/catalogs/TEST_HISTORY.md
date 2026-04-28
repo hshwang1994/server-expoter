@@ -16,6 +16,30 @@
 
 ---
 
+## 2026-04-28 — cycle-008 (P2 MED/LOW 11건 일괄 정합)
+
+- 환경: Windows 11 + Python 3.11.9 (호스트)
+- 변경 영역:
+  - redfish-gather/library/redfish_gather.py — 함수 분리 추가 (gather_system 103→57, detect_vendor 64→37, main 67→45 + OEM helper 4종 + section runner 3종)
+  - os-gather/tasks/linux/gather_system.yml — 346→322줄, build_identifier_diagnostics.yml 분리
+  - adapters/redfish/ — hpe_ilo5 priority 100→90, lenovo_bmc.yml 신규, cisco_bmc.yml 신규, lenovo_imm2 tested_against, cisco_cimc 세대 보류 명시
+  - callback_plugins/json_only.py — `_emit()` JSON_ONLY_DEBUG 환경변수 가드
+  - lookup_plugins/adapter_loader.py — 동률 정렬 문서화 + vvv 경고
+- 명령:
+  - `python -m pytest tests/ -q` → 95 PASS / 0 FAIL
+  - `python scripts/ai/verify_vendor_boundary.py` → 통과 (0건, _OEM_EXTRACTORS dict의 4 라인에 nosec rule12-r1 추가)
+  - `python scripts/ai/verify_harness_consistency.py` → PASS (rules 29 / skills 43 / agents 51 / policies 10)
+  - `python scripts/ai/hooks/output_schema_drift_check.py` → 정합 (sections=10 fd_paths=46 fd_section_prefixes=10)
+  - `python scripts/ai/check_project_map_drift.py --update` → fingerprint 갱신
+  - `python -c "import ast; ast.parse(open('redfish-gather/library/redfish_gather.py').read())"` → OK
+  - `python -c "import yaml; yaml.safe_load(open(... gather_system.yml ...))"` → OK
+- 결과: 모든 검증 PASS
+- Baseline 갱신: 없음 (회귀 영역 변경, 의미 변경 없음 — 회귀 95 PASS로 확인)
+- Evidence: 본 commit (cycle-008) + CURRENT_STATE.md + NEXT_ACTIONS.md 갱신
+- 회귀: 없음 (95 PASS 동일)
+
+---
+
 ## 2026-04-27 — 하네스 도입 후 정적 검증
 
 - 환경: Windows 11 + Python 3.11.9 (검증 기준 Agent 10.100.64.154 — Ansible 2.20.3 / Python 3.12.3)

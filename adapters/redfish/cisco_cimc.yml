@@ -18,6 +18,11 @@
 # Untested (Round 11 환경 이슈):
 #   - 10.100.15.1: HTTP 503 (CIMC 서비스 다운)
 #   - 10.100.15.3: connect timeout (BMC 도달 불가)
+# 세대 차등 검토 (NEXT_ACTIONS T3-03 / 2026-04-28):
+#   - 현재 검증: M4 1대 (FCH2116V1V0)
+#   - M5/M6 실장비 검증 데이터 부족 — rule 13 R4에 따라 차등 분리 보류
+#   - 향후 M5/M6 검증 후 cisco_cimc5.yml / cisco_cimc6.yml 차등 분리 검토
+#   - 현재는 cisco_bmc.yml (priority=10) generic fallback만 신설 (일관성)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_cisco_cimc
 channel: redfish

@@ -1,10 +1,26 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-007 — HIGH 4 일괄 정합)
+## 일자: 2026-04-28 (cycle-008 — MED/LOW 일괄 정합)
 
 ## 요약
 
-server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-007 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-007에서 4축 자동 검수 (구조/품질/벤더경계 + 보안 무시 — 사용자 명시) HIGH 4건 일괄 정리:
+server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-008 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-008 (사용자 "새 vendor 제외 모두" 명시 승인)에서 P2 MED/LOW 일괄 정리 (11건):
+
+cycle-008 변경 (이번 세션):
+
+- **redfish_gather.py — 함수 분리 추가**: `gather_system` 103→57줄 (vendor OEM helper 4종 `_extract_oem_{hpe,dell,lenovo,supermicro}` 추출 + `_OEM_EXTRACTORS` dispatch dict), `detect_vendor` 64→37줄 (`_fetch_service_root` + `_resolve_first_member_uri` 추출), `main` 67→45줄 (`_make_section_runner` + `_collect_all_sections` + `_compute_final_status` 추출). rule 10 R3 정합
+- **os-gather/tasks/linux/gather_system.yml**: 346→322줄. `build_identifier_diagnostics.yml` 별도 task로 분리 (rule 10 R3)
+- **adapters/redfish/**: HPE iLO5 priority 100→90 차등 (T3-02), `lenovo_bmc.yml` generic fallback 신규 (T3-03 일관성), `cisco_bmc.yml` generic fallback 신규 (일관성), `lenovo_imm2.yml` tested_against 펌웨어 명시 (rule 96 R1), `cisco_cimc.yml` 세대 차등 검토 결정 명시 (M5/M6 미검증으로 보류)
+- **callback_plugins/json_only.py `_emit()`**: silent `pass` → `JSON_ONLY_DEBUG=1` 환경변수로 stderr 경고 활성화 (호출자 호환성 유지하면서 디버그 가시성)
+- **lookup_plugins/adapter_loader.py**: score 동률 정렬 문서화 (Python list.sort stable + 파일명 알파벳 tie-break) + 동률 발견 시 vvv 경고
+- **redfish_gather.py docstring**: Cisco 추가 (LOW), `int(vcap_int / 1048576)` → `vcap_int // 1048576` 정수 나눗셈 통일 (LOW), `bmc_names`에 `'cisco': 'CIMC'` 추가, gather_system Cisco silent OEM 의도 주석 추가
+
+cycle-007 (이전):
+
+- **cycle-007 #2**: rule 22 R7 ↔ 코드 drift 정합 — 5 공통 fragment 변수 명명 (`_data_fragment` + `_sections_{supported,collected,failed}_fragment` + `_errors_fragment`) 정정. rule + CLAUDE.md + ai-context + agent + skill 8 파일 동시 갱신
+- **cycle-007 #1**: `redfish_gather.py` `gather_storage()` 190줄 → 5 함수 분리 (`_gather_simple_storage`, `_gather_standard_storage`, `_extract_storage_controller_info`, `_extract_storage_drives`, `_extract_storage_volumes`). rule 10 R3 정합
+- **cycle-007 #3**: `precheck_bundle.py` `run_module()` 181줄 → 5 함수 분리 + `lookup_plugins/adapter_loader.py` `LookupModule.run()` 115줄 → 5 함수 분리
+- **cycle-007 #4**: `precheck_bundle.py` `requests` 선택적 의존 제거 → urllib stdlib 단일 경로 통일 + 에러 분류 강화 (HTTPError / socket.timeout / URLError / SSLError)
 
 - **cycle-007 #2**: rule 22 R7 ↔ 코드 drift 정합 — 5 공통 fragment 변수 명명 (`_data_fragment` + `_sections_{supported,collected,failed}_fragment` + `_errors_fragment`) 정정. rule + CLAUDE.md + ai-context + agent + skill 8 파일 동시 갱신
 - **cycle-007 #1**: `redfish_gather.py` `gather_storage()` 190줄 → 5 함수 분리 (`_gather_simple_storage`, `_gather_standard_storage`, `_extract_storage_controller_info`, `_extract_storage_drives`, `_extract_storage_volumes`). rule 10 R3 정합
@@ -49,9 +65,10 @@ cycle-005 (이전):
 | cycle-006 (DRIFT 4종 일괄) | DRIFT-004 (users 등록) + DRIFT-005 (alias 통합) + DRIFT-006 (rule 12 예외 절) + W2 (b) silence → vendor_boundary 0건 | 86c91bc |
 | full-sweep 2026-04-28 (Tier 1+2) | docs/rule/잔재어휘 정합 + code/schema 결함 + adapter origin/policy/settings | 1eb6abe / dd88aac / c1d6f9b |
 | full-sweep 잔여 (T2-B2/C2/C8) | forbidden default 활성화 + precheck Stage 분리 + gather_users 함수 통합 | ad87006 |
-| **cycle-007 (4축 검수 + HIGH 4 일괄)** | **rule 22 R7 drift 정합 + redfish_gather.py 5 함수 분리 + precheck/adapter_loader 함수 분리 + requests 의존 제거** | (이번 세션) |
+| cycle-007 (4축 검수 + HIGH 4 일괄) | rule 22 R7 drift 정합 + redfish_gather.py 5 함수 분리 + precheck/adapter_loader 함수 분리 + requests 의존 제거 | 6a473bd |
+| **cycle-008 (P2 MED/LOW 일괄)** | **redfish_gather 추가 함수 분리 (gather_system/detect_vendor/main) + linux gather_system identifier_diagnostics 분리 + HPE priority 차등 + Lenovo/Cisco bmc fallback + json_only debug + adapter_loader 동률 문서화** | (이번 세션) |
 
-## 검증 결과 (cycle-007 후)
+## 검증 결과 (cycle-008 후)
 
 ```
 [정적]
@@ -85,7 +102,7 @@ pytest tests/                         : PASS — 95/95
 | commands | 5 | 변화 없음 |
 | hooks (Python) | 19 + supporting 8 | 변화 없음 |
 | references (외부 docs) | 14 | 변화 없음 |
-| **adapters** | **25** (모두 origin 주석 보유 — cycle-004 이전 12개에서 +13) | 100% rule 96 R1 정합 |
+| **adapters** | **27** (cycle-008 lenovo_bmc + cisco_bmc 신규 추가, 모두 origin 주석 보유) | 100% rule 96 R1 정합 |
 | **DRIFT 등재** | **6** (resolved 3 + open 3) | DRIFT-004/005/006 신규 |
 
 ## 채널별 / Vendor 상태
@@ -99,10 +116,10 @@ pytest tests/                         : PASS — 95/95
 | Vendor | adapter | baseline | origin |
 |---|---|---|---|
 | Dell | 3 (idrac8/9/generic) | 있음 | 기존 + 검증 |
-| HPE | 4 (ilo4/5/6/generic) | 있음 | 기존 + 검증 |
-| Lenovo | 2 (xcc/imm2) | 있음 | 기존 + 검증 |
+| HPE | 4 (ilo4/5/6/generic, iLO5/6 priority 차등 cycle-008) | 있음 | 기존 + 검증 |
+| Lenovo | 3 (xcc/imm2/bmc — bmc fallback cycle-008 추가) | 있음 | 기존 + 검증 |
 | Supermicro | 3 (x11/x9/bmc) | 일부 | 기존 + 검증 |
-| Cisco | 1 (cimc) | 일부 | 기존 + 검증 |
+| Cisco | 2 (cimc/bmc — bmc fallback cycle-008 추가, 세대 차등은 M5/M6 미검증으로 보류) | 일부 | 기존 + 검증 |
 
 ## DRIFT 현황
 

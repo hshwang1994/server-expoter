@@ -1,6 +1,21 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-28 (cycle-007 후 갱신)
+## 일자: 2026-04-28 (cycle-008 후 갱신)
+
+## 완료 항목 (cycle-008 — P2 MED/LOW 11건 일괄, 사용자 "새 vendor 제외 모두" 명시 승인)
+
+- [x] **redfish_gather.py docstring Cisco 추가** (LOW)
+- [x] **redfish_gather.py:727 `int(vcap_int / 1048576)` → `vcap_int // 1048576` 정수 나눗셈 통일** (LOW)
+- [x] **callback_plugins/json_only.py `_emit()` silent pass 보강** — `JSON_ONLY_DEBUG=1` 환경변수로 stderr 경고 활성화 (호출자 호환성 유지)
+- [x] **adapter_loader 동률 정렬 문서화** — Python list.sort stable + 파일명 알파벳 tie-break + 동률 발견 시 vvv 경고
+- [x] **HPE iLO5/6 priority 차등 (T3-02)** — iLO 6=100, iLO 5=90, iLO 4=50, generic=10
+- [x] **Lenovo generic fallback adapter 추가 (T3-03)** — `lenovo_bmc.yml` priority=10
+- [x] **Cisco generic fallback adapter 추가** — `cisco_bmc.yml` priority=10 (Lenovo와 동일 패턴)
+- [x] **lenovo_imm2.yml tested_against 펌웨어 명시** (rule 96 R1 origin 강화)
+- [x] **cisco_cimc.yml 세대 차등 검토 결정 명시** — M5/M6 실장비 검증 부족으로 차등 분리 보류, generic fallback만 추가
+- [x] **Cisco OEM gather_system 분기 silent 의도 명시** — adapter strategy=standard_only + Round 11 실측 OEM 비어있음 + bmc_names에 'cisco':'CIMC' 추가
+- [x] **redfish_gather.py 추가 함수 분리** — gather_system 103→57줄 (vendor OEM helper 4종 + dispatch dict), detect_vendor 64→37줄 (`_fetch_service_root` + `_resolve_first_member_uri`), main 67→45줄 (`_make_section_runner` + `_collect_all_sections` + `_compute_final_status`)
+- [x] **os-gather/tasks/linux/gather_system.yml 분리** — 346→322줄, `build_identifier_diagnostics.yml` 별도 task
 
 ## 완료 항목 (cycle-007 — 4축 검수 + HIGH 4 일괄)
 
@@ -45,7 +60,7 @@
 - [x] vendor 경계 57건 분석 보고서
 - [x] DRIFT-004/005/006 등재
 
-## P1 — cycle-007 사용자 결정 대기 (대부분 외부 의존)
+## P1 — 사용자 결정 대기 (외부 의존)
 
 ### 옵션 / 회귀 위험 큰 항목
 - [ ] **DRIFT-006 옵션 (2)**: `redfish_gather.py` vendor-agnostic 리팩토링 — `oem_extractor` 매핑을 adapter capabilities로 위임. 영향 vendor 전부 회귀 + Round 권장. 별도 cycle.
@@ -54,29 +69,21 @@
 - [ ] **새 vendor 추가** (Huawei iBMC / NEC / Inspur 등) — PO 결정 + 실장비
 - [ ] **Round 11 실장비 검증** — 새 펌웨어 / 새 모델 (probe-redfish-vendor) — 실장비 + Round 일정
 
-## P2 — cycle-008 AI 자체 가능 (cycle-007 4축 검수 잔여 MED/LOW)
+## P2 — 잔여 (외부 의존 / 사용자 결정 / 운영)
 
-### 구조 (MED)
-- [ ] **redfish_gather.py 추가 함수 분리** — gather_system 100줄 / detect_vendor 64줄 / main 67줄 → rule 10 R3 정합
-- [ ] **os-gather/tasks/linux/gather_system.yml 346줄 분리** — identifier_diagnostics → 별도 normalize task
-- [ ] **adapters/redfish/hpe_ilo5.yml + hpe_ilo6.yml priority 차등** (90/100) — 정렬 결정성
-
-### 품질 (MED)
-- [ ] **callback_plugins/json_only.py `_emit()` silent `pass` 보강** — json.loads 실패 시 stderr 경고
-- [ ] **adapter_loader score 동률 정렬 문서화** — Python list sort stable + glob 알파벳 의존 명시
-
-### 품질 (LOW)
-- [ ] redfish_gather.py:757 `int(vcap_int / 1048576)` `_safe_int` 패턴 통일
-- [ ] redfish_gather.py docstring `(Dell/HPE/Lenovo/Supermicro)` Cisco 누락
-
-### 벤더 (MED/LOW)
-- [ ] **Cisco OEM gather_system 분기 누락 확인** — silent `oem={}` 의도 vs 미구현
-- [ ] adapters/redfish/lenovo_imm2.yml `tested_against` 펌웨어 명시
-- [ ] adapters/redfish/cisco_cimc.yml 세대(M4/M5/M6) 차등 검토
-
-### 운영 / 정책
+### 운영 / 정책 (사용자 결정)
 - [ ] **incoming-review hook 실 환경 테스트** — 다음 git merge 시 `docs/ai/incoming-review/<날짜>-<sha>.md` 자동 생성 확인
 - [ ] **harness-cycle 정기 주기 결정** — 매주 / 격주 / 수동만 (사용자 결정)
+
+### Vendor 차등 — 실장비 검증 후 진행
+- [ ] **adapters/redfish/cisco_cimc.yml 세대 차등 (M4/M5/M6 차등 분리)** — M5/M6 실장비 검증 후 진행 (현재 M4만 Round 11 검증됨)
+
+### Schema / Baseline (실측 evidence 필요, AI 자체 불가)
+- [ ] **T2-D2** cisco_baseline.json `data.users` `null` → `[]` (rule 13 R4 — 실측 evidence 필요)
+
+### Rule 재구조화 (대규모, 별도 cycle 필요)
+- [ ] **T2-A7** rule 7개 5요소 보강 (rule 24/26/41/50/60/70/90)
+- [ ] **DRIFT-006 옵션 (2)**: redfish_gather.py vendor-agnostic 리팩토링 — _OEM_EXTRACTORS dispatch는 cycle-008에서 적용. 다음 단계는 dispatch 자체를 adapter capabilities로 위임. 영향 vendor 전부 회귀 + Round 권장
 
 ## 결정 필요 (사용자, cycle-007 진입 시점)
 
@@ -84,21 +91,24 @@
 |---|---|---|
 | T2-D2 (cisco_baseline.json data.users) | `null` → `[]` | rule 13 R4 — 실측 evidence 필요 |
 | T2-A7 (rule 7개 5요소 보강) | 진행 / 보류 | rule 24/26/41/50/60/70/90 큰 재구조화 |
-| T3-01 (precheck requests 의존) | stdlib only / 유지 | 의존 정책 |
-| T3-02 (HPE iLO5/6 priority 동률) | 차등 / 유지 | adapter 매칭 일관성 |
-| T3-03 (Lenovo generic fallback) | 추가 / 유지 | adapter 정책 일관성 |
 | T3-04 (adapter version 추적) | 의미 있는 버전 / 무시 | 추적 메커니즘 |
-| T3-05 (redfish BMC IP N+1) | 첫 멤버만 / 병렬 / 유지 | 성능 vs 단순성 |
+| T3-05 (redfish BMC IP N+1) | 첫 멤버만 / 병렬 / 유지 | 성능 vs 단순성. cycle-008에서 `_resolve_first_member_uri` helper 추출했지만 정책 자체는 "첫 멤버만" 유지 |
 | T3-06 (governance 결정 ADR 필수) | 의무 / 선택 | trace 강도 |
 | 새 vendor 추가 일정 | Huawei / NEC / Inspur | PO + 실장비 |
 | Round 11 검증 | 새 펌웨어 / 새 모델 | 실장비 + 일정 |
 | harness-cycle 정기 주기 | 자동 trigger 도입? | 운영 정책 |
 
+## 해결됨 (cycle-007 / cycle-008)
+
+- T3-01 (precheck requests 의존) → cycle-007에서 stdlib only로 해결
+- T3-02 (HPE iLO5/6 priority 동률) → cycle-008에서 차등 (90/100) 적용
+- T3-03 (Lenovo generic fallback) → cycle-008에서 lenovo_bmc.yml 추가 (Cisco도 같이)
+
 ## 정본 reference
 
-- `docs/ai/CURRENT_STATE.md` (cycle-006 후 + 2026-04-28 full-sweep 갱신)
+- `docs/ai/CURRENT_STATE.md` (cycle-008 후 갱신)
 - `docs/ai/harness/cycle-006.md` (직전 cycle 보고서)
-- `docs/ai/harness/full-sweep-2026-04-28.md` (이번 full-sweep 보고서)
+- `docs/ai/harness/full-sweep-2026-04-28.md` (full-sweep 보고서)
 - `docs/ai/impact/2026-04-27-vendor-boundary-57.md` (vendor 경계 분석)
 - `docs/ai/catalogs/CONVENTION_DRIFT.md` (DRIFT 6건)
 - `docs/ai/decisions/ADR-2026-04-27-harness-import.md` (Plan 1~3 ADR)

@@ -84,7 +84,13 @@ def _import_adapter_common(repo_root):
 
 
 def _scan_adapters(adapter_dir):
-    """adapter 디렉터리 스캔 → list of dict (_source_file, _filename 포함)."""
+    """adapter 디렉터리 스캔 → list of dict (_source_file, _filename 포함).
+
+    glob 결과는 sorted()로 알파벳순 정렬한다 — 스캔 순서가 결정적이어야
+    `_match_and_score()` 출력 list 순서가 일관된다. score 동률 시 Python
+    `list.sort()`는 stable sort이므로 알파벳순 (= 파일명 순)이 tie-break이
+    된다 (rule 50 R3 / NEXT_ACTIONS T3-02 관련).
+    """
     if not os.path.isdir(adapter_dir):
         raise AnsibleError(
             "adapter_loader: adapter 디렉토리를 찾을 수 없습니다: {0}".format(adapter_dir)
@@ -166,9 +172,21 @@ class LookupModule(LookupBase):
                 "facts={1}".format(channel, facts)
             )
 
-        # 점수순 정렬 (내림차순)
+        # 점수순 정렬 (내림차순). Python list.sort()는 stable sort이므로
+        # 동률 시 _scan_adapters()가 알파벳순 정렬해 둔 원래 순서를
+        # 유지한다 — 즉 동률 tie-break는 파일명 알파벳 오름차순.
+        # 동률 발생 자체가 priority/specificity 일관성 위반 신호이므로
+        # 동률 발견 시 vvv 경고를 남긴다 (rule 10 R5).
         matched.sort(key=lambda x: x[0], reverse=True)
         best_score, best_adapter = matched[0]
+        if len(matched) >= 2 and matched[0][0] == matched[1][0]:
+            display.vvv(
+                "adapter_loader: 점수 동률 발견 — {0}={1} vs {2}={3} "
+                "(파일명 알파벳순으로 tie-break, priority/specificity 일관성 점검 권장)".format(
+                    matched[0][1].get("_filename"), matched[0][0],
+                    matched[1][1].get("_filename"), matched[1][0],
+                )
+            )
 
         display.v(
             "adapter_loader: 선택됨 — {0} (score={1})".format(

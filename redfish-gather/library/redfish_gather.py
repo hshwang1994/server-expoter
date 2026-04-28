@@ -10,6 +10,8 @@ Ansible Custom Module: redfish_gather  v4
   Lenovo XCC   : Systems/1               / Managers/1   (Oem.Lenovo)
   Supermicro   : Systems/1               / Managers/1   (Oem.Supermicro)
     Manufacturer = "Super Micro Computer, Inc."
+  Cisco CIMC   : Systems/<serial>        / Managers/CIMC (Oem.Cisco — 옵션)
+    Manufacturer = "Cisco Systems"
 
 외부 라이브러리 불필요 — Python stdlib(urllib, ssl, socket) 만 사용
 """
@@ -18,7 +20,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 module: redfish_gather
-short_description: Gather hardware info via Redfish API (Dell/HPE/Lenovo/Supermicro)
+short_description: Gather hardware info via Redfish API (Dell/HPE/Lenovo/Supermicro/Cisco)
 options:
   bmc_ip:     required, str
   username:   required, str
@@ -280,73 +282,149 @@ def _detect_vendor_from_service_root(root):
     return None
 
 
-def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
-    """
-    ServiceRoot(무인증)에서 벤더를 식별하고,
-    인증된 요청으로 Systems/Managers/Chassis URI를 해석합니다.
+def _fetch_service_root(bmc_ip, username, password, timeout, verify_ssl):
+    """ServiceRoot(/redfish/v1/) 응답 fetch — 무인증 → 인증 fallback.
 
-    Returns: (vendor, system_uri, manager_uri, chassis_uri, errors)
+    Returns: (root_dict_or_none, errors_list)
     """
     errors = []
-
-    # ServiceRoot는 무인증으로 접근 (대부분의 BMC에서 인증 불필요)
     st, root, err = _get_noauth(bmc_ip, '', timeout, verify_ssl)
     if err or st != 200:
         # 무인증 실패 시 인증으로 재시도 (일부 BMC는 ServiceRoot도 인증 필요)
         st, root, err = _get(bmc_ip, '', username, password, timeout, verify_ssl)
         if err or st != 200:
             errors.append(_err('vendor_detect', f'ServiceRoot 실패: {err or st}'))
-            return 'unknown', None, None, None, errors
+            return None, errors
+    return root, errors
 
-    # ServiceRoot에서 벤더 식별
+
+def _resolve_first_member_uri(bmc_ip, coll_uri, username, password, timeout, verify_ssl):
+    """컬렉션 URI → 첫 번째 Member의 @odata.id 추출.
+
+    Managers/Chassis 등 N+1 컬렉션에서 첫 멤버만 반환 (NEXT_ACTIONS T3-05 — 향후 결정).
+    Returns: (member_uri_or_none, status_code, error_msg)
+    """
+    if not coll_uri:
+        return None, None, 'collection uri 없음'
+    st, coll, err = _get(bmc_ip, _p(coll_uri), username, password, timeout, verify_ssl)
+    if err or st != 200:
+        return None, st, err or f'HTTP {st}'
+    members = _safe(coll, 'Members') or []
+    if not members:
+        return None, st, 'members 없음'
+    return _safe(members[0], '@odata.id'), st, None
+
+
+def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
+    """ServiceRoot(무인증)에서 벤더 식별 + Systems/Managers/Chassis URI 해석.
+
+    Returns: (vendor, system_uri, manager_uri, chassis_uri, errors)
+    """
+    root, errors = _fetch_service_root(bmc_ip, username, password, timeout, verify_ssl)
+    if root is None:
+        return 'unknown', None, None, None, errors
+
     vendor = _detect_vendor_from_service_root(root)
     if vendor is None:
         vendor = 'unknown'
         errors.append(_err('vendor_detect', 'ServiceRoot에서 벤더 식별 불가'))
 
     systems_uri  = _safe(root, 'Systems',  '@odata.id')
-    managers_uri = _safe(root, 'Managers', '@odata.id')
-    chassis_coll_uri = _safe(root, 'Chassis', '@odata.id')
-
     if not systems_uri:
         errors.append(_err('vendor_detect', 'ServiceRoot 에 Systems 링크 없음'))
         return vendor, None, None, None, errors
 
-    # Systems 컬렉션에서 첫 번째 System URI 해석 (인증 필요)
-    st, sys_coll, err = _get(bmc_ip, _p(systems_uri), username, password, timeout, verify_ssl)
-    if err or st != 200:
-        errors.append(_err('vendor_detect', f'Systems 컬렉션 실패: {err or st}'))
+    system_uri, st, serr = _resolve_first_member_uri(
+        bmc_ip, systems_uri, username, password, timeout, verify_ssl
+    )
+    if not system_uri:
+        errors.append(_err('vendor_detect', f'Systems 컬렉션 실패: {serr}'))
         return vendor, None, None, None, errors
 
-    members = _safe(sys_coll, 'Members') or []
-    if not members:
-        errors.append(_err('vendor_detect', 'Systems 컬렉션 멤버 없음'))
-        return vendor, None, None, None, errors
-
-    system_uri = _safe(members[0], '@odata.id')
-
-    # Managers URI 해석
-    manager_uri = None
-    if managers_uri:
-        st, mgr_coll, err = _get(bmc_ip, _p(managers_uri), username, password, timeout, verify_ssl)
-        if not err and st == 200:
-            mgr_members = _safe(mgr_coll, 'Members') or []
-            if mgr_members:
-                manager_uri = _safe(mgr_members[0], '@odata.id')
-
-    # Chassis 첫 번째 멤버 URI (Power/Thermal 수집에 필요)
-    chassis_uri = None
-    if chassis_coll_uri:
-        st, ch_coll, cerr = _get(bmc_ip, _p(chassis_coll_uri), username, password, timeout, verify_ssl)
-        if not cerr and st == 200:
-            ch_members = _safe(ch_coll, 'Members') or []
-            if ch_members:
-                chassis_uri = _safe(ch_members[0], '@odata.id')
+    # Managers / Chassis는 실패해도 errors에 등재하지 않음 — 후속 섹션에서 재시도/스킵
+    manager_uri, _, _ = _resolve_first_member_uri(
+        bmc_ip, _safe(root, 'Managers', '@odata.id'),
+        username, password, timeout, verify_ssl,
+    )
+    chassis_uri, _, _ = _resolve_first_member_uri(
+        bmc_ip, _safe(root, 'Chassis', '@odata.id'),
+        username, password, timeout, verify_ssl,
+    )
 
     return vendor, system_uri, manager_uri, chassis_uri, errors
 
 
 # ── 섹션별 수집 ───────────────────────────────────────────────────────────────
+
+# nosec rule12-r1 (전체 _extract_oem_*): 외부 계약 (rule 96 R1) 직접 의존.
+# Redfish API spec 자체가 vendor namespace 정의 (Oem.Hpe / Oem.Dell / Oem.Lenovo ...)
+# — adapter YAML로 위임 불가하므로 라이브러리에서 vendor 분기 허용.
+
+def _extract_oem_hpe(data):                                                   # nosec rule12-r1
+    """HPE OEM (iLO 5/6 = Oem.Hpe, iLO 4 이하 = Oem.Hp fallback)."""
+    oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}         # nosec rule12-r1
+    ahs = _safe(oem, 'AggregateHealthStatus') or {}
+    return {
+        'post_state':              _safe(oem, 'PostState'),
+        'server_signature':        _safe(oem, 'ServerSignature'),
+        'aggregate_server_health': _safe(ahs, 'AggregateServerHealth'),
+        'fan_redundancy':          _safe(ahs, 'FanRedundancy'),
+        'psu_redundancy':          _safe(ahs, 'PowerSupplyRedundancy'),
+        'subsystem_health': {
+            'fans':         _safe(ahs, 'Fans', 'Status', 'Health'),
+            'memory':       _safe(ahs, 'Memory', 'Status', 'Health'),
+            'network':      _safe(ahs, 'Network', 'Status', 'Health'),
+            'power':        _safe(ahs, 'PowerSupplies', 'Status', 'Health'),
+            'processors':   _safe(ahs, 'Processors', 'Status', 'Health'),
+            'storage':      _safe(ahs, 'Storage', 'Status', 'Health'),
+            'temperatures': _safe(ahs, 'Temperatures', 'Status', 'Health'),
+        },
+    }
+
+
+def _extract_oem_dell(data):                                                  # nosec rule12-r1
+    """Dell OEM (Oem.Dell.DellSystem)."""
+    oem = _safe(data, 'Oem', 'Dell', 'DellSystem') or {}                      # nosec rule12-r1
+    return {
+        'lifecycle_version':       _safe(oem, 'LifecycleControllerVersion'),
+        'bios_release_date':       _safe(oem, 'BIOSReleaseDate'),
+        'current_rollup_status':   _safe(oem, 'CurrentRollupStatus'),
+        'cpu_rollup_status':       _safe(oem, 'CPURollupStatus'),
+        'fan_rollup_status':       _safe(oem, 'FanRollupStatus'),
+        'battery_rollup_status':   _safe(oem, 'BatteryRollupStatus'),
+        'intrusion_rollup_status': _safe(oem, 'IntrusionRollupStatus'),
+        'storage_rollup_status':   _safe(oem, 'StorageRollupStatus'),
+        'chassis_service_tag':     _safe(oem, 'ChassisServiceTag'),
+        'express_service_code':    _safe(oem, 'ExpressServiceCode'),
+        'estimated_exhaust_temp':  _safe(oem, 'EstimatedExhaustTemperatureCel'),
+    }
+
+
+def _extract_oem_lenovo(data):                                                # nosec rule12-r1
+    """Lenovo OEM (Oem.Lenovo)."""
+    oem = _safe(data, 'Oem', 'Lenovo') or {}                                  # nosec rule12-r1
+    return {'product_name': _safe(oem, 'ProductName')}
+
+
+def _extract_oem_supermicro(data):                                            # nosec rule12-r1
+    """Supermicro OEM (Oem.Supermicro)."""
+    oem = _safe(data, 'Oem', 'Supermicro') or {}                              # nosec rule12-r1
+    return {
+        'board_id':   _safe(oem, 'BoardID'),
+        'node_id':    _safe(oem, 'NodeID'),
+    }
+
+
+# 주의 (2026-04-28 / NEXT_ACTIONS T3-03):
+# cisco는 의도적으로 OEM helper 없음 — adapter cisco_cimc.yml strategy=standard_only,
+# Round 11 실측 ServiceRoot.Oem 키가 비어있음 확인.
+_OEM_EXTRACTORS = {                                                           # nosec rule12-r1
+    'hpe':        _extract_oem_hpe,                                           # nosec rule12-r1
+    'dell':       _extract_oem_dell,                                          # nosec rule12-r1
+    'lenovo':     _extract_oem_lenovo,                                        # nosec rule12-r1
+    'supermicro': _extract_oem_supermicro,                                    # nosec rule12-r1
+}
+
 
 def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verify_ssl):
     st, data, err = _get(bmc_ip, _p(system_uri), username, password, timeout, verify_ssl)
@@ -396,56 +474,13 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
         'oem': {},
     }
 
-    # 벤더별 OEM 확장 — Redfish API spec 자체가 vendor namespace 정의 (Oem.Hpe / Oem.Dell ...)
-    # nosec rule12-r1: 외부 계약 (rule 96 R1) 직접 의존 — adapter YAML로 위임 불가
-    if vendor == 'hpe':                                                       # nosec rule12-r1
-        # iLO 5/6 = Oem.Hpe, iLO 4 이하 = Oem.Hp
-        oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}     # nosec rule12-r1
-        ahs = _safe(oem, 'AggregateHealthStatus') or {}
-        result['oem'] = {
-            'post_state':              _safe(oem, 'PostState'),
-            'server_signature':        _safe(oem, 'ServerSignature'),
-            'aggregate_server_health': _safe(ahs, 'AggregateServerHealth'),
-            'fan_redundancy':          _safe(ahs, 'FanRedundancy'),
-            'psu_redundancy':          _safe(ahs, 'PowerSupplyRedundancy'),
-            'subsystem_health': {
-                'fans':         _safe(ahs, 'Fans', 'Status', 'Health'),
-                'memory':       _safe(ahs, 'Memory', 'Status', 'Health'),
-                'network':      _safe(ahs, 'Network', 'Status', 'Health'),
-                'power':        _safe(ahs, 'PowerSupplies', 'Status', 'Health'),
-                'processors':   _safe(ahs, 'Processors', 'Status', 'Health'),
-                'storage':      _safe(ahs, 'Storage', 'Status', 'Health'),
-                'temperatures': _safe(ahs, 'Temperatures', 'Status', 'Health'),
-            },
-        }
-    elif vendor == 'dell':                                                    # nosec rule12-r1
-        oem = _safe(data, 'Oem', 'Dell', 'DellSystem') or {}                  # nosec rule12-r1
-        result['oem'] = {
-            'lifecycle_version':       _safe(oem, 'LifecycleControllerVersion'),
-            'bios_release_date':       _safe(oem, 'BIOSReleaseDate'),
-            'current_rollup_status':   _safe(oem, 'CurrentRollupStatus'),
-            'cpu_rollup_status':       _safe(oem, 'CPURollupStatus'),
-            'fan_rollup_status':       _safe(oem, 'FanRollupStatus'),
-            'battery_rollup_status':   _safe(oem, 'BatteryRollupStatus'),
-            'intrusion_rollup_status': _safe(oem, 'IntrusionRollupStatus'),
-            'storage_rollup_status':   _safe(oem, 'StorageRollupStatus'),
-            'chassis_service_tag':     _safe(oem, 'ChassisServiceTag'),
-            'express_service_code':    _safe(oem, 'ExpressServiceCode'),
-            'estimated_exhaust_temp':  _safe(oem, 'EstimatedExhaustTemperatureCel'),
-        }
-    elif vendor == 'lenovo':                                                  # nosec rule12-r1
-        oem = _safe(data, 'Oem', 'Lenovo') or {}                              # nosec rule12-r1
-        result['oem'] = {'product_name': _safe(oem, 'ProductName')}
-    elif vendor == 'supermicro':                                              # nosec rule12-r1
-        oem = _safe(data, 'Oem', 'Supermicro') or {}                          # nosec rule12-r1
-        result['oem'] = {
-            'board_id':   _safe(oem, 'BoardID'),
-            'node_id':    _safe(oem, 'NodeID'),
-        }
+    # 벤더별 OEM 확장 dispatch (helper 함수에 위임)
+    extractor = _OEM_EXTRACTORS.get(vendor)                                   # nosec rule12-r1
+    if extractor is not None:
+        result['oem'] = extractor(data)
 
-    # 주요 필드 누락은 경고 수준 — 수집 자체는 성공으로 처리
-    # errors에 추가하지 않아 _run()에서 failed로 분류되지 않음
-    # 필요 시 별도 warnings 반환으로 확장 가능
+    # 주요 필드 누락은 경고 수준 — 수집 자체는 성공으로 처리.
+    # errors에 추가하지 않아 _run()에서 failed로 분류되지 않음.
 
     return result, errors
 
@@ -461,7 +496,8 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
         return {}, errors
 
     # nosec rule12-r1: vendor → BMC 표시명 매핑 (외부 spec 기반 표준 이름)
-    bmc_names = {'dell': 'iDRAC', 'hpe': 'iLO', 'lenovo': 'XCC', 'supermicro': 'BMC'}
+    bmc_names = {'dell': 'iDRAC', 'hpe': 'iLO', 'lenovo': 'XCC', 'supermicro': 'BMC',
+                 'cisco': 'CIMC'}                                              # nosec rule12-r1
     result = {
         'name':             bmc_names.get(vendor, 'BMC'),
         'firmware_version': _safe(data, 'FirmwareVersion'),
@@ -724,7 +760,7 @@ def _extract_storage_volumes(sdata, controller_id, bmc_ip, username, password, t
             'controller_id':    controller_id,
             'member_drive_ids': member_ids,
             'raid_level':       raid_type,
-            'total_mb':         int(vcap_int / 1048576) if vcap_int else None,
+            'total_mb':         (vcap_int // 1048576) if vcap_int else None,
             'health':           _safe(vdata, 'Status', 'Health'),
             'state':            _safe(vdata, 'Status', 'State'),
             # nosec rule12-r1: Dell 전용 boot_volume 표시 (Redfish Oem.Dell namespace)
@@ -909,6 +945,61 @@ def gather_power(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
 
 # ── 메인 ─────────────────────────────────────────────────────────────────────
 
+def _make_section_runner(all_errors, collected, failed):
+    """섹션 collector wrapper — 예외/errors 누적 + collected/failed 추적.
+
+    rule 60: stacktrace는 stderr console verbose에만, errors[]에는 type+message만.
+    """
+    def _run(section, fn, *args):
+        try:
+            val, errs = fn(*args)
+            all_errors.extend(errs)
+            collected.append(section)
+            if errs:
+                failed.append(section)
+            return val
+        except Exception as e:
+            sys.stderr.write(
+                "[redfish_gather] %s 예외: %s\n%s\n" %
+                (section, type(e).__name__, traceback.format_exc(limit=3))
+            )
+            all_errors.append(_err(
+                section, '예외 발생',
+                "%s: %s" % (type(e).__name__, str(e)[:200])
+            ))
+            failed.append(section)
+            return None
+    return _run
+
+
+def _collect_all_sections(bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
+                          username, password, timeout, verify_ssl,
+                          all_errors, collected, failed):
+    """8개 섹션 dispatch (system / bmc / processors / memory / storage / network / firmware / power)."""
+    _run = _make_section_runner(all_errors, collected, failed)
+    creds = (username, password, timeout, verify_ssl)
+    return {
+        'system':     _run('system',     gather_system,     bmc_ip, system_uri, vendor, *creds),
+        'bmc':        _run('bmc',        gather_bmc,        bmc_ip, manager_uri, vendor, *creds),
+        'processors': _run('processors', gather_processors, bmc_ip, system_uri,          *creds),
+        'memory':     _run('memory',     gather_memory,     bmc_ip, system_uri,          *creds),
+        'storage':    _run('storage',    gather_storage,    bmc_ip, system_uri,          *creds),
+        'network':    _run('network',    gather_network,    bmc_ip, system_uri,          *creds),
+        'firmware':   _run('firmware',   gather_firmware,   bmc_ip,                      *creds),
+        'power':      _run('power',      gather_power,      bmc_ip, chassis_uri,         *creds),
+    }
+
+
+def _compute_final_status(collected, failed):
+    """collected / failed list → final_status (success / partial / failed)."""
+    clean = [s for s in collected if s not in failed]
+    if not clean:
+        return 'failed', clean
+    if failed:
+        return 'partial', clean
+    return 'success', clean
+
+
 def main():
     module = AnsibleModule(
         argument_spec=dict(
@@ -941,35 +1032,13 @@ def main():
             collected=[], failed_sections=['all'], errors=all_errors, data={},
         )
 
-    result_data = {}
+    result_data = _collect_all_sections(
+        bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
+        username, password, timeout, verify_ssl,
+        all_errors, collected, failed,
+    )
 
-    def _run(section, fn, *args):
-        try:
-            val, errs = fn(*args)
-            all_errors.extend(errs)
-            collected.append(section)
-            if errs: failed.append(section)
-            return val
-        except Exception as e:
-            # rule 60: stacktrace 노출 금지 — type + message만 detail에. traceback은 console verbose log에서만 확인.
-            sys.stderr.write("[redfish_gather] %s 예외: %s\n%s\n" % (section, type(e).__name__, traceback.format_exc(limit=3)))
-            all_errors.append(_err(section, '예외 발생', "%s: %s" % (type(e).__name__, str(e)[:200])))
-            failed.append(section)
-            return None
-
-    result_data['system']     = _run('system',    gather_system,     bmc_ip, system_uri,  vendor, username, password, timeout, verify_ssl)
-    result_data['bmc']        = _run('bmc',        gather_bmc,        bmc_ip, manager_uri, vendor, username, password, timeout, verify_ssl)
-    result_data['processors'] = _run('processors', gather_processors, bmc_ip, system_uri,         username, password, timeout, verify_ssl)
-    result_data['memory']     = _run('memory',     gather_memory,     bmc_ip, system_uri,         username, password, timeout, verify_ssl)
-    result_data['storage']    = _run('storage',    gather_storage,    bmc_ip, system_uri,         username, password, timeout, verify_ssl)
-    result_data['network']    = _run('network',    gather_network,    bmc_ip, system_uri,         username, password, timeout, verify_ssl)
-    result_data['firmware']   = _run('firmware',   gather_firmware,   bmc_ip,                     username, password, timeout, verify_ssl)
-    result_data['power']      = _run('power',      gather_power,      bmc_ip, chassis_uri,            username, password, timeout, verify_ssl)
-
-    clean = [s for s in collected if s not in failed]
-    if not clean:         final_status = 'failed'
-    elif failed:          final_status = 'partial'
-    else:                 final_status = 'success'
+    final_status, clean = _compute_final_status(collected, failed)
 
     module.exit_json(
         changed=False, status=final_status, vendor=vendor,
