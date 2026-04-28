@@ -53,10 +53,12 @@ server-exporter/
 
 ## Fragment 변수 패턴
 
-각 gather가 만드는 fragment (Fragment 철학):
-- `_data_fragment` — 섹션별 raw 데이터
-- `_sections_<name>_supported_fragment` — 지원 섹션 list
-- `_errors_fragment` — 수집 오류
+각 gather가 만드는 fragment (Fragment 철학) — 5 공통 변수 (변수 이름 동일, 값으로 자기 섹션을 채움):
+- `_data_fragment` — 섹션별 raw 데이터 dict
+- `_sections_supported_fragment` — 지원 섹션 list
+- `_sections_collected_fragment` — 수집 성공 섹션 list
+- `_sections_failed_fragment` — 수집 실패 섹션 list
+- `_errors_fragment` — 수집 오류 list
 
 `merge_fragment.yml`이 누적 병합 → 공통 builder 5종이 최종 JSON 조립.
 

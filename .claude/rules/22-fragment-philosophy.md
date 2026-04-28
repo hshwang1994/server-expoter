@@ -23,36 +23,45 @@
 
 ### R1. 자기 fragment만 만든다 (가장 중요)
 
-- **Default**: 각 gather는 다음 세 fragment 변수만 set_fact:
-  - `_data_fragment` — 섹션별 raw 데이터 (예: `{ cpu: {...}, memory: {...} }`)
-  - `_sections_<name>_supported_fragment` — 자기가 만든 섹션 list (예: `['cpu', 'memory']`)
-  - `_errors_fragment` — 자기 수집 중 발생한 errors
-- **Forbidden**: 다른 gather의 fragment를 set_fact로 수정 (예: cpu gather가 memory fragment를 수정)
-- **Forbidden**: 누적 변수 (`_collected_data`, `_supported_sections`, `_collected_errors`)를 직접 수정 (이건 merge_fragment.yml만 관리)
+- **Default**: 각 gather는 다음 다섯 fragment 변수만 set_fact:
+  - `_data_fragment` — 섹션별 raw 데이터 dict (예: `{ cpu: {...}, memory: {...} }`)
+  - `_sections_supported_fragment` — 이 gather가 지원하는 섹션 list (예: `['cpu', 'memory']`)
+  - `_sections_collected_fragment` — 이 gather가 수집 성공한 섹션 list
+  - `_sections_failed_fragment` — 이 gather가 수집 실패한 섹션 list
+  - `_errors_fragment` — 자기 수집 중 발생한 errors list
+- **Forbidden**: 다른 gather의 fragment 변수를 자기 영역 외 값으로 set_fact (예: cpu gather가 memory section을 fragment list에 추가)
+- **Forbidden**: 누적 변수 (`_collected_data`, `_supported_sections`, `_collected_sections`, `_failed_sections`, `_collected_errors`)를 직접 수정 (이건 merge_fragment.yml만 관리)
 - **Why**: 다른 gather의 fragment를 수정하면 누가 어떤 데이터를 만들었는지 추적 불가 + 누락/덮어쓰기 발생. 회귀 사고 1순위 원인.
 - **재검토**: Fragment 추상화가 더 강한 메커니즘으로 대체될 때 (예: per-channel namespace 강제)
 
 #### Bad vs Good
 
 ```yaml
-# [NG] — 다른 섹션의 fragment 수정 (금지)
-- name: 메모리 섹션 보강
+# [NG] — 누적 변수 직접 수정 (금지)
+- name: 누적 변수 직접 수정
   set_fact:
-    _sections_memory_collected_fragment: [...]  # [NG] 다른 gather 영역
+    _collected_data: "{{ _collected_data | combine({'memory': ...}) }}"  # [NG] merge_fragment.yml 영역
+
+# [NG] — 다른 gather의 섹션을 자기 fragment에 포함 (금지)
+- name: cpu gather 안에서 memory 섹션 추가
+  set_fact:
+    _sections_collected_fragment: ['cpu', 'memory']  # [NG] memory는 다른 gather 영역
 
 # [OK] — 자신의 fragment만
 - name: CPU 섹션 수집
   set_fact:
     _data_fragment:
       cpu: { model: "...", cores: ... }
-    _sections_cpu_collected_fragment: ['cpu']
+    _sections_supported_fragment: ['cpu']
+    _sections_collected_fragment: ['cpu']
+    _sections_failed_fragment: []
 ```
 
 ### R2. 새 섹션 추가는 정확히 7단계
 
 - **Default** (`GUIDE_FOR_AI.md` "Fragment 추가 체크리스트" + 본 rule):
   1. `gather_<section>.yml` 또는 `collect_<section>.yml` 작성 (raw 수집)
-  2. Fragment 변수 set_fact (`_data_fragment`, `_sections_<name>_supported_fragment`, `_errors_fragment`)
+  2. Fragment 변수 set_fact (5 공통 변수: `_data_fragment`, `_sections_supported_fragment`, `_sections_collected_fragment`, `_sections_failed_fragment`, `_errors_fragment`)
   3. `normalize_<section>.yml` 또는 `common/tasks/normalize/build_<section>.yml` 작성
   4. `merge_fragment.yml` 호출 확인 (각 gather 후)
   5. `common/vars/supported_sections.yml` 업데이트
@@ -89,18 +98,23 @@
 
 ### R7. fragment 변수 명명 규칙
 
-- **Default**:
-  - `_data_fragment` — 모든 gather 공통
-  - `_sections_<name>_supported_fragment` — `<name>` = 섹션 이름 (예: `cpu`, `memory`)
-  - `_errors_fragment` — 모든 gather 공통
+- **Default**: 모든 gather가 동일한 5 변수 이름 사용 (변수 자체는 공통, **값**으로 자기 섹션을 채운다):
+  - `_data_fragment` — 섹션별 raw 데이터 dict
+  - `_sections_supported_fragment` — 지원 섹션 list
+  - `_sections_collected_fragment` — 수집 성공 섹션 list
+  - `_sections_failed_fragment` — 수집 실패 섹션 list
+  - `_errors_fragment` — error 발생 list
   - 모두 `_` prefix (외부 노출 방지, rule 11 R2)
-- **Forbidden**: 위 명명 규칙 일탈
+- **Forbidden**: 변수 이름에 섹션명 prefix/suffix 추가 (예: `_sections_cpu_collected_fragment` 같은 변수 자체 분기)
+- **Why**: merge_fragment.yml은 5 공통 변수 이름을 가정해 union 누적. 변수 이름이 섹션별로 갈리면 merge 자체 실패
 
 ### R8. Fragment 변수 타입
 
 - **Default**:
-  - `_data_fragment`: dict (key=section name)
-  - `_sections_<name>_supported_fragment`: list of strings (section names)
+  - `_data_fragment`: dict (key=section name, value=raw data)
+  - `_sections_supported_fragment`: list of strings (이 gather가 지원하는 섹션 이름)
+  - `_sections_collected_fragment`: list of strings (수집 성공한 섹션 이름)
+  - `_sections_failed_fragment`: list of strings (수집 실패한 섹션 이름)
   - `_errors_fragment`: list of dicts (error records)
 - **Forbidden**: 타입 일탈 (예: `_data_fragment`를 list로)
 - **Why**: merge_fragment.yml이 타입 가정으로 병합 — 일탈 시 병합 실패

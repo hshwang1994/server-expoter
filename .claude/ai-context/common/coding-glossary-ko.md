@@ -6,7 +6,7 @@
 
 | 용어 | 풀이 |
 |---|---|
-| **Fragment** | 각 gather가 만드는 자기 데이터 조각. `_data_fragment` / `_sections_<name>_supported_fragment` / `_errors_fragment` 3종. `merge_fragment.yml`이 누적 병합. (rule 22) |
+| **Fragment** | 각 gather가 만드는 자기 데이터 조각. 5 공통 변수: `_data_fragment` / `_sections_supported_fragment` / `_sections_collected_fragment` / `_sections_failed_fragment` / `_errors_fragment`. 변수 이름은 모든 gather 동일, 값으로 자기 섹션을 채움. `merge_fragment.yml`이 누적 병합. (rule 22) |
 | **Fragment 철학** | 각 gather는 자기 fragment만 만들고, 다른 gather의 fragment를 절대 수정 안 함. 새 섹션 추가 시 build_output.yml 전체 수정 불필요 — site.yml에 include_tasks 한 줄만. |
 | **3-channel** | os-gather (Linux/Windows) + esxi-gather + redfish-gather (BMC/IPMI). target_type 으로 자동 감지. |
 | **Adapter** | 벤더/세대별 수집 방식을 추상화한 YAML. `adapters/{redfish,os,esxi}/{vendor}_*.yml`. match / capabilities / collect / normalize 경로 포함. |

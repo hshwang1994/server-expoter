@@ -1,16 +1,21 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-006 + full-sweep 잔여 + Round 11 reference 수집)
+## 일자: 2026-04-28 (cycle-007 — HIGH 4 일괄 정합)
 
 ## 요약
 
-server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-006 + full-sweep (Tier 1+2) 완료**. 2026-04-28 full-sweep 잔여 항목 일괄 정리:
+server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-007 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-007에서 4축 자동 검수 (구조/품질/벤더경계 + 보안 무시 — 사용자 명시) HIGH 4건 일괄 정리:
+
+- **cycle-007 #2**: rule 22 R7 ↔ 코드 drift 정합 — 5 공통 fragment 변수 명명 (`_data_fragment` + `_sections_{supported,collected,failed}_fragment` + `_errors_fragment`) 정정. rule + CLAUDE.md + ai-context + agent + skill 8 파일 동시 갱신
+- **cycle-007 #1**: `redfish_gather.py` `gather_storage()` 190줄 → 5 함수 분리 (`_gather_simple_storage`, `_gather_standard_storage`, `_extract_storage_controller_info`, `_extract_storage_drives`, `_extract_storage_volumes`). rule 10 R3 정합
+- **cycle-007 #3**: `precheck_bundle.py` `run_module()` 181줄 → 5 함수 분리 + `lookup_plugins/adapter_loader.py` `LookupModule.run()` 115줄 → 5 함수 분리
+- **cycle-007 #4**: `precheck_bundle.py` `requests` 선택적 의존 제거 → urllib stdlib 단일 경로 통일 + 에러 분류 강화 (HTTPError / socket.timeout / URLError / SSLError)
+
+cycle-006 (이전):
 
 - **T2-B2 적용**: `verify_harness_consistency.py` FORBIDDEN_WORDS 검사 default 활성화 (rule 00 약속 충족 — `--no-forbidden-check`로 비활성)
 - **T2-C2 적용**: `precheck_bundle.py` Stage 1 (reachable) ↔ Stage 2 (port_open) 분리 + ConnectionRefusedError 시 host alive 판정 (rule 27 R2 정합)
 - **T2-C8 적용**: `os-gather/files/get_last_login.sh` 공유 snippet 추가 + Python/Raw 양 경로에서 lookup file 통합 (gather_users.yml 294 → 239 lines, rule 10 R3 정합)
-- **T2-A1~A6 / T2-B1/B3 / T2-C3~C7 / T2-D1/D3/D4 / T2-E1~E4 / T2-F1~F3 모두 cycle-006 + 직전 commit (1eb6abe / dd88aac / c1d6f9b)에서 처리됨**
-
 cycle-006 (이전):
 
 - **DRIFT-004 resolved**: `users[]` 섹션 6 필드 등록 (Must +3 / Nice +2 / Skip +1) → 분포 46 entries, output_schema_drift 정합
@@ -43,24 +48,22 @@ cycle-005 (이전):
 | cycle-005 (AI 자체 가능 일괄) | DRIFT-007 catalog 정합 + scan #2/#4 재설계 + vendor_boundary docstring + alias 동기화 게이트 → scan 11 패턴 0건 | 72b2613..2b4900d |
 | cycle-006 (DRIFT 4종 일괄) | DRIFT-004 (users 등록) + DRIFT-005 (alias 통합) + DRIFT-006 (rule 12 예외 절) + W2 (b) silence → vendor_boundary 0건 | 86c91bc |
 | full-sweep 2026-04-28 (Tier 1+2) | docs/rule/잔재어휘 정합 + code/schema 결함 + adapter origin/policy/settings | 1eb6abe / dd88aac / c1d6f9b |
-| **full-sweep 잔여 (T2-B2/C2/C8)** | **forbidden default 활성화 + precheck Stage 분리 + gather_users 함수 통합** | (이번 세션) |
+| full-sweep 잔여 (T2-B2/C2/C8) | forbidden default 활성화 + precheck Stage 분리 + gather_users 함수 통합 | ad87006 |
+| **cycle-007 (4축 검수 + HIGH 4 일괄)** | **rule 22 R7 drift 정합 + redfish_gather.py 5 함수 분리 + precheck/adapter_loader 함수 분리 + requests 의존 제거** | (이번 세션) |
 
-## 검증 결과 (full-sweep 잔여 후)
+## 검증 결과 (cycle-007 후)
 
 ```
-[정적 — Windows]
-verify_harness_consistency.py        : PASS (forbidden default 활성, 잔재 0)
+[정적]
+verify_harness_consistency.py        : PASS (rules 29 / skills 43 / agents 51 / policies 10)
 validate_claude_structure.py         : OK
-check_project_map_drift.py           : PASS (fingerprint 갱신 — os-gather +files/, common 변경)
+check_project_map_drift.py           : PASS
 scan_suspicious_patterns.py          : clean (11 패턴 0건)
 verify_vendor_boundary.py            : PASS — 0건 (cycle-005 26 → 0 유지)
 output_schema_drift_check.py         : 정합 (sections=10, fd_paths=46, fd_section_prefixes=10)
-python -m py_compile                 : PASS (precheck_bundle.py + verify_harness_consistency.py)
-yaml.safe_load                       : PASS (gather_users.yml + vendor-boundary-map.yaml)
-
-[ansible / pytest — 환경 제약]
-ansible-playbook --syntax-check       : 검증 기준 Agent에서 별도 실행 필요 (WSL ansible 미설치)
-pytest tests/                         : 검증 기준 Agent에서 별도 실행 필요
+python -m py_compile                 : PASS (변경 3 파일)
+ansible-playbook --syntax-check       : PASS — 3 채널 (WSL)
+pytest tests/                         : PASS — 95/95
 ```
 
 도메인 코드:

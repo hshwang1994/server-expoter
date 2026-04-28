@@ -15,25 +15,33 @@
 
 ## 1. Fragment 철학 (rule 22)
 
-각 gather는 **자기 fragment만** 만든다:
-- `_data_fragment` — 섹션별 raw 데이터 (예: `cpu`, `memory`)
-- `_sections_<name>_supported_fragment` — 지원 섹션 list
-- `_errors_fragment` — 수집 오류
+각 gather는 **자기 fragment만** 만든다. 5 공통 변수 사용 (변수 이름은 동일, 값으로 자기 섹션을 채움):
+- `_data_fragment` — 섹션별 raw 데이터 dict
+- `_sections_supported_fragment` — 지원 섹션 list
+- `_sections_collected_fragment` — 수집 성공 섹션 list
+- `_sections_failed_fragment` — 수집 실패 섹션 list
+- `_errors_fragment` — 수집 오류 list
 
 `merge_fragment.yml`이 누적 병합 → 공통 builder가 최종 JSON 조립.
 
-**Forbidden**: 다른 gather의 fragment 변수를 set_fact로 수정.
+**Forbidden**: 누적 변수 (`_collected_data` 등) 직접 수정. 다른 gather 섹션을 자기 fragment에 포함.
 
 ```yaml
-# WRONG — 다른 섹션의 fragment 수정
+# WRONG — 누적 변수 직접 수정 (merge_fragment.yml 영역)
 - set_fact:
-    _sections_memory_collected_fragment: [...]
+    _collected_data: "{{ _collected_data | combine(...) }}"
 
-# CORRECT — 자신의 fragment만
+# WRONG — 다른 gather의 섹션을 자기 fragment에 포함
+- set_fact:
+    _sections_collected_fragment: ['cpu', 'memory']  # memory는 다른 gather 영역
+
+# CORRECT — 자신의 fragment만 (5 공통 변수)
 - set_fact:
     _data_fragment:
       cpu: {...}
-    _sections_cpu_collected_fragment: ['cpu']
+    _sections_supported_fragment: ['cpu']
+    _sections_collected_fragment: ['cpu']
+    _sections_failed_fragment: []
 ```
 
 ## 2. 명명 규칙
@@ -44,14 +52,14 @@
 | `normalize_<section>.yml` | `esxi-gather/tasks/` 등 | 채널-specific 정규화 |
 | `build_<artifact>.yml` | `common/tasks/normalize/` | 공통 builder (sections / status / errors / meta / correlation / output) |
 | `precheck_*.yml` | gather entry | 본 수집 전 4단계 진단 |
-| `_<scope>_<name>_fragment` | set_fact 변수 | fragment 변수 prefix `_` |
+| `_*_fragment` | set_fact 변수 | fragment 변수 prefix `_` (5 공통 이름) |
 
 ## 3. 새 gather 추가 (template)
 
 `GUIDE_FOR_AI.md` "새 gather 템플릿" 섹션 그대로 따른다. 핵심:
 
 1. `gather_<section>.yml` 또는 `collect_<section>.yml` 작성 (raw 수집)
-2. Fragment 변수 set_fact (`_data_fragment`, `_sections_<name>_supported_fragment`, `_errors_fragment`)
+2. Fragment 변수 set_fact (5 공통 변수 — `_data_fragment`, `_sections_supported_fragment`, `_sections_collected_fragment`, `_sections_failed_fragment`, `_errors_fragment`)
 3. `normalize_<section>.yml` 또는 `common/tasks/normalize/build_<section>.yml` 작성
 4. `merge_fragment.yml` 호출 확인
 5. `common/vars/supported_sections.yml` 업데이트

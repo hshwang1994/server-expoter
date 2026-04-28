@@ -573,7 +573,199 @@ def gather_memory(bmc_ip, system_uri, username, password, timeout, verify_ssl):
     return {'total_mib': total_mib or None, 'slots': slots}, errors
 
 
+def _gather_simple_storage(bmc_ip, members, username, password, timeout, verify_ssl):
+    """SimpleStorage 경로 — 플랫 디바이스 목록 (구형 BMC 호환)."""
+    controllers = []
+    errors = []
+    for member in members:
+        uri = _safe(member, '@odata.id')
+        if not uri:
+            continue
+        st, sdata, serr = _get(bmc_ip, _p(uri), username, password, timeout, verify_ssl)
+        if serr or st != 200:
+            errors.append(_err('storage', f'SimpleStorage {uri} 실패: {serr or st}'))
+            continue
+        drives = []
+        for dev in (_safe(sdata, 'Devices') or []):
+            cap_int = _safe_int(_safe(dev, 'CapacityBytes'))
+            drives.append({
+                'id':             None,
+                'name':           _safe(dev, 'Name'),
+                'model':          _safe(dev, 'Model'),
+                'serial':         None,
+                'manufacturer':   _safe(dev, 'Manufacturer'),
+                'media_type':     None,
+                'protocol':       None,
+                'capacity_bytes': cap_int,
+                'capacity_gb':    round(cap_int / 1e9, 2) if cap_int else None,
+                'health':         _safe(dev, 'Status', 'Health'),
+            })
+        controllers.append({
+            'id': _safe(sdata, 'Id'), 'name': _safe(sdata, 'Name'),
+            'health': _safe(sdata, 'Status', 'Health'), 'drives': drives,
+        })
+    return controllers, errors
+
+
+def _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout, verify_ssl):
+    """컨트롤러 메타 추출 — StorageControllers 인라인 우선, Controllers 서브링크 fallback."""
+    inline_ctrls = _safe(sdata, 'StorageControllers') or []
+    if inline_ctrls:
+        c = inline_ctrls[0]
+        return {
+            'controller_model':        _safe(c, 'Model'),
+            'controller_firmware':     _safe(c, 'FirmwareVersion'),
+            'controller_manufacturer': _safe(c, 'Manufacturer'),
+            'controller_health':       _safe(c, 'Status', 'Health'),
+        }
+    ctrl_link = _safe(sdata, 'Controllers', '@odata.id')
+    if not ctrl_link:
+        return {}
+    cst, ctrl_coll, cerr = _get(bmc_ip, _p(ctrl_link), username, password, timeout, verify_ssl)
+    if cerr or cst != 200:
+        return {}
+    ctrl_members = _safe(ctrl_coll, 'Members') or []
+    if not ctrl_members:
+        return {}
+    c_uri = _safe(ctrl_members[0], '@odata.id')
+    if not c_uri:
+        return {}
+    cst2, cdata, cerr2 = _get(bmc_ip, _p(c_uri), username, password, timeout, verify_ssl)
+    if cerr2 or cst2 != 200:
+        return {}
+    return {
+        'controller_model':        _safe(cdata, 'Model'),
+        'controller_firmware':     _safe(cdata, 'FirmwareVersion'),
+        'controller_manufacturer': _safe(cdata, 'Manufacturer'),
+        'controller_health':       _safe(cdata, 'Status', 'Health'),
+    }
+
+
+def _extract_storage_drives(sdata, bmc_ip, username, password, timeout, verify_ssl):
+    """Drives 추출 — Empty Bay 필터링 + 정규화."""
+    drives = []
+    errors = []
+    for d_member in (_safe(sdata, 'Drives') or []):
+        d_uri = _safe(d_member, '@odata.id')
+        if not d_uri:
+            continue
+        dst, ddata, derr = _get(bmc_ip, _p(d_uri), username, password, timeout, verify_ssl)
+        if derr or dst != 200:
+            errors.append(_err('storage', f'Drive {d_uri} 실패: {derr or dst}'))
+            continue
+        # Q-09: HPE Empty Bay 필터 — CapacityBytes가 없거나 Name에 "Empty" 포함 시 스킵
+        drive_name = _safe(ddata, 'Name') or ''
+        cap_int = _safe_int(_safe(ddata, 'CapacityBytes'), default=0)
+        if not cap_int:
+            continue
+        if 'empty' in drive_name.lower():
+            continue
+        # PredictedMediaLifeLeftPercent: HPE float / others int → normalize to int
+        life_pct = _safe(ddata, 'PredictedMediaLifeLeftPercent')
+        if life_pct is not None:
+            life_pct = _safe_int(life_pct)
+        drives.append({
+            'id':             _safe(ddata, 'Id'),
+            'name':           _safe(ddata, 'Name'),
+            'model':          _safe(ddata, 'Model'),
+            'serial':         _safe(ddata, 'SerialNumber'),
+            'manufacturer':   _safe(ddata, 'Manufacturer'),
+            'media_type':     _safe(ddata, 'MediaType'),
+            'protocol':       _safe(ddata, 'Protocol'),
+            'capacity_bytes': cap_int,
+            'capacity_gb':    round(cap_int / 1e9, 2) if cap_int else None,
+            'health':         _safe(ddata, 'Status', 'Health') or _safe(ddata, 'Status', 'HealthRollup'),
+            'failure_predicted':      _safe(ddata, 'FailurePredicted'),
+            'predicted_life_percent': life_pct,
+        })
+    return drives, errors
+
+
+def _extract_storage_volumes(sdata, controller_id, bmc_ip, username, password, timeout, verify_ssl):
+    """Volumes 추출 — RAID 정규화 + JBOD 필터링."""
+    volumes = []
+    errors = []
+    vol_link = _safe(sdata, 'Volumes', '@odata.id')
+    if not vol_link:
+        return volumes, errors
+    vst, vcoll, verr = _get(bmc_ip, _p(vol_link), username, password, timeout, verify_ssl)
+    if verr or vst != 200:
+        # Volumes 미지원(HBA 모드 등)은 정상 — 에러 추가하지 않음
+        return volumes, errors
+    raid_map = {
+        'NonRedundant': 'RAID0', 'Mirrored': 'RAID1',
+        'StripedWithParity': 'RAID5', 'SpannedMirrors': 'RAID10',
+        'SpannedStripesWithParity': 'RAID50',
+    }
+    for v_member in (_safe(vcoll, 'Members') or []):
+        v_uri = _safe(v_member, '@odata.id')
+        if not v_uri:
+            continue
+        vst2, vdata, verr2 = _get(bmc_ip, _p(v_uri), username, password, timeout, verify_ssl)
+        if verr2 or vst2 != 200:
+            errors.append(_err('storage', f'Volume {v_uri} 실패: {verr2 or vst2}'))
+            continue
+        # RAIDType 표준 우선, Dell VolumeType fallback
+        raid_type = _safe(vdata, 'RAIDType') or raid_map.get(_safe(vdata, 'VolumeType'))
+        # member_drive_ids: Links.Drives[]의 @odata.id에서 마지막 path segment
+        member_ids = [
+            d_oid.rstrip('/').rsplit('/', 1)[-1]
+            for d_link in (_safe(vdata, 'Links', 'Drives') or [])
+            for d_oid in [_safe(d_link, '@odata.id')] if d_oid
+        ]
+        # JBOD/pass-through 필터: Non-RAID 모드에서 물리 디스크를 개별 Volume으로 노출
+        vol_id = _safe(vdata, 'Id')
+        if raid_type is None and len(member_ids) == 1 and member_ids[0] == vol_id:
+            continue
+        vcap_int = _safe_int(_safe(vdata, 'CapacityBytes'))
+        volumes.append({
+            'id':               _safe(vdata, 'Id'),
+            'name':             _safe(vdata, 'Name'),
+            'controller_id':    controller_id,
+            'member_drive_ids': member_ids,
+            'raid_level':       raid_type,
+            'total_mb':         int(vcap_int / 1048576) if vcap_int else None,
+            'health':           _safe(vdata, 'Status', 'Health'),
+            'state':            _safe(vdata, 'Status', 'State'),
+            # nosec rule12-r1: Dell 전용 boot_volume 표시 (Redfish Oem.Dell namespace)
+            'boot_volume':      _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None  # nosec rule12-r1
+                                if _safe(vdata, 'Oem', 'Dell') else None,                                   # nosec rule12-r1
+        })
+    return volumes, errors
+
+
+def _gather_standard_storage(bmc_ip, members, username, password, timeout, verify_ssl):
+    """Storage 정규경로 — 컨트롤러 → 드라이브 → 볼륨 계층."""
+    controllers = []
+    volumes = []
+    errors = []
+    for member in members:
+        uri = _safe(member, '@odata.id')
+        if not uri:
+            continue
+        st, sdata, serr = _get(bmc_ip, _p(uri), username, password, timeout, verify_ssl)
+        if serr or st != 200:
+            errors.append(_err('storage', f'Storage {uri} 실패: {serr or st}'))
+            continue
+        ctrl_info = _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout, verify_ssl)
+        drives, d_errs = _extract_storage_drives(sdata, bmc_ip, username, password, timeout, verify_ssl)
+        errors.extend(d_errs)
+        ctrl_entry = {
+            'id':     _safe(sdata, 'Id'),
+            'name':   _safe(sdata, 'Name'),
+            'health': _safe(sdata, 'Status', 'Health') or _safe(sdata, 'Status', 'HealthRollup'),
+            'drives': drives,
+        }
+        ctrl_entry.update(ctrl_info)
+        controllers.append(ctrl_entry)
+        vols, v_errs = _extract_storage_volumes(sdata, _safe(sdata, 'Id'), bmc_ip, username, password, timeout, verify_ssl)
+        volumes.extend(vols)
+        errors.extend(v_errs)
+    return controllers, volumes, errors
+
+
 def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
+    """Storage 진입 — Storage → SimpleStorage fallback dispatcher."""
     path = _p(system_uri) + '/Storage'
     st, coll, err = _get(bmc_ip, path, username, password, timeout, verify_ssl)
     errors = []
@@ -586,181 +778,18 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
         if not err2 and st2 == 200:
             use_simple = True
             coll = coll2
-            errors.append(_err('storage', f'Storage 미지원, SimpleStorage fallback 사용'))
+            errors.append(_err('storage', 'Storage 미지원, SimpleStorage fallback 사용'))
         else:
             errors.append(_err('storage', f'Storage/SimpleStorage 모두 실패: {err or st}'))
             return {'controllers': [], 'volumes': []}, errors
 
-    controllers = []
-    volumes = []
-
+    members = _safe(coll, 'Members') or []
     if use_simple:
-        # SimpleStorage: 플랫 디바이스 목록 (컨트롤러/드라이브 분리 없음)
-        for member in (_safe(coll, 'Members') or []):
-            uri = _safe(member, '@odata.id')
-            if not uri: continue
-            st, sdata, serr = _get(bmc_ip, _p(uri), username, password, timeout, verify_ssl)
-            if serr or st != 200:
-                errors.append(_err('storage', f'SimpleStorage {uri} 실패: {serr or st}'))
-                continue
-            drives = []
-            for dev in (_safe(sdata, 'Devices') or []):
-                cap = _safe(dev, 'CapacityBytes')
-                cap_int = _safe_int(cap)
-                drives.append({
-                    'id':             None,
-                    'name':           _safe(dev, 'Name'),
-                    'model':          _safe(dev, 'Model'),
-                    'serial':         None,
-                    'manufacturer':   _safe(dev, 'Manufacturer'),
-                    'media_type':     None,
-                    'protocol':       None,
-                    'capacity_bytes': cap_int,
-                    'capacity_gb':    round(cap_int / 1e9, 2) if cap_int else None,
-                    'health':         _safe(dev, 'Status', 'Health'),
-                })
-            controllers.append({
-                'id': _safe(sdata, 'Id'), 'name': _safe(sdata, 'Name'),
-                'health': _safe(sdata, 'Status', 'Health'), 'drives': drives,
-            })
-    else:
-        # Storage: 컨트롤러 → 드라이브 계층 구조
-        for member in (_safe(coll, 'Members') or []):
-            uri = _safe(member, '@odata.id')
-            if not uri: continue
-            st, sdata, serr = _get(bmc_ip, _p(uri), username, password, timeout, verify_ssl)
-            if serr or st != 200:
-                errors.append(_err('storage', f'Storage {uri} 실패: {serr or st}'))
-                continue
-
-            # 컨트롤러 상세 정보 추출
-            # 1차: StorageControllers 인라인 배열 (Dell, Lenovo 등)
-            # 2차: Controllers 서브링크 (HPE Gen11 등 — 인라인 배열 없음)
-            ctrl_info = {}
-            inline_ctrls = _safe(sdata, 'StorageControllers') or []
-            if inline_ctrls:
-                c = inline_ctrls[0]
-                ctrl_info = {
-                    'controller_model':    _safe(c, 'Model'),
-                    'controller_firmware': _safe(c, 'FirmwareVersion'),
-                    'controller_manufacturer': _safe(c, 'Manufacturer'),
-                    'controller_health':   _safe(c, 'Status', 'Health'),
-                }
-            else:
-                ctrl_link = _safe(sdata, 'Controllers', '@odata.id')
-                if ctrl_link:
-                    cst, ctrl_coll, cerr = _get(bmc_ip, _p(ctrl_link), username, password, timeout, verify_ssl)
-                    if not cerr and cst == 200:
-                        ctrl_members = _safe(ctrl_coll, 'Members') or []
-                        if ctrl_members:
-                            c_uri = _safe(ctrl_members[0], '@odata.id')
-                            if c_uri:
-                                cst2, cdata, cerr2 = _get(bmc_ip, _p(c_uri), username, password, timeout, verify_ssl)
-                                if not cerr2 and cst2 == 200:
-                                    ctrl_info = {
-                                        'controller_model':    _safe(cdata, 'Model'),
-                                        'controller_firmware': _safe(cdata, 'FirmwareVersion'),
-                                        'controller_manufacturer': _safe(cdata, 'Manufacturer'),
-                                        'controller_health':   _safe(cdata, 'Status', 'Health'),
-                                    }
-
-            drives = []
-            for d_member in (_safe(sdata, 'Drives') or []):
-                d_uri = _safe(d_member, '@odata.id')
-                if not d_uri: continue
-                dst, ddata, derr = _get(bmc_ip, _p(d_uri), username, password, timeout, verify_ssl)
-                if derr or dst != 200:
-                    errors.append(_err('storage', f'Drive {d_uri} 실패: {derr or dst}'))
-                    continue
-                # Q-09: HPE Empty Bay 필터 — CapacityBytes가 없거나 Name에 "Empty" 포함 시 스킵
-                cap = _safe(ddata, 'CapacityBytes')
-                drive_name = _safe(ddata, 'Name') or ''
-                cap_int = _safe_int(cap, default=0)
-                if not cap_int:
-                    continue
-                if 'empty' in drive_name.lower():
-                    continue
-                # PredictedMediaLifeLeftPercent: HPE returns float, others int → normalize to int
-                life_pct = _safe(ddata, 'PredictedMediaLifeLeftPercent')
-                if life_pct is not None:
-                    life_pct = _safe_int(life_pct)
-                drives.append({
-                    'id':             _safe(ddata, 'Id'),
-                    'name':           _safe(ddata, 'Name'),
-                    'model':          _safe(ddata, 'Model'),
-                    'serial':         _safe(ddata, 'SerialNumber'),
-                    'manufacturer':   _safe(ddata, 'Manufacturer'),
-                    'media_type':     _safe(ddata, 'MediaType'),
-                    'protocol':       _safe(ddata, 'Protocol'),
-                    'capacity_bytes': cap_int,
-                    'capacity_gb':    round(cap_int / 1e9, 2) if cap_int else None,
-                    'health':         _safe(ddata, 'Status', 'Health') or _safe(ddata, 'Status', 'HealthRollup'),
-                    'failure_predicted':       _safe(ddata, 'FailurePredicted'),
-                    'predicted_life_percent':  life_pct,
-                })
-            ctrl_entry = {
-                'id': _safe(sdata, 'Id'), 'name': _safe(sdata, 'Name'),
-                'health': _safe(sdata, 'Status', 'Health') or _safe(sdata, 'Status', 'HealthRollup'),
-                'drives': drives,
-            }
-            ctrl_entry.update(ctrl_info)
-            controllers.append(ctrl_entry)
-
-            # ── Volumes (RAID 논리 볼륨) ──────────────────────────────────
-            vol_link = _safe(sdata, 'Volumes', '@odata.id')
-            if not vol_link:
-                continue
-            vst, vcoll, verr = _get(bmc_ip, _p(vol_link), username, password, timeout, verify_ssl)
-            if verr or vst != 200:
-                # Volumes 미지원(HBA 모드 등)은 정상 — 에러 추가하지 않음
-                continue
-            for v_member in (_safe(vcoll, 'Members') or []):
-                v_uri = _safe(v_member, '@odata.id')
-                if not v_uri:
-                    continue
-                vst2, vdata, verr2 = _get(bmc_ip, _p(v_uri), username, password, timeout, verify_ssl)
-                if verr2 or vst2 != 200:
-                    errors.append(_err('storage', f'Volume {v_uri} 실패: {verr2 or vst2}'))
-                    continue
-                # RAIDType 추출 (표준 필드 우선, Dell VolumeType fallback)
-                raid_type = _safe(vdata, 'RAIDType')
-                if not raid_type:
-                    vt = _safe(vdata, 'VolumeType')
-                    vt_map = {
-                        'NonRedundant': 'RAID0', 'Mirrored': 'RAID1',
-                        'StripedWithParity': 'RAID5', 'SpannedMirrors': 'RAID10',
-                        'SpannedStripesWithParity': 'RAID50',
-                    }
-                    raid_type = vt_map.get(vt)
-                # member_drive_ids: Links.Drives[]의 @odata.id에서 마지막 path segment 추출
-                member_ids = []
-                for d_link in (_safe(vdata, 'Links', 'Drives') or []):
-                    d_oid = _safe(d_link, '@odata.id')
-                    if d_oid:
-                        member_ids.append(d_oid.rstrip('/').rsplit('/', 1)[-1])
-                # JBOD/pass-through 필터: 컨트롤러가 Non-RAID 모드일 때
-                # 물리 디스크를 개별 Volume으로 노출하는 패턴 감지.
-                # 조건: RAID 타입 없음 + 드라이브 1개 + Volume ID == Drive ID.
-                vol_id = _safe(vdata, 'Id')
-                if (raid_type is None
-                        and len(member_ids) == 1
-                        and member_ids[0] == vol_id):
-                    continue
-                vcap = _safe(vdata, 'CapacityBytes')
-                vcap_int = _safe_int(vcap)
-                volumes.append({
-                    'id':               _safe(vdata, 'Id'),
-                    'name':             _safe(vdata, 'Name'),
-                    'controller_id':    _safe(sdata, 'Id'),
-                    'member_drive_ids': member_ids,
-                    'raid_level':       raid_type,
-                    'total_mb':         int(vcap_int / 1048576) if vcap_int else None,
-                    'health':           _safe(vdata, 'Status', 'Health'),
-                    'state':            _safe(vdata, 'Status', 'State'),
-                    # nosec rule12-r1: Dell 전용 boot_volume 표시 (Redfish Oem.Dell namespace)
-                    'boot_volume':      _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None  # nosec rule12-r1
-                                        if _safe(vdata, 'Oem', 'Dell') else None,                                   # nosec rule12-r1
-                })
+        controllers, sub_errors = _gather_simple_storage(bmc_ip, members, username, password, timeout, verify_ssl)
+        errors.extend(sub_errors)
+        return {'controllers': controllers, 'volumes': []}, errors
+    controllers, volumes, sub_errors = _gather_standard_storage(bmc_ip, members, username, password, timeout, verify_ssl)
+    errors.extend(sub_errors)
     return {'controllers': controllers, 'volumes': volumes}, errors
 
 

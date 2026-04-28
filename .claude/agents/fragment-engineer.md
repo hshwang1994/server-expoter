@@ -13,7 +13,7 @@ model: sonnet
 
 각 gather가 자기 fragment만 만들고 다른 gather의 fragment를 침범하지 않는지 자동 검증.
 
-1. fragment 변수 (`_data_fragment`, `_sections_<name>_supported_fragment`, `_errors_fragment`) 침범 패턴 검출
+1. fragment 변수 (5 공통: `_data_fragment`, `_sections_{supported,collected,failed}_fragment`, `_errors_fragment`) 침범 패턴 검출
 2. 누적 변수 (`_collected_data` / `_supported_sections` / `_collected_errors`) 직접 수정 감지
 3. `merge_fragment.yml` 호출 누락 검증
 4. fragment 변수 명명 / 타입 정합

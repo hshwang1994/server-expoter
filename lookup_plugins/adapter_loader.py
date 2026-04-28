@@ -50,6 +50,94 @@ import sys
 display = Display()
 
 
+def _resolve_repo_root(kwargs, variables):
+    """repo_root 결정 — kwargs / 환경변수 / Ansible variables 순."""
+    repo_root = kwargs.get("repo_root", "") or os.environ.get("REPO_ROOT", "")
+    if not repo_root and variables:
+        repo_root = variables.get("REPO_ROOT", "")
+    if not repo_root:
+        raise AnsibleError(
+            "adapter_loader: REPO_ROOT를 결정할 수 없습니다. "
+            "repo_root 파라미터 또는 REPO_ROOT 환경변수를 설정하세요."
+        )
+    return repo_root
+
+
+def _import_adapter_common(repo_root):
+    """module_utils 경로 추가 후 adapter_common import."""
+    module_utils_path = os.path.join(repo_root, "module_utils")
+    if module_utils_path not in sys.path:
+        sys.path.insert(0, module_utils_path)
+    try:
+        from adapter_common import (  # noqa: WPS433 (runtime path import)
+            load_vendor_aliases,
+            normalize_vendor,
+            adapter_matches,
+            adapter_score,
+        )
+    except ImportError:
+        raise AnsibleError(
+            "adapter_loader: module_utils/adapter_common.py를 "
+            "import할 수 없습니다. REPO_ROOT={0}".format(repo_root)
+        )
+    return load_vendor_aliases, normalize_vendor, adapter_matches, adapter_score
+
+
+def _scan_adapters(adapter_dir):
+    """adapter 디렉터리 스캔 → list of dict (_source_file, _filename 포함)."""
+    if not os.path.isdir(adapter_dir):
+        raise AnsibleError(
+            "adapter_loader: adapter 디렉토리를 찾을 수 없습니다: {0}".format(adapter_dir)
+        )
+    adapters = []
+    for path in sorted(glob.glob(os.path.join(adapter_dir, "*.yml"))):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            data["_source_file"] = path
+            data["_filename"] = os.path.basename(path)
+            adapters.append(data)
+        except Exception as e:
+            display.warning(
+                "adapter_loader: {0} 로드 실패: {1}".format(path, str(e))
+            )
+    if not adapters:
+        raise AnsibleError(
+            "adapter_loader: {0} 디렉토리에 adapter YAML이 없습니다.".format(adapter_dir)
+        )
+    return adapters
+
+
+def _match_and_score(adapters, facts, aliases, adapter_matches, adapter_score):
+    """각 adapter의 match 평가 + 점수 계산. matched=[(score, adapter), ...]."""
+    matched = []
+    for adapter in adapters:
+        if adapter_matches(adapter, facts, aliases):
+            score = adapter_score(adapter, facts, aliases)
+            if score > -9999:
+                matched.append((score, adapter))
+                display.vvv(
+                    "adapter_loader: {0} matched (score={1})".format(
+                        adapter.get("adapter_id", adapter.get("_filename")),
+                        score,
+                    )
+                )
+    return matched
+
+
+def _pick_generic_fallback(adapters):
+    """generic 플래그 적용된 adapter 반환 (없으면 None)."""
+    for adapter in adapters:
+        if adapter.get("generic", False):
+            display.v(
+                "adapter_loader: generic fallback 사용: {0}".format(
+                    adapter.get("adapter_id")
+                )
+            )
+            return adapter
+    return None
+
+
 class LookupModule(LookupBase):
     def run(self, terms, variables=None, **kwargs):
         channel = kwargs.get("channel")
@@ -57,99 +145,22 @@ class LookupModule(LookupBase):
             raise AnsibleError("adapter_loader: 'channel' 파라미터가 필요합니다.")
 
         facts = kwargs.get("facts", {}) or {}
-
-        # repo_root 결정
-        repo_root = kwargs.get("repo_root", "")
-        if not repo_root:
-            repo_root = os.environ.get("REPO_ROOT", "")
-        if not repo_root:
-            # Ansible 변수에서 시도
-            if variables:
-                repo_root = variables.get("REPO_ROOT", "")
-        if not repo_root:
-            raise AnsibleError(
-                "adapter_loader: REPO_ROOT를 결정할 수 없습니다. "
-                "repo_root 파라미터 또는 REPO_ROOT 환경변수를 설정하세요."
-            )
-
-        # module_utils 경로를 sys.path에 추가
-        module_utils_path = os.path.join(repo_root, "module_utils")
-        if module_utils_path not in sys.path:
-            sys.path.insert(0, module_utils_path)
-
-        # adapter_common import
-        try:
-            from adapter_common import (
-                load_vendor_aliases,
-                normalize_vendor,
-                adapter_matches,
-                adapter_score,
-            )
-        except ImportError:
-            raise AnsibleError(
-                "adapter_loader: module_utils/adapter_common.py를 "
-                "import할 수 없습니다. REPO_ROOT={0}".format(repo_root)
-            )
-
-        # vendor_aliases 로드
-        aliases_path = os.path.join(
-            repo_root, "common", "vars", "vendor_aliases.yml"
+        repo_root = _resolve_repo_root(kwargs, variables)
+        load_vendor_aliases, _normalize_vendor, adapter_matches, adapter_score = (
+            _import_adapter_common(repo_root)
         )
+
+        aliases_path = os.path.join(repo_root, "common", "vars", "vendor_aliases.yml")
         aliases = load_vendor_aliases(aliases_path)
 
-        # adapter 디렉토리 스캔
         adapter_dir = os.path.join(repo_root, "adapters", channel)
-        if not os.path.isdir(adapter_dir):
-            raise AnsibleError(
-                "adapter_loader: adapter 디렉토리를 찾을 수 없습니다: "
-                "{0}".format(adapter_dir)
-            )
+        adapters = _scan_adapters(adapter_dir)
 
-        adapters = []
-        for path in sorted(glob.glob(os.path.join(adapter_dir, "*.yml"))):
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    data = yaml.safe_load(f) or {}
-                data["_source_file"] = path
-                data["_filename"] = os.path.basename(path)
-                adapters.append(data)
-            except Exception as e:
-                display.warning(
-                    "adapter_loader: {0} 로드 실패: {1}".format(path, str(e))
-                )
-
-        if not adapters:
-            raise AnsibleError(
-                "adapter_loader: {0} 디렉토리에 adapter YAML이 없습니다.".format(
-                    adapter_dir
-                )
-            )
-
-        # match 평가
-        matched = []
-        for adapter in adapters:
-            if adapter_matches(adapter, facts, aliases):
-                score = adapter_score(adapter, facts, aliases)
-                if score > -9999:
-                    matched.append((score, adapter))
-                    display.vvv(
-                        "adapter_loader: {0} matched (score={1})".format(
-                            adapter.get("adapter_id", adapter.get("_filename")),
-                            score,
-                        )
-                    )
-
+        matched = _match_and_score(adapters, facts, aliases, adapter_matches, adapter_score)
         if not matched:
-            # generic fallback 검색
-            for adapter in adapters:
-                if adapter.get("generic", False):
-                    display.v(
-                        "adapter_loader: generic fallback 사용: {0}".format(
-                            adapter.get("adapter_id")
-                        )
-                    )
-                    return [adapter]
-
+            fallback = _pick_generic_fallback(adapters)
+            if fallback is not None:
+                return [fallback]
             raise AnsibleError(
                 "adapter_loader: channel={0}에 매칭되는 adapter가 없습니다. "
                 "facts={1}".format(channel, facts)

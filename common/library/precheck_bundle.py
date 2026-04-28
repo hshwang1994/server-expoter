@@ -73,17 +73,12 @@ author:
 """
 
 from ansible.module_utils.basic import AnsibleModule
+import base64
+import json
 import socket
 import ssl
-import json
-
-# requests는 선택적 의존성
-try:
-    import requests
-    from requests.auth import HTTPBasicAuth
-    HAS_REQUESTS = True
-except ImportError:
-    HAS_REQUESTS = False
+import urllib.error
+import urllib.request
 
 
 # =============================================================================
@@ -123,77 +118,55 @@ def tcp_check(host, port, timeout):
             pass
 
 
+def _build_ssl_context(verify):
+    """HTTPS context — verify=False 시 self-signed BMC 인증서 허용."""
+    ctx = ssl.create_default_context()
+    if not verify:
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    return ctx
+
+
+def _basic_auth_header(auth):
+    """auth=(user, pass) → 'Basic ...' 헤더 값."""
+    if not auth:
+        return None
+    credentials = base64.b64encode(
+        "{0}:{1}".format(auth[0], auth[1]).encode()
+    ).decode()
+    return "Basic " + credentials
+
+
 def http_get(url, timeout, verify=False, auth=None):
-    """HTTP GET 요청 수행"""
-    if not HAS_REQUESTS:
-        # requests 없을 때 기본 urllib 사용
+    """HTTP GET — urllib stdlib 단일 경로 (외부 의존 없음).
+
+    반환: (ok, err, payload) — payload={'status_code': int, 'json': dict|None}
+    """
+    ctx = _build_ssl_context(verify)
+    req = urllib.request.Request(url)
+    auth_header = _basic_auth_header(auth)
+    if auth_header:
+        req.add_header("Authorization", auth_header)
+    try:
+        resp = urllib.request.urlopen(req, timeout=timeout, context=ctx)
+        body = resp.read().decode("utf-8", errors="replace")
         try:
-            import urllib.request
-            import urllib.error
-
-            ctx = ssl.create_default_context()
-            if not verify:
-                ctx.check_hostname = False
-                ctx.verify_mode = ssl.CERT_NONE
-
-            req = urllib.request.Request(url)
-            if auth:
-                import base64
-                credentials = base64.b64encode(
-                    "{0}:{1}".format(auth[0], auth[1]).encode()
-                ).decode()
-                req.add_header("Authorization", "Basic " + credentials)
-
-            resp = urllib.request.urlopen(req, timeout=timeout, context=ctx)
-            body = resp.read().decode("utf-8", errors="replace")
-            status_code = resp.getcode()
-
-            try:
-                json_body = json.loads(body)
-            except (ValueError, json.JSONDecodeError):
-                json_body = None
-
-            return True, None, {
-                "status_code": status_code,
-                "json": json_body,
-            }
-        except urllib.error.HTTPError as e:
-            return False, "HTTP {0}".format(e.code), {
-                "status_code": e.code,
-                "json": None,
-            }
-        except Exception as e:
-            return False, str(e), None
-    else:
-        try:
-            auth_obj = HTTPBasicAuth(auth[0], auth[1]) if auth else None
-            resp = requests.get(
-                url,
-                timeout=timeout,
-                verify=verify,
-                auth=auth_obj,
-            )
-            try:
-                json_body = resp.json()
-            except (ValueError, json.JSONDecodeError):
-                json_body = None
-
-            if resp.status_code >= 400:
-                return False, "HTTP {0}".format(resp.status_code), {
-                    "status_code": resp.status_code,
-                    "json": json_body,
-                }
-
-            return True, None, {
-                "status_code": resp.status_code,
-                "json": json_body,
-            }
-        except requests.exceptions.Timeout:
-            return False, "요청 시간 초과 (timeout={0}s)".format(timeout), None
-        except requests.exceptions.ConnectionError as e:
-            return False, "연결 실패: {0}".format(str(e)[:200]), None
-        except Exception as e:
-            return False, str(e)[:200], None
+            json_body = json.loads(body)
+        except (ValueError, json.JSONDecodeError):
+            json_body = None
+        return True, None, {"status_code": resp.getcode(), "json": json_body}
+    except urllib.error.HTTPError as e:
+        return False, "HTTP {0}".format(e.code), {
+            "status_code": e.code,
+            "json": None,
+        }
+    except socket.timeout:
+        return False, "요청 시간 초과 (timeout={0}s)".format(timeout), None
+    except urllib.error.URLError as e:
+        # ConnectionRefusedError / SSL handshake / DNS 등 묶음
+        return False, "연결 실패: {0}".format(str(e.reason)[:200]), None
+    except (ssl.SSLError, OSError) as e:
+        return False, str(e)[:200], None
 
 
 def ssh_banner_check(host, port, timeout):
@@ -271,6 +244,91 @@ def probe_esxi(host, port, timeout, verify=False):
     return False, err, None
 
 
+def _init_result(channel, ports):
+    """precheck result dict 초기화 (OS 채널 추가 필드 포함)."""
+    result = {
+        "changed": False,
+        "reachable": False,
+        "port_open": False,
+        "protocol_supported": False,
+        "auth_success": None,
+        "failure_stage": None,
+        "failure_reason": None,
+        "detail": None,
+        "checked_ports": ports,
+        "selected_port": None,
+        "probe_facts": {},
+    }
+    if channel == "os":
+        result["detected_os"] = None
+        result["detected_port"] = None
+        result["winrm_scheme"] = None
+    return result
+
+
+def _check_ports(host, ports, timeout_port):
+    """Stage 1+2: 포트 순회 → (any_response, target_port_open, open_port, port_errors)."""
+    any_response = False
+    target_port_open = False
+    open_port = None
+    port_errors = []
+    for port in ports:
+        ok, err = tcp_check(host, port, timeout_port)
+        if ok:
+            any_response = True
+            target_port_open = True
+            open_port = port
+            break
+        # ConnectionRefusedError → host alive 이지만 port 닫힘
+        if err and ("거부" in err or "refused" in err.lower()):
+            any_response = True
+        port_errors.append("port={0}: {1}".format(port, err))
+    return any_response, target_port_open, open_port, port_errors
+
+
+def _detect_os_from_port(open_port):
+    """OS 채널: 포트 기반 OS 유형 + WinRM scheme 판별."""
+    if open_port == 22:
+        return "linux", None
+    if open_port in (5985, 5986):
+        return "windows", "https" if open_port == 5986 else "http"
+    return None, None
+
+
+def _probe_protocol(channel, host, open_port, timeout_proto, verify_ssl):
+    """Stage 3 dispatcher — channel별 probe_* 호출."""
+    if channel == "redfish":
+        return probe_redfish(host, open_port, timeout_proto, verify=verify_ssl)
+    if channel == "os":
+        return probe_os(host, open_port, timeout_proto)
+    if channel == "esxi":
+        return probe_esxi(host, open_port, timeout_proto, verify=verify_ssl)
+    return False, "알 수 없는 채널: {0}".format(channel), None
+
+
+def _try_redfish_auth(host, open_port, username, password, timeout_auth, verify_ssl, result):
+    """Stage 4 — Redfish Systems 호출로 인증 확인 + vendor hint 추출. 실패 시 result 업데이트만."""
+    url = "https://{0}:{1}/redfish/v1/Systems".format(host, open_port)
+    ok, err, payload = http_get(
+        url, timeout_auth, verify=verify_ssl, auth=(username, password)
+    )
+    if not ok:
+        result["auth_success"] = False
+        result["failure_stage"] = "auth"
+        result["failure_reason"] = (
+            "BMC 인증 실패: 사용자명 또는 비밀번호를 확인하세요."
+        )
+        result["detail"] = err
+        return False
+    result["auth_success"] = True
+    json_data = payload.get("json") if payload else None
+    if json_data:
+        members = json_data.get("Members", [])
+        if members:
+            result["probe_facts"]["first_system_uri"] = members[0].get("@odata.id", "")
+    return True
+
+
 def run_module():
     module = AnsibleModule(
         argument_spec=dict(
@@ -293,54 +351,13 @@ def run_module():
     channel = module.params["channel"]
     ports = module.params["ports"] or CHANNEL_DEFAULT_PORTS.get(channel, [])
     verify_ssl = module.params["verify_ssl"]
+    result = _init_result(channel, ports)
 
-    result = {
-        "changed": False,
-        "reachable": False,
-        "port_open": False,
-        "protocol_supported": False,
-        "auth_success": None,
-        "failure_stage": None,
-        "failure_reason": None,
-        "detail": None,
-        "checked_ports": ports,
-        "selected_port": None,
-        "probe_facts": {},
-    }
-
-    # OS 채널 추가 정보
-    if channel == "os":
-        result["detected_os"] = None
-        result["detected_port"] = None
-        result["winrm_scheme"] = None
-
-    # =========================================================================
-    # Stage 1+2: reachable (host alive) + port_open (service port listening)
-    # rule 27 R2 — Stage 분리:
-    #   Stage 1 ping = TCP SYN 으로 host 도달 가능성 (timeout vs refused 구분)
-    #   Stage 2 port = target_type별 service port 응답
-    # =========================================================================
-    any_response = False  # 어떤 포트라도 응답 (refused 포함 → host alive)
-    target_port_open = False
-    open_port = None
-    port_errors = []
-
-    for port in ports:
-        ok, err = tcp_check(host, port, module.params["timeout_port"])
-        if ok:
-            any_response = True
-            target_port_open = True
-            open_port = port
-            break
-        # ConnectionRefusedError → host alive 이지만 port 닫힘
-        if err and ("거부" in err or "refused" in err.lower()):
-            any_response = True
-        port_errors.append("port={0}: {1}".format(port, err))
-
+    # Stage 1+2: reachable + port_open (rule 27 R2 — host alive 분리)
+    any_response, target_port_open, open_port, port_errors = _check_ports(
+        host, ports, module.params["timeout_port"]
+    )
     if not any_response:
-        # Stage 1 fail: host 자체가 응답 안 함 (all timeout)
-        result["reachable"] = False
-        result["port_open"] = False
         result["failure_stage"] = "reachable"
         result["failure_reason"] = (
             "대상 호스트에 연결할 수 없습니다. "
@@ -348,11 +365,8 @@ def run_module():
         )
         result["detail"] = "; ".join(port_errors)
         module.exit_json(**result)
-
     if not target_port_open:
-        # Stage 2 fail: host 응답하지만 service port 닫힘 (refused)
         result["reachable"] = True
-        result["port_open"] = False
         result["failure_stage"] = "port"
         result["failure_reason"] = (
             "호스트는 응답하지만 서비스 포트가 닫혀 있습니다. "
@@ -365,91 +379,37 @@ def run_module():
     result["port_open"] = True
     result["selected_port"] = open_port
 
-    # OS 채널: 포트 기반 OS 유형 판별
     if channel == "os":
-        if open_port == 22:
-            result["detected_os"] = "linux"
-        elif open_port in (5985, 5986):
-            result["detected_os"] = "windows"
-            result["winrm_scheme"] = "https" if open_port == 5986 else "http"
+        os_type, scheme = _detect_os_from_port(open_port)
+        result["detected_os"] = os_type
+        result["winrm_scheme"] = scheme
         result["detected_port"] = open_port
 
-    # =========================================================================
-    # Stage 3: protocol_supported (프로토콜 핸드셰이크)
-    # =========================================================================
-    timeout_proto = module.params["timeout_protocol"]
-
-    if channel == "redfish":
-        ok, err, facts = probe_redfish(
-            host, open_port, timeout_proto, verify=verify_ssl
-        )
-    elif channel == "os":
-        ok, err, facts = probe_os(host, open_port, timeout_proto)
-    elif channel == "esxi":
-        ok, err, facts = probe_esxi(
-            host, open_port, timeout_proto, verify=verify_ssl
-        )
-    else:
-        ok, err, facts = False, "알 수 없는 채널: {0}".format(channel), None
-
+    # Stage 3: protocol_supported
+    ok, err, facts = _probe_protocol(
+        channel, host, open_port, module.params["timeout_protocol"], verify_ssl
+    )
     if not ok:
-        result["protocol_supported"] = False
         result["failure_stage"] = "protocol"
         result["failure_reason"] = CHANNEL_PROTOCOL_MESSAGES.get(
             channel, "프로토콜 확인 실패"
         )
         result["detail"] = err
         module.exit_json(**result)
-
     result["protocol_supported"] = True
     if facts:
         result["probe_facts"].update(facts)
 
-    # =========================================================================
-    # Stage 4: auth_success (인증 시도 — 선택적)
-    # =========================================================================
+    # Stage 4: auth_success (인증 정보 있을 때만)
     username = module.params.get("username")
     password = module.params.get("password")
-    timeout_auth = module.params["timeout_auth"]
-
-    if username and password:
-        if channel == "redfish":
-            # Redfish: Systems 목록 접근으로 인증 확인
-            url = "https://{0}:{1}/redfish/v1/Systems".format(host, open_port)
-            ok, err, payload = http_get(
-                url,
-                timeout_auth,
-                verify=verify_ssl,
-                auth=(username, password),
-            )
-            if ok:
-                result["auth_success"] = True
-                # Systems 응답에서 벤더 힌트 추출 시도
-                json_data = payload.get("json") if payload else None
-                if json_data:
-                    members = json_data.get("Members", [])
-                    if members:
-                        first_uri = members[0].get("@odata.id", "")
-                        result["probe_facts"]["first_system_uri"] = first_uri
-            else:
-                result["auth_success"] = False
-                result["failure_stage"] = "auth"
-                result["failure_reason"] = (
-                    "BMC 인증 실패: 사용자명 또는 비밀번호를 확인하세요."
-                )
-                result["detail"] = err
-                module.exit_json(**result)
-
-        elif channel == "esxi":
-            # ESXi: SOAP endpoint에 인증 시도
-            result["auth_success"] = None  # vSphere 모듈이 별도 처리
-
-        elif channel == "os":
-            # OS: SSH/WinRM 인증은 Ansible 자체가 처리
-            result["auth_success"] = None
-    else:
-        # 인증 정보 없으면 스킵
-        result["auth_success"] = None
+    if username and password and channel == "redfish":
+        if not _try_redfish_auth(
+            host, open_port, username, password,
+            module.params["timeout_auth"], verify_ssl, result
+        ):
+            module.exit_json(**result)
+    # esxi/os 인증은 Ansible 본체 모듈이 처리 → auth_success는 None 유지
 
     module.exit_json(**result)
 

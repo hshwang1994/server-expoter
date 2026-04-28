@@ -202,7 +202,7 @@ server-exporter/ (프로젝트 루트)
 ### Fragment 추가 체크리스트
 
 - [ ] `gather_*.yml` 또는 `collect_*.yml` 작성 (raw 수집)
-- [ ] Fragment 변수 생성 (`_data_fragment`, `_sections_<name>_supported_fragment`, `_errors_fragment`)
+- [ ] Fragment 변수 생성 (5 공통 변수: `_data_fragment`, `_sections_supported_fragment`, `_sections_collected_fragment`, `_sections_failed_fragment`, `_errors_fragment` — 변수 이름은 모든 gather가 동일, 값으로 자기 섹션을 채움)
 - [ ] `normalize_*.yml` 또는 `common/tasks/normalize/build_*.yml` 작성
 - [ ] `merge_fragment.yml` 호출 확인 (각 gather 후)
 - [ ] `common/vars/supported_sections.yml` 업데이트
@@ -215,20 +215,29 @@ server-exporter/ (프로젝트 루트)
 
 ### Critical: Fragment 철학 지키기
 
-**WRONG** - 다른 gather의 fragment 수정:
+**WRONG** - 누적 변수를 직접 수정:
 ```yaml
-- name: 다른 섹션의 fragment 수정 (금지!)
+- name: 누적 변수 직접 수정 (금지! merge_fragment.yml 영역)
   set_fact:
-    _sections_memory_collected_fragment: [...]
+    _collected_data: "{{ _collected_data | combine(...) }}"
 ```
 
-**CORRECT** - 자신의 fragment만:
+**WRONG** - 다른 gather의 섹션을 자기 fragment에 포함:
+```yaml
+- name: cpu gather에서 memory도 추가 (금지!)
+  set_fact:
+    _sections_collected_fragment: ['cpu', 'memory']  # memory는 다른 gather 영역
+```
+
+**CORRECT** - 자신의 fragment만 (5 공통 변수):
 ```yaml
 - name: 자신의 fragment 생성
   set_fact:
     _data_fragment:
       cpu: {...}
-    _sections_cpu_collected_fragment: ['cpu']
+    _sections_supported_fragment: ['cpu']
+    _sections_collected_fragment: ['cpu']
+    _sections_failed_fragment: []
 ```
 
 ### High: Adapter 점수 계산

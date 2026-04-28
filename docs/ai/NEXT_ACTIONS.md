@@ -1,8 +1,15 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-28 (full-sweep 잔여 후 갱신)
+## 일자: 2026-04-28 (cycle-007 후 갱신)
 
-## 완료 항목 (full-sweep 잔여 — 이번 세션)
+## 완료 항목 (cycle-007 — 4축 검수 + HIGH 4 일괄)
+
+- [x] **#1 redfish_gather.py `gather_storage()` 190줄 분리** — 5 함수 분리 (logic 동일, signature 동일, pytest 95/95 PASS)
+- [x] **#2 rule 22 R7 텍스트 정정** — 5 공통 fragment 변수 명명 (`_data_fragment` + `_sections_{supported,collected,failed}_fragment` + `_errors_fragment`) 8 파일 일괄 갱신
+- [x] **#3 precheck_bundle.py `run_module()` 181줄 + adapter_loader.py `LookupModule.run()` 115줄 분리** — 6+5 헬퍼 함수 추출
+- [x] **#4 precheck_bundle.py `requests` 의존 제거** — urllib stdlib 단일 경로 통일 + 에러 분류 강화
+
+## 완료 항목 (full-sweep 잔여 — 이전 세션)
 
 - [x] **T2-B2**: `verify_harness_consistency.py` FORBIDDEN_WORDS default 활성화 (`--no-forbidden-check`로 비활성)
 - [x] **T2-C2**: `precheck_bundle.py` Stage 1 (reachable) ↔ Stage 2 (port_open) 분리 + ConnectionRefusedError 시 host alive 판정
@@ -47,7 +54,25 @@
 - [ ] **새 vendor 추가** (Huawei iBMC / NEC / Inspur 등) — PO 결정 + 실장비
 - [ ] **Round 11 실장비 검증** — 새 펌웨어 / 새 모델 (probe-redfish-vendor) — 실장비 + Round 일정
 
-## P2 — cycle-007 AI 자체 가능 (운영 정책 결정 대기 외 잔여 거의 없음)
+## P2 — cycle-008 AI 자체 가능 (cycle-007 4축 검수 잔여 MED/LOW)
+
+### 구조 (MED)
+- [ ] **redfish_gather.py 추가 함수 분리** — gather_system 100줄 / detect_vendor 64줄 / main 67줄 → rule 10 R3 정합
+- [ ] **os-gather/tasks/linux/gather_system.yml 346줄 분리** — identifier_diagnostics → 별도 normalize task
+- [ ] **adapters/redfish/hpe_ilo5.yml + hpe_ilo6.yml priority 차등** (90/100) — 정렬 결정성
+
+### 품질 (MED)
+- [ ] **callback_plugins/json_only.py `_emit()` silent `pass` 보강** — json.loads 실패 시 stderr 경고
+- [ ] **adapter_loader score 동률 정렬 문서화** — Python list sort stable + glob 알파벳 의존 명시
+
+### 품질 (LOW)
+- [ ] redfish_gather.py:757 `int(vcap_int / 1048576)` `_safe_int` 패턴 통일
+- [ ] redfish_gather.py docstring `(Dell/HPE/Lenovo/Supermicro)` Cisco 누락
+
+### 벤더 (MED/LOW)
+- [ ] **Cisco OEM gather_system 분기 누락 확인** — silent `oem={}` 의도 vs 미구현
+- [ ] adapters/redfish/lenovo_imm2.yml `tested_against` 펌웨어 명시
+- [ ] adapters/redfish/cisco_cimc.yml 세대(M4/M5/M6) 차등 검토
 
 ### 운영 / 정책
 - [ ] **incoming-review hook 실 환경 테스트** — 다음 git merge 시 `docs/ai/incoming-review/<날짜>-<sha>.md` 자동 생성 확인
