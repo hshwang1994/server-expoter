@@ -3,9 +3,15 @@
 # Vendor: Dell Inc. / Dell EMC
 # Firmware: iDRAC 9 — 4.x / 5.x / 6.x / 7.x
 # Origin: Dell support.dell.com / Redfish API guide (iDRAC 9)
-# Last sync: 2026-04-28 (full-sweep)
+# Last sync: 2026-04-28 (Round 11 reference 수집)
 # Notes: PowerEdge 14G/15G/16G. Storage Volumes 5.x+ 표준.
-# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# Tested against (실측 2026-04-28, Round 11):
+#   - PowerEdge R760 (16G Monolithic) × 5대 (10.100.15.27/28/31/33/34)
+#   - iDRAC FirmwareVersion: 7.10.70.00
+#   - BIOS: 2.3.5
+#   - Redfish: 1.20.1
+#   - CPU: Intel Xeon Silver 4510
+#   - 데이터 경로: tests/reference/redfish/dell/10_100_15_*
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_dell_idrac9
 channel: redfish

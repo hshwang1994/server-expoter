@@ -1,0 +1,4 @@
+# command: esxcli hardware bootdevice list
+# rc: 0
+# fetched: 2026-04-28T06:44:49.385215+00:00
+#

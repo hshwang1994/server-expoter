@@ -1,0 +1,6 @@
+# command: esxcli hardware trustedboot get
+# rc: 0
+# fetched: 2026-04-28T06:44:50.233557+00:00
+#
+   Drtm Enabled: false
+   Tpm Present: true

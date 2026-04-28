@@ -1,0 +1,5 @@
+# command: vim-cmd hostsvc/service/status_all 2>&1
+# rc: 1
+# fetched: 2026-04-28T06:45:33.209316+00:00
+#
+Invalid command 'hostsvc/service/status_all'.

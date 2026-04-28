@@ -1,0 +1,4 @@
+# command: esxcli nvme controller list; esxcli nvme namespace list
+# rc: 0
+# fetched: 2026-04-28T06:44:56.700434+00:00
+#

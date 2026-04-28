@@ -1,0 +1,206 @@
+{
+  "target": "agent-10.100.64.155",
+  "ip": "10.100.64.155",
+  "role": "agent",
+  "started_at": "2026-04-28T06:44:42.466495+00:00",
+  "commands": [
+    {
+      "name": "os_release",
+      "rc": 0,
+      "size": 400
+    },
+    {
+      "name": "uname",
+      "rc": 0,
+      "size": 134
+    },
+    {
+      "name": "hostnamectl",
+      "rc": 0,
+      "size": 480
+    },
+    {
+      "name": "uptime",
+      "rc": 0,
+      "size": 71
+    },
+    {
+      "name": "java_version",
+      "rc": 0,
+      "size": 219
+    },
+    {
+      "name": "java_alt",
+      "rc": 0,
+      "size": 368
+    },
+    {
+      "name": "python_versions",
+      "rc": 0,
+      "size": 472
+    },
+    {
+      "name": "pip_freeze_default",
+      "rc": 0,
+      "size": 38
+    },
+    {
+      "name": "pip_freeze_ansible_env",
+      "rc": 0,
+      "size": 396
+    },
+    {
+      "name": "ansible_version",
+      "rc": 127,
+      "size": 41
+    },
+    {
+      "name": "ansible_config_dump",
+      "rc": 127,
+      "size": 48
+    },
+    {
+      "name": "ansible_collections",
+      "rc": 127,
+      "size": 48
+    },
+    {
+      "name": "ansible_roles",
+      "rc": 127,
+      "size": 48
+    },
+    {
+      "name": "jenkins_status",
+      "rc": 0,
+      "size": 159
+    },
+    {
+      "name": "jenkins_user",
+      "rc": 2,
+      "size": 28
+    },
+    {
+      "name": "jenkins_jobs",
+      "rc": 2,
+      "size": 87
+    },
+    {
+      "name": "ip_addr",
+      "rc": 0,
+      "size": 1139
+    },
+    {
+      "name": "ip_route",
+      "rc": 0,
+      "size": 204
+    },
+    {
+      "name": "resolv_conf",
+      "rc": 0,
+      "size": 920
+    },
+    {
+      "name": "hosts_file",
+      "rc": 0,
+      "size": 323
+    },
+    {
+      "name": "listening_ports",
+      "rc": 0,
+      "size": 826
+    },
+    {
+      "name": "firewall_state",
+      "rc": 0,
+      "size": 346
+    },
+    {
+      "name": "disk_layout",
+      "rc": 0,
+      "size": 1200
+    },
+    {
+      "name": "df_h",
+      "rc": 0,
+      "size": 316
+    },
+    {
+      "name": "mount",
+      "rc": 0,
+      "size": 1713
+    },
+    {
+      "name": "se_project_layout",
+      "rc": 2,
+      "size": 151
+    },
+    {
+      "name": "ansible_cfg",
+      "rc": 0,
+      "size": 1382
+    },
+    {
+      "name": "vault_files",
+      "rc": 0,
+      "size": 1360
+    },
+    {
+      "name": "smartctl",
+      "rc": 0,
+      "size": 42
+    },
+    {
+      "name": "ipmitool",
+      "rc": 127,
+      "size": 42
+    },
+    {
+      "name": "nvme_cli",
+      "rc": 127,
+      "size": 38
+    },
+    {
+      "name": "racadm",
+      "rc": 1,
+      "size": 40
+    },
+    {
+      "name": "storcli",
+      "rc": 127,
+      "size": 114
+    },
+    {
+      "name": "redis_status",
+      "rc": 0,
+      "size": 169
+    },
+    {
+      "name": "time_sync",
+      "rc": 127,
+      "size": 389
+    },
+    {
+      "name": "running_processes",
+      "rc": 0,
+      "size": 5775
+    },
+    {
+      "name": "cpu_summary",
+      "rc": 0,
+      "size": 2987
+    },
+    {
+      "name": "memory_summary",
+      "rc": 0,
+      "size": 207
+    },
+    {
+      "name": "journal_recent",
+      "rc": 0,
+      "size": 2253
+    }
+  ],
+  "errors": [],
+  "elapsed_seconds": 25.9,
+  "completed_at": "2026-04-28T06:45:08.361445+00:00"
+}

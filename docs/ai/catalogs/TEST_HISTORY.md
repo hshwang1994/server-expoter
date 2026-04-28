@@ -88,3 +88,31 @@
   - `pytest tests/`: WSL pytest 미설치 — 검증 기준 Agent에서 별도 실행
 - Baseline 갱신: 없음 (도메인 변경: precheck Stage 분리 + gather_users 함수 통합 — 출력 envelope 13 필드 미변경)
 - 회귀: precheck_bundle.py 변경은 진단 메시지만 영향 (failure_stage="port" 신설). gather_users.yml은 기능 동치 (shell snippet 위치 변경만). 영향 vendor baseline 회귀는 검증 기준 Agent에서 별도 실행 필요
+
+## 2026-04-28 — Round 11 reference 종합 수집
+
+- 환경: 사용자 PC (Windows + WSL Ubuntu, 검증 기준 Agent 외)
+- 자격: tests/reference/local/targets.yaml (gitignored)
+- 명령:
+  - `python tests/reference/scripts/crawl_redfish_full.py` (Redfish 11대 시도)
+  - `wsl python3 tests/reference/scripts/gather_os_full.py` (OS 7대 시도)
+  - `wsl python3 tests/reference/scripts/gather_esxi_full.py` (ESXi 3대)
+  - `wsl python3 tests/reference/scripts/gather_agent_env.py` (Agent 2대 + Master 2대)
+- 결과:
+  - **Redfish**: Dell 27 OK 2417 endpoint / 15MB / 596s, 나머지 BMC 진행 중
+  - **OS**: Linux 6대 OK (각 ~106 명령), Win10 FAIL (F4)
+  - **ESXi**: pyvmomi 3대 OK, SSH는 .2 1대만 (F5)
+  - **Agent/Master**: 4대 모두 OK (각 39 명령)
+- 누적 (BMC 진행 중 시점): 4420 파일 / 43MB
+- 사고:
+  - F1: Dell BMC user=root (admin 아님) — targets.yaml 정정 (사용자 확인)
+  - F2: 10.100.15.32 ServiceRoot가 AMI Redfish Server — 실 vendor / 자격 사용자 확인 필요
+  - F3: Cisco 10.100.15.1 HTTP 503 / 15.3 timeout — 장비 가동 상태 확인 필요
+  - F4: Win10 WinRM 환경 (HTTPS 미활성 + Basic 미허용 + WSL Python 3.12 NTLM MD4 미지원)
+  - F5: ESXi 10.100.64.1/.3 SSH 비활성
+  - F6: Master 10.100.64.153 sudo ~120s 대기
+- Baseline 갱신: **없음** (별도 디렉터리 — fixtures/baseline 무수정)
+- 회귀: 영향 없음 (별도 디렉터리, 회귀 input 무수정)
+- 환경 제약: 검증 기준 Agent (10.100.64.154) 외 WSL에서 직접 수집
+- Evidence: tests/evidence/2026-04-28-reference-collection.md
+- decision-log: docs/19_decision-log.md §13 Round 11

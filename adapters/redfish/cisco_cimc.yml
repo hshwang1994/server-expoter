@@ -3,9 +3,21 @@
 # Vendor: Cisco
 # Firmware: 4.x / 5.x
 # Origin: Cisco UCS Manager / CIMC Redfish API documentation
-# Last sync: 2026-04-28 (full-sweep)
+# Last sync: 2026-04-28 (Round 11 reference 수집)
 # Notes: UCS C-Series. strategy: standard_only (OEM 디렉터리 미생성).
-# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# Tested against (실측 2026-04-28, Round 11):
+#   - TA-UNODE-G1 (Cisco Systems Inc) × 1대 (10.100.15.2)
+#   - CIMC FirmwareVersion: "4.1(2g)"
+#   - BIOS: C220M4.4.1.2c.0.0202211901 (UCS C220 M4 계열)
+#   - Redfish: 1.2.0 (구 spec — Cisco BMC가 Redfish 표준 부분 지원)
+#   - CPU: Intel Xeon E5-2699 v4 (Broadwell-EP)
+#   - System ID: FCH2116V1V0 (URI: /redfish/v1/Systems/FCH2116V1V0)
+#   - Manager URI: /redfish/v1/Managers/CIMC
+#   - 데이터 경로: tests/reference/redfish/cisco/10_100_15_2/
+#   - 주의: ServiceRoot.Oem 키 비어있음
+# Untested (Round 11 환경 이슈):
+#   - 10.100.15.1: HTTP 503 (CIMC 서비스 다운)
+#   - 10.100.15.3: connect timeout (BMC 도달 불가)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_cisco_cimc
 channel: redfish

@@ -37,10 +37,18 @@ server-exporter/
 │   └── examples/            # success/partial/failed
 ├── tests/
 │   ├── redfish-probe/       # probe_redfish.py + deep_probe_redfish.py
-│   ├── fixtures/            # 145+ 실장비 JSON
+│   ├── fixtures/            # 145+ 실장비 JSON (회귀 input)
 │   ├── baseline_v1/         # 회귀 기준선
 │   ├── evidence/            # Round 검증 결과
-│   └── scripts/             # conditional_review.py + os_esxi_verify.sh
+│   ├── scripts/             # conditional_review.py + os_esxi_verify.sh
+│   └── reference/           # ★ Round 11 (2026-04-28): 실장비 종합 raw reference (회귀 input 아님)
+│       ├── README.md, INDEX.md
+│       ├── redfish/<vendor>/<ip>/  # 재귀 endpoint crawl 전수
+│       ├── os/<distro>/<ip>/       # ansible setup + ~80 sh 명령
+│       ├── esxi/<ip>/              # esxcli + pyvmomi
+│       ├── agent/{agent,jenkins_master}/<ip>/
+│       ├── scripts/                # 4 수집 스크립트
+│       └── local/                  # gitignored (자격)
 ├── tools/                   # 운영 도우미
 ├── vault/                   # ansible-vault encrypted
 │   ├── linux.yml, windows.yml, esxi.yml

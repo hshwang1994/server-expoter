@@ -1,0 +1,21 @@
+{
+  "target": "cisco-10.100.15.1",
+  "ip": "10.100.15.1",
+  "vendor": "cisco",
+  "endpoints_total": 1,
+  "endpoints_ok": 0,
+  "endpoints_fail": 1,
+  "endpoints_cached": 1,
+  "elapsed_seconds": 0.0,
+  "max_depth_reached": 0,
+  "completed_at": "2026-04-28T07:31:13.871002+00:00",
+  "manifest": [
+    {
+      "path": "/redfish/v1/",
+      "depth": 0,
+      "status": "cached",
+      "file": "redfish_v1.json",
+      "code": 503
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# command: esxcli system hostname get
+# rc: 0
+# fetched: 2026-04-28T06:44:36.414380+00:00
+#
+   Domain Name: 
+   Fully Qualified Domain Name: esxi02
+   Host Name: esxi02

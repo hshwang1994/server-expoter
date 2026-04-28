@@ -1,0 +1,541 @@
+{
+  "target": "ubuntu2404-10.100.64.167",
+  "ip": "10.100.64.167",
+  "distro": "ubuntu2404",
+  "started_at": "2026-04-28T06:43:50.426173+00:00",
+  "commands": [
+    {
+      "name": "hostnamectl",
+      "rc": 0,
+      "size": 500
+    },
+    {
+      "name": "uname",
+      "rc": 0,
+      "size": 138
+    },
+    {
+      "name": "os_release",
+      "rc": 0,
+      "size": 400
+    },
+    {
+      "name": "redhat_release",
+      "rc": 0,
+      "size": 4
+    },
+    {
+      "name": "uptime",
+      "rc": 0,
+      "size": 92
+    },
+    {
+      "name": "timedatectl",
+      "rc": 0,
+      "size": 304
+    },
+    {
+      "name": "machine_id",
+      "rc": 0,
+      "size": 33
+    },
+    {
+      "name": "dmidecode_full",
+      "rc": 0,
+      "size": 49922
+    },
+    {
+      "name": "dmidecode_system",
+      "rc": 0,
+      "size": 779
+    },
+    {
+      "name": "dmidecode_chassis",
+      "rc": 0,
+      "size": 495
+    },
+    {
+      "name": "dmidecode_baseboard",
+      "rc": 0,
+      "size": 654
+    },
+    {
+      "name": "dmidecode_processor",
+      "rc": 0,
+      "size": 2757
+    },
+    {
+      "name": "dmidecode_memory",
+      "rc": 0,
+      "size": 40493
+    },
+    {
+      "name": "dmidecode_bios",
+      "rc": 0,
+      "size": 439
+    },
+    {
+      "name": "dmidecode_oem",
+      "rc": 2,
+      "size": 184
+    },
+    {
+      "name": "lscpu",
+      "rc": 0,
+      "size": 2987
+    },
+    {
+      "name": "lscpu_json",
+      "rc": 0,
+      "size": 4183
+    },
+    {
+      "name": "cpuinfo",
+      "rc": 0,
+      "size": 4440
+    },
+    {
+      "name": "cpu_topology",
+      "rc": 0,
+      "size": 210
+    },
+    {
+      "name": "cpu_freq_cur",
+      "rc": 0,
+      "size": 0
+    },
+    {
+      "name": "meminfo",
+      "rc": 0,
+      "size": 1531
+    },
+    {
+      "name": "free_h",
+      "rc": 0,
+      "size": 207
+    },
+    {
+      "name": "vmstat",
+      "rc": 0,
+      "size": 255
+    },
+    {
+      "name": "swap",
+      "rc": 0,
+      "size": 60
+    },
+    {
+      "name": "lsblk_json",
+      "rc": 0,
+      "size": 21450
+    },
+    {
+      "name": "lsblk_tree",
+      "rc": 0,
+      "size": 1115
+    },
+    {
+      "name": "df_h",
+      "rc": 0,
+      "size": 764
+    },
+    {
+      "name": "findmnt_json",
+      "rc": 0,
+      "size": 6089
+    },
+    {
+      "name": "blkid",
+      "rc": 0,
+      "size": 704
+    },
+    {
+      "name": "smartctl_scan",
+      "rc": 127,
+      "size": 28
+    },
+    {
+      "name": "smartctl_all",
+      "rc": 127,
+      "size": 150
+    },
+    {
+      "name": "nvme_list",
+      "rc": 127,
+      "size": 67
+    },
+    {
+      "name": "mdstat",
+      "rc": 0,
+      "size": 89
+    },
+    {
+      "name": "lvm_pv",
+      "rc": 0,
+      "size": 934
+    },
+    {
+      "name": "lvm_vg",
+      "rc": 0,
+      "size": 1484
+    },
+    {
+      "name": "lvm_lv",
+      "rc": 0,
+      "size": 2138
+    },
+    {
+      "name": "multipath",
+      "rc": 0,
+      "size": 28
+    },
+    {
+      "name": "storcli",
+      "rc": 127,
+      "size": 144
+    },
+    {
+      "name": "ip_addr",
+      "rc": 0,
+      "size": 1741
+    },
+    {
+      "name": "ip_link",
+      "rc": 0,
+      "size": 819
+    },
+    {
+      "name": "ip_route",
+      "rc": 0,
+      "size": 406
+    },
+    {
+      "name": "ip_route6",
+      "rc": 0,
+      "size": 192
+    },
+    {
+      "name": "ip_neigh",
+      "rc": 0,
+      "size": 1566
+    },
+    {
+      "name": "ip_tunnel",
+      "rc": 0,
+      "size": 3
+    },
+    {
+      "name": "ip_vrf",
+      "rc": 0,
+      "size": 3
+    },
+    {
+      "name": "bridge_link",
+      "rc": 0,
+      "size": 3
+    },
+    {
+      "name": "bridge_vlan",
+      "rc": 0,
+      "size": 3
+    },
+    {
+      "name": "bonding",
+      "rc": 1,
+      "size": 0
+    },
+    {
+      "name": "ss_listen",
+      "rc": 0,
+      "size": 1162
+    },
+    {
+      "name": "ss_estab",
+      "rc": 0,
+      "size": 237
+    },
+    {
+      "name": "ethtool_all",
+      "rc": 0,
+      "size": 7674
+    },
+    {
+      "name": "nmcli",
+      "rc": 127,
+      "size": 78
+    },
+    {
+      "name": "resolv_conf",
+      "rc": 0,
+      "size": 929
+    },
+    {
+      "name": "hosts_file",
+      "rc": 0,
+      "size": 236
+    },
+    {
+      "name": "nsswitch",
+      "rc": 0,
+      "size": 526
+    },
+    {
+      "name": "firewall_iptables",
+      "rc": 0,
+      "size": 449
+    },
+    {
+      "name": "firewall_nft",
+      "rc": 0,
+      "size": 28
+    },
+    {
+      "name": "firewall_firewalld",
+      "rc": 127,
+      "size": 122
+    },
+    {
+      "name": "lspci_v",
+      "rc": 0,
+      "size": 122506
+    },
+    {
+      "name": "lspci_nn",
+      "rc": 0,
+      "size": 3546
+    },
+    {
+      "name": "lspci_tree",
+      "rc": 0,
+      "size": 1375
+    },
+    {
+      "name": "lsusb",
+      "rc": 1,
+      "size": 28
+    },
+    {
+      "name": "lsusb_tree",
+      "rc": 0,
+      "size": 0
+    },
+    {
+      "name": "lshw",
+      "rc": 0,
+      "size": 111279
+    },
+    {
+      "name": "lshw_short",
+      "rc": 0,
+      "size": 12961
+    },
+    {
+      "name": "inxi",
+      "rc": 127,
+      "size": 38
+    },
+    {
+      "name": "hwinfo",
+      "rc": 127,
+      "size": 69
+    },
+    {
+      "name": "biosdecode",
+      "rc": 1,
+      "size": 79
+    },
+    {
+      "name": "efivars",
+      "rc": 0,
+      "size": 1987
+    },
+    {
+      "name": "ipmitool_mc",
+      "rc": 127,
+      "size": 71
+    },
+    {
+      "name": "ipmitool_lan",
+      "rc": 127,
+      "size": 71
+    },
+    {
+      "name": "ipmitool_sel",
+      "rc": 0,
+      "size": 71
+    },
+    {
+      "name": "ipmitool_sensor",
+      "rc": 127,
+      "size": 71
+    },
+    {
+      "name": "ipmitool_chassis",
+      "rc": 127,
+      "size": 71
+    },
+    {
+      "name": "ipmitool_fru",
+      "rc": 127,
+      "size": 71
+    },
+    {
+      "name": "idrac_racadm",
+      "rc": 127,
+      "size": 110
+    },
+    {
+      "name": "kernel_cmdline",
+      "rc": 0,
+      "size": 80
+    },
+    {
+      "name": "loaded_modules",
+      "rc": 0,
+      "size": 3250
+    },
+    {
+      "name": "kernel_log_tail",
+      "rc": 0,
+      "size": 47171
+    },
+    {
+      "name": "sysctl_all",
+      "rc": 0,
+      "size": 42121
+    },
+    {
+      "name": "systemctl_list",
+      "rc": 0,
+      "size": 25716
+    },
+    {
+      "name": "systemctl_failed",
+      "rc": 0,
+      "size": 59
+    },
+    {
+      "name": "systemctl_timers",
+      "rc": 0,
+      "size": 2376
+    },
+    {
+      "name": "ps_aux",
+      "rc": 0,
+      "size": 23298
+    },
+    {
+      "name": "crontab_root",
+      "rc": 0,
+      "size": 1578
+    },
+    {
+      "name": "rpm_qa",
+      "rc": 0,
+      "size": 0
+    },
+    {
+      "name": "dpkg_l",
+      "rc": 0,
+      "size": 105370
+    },
+    {
+      "name": "yum_repolist",
+      "rc": 127,
+      "size": 74
+    },
+    {
+      "name": "apt_sources",
+      "rc": 0,
+      "size": 112
+    },
+    {
+      "name": "passwd_users",
+      "rc": 0,
+      "size": 1798
+    },
+    {
+      "name": "groups",
+      "rc": 0,
+      "size": 843
+    },
+    {
+      "name": "ssh_config",
+      "rc": 0,
+      "size": 3676
+    },
+    {
+      "name": "sudoers",
+      "rc": 0,
+      "size": 2095
+    },
+    {
+      "name": "selinux",
+      "rc": 127,
+      "size": 86
+    },
+    {
+      "name": "apparmor",
+      "rc": 0,
+      "size": 2621
+    },
+    {
+      "name": "logged_users",
+      "rc": 0,
+      "size": 1725
+    },
+    {
+      "name": "locale",
+      "rc": 0,
+      "size": 357
+    },
+    {
+      "name": "ntp_status",
+      "rc": 0,
+      "size": 694
+    },
+    {
+      "name": "virt_what",
+      "rc": 0,
+      "size": 80
+    },
+    {
+      "name": "docker_info",
+      "rc": 127,
+      "size": 151
+    },
+    {
+      "name": "podman_info",
+      "rc": 127,
+      "size": 120
+    },
+    {
+      "name": "k8s_kubelet",
+      "rc": 127,
+      "size": 82
+    },
+    {
+      "name": "hdparm_sda",
+      "rc": 0,
+      "size": 539
+    },
+    {
+      "name": "messages_tail",
+      "rc": 0,
+      "size": 24500
+    },
+    {
+      "name": "journal_errors",
+      "rc": 0,
+      "size": 2102
+    },
+    {
+      "name": "ansible_setup",
+      "rc": 0,
+      "size": 39674
+    }
+  ],
+  "errors": [],
+  "elapsed_seconds": 47.3,
+  "completed_at": "2026-04-28T06:44:37.768187+00:00"
+}

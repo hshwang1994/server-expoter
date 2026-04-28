@@ -1,6 +1,6 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-006 + full-sweep 잔여 후 갱신)
+## 일자: 2026-04-28 (cycle-006 + full-sweep 잔여 + Round 11 reference 수집)
 
 ## 요약
 
@@ -114,6 +114,29 @@ pytest tests/                         : 검증 기준 Agent에서 별도 실행 
 | DRIFT-007 | catalog-stale (Must 28/Nice 7/Skip 5 실측 — cycle-002 grep 헤더 noise 오인) | resolved (cycle-005) |
 
 **모든 등재 DRIFT resolved.** cycle-007 진입 시 새 DRIFT 발견은 그 시점 catalog 추가.
+
+## Round 11 reference 종합 수집 (2026-04-28)
+
+> 사용자 제공 27대 실장비에 대한 종합 raw 정보 수집. 향후 schema 추가 / 매핑 검증 / vendor 온보딩 / 회귀 비교 reference.
+
+- **신규 디렉터리**: `tests/reference/{redfish,os,esxi,agent,scripts,local}/`
+- **수집 도구 4개**:
+  - `crawl_redfish_full.py` — Redfish ServiceRoot부터 모든 link 재귀
+  - `gather_os_full.py` — paramiko SSH (Linux) + pywinrm (Windows) + ansible setup
+  - `gather_esxi_full.py` — paramiko + pyvmomi + esxcli
+  - `gather_agent_env.py` — paramiko, REQUIREMENTS 검증용
+- **자격**: `tests/reference/local/targets.yaml` (gitignored)
+- **수집 결과 (완료, 2026-04-28 17:15)**:
+  - Redfish 11대 시도 → 9 OK (Dell 5 + HPE + Lenovo + Cisco 15.2) / 1 SKIP (Dell 32 vendor 의심) / 2 환경 이슈 (Cisco 15.1 BMC 다운 + 15.3 도달 불가)
+  - OS 7대 시도 → 6 OK (Linux distro 5 + bare-metal) / 1 환경 이슈 (Win10 WinRM)
+  - ESXi 3대 → pyvmomi 3 OK, SSH 1만 (.1/.3 SSH 비활성)
+  - Agent/Master 4대 → 모두 OK (각 39 명령)
+- **최종 통계**: **15964 파일 / 126MB** (redfish 108MB / os 5.8MB / esxi 11MB / agent 399K)
+- **사고 7건** (F1~F7): F1 자격 정정 (RESOLVED) / F2 vendor 의심 / F3 BMC 환경 / F4 WinRM 환경 / F5 SSH 비활성 / F6 sudo 대기 (RESOLVED) / F7 SKIP/옵션 추가 (RESOLVED)
+- **회귀 영향**: 없음 (별도 디렉터리, fixtures/baseline 무수정, harness consistency PASS, vendor boundary PASS)
+- **Evidence**: `tests/evidence/2026-04-28-reference-collection.md`
+- **decision-log**: `docs/19_decision-log.md` §13 Round 11
+- **follow-up**: F2 (사용자 확인) / F3 (장비 가동) / F4 task #10 (Win10 WinRM) / F5 (ESXi SSH 활성화) / F6 (sudo 처리 개선)
 
 ## 다음 작업 (cycle-007 후보)
 

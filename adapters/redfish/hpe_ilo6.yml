@@ -3,9 +3,15 @@
 # Vendor: HPE / Hewlett Packard Enterprise
 # Firmware: iLO 6 — 1.x / 2.x
 # Origin: HPE iLO 6 Redfish API documentation
-# Last sync: 2026-04-28 (full-sweep)
+# Last sync: 2026-04-28 (Round 11 reference 수집)
 # Notes: ProLiant Gen11. Redfish 1.x 표준 호환.
-# Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# Tested against (실측 2026-04-28, Round 11):
+#   - ProLiant DL380 Gen11 × 1대 (10.50.11.231)
+#   - iLO FirmwareVersion: "iLO 6 v1.73"
+#   - BIOS: "U54 v2.16 (03/01/2024)"
+#   - Redfish: 1.20.0
+#   - CPU: Intel Xeon Gold 6430
+#   - 데이터 경로: tests/reference/redfish/hpe/10_50_11_231/
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_hpe_ilo6
 channel: redfish

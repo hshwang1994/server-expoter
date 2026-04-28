@@ -1,0 +1,104 @@
+# command: tail -100 /var/log/hostd.log 2>&1
+# rc: 0
+# fetched: 2026-04-28T06:45:35.254247+00:00
+#
+2026-04-28T06:38:28.149Z info hostd[2100778] [Originator@6876 sub=Vimsvc opID=vim-cmd-9e-4f98] [Auth]: User root
+2026-04-28T06:38:28.149Z warning hostd[2100778] [Originator@6876 sub=Vimsvc opID=vim-cmd-9e-4f98] Refresh function is not configured.User data can't be added to scheduler.User name: root
+2026-04-28T06:38:28.150Z info hostd[2100778] [Originator@6876 sub=Vimsvc.ha-eventmgr opID=vim-cmd-9e-4f98] Event 11279 : User root@127.0.0.1 logged in as VMware-client/6.5.0
+2026-04-28T06:38:28.279Z info hostd[2100789] [Originator@6876 sub=Vimsvc.ha-eventmgr opID=vim-cmd-9e-4fe9 user=root] Event 11280 : User root@127.0.0.1 logged out (login time: Tuesday, 28 April, 2026 06:38:28 AM, number of API invocations: 2, user agent: VMware-client/6.5.0)
+2026-04-28T06:38:28.318Z info hostd[2100776] [Originator@6876 sub=Hostsvc.VmkVprobSource] VmkVprobSource::Post event: (vim.event.EventEx) {
+-->    key = 233,
+-->    chainId = -1,
+-->    createdTime = "1970-01-01T00:00:00Z",
+-->    userName = "",
+-->    host = (vim.event.HostEventArgument) {
+-->       name = "esxi02",
+-->       host = 'vim.HostSystem:ha-host'
+-->    },
+-->    eventTypeId = "esx.audit.ssh.session.closed",
+-->    arguments = (vmodl.KeyAnyValue) [
+-->       (vmodl.KeyAnyValue) {
+-->          key = "1",
+-->          value = "root"
+-->       },
+-->       (vmodl.KeyAnyValue) {
+-->          key = "2",
+-->          value = "10.11.20.12"
+-->       }
+-->    ],
+-->    objectId = "ha-host",
+-->    objectType = "vim.HostSystem",
+--> }
+2026-04-28T06:38:28.318Z info hostd[2100776] [Originator@6876 sub=Vimsvc.ha-eventmgr] Event 11281 : SSH session was closed for 'root@10.11.20.12'.
+2026-04-28T06:38:28.643Z info hostd[2100057] [Originator@6876 sub=Hostsvc.VmkVprobSource] VmkVprobSource::Post event: (vim.event.EventEx) {
+-->    key = 233,
+-->    chainId = -612318552,
+-->    createdTime = "1970-01-01T00:00:00Z",
+-->    userName = "",
+-->    host = (vim.event.HostEventArgument) {
+-->       name = "esxi02",
+-->       host = 'vim.HostSystem:ha-host'
+-->    },
+-->    eventTypeId = "esx.audit.ssh.session.opened",
+-->    arguments = (vmodl.KeyAnyValue) [
+-->       (vmodl.KeyAnyValue) {
+-->          key = "1",
+-->          value = "root"
+-->       },
+-->       (vmodl.KeyAnyValue) {
+-->          key = "2",
+-->          value = "10.11.20.12"
+-->       }
+-->    ],
+-->    objectId = "ha-host",
+-->    objectType = "vim.HostSystem",
+--> }
+2026-04-28T06:38:28.644Z info hostd[2100057] [Originator@6876 sub=Vimsvc.ha-eventmgr] Event 11282 : SSH session was opened for 'root@10.11.20.12'.
+2026-04-28T06:38:28.769Z info hostd[2100792] [Originator@6876 sub=Hostsvc.VmkVprobSource] VmkVprobSource::Post event: (vim.event.EventEx) {
+-->    key = 233,
+-->    chainId = -1,
+-->    createdTime = "1970-01-01T00:00:00Z",
+-->    userName = "",
+-->    host = (vim.event.HostEventArgument) {
+-->       name = "esxi02",
+-->       host = 'vim.HostSystem:ha-host'
+-->    },
+-->    eventTypeId = "esx.audit.ssh.session.closed",
+-->    arguments = (vmodl.KeyAnyValue) [
+-->       (vmodl.KeyAnyValue) {
+-->          key = "1",
+-->          value = "root"
+-->       },
+-->       (vmodl.KeyAnyValue) {
+-->          key = "2",
+-->          value = "10.11.20.12"
+-->       }
+-->    ],
+-->    objectId = "ha-host",
+-->    objectType = "vim.HostSystem",
+--> }
+2026-04-28T06:38:28.770Z info hostd[2100792] [Originator@6876 sub=Vimsvc.ha-eventmgr] Event 11283 : SSH session was closed for 'root@10.11.20.12'.
+2026-04-28T06:38:29.138Z info hostd[2248685] [Originator@6876 sub=Hostsvc.VmkVprobSource] VmkVprobSource::Post event: (vim.event.EventEx) {
+-->    key = 233,
+-->    chainId = -1,
+-->    createdTime = "1970-01-01T00:00:00Z",
+-->    userName = "",
+-->    host = (vim.event.HostEventArgument) {
+-->       name = "esxi02",
+-->       host = 'vim.HostSystem:ha-host'
+-->    },
+-->    eventTypeId = "esx.audit.ssh.session.opened",
+-->    arguments = (vmodl.KeyAnyValue) [
+-->       (vmodl.KeyAnyValue) {
+-->          key = "1",
+-->          value = "root"
+-->       },
+-->       (vmodl.KeyAnyValue) {
+-->          key = "2",
+-->          value = "10.11.20.12"
+-->       }
+-->    ],
+-->    objectId = "ha-host",
+-->    objectType = "vim.HostSystem",
+--> }
+2026-04-28T06:38:29.138Z info hostd[2248685] [Originator@6876 sub=Vimsvc.ha-eventmgr] Event 11284 : SSH session was opened for 'root@10.11.20.12'.

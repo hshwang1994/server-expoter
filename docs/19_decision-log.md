@@ -358,3 +358,75 @@ kernel sysfs > POSIX 명령 > /proc > /etc
 ### 결론
 
 명령어 매트릭스 실측으로 배포판 무관 설계를 검증하고, bond 실증으로 bond master/slave/VLAN-on-bond 수집 정확성을 확인했다. source 우선순위와 운영 해석 정책을 확정하여 GUIDE_FOR_AI.md에 반영했다.
+
+---
+
+## 13. Reference 종합 수집 (Round 11, 2026-04-28)
+
+### 배경
+
+새 vendor 추가 / schema 필드 보강 / OS 매핑 검증 / 회귀 비교 시 매번 실장비에 직접 접속하는 비용을 줄이고, 향후 재현/비교 가능한 raw 자산을 확보할 필요가 있었다. 사용자가 Jenkins master 2대 / agent 2대 / OS VM 6대 + bare-metal 1대 / Windows VM 1대 / BMC 11대 / ESXi 3대를 테스트 자격과 함께 제공했다.
+
+### 결정
+
+`tests/reference/` 디렉터리에 종합 reference 데이터를 보존한다. 회귀 input (`tests/fixtures/`) 및 회귀 기준선 (`tests/baseline_v1/`)과는 별개 디렉터리로 분리하여 회귀 입력 변경 위험을 피한다.
+
+수집 도구 4개를 작성:
+- `crawl_redfish_full.py` — Redfish ServiceRoot부터 모든 link 재귀 follow (Python stdlib + PyYAML)
+- `gather_os_full.py` — paramiko SSH (Linux) + pywinrm (Windows) + ansible setup
+- `gather_esxi_full.py` — paramiko SSH (esxcli/vim-cmd) + pyvmomi (vSphere API)
+- `gather_agent_env.py` — paramiko SSH 기반 환경 dump (REQUIREMENTS.md 검증)
+
+### 자격 처리
+
+자격 평문 commit 방지를 위해 `tests/reference/local/targets.yaml`을 `.gitignore`에 등록. `targets.yaml.sample`만 commit. 수집 완료 후 `targets.yaml` 삭제 권장.
+
+### 1차 수집 결과 (2026-04-28)
+
+| 채널 | 시도 | 성공 | 실패 |
+|---|---|---|---|
+| Redfish | 11 | (진행 중) | 3 (Cisco 1/3 도달 불가, Dell 32 vendor 의심) |
+| OS | 7 | 6 (Linux) | 1 (Win10 WinRM) |
+| ESXi | 3 | 3 (pyvmomi), 1 (SSH) | 0 (전체) / 2 (SSH만) |
+| Agent/Master | 4 | 4 | 0 |
+
+세부는 `tests/evidence/2026-04-28-reference-collection.md` 참조.
+
+### 발견 사항
+
+- **F1**: Dell BMC 사용자는 user=admin이 아닌 user=root (사용자 채팅 정정)
+- **F2**: 10.100.15.32가 "dell" label인데 ServiceRoot=AMI Redfish Server. 실 vendor / 자격 사용자 확인 필요 (rule 96 R2 — 외부 계약 디버깅 시 질의 우선)
+- **F3**: Cisco 10.100.15.1 HTTP 503 / 15.3 timeout. 장비 가동 상태 확인 필요
+- **F4**: Win10 WinRM 5986 미활성 + 5985 Basic 미허용 + WSL Python 3.12 ntlm-auth 라이브러리의 OpenSSL 3.0 MD4 미지원
+- **F5**: ESXi 10.100.64.1 / .3 SSH 비활성 (vSphere 기본 상태). 활성화 후 esxcli 53종 추가 수집 가능
+- **F6**: gather_agent_env.py의 sudo 명령 처리 개선 필요 (Master 153에서 ~120초 대기 발생)
+
+### 누적 통계 (BMC 진행 중 시점 기준)
+
+- 파일 수: 4420 (BMC 완료 시 ~10000 예상)
+- 디스크 사용: 43MB (BMC 완료 시 ~150-200MB 예상)
+
+### 활용
+
+1. **새 vendor 온보딩**: 그 vendor의 redfish endpoint list로 OEM path 파악 + adapter metadata `tested_against` 갱신 근거
+2. **schema 필드 추가**: cross-vendor OEM 데이터 비교
+3. **OS 매핑 검증**: cmd_dmidecode_*.txt ↔ ansible_setup ↔ field_dictionary 정합 (rule 13 R1)
+4. **REQUIREMENTS.md 검증**: agent 디렉터리의 ansible/python/collection 버전 ↔ 문서 명시
+5. **회귀 비교**: 펌웨어 / OS 업그레이드 후 동일 명령 재수집 → diff
+
+### 보존 정책 (rule 70)
+
+- 본 디렉터리는 commit 대상 (raw raw 자료 가치 큼). 단:
+  - `tests/reference/local/`은 .gitignore (자격)
+  - 민감 파일 (sshd_config / sudoers)은 commit 전 사용자 검토
+- 차후 수집 사이클마다 `tests/reference/INDEX.md` 갱신 + 본 decision-log에 Round 추가
+
+### 후속 작업
+
+- F2/F3/F4/F5/F6 follow-up (`tests/evidence/2026-04-28-reference-collection.md` 표 참조)
+- 본 reference 자료 기반의 schema 추가 / adapter metadata 보강은 별도 PR
+
+### rule / 정본 참조
+
+- rule 13 (output-schema-fields), 21 (output-baseline-fixtures), 70 (docs-and-evidence-policy), 96 (external-contract-integrity)
+- 정본: `tests/reference/README.md`, `tests/reference/INDEX.md`, `tests/evidence/2026-04-28-reference-collection.md`
