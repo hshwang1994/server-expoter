@@ -155,8 +155,39 @@ GitLab 레포지토리 checkout 에 사용하는 계정.
 2. Scopes: `api` 체크
 3. Create → 발급된 토큰을 Password 에 입력
 
-> vault-password Credentials 는 등록하지 않는다.
-> vault 파일은 plain text 로 repo 에 포함되며 GitLab 접근 권한으로 보안을 통제한다.
+### ansible-vault-password (P0 — vault encrypt 도입)
+
+`vault/*.yml` 은 ansible-vault 로 암호화된 상태로 commit 된다 (cycle 2026-04-28 결정).
+Jenkins Pipeline 의 `withCredentials([file(...)])` 가 본 credential 을 받아
+`ansible-playbook --vault-password-file=$VAULT_PASSWORD_FILE` 로 주입한다.
+
+| 항목 | 값 |
+|------|----|
+| Kind | **Secret file** |
+| File | vault 부트스트랩에 사용한 `.vault_pass` 파일 (단일 라인 plaintext password) |
+| ID   | `ansible-vault-password` |
+
+**등록 절차**
+
+1. 운영자(인프라 담당)가 vault 마스터 password 결정
+2. 로컬에서 `.vault_pass` 파일 생성 후 `bash scripts/bootstrap_vault_encrypt.sh`
+   실행하여 vault/*.yml 을 일괄 encrypt → commit
+3. 같은 `.vault_pass` 파일을 본 절차로 Jenkins credentials store 에 등록
+4. `.vault_pass` 는 `.gitignore` 에 의해 절대 commit 되지 않는다 — Jenkins 에만 보관
+
+**검증**
+
+```bash
+# 로컬에서 ansible-playbook 단독 실행 시
+ansible-playbook --vault-password-file=.vault_pass redfish-gather/site.yml -i ...
+```
+
+Jenkins 빌드 시 `withCredentials` 로 `$VAULT_PASSWORD_FILE` 주입.
+Pipeline 안에서 password 자체는 마스킹되며 console log 에 노출되지 않는다.
+
+**주의**: 본 credential 이 등록되지 않은 Jenkins 환경에서 P0 머지 후 빌드를
+실행하면 `Could not find credentials entry with ID 'ansible-vault-password'`
+오류가 발생한다. P0 머지 전 본 절차 수행 필수.
 
 ---
 

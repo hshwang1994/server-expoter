@@ -119,6 +119,9 @@ pipeline {
         }
 
         // ── 2. Ansible 실행 ───────────────────────────────────────────────────
+        // P0: vault password 는 Jenkins credentials store 의 Secret File 에 등록
+        //     credentialsId='ansible-vault-password' (사용자 결정 #1, AI 추천 = 그대로)
+        //     등록 절차는 docs/01_jenkins-setup.md 참고.
         stage('Gather') {
             steps {
                 script {
@@ -142,12 +145,20 @@ pipeline {
                     // Ansible 실패 시 unstable 처리 (partial result JSON 포함)
                     // catchError 로 감싸서 post 단계까지 진행
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                        ansiblePlaybook(
-                            playbook    : playbook,
-                            inventory   : inventory,
-                            installation: 'ansible',
-                            colorized   : true,
-                        )
+                        withCredentials([
+                            file(
+                                credentialsId: 'ansible-vault-password',
+                                variable     : 'VAULT_PASSWORD_FILE',
+                            ),
+                        ]) {
+                            ansiblePlaybook(
+                                playbook    : playbook,
+                                inventory   : inventory,
+                                installation: 'ansible',
+                                colorized   : true,
+                                extras      : "--vault-password-file=${VAULT_PASSWORD_FILE}",
+                            )
+                        }
                     }
                 }
             }
