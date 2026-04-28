@@ -65,3 +65,26 @@
   - `scan_suspicious_patterns.py` (sweep 전 PASS)
 - 결과: full-sweep 보고서 `docs/ai/harness/full-sweep-2026-04-28.md` 참조
 - 회귀: docs/rule/policy/code 정합 변경 — 영향 vendor baseline 회귀 별도 결정 필요
+
+## 2026-04-28 — full-sweep 잔여 (T2-B2 / T2-C2 / T2-C8) 적용
+
+- 환경: Windows 11 + Python 3.11
+- 명령:
+  - `python scripts/ai/verify_harness_consistency.py`: PASS (rules 29 / skills 43 / agents 51 / policies 10 — 잔재 어휘 default 검사 활성화)
+  - `python scripts/ai/verify_vendor_boundary.py`: PASS (vendor 하드코딩 0건)
+  - `python scripts/ai/check_project_map_drift.py`: PASS (fingerprint 갱신 후 정합 — os-gather +files/, common precheck 변경)
+  - `python scripts/ai/scan_suspicious_patterns.py`: PASS (rule 95 R1 11 패턴 0건)
+  - `python scripts/ai/validate_claude_structure.py`: PASS
+  - `python scripts/ai/hooks/output_schema_drift_check.py`: PASS (sections=10, fd_paths=46, fd_section_prefixes=10)
+  - `python -c "import yaml; yaml.safe_load(...)"`: PASS (gather_users.yml + vendor-boundary-map.yaml)
+  - `python -m py_compile`: PASS (precheck_bundle.py + verify_harness_consistency.py)
+- 결과:
+  - T2-B2 ▷ verify_harness_consistency.py FORBIDDEN_WORDS default 모드 활성화 (`--no-forbidden-check`로 비활성)
+  - T2-C2 ▷ precheck_bundle.py Stage 1 (reachable: any TCP response) ↔ Stage 2 (port_open: target service port) 분리 + ConnectionRefusedError 구분
+  - T2-C8 ▷ os-gather/files/get_last_login.sh 신규 + Python/Raw 양 경로에서 lookup file 통합 (gather_users.yml 294 → 239 lines)
+  - T2-A7 / T3-01~T3-06 / T2-D2: NEXT_ACTIONS 사용자 결정 대기로 SKIP
+- 미실행 (환경 제약):
+  - `ansible-playbook --syntax-check 3-channel`: WSL ansible 미설치 — 검증 기준 Agent (10.100.64.154)에서 별도 실행
+  - `pytest tests/`: WSL pytest 미설치 — 검증 기준 Agent에서 별도 실행
+- Baseline 갱신: 없음 (도메인 변경: precheck Stage 분리 + gather_users 함수 통합 — 출력 envelope 13 필드 미변경)
+- 회귀: precheck_bundle.py 변경은 진단 메시지만 영향 (failure_stage="port" 신설). gather_users.yml은 기능 동치 (shell snippet 위치 변경만). 영향 vendor baseline 회귀는 검증 기준 Agent에서 별도 실행 필요

@@ -1,10 +1,17 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-006 후 갱신)
+## 일자: 2026-04-28 (cycle-006 + full-sweep 잔여 후 갱신)
 
 ## 요약
 
-server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-006 완료**. cycle-006은 사용자 명시 ("모두 수행해") 에 대응한 사용자 결정 4 항목 일괄 정리:
+server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-006 + full-sweep (Tier 1+2) 완료**. 2026-04-28 full-sweep 잔여 항목 일괄 정리:
+
+- **T2-B2 적용**: `verify_harness_consistency.py` FORBIDDEN_WORDS 검사 default 활성화 (rule 00 약속 충족 — `--no-forbidden-check`로 비활성)
+- **T2-C2 적용**: `precheck_bundle.py` Stage 1 (reachable) ↔ Stage 2 (port_open) 분리 + ConnectionRefusedError 시 host alive 판정 (rule 27 R2 정합)
+- **T2-C8 적용**: `os-gather/files/get_last_login.sh` 공유 snippet 추가 + Python/Raw 양 경로에서 lookup file 통합 (gather_users.yml 294 → 239 lines, rule 10 R3 정합)
+- **T2-A1~A6 / T2-B1/B3 / T2-C3~C7 / T2-D1/D3/D4 / T2-E1~E4 / T2-F1~F3 모두 cycle-006 + 직전 commit (1eb6abe / dd88aac / c1d6f9b)에서 처리됨**
+
+cycle-006 (이전):
 
 - **DRIFT-004 resolved**: `users[]` 섹션 6 필드 등록 (Must +3 / Nice +2 / Skip +1) → 분포 46 entries, output_schema_drift 정합
 - **DRIFT-005 resolved**: `_BUILTIN_VENDOR_MAP` → `_FALLBACK_VENDOR_MAP` 이름 변경 + 3-tier path resolution + nosec silence
@@ -34,23 +41,26 @@ cycle-005 (이전):
 | cycle-003 (DRIFT 정리 + 도구) | DRIFT-001/002/003 resolved + scan_suspicious_patterns.py 신규 + 13 adapter origin 발견 | 69abb8a |
 | cycle-004 (전수조사) | 도구 3종 정밀화 + 13 adapter origin 일괄 + _safe_int + 변수 silence + DRIFT-004/005/006 등재 | fef5789..6142eea |
 | cycle-005 (AI 자체 가능 일괄) | DRIFT-007 catalog 정합 + scan #2/#4 재설계 + vendor_boundary docstring + alias 동기화 게이트 → scan 11 패턴 0건 | 72b2613..2b4900d |
-| **cycle-006 (DRIFT 4종 일괄)** | **DRIFT-004 (users 등록) + DRIFT-005 (alias 통합) + DRIFT-006 (rule 12 예외 절) + W2 (b) silence → vendor_boundary 0건** | (이번 세션) |
+| cycle-006 (DRIFT 4종 일괄) | DRIFT-004 (users 등록) + DRIFT-005 (alias 통합) + DRIFT-006 (rule 12 예외 절) + W2 (b) silence → vendor_boundary 0건 | 86c91bc |
+| full-sweep 2026-04-28 (Tier 1+2) | docs/rule/잔재어휘 정합 + code/schema 결함 + adapter origin/policy/settings | 1eb6abe / dd88aac / c1d6f9b |
+| **full-sweep 잔여 (T2-B2/C2/C8)** | **forbidden default 활성화 + precheck Stage 분리 + gather_users 함수 통합** | (이번 세션) |
 
-## 검증 결과 (cycle-006 후)
+## 검증 결과 (full-sweep 잔여 후)
 
 ```
 [정적 — Windows]
-verify_harness_consistency.py        : PASS + vendor alias drift 0
+verify_harness_consistency.py        : PASS (forbidden default 활성, 잔재 0)
 validate_claude_structure.py         : OK
-check_project_map_drift.py           : 갱신 후 정합 (3 디렉터리 fingerprint 갱신)
+check_project_map_drift.py           : PASS (fingerprint 갱신 — os-gather +files/, common 변경)
 scan_suspicious_patterns.py          : clean (11 패턴 0건)
-verify_vendor_boundary.py            : **PASS — 0건** (cycle-005 26 → 0)
-output_schema_drift_check.py         : 정합 (sections 10 = fd_section_prefixes 10)
+verify_vendor_boundary.py            : PASS — 0건 (cycle-005 26 → 0 유지)
+output_schema_drift_check.py         : 정합 (sections=10, fd_paths=46, fd_section_prefixes=10)
+python -m py_compile                 : PASS (precheck_bundle.py + verify_harness_consistency.py)
+yaml.safe_load                       : PASS (gather_users.yml + vendor-boundary-map.yaml)
 
-[ansible / pytest — WSL]
-ansible-playbook --syntax-check 3-channel : ALL PASS
-validate_field_dictionary.py         : PASS (must=31 nice=9 skip=6 = 46 entries — users +6)
-pytest tests/                        : 95 passed in 2.13s (영향 vendor baseline 회귀 0건)
+[ansible / pytest — 환경 제약]
+ansible-playbook --syntax-check       : 검증 기준 Agent에서 별도 실행 필요 (WSL ansible 미설치)
+pytest tests/                         : 검증 기준 Agent에서 별도 실행 필요
 ```
 
 도메인 코드:

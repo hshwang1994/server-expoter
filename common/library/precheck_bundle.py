@@ -315,19 +315,30 @@ def run_module():
         result["winrm_scheme"] = None
 
     # =========================================================================
-    # Stage 1: reachable (TCP 포트 연결로 확인)
+    # Stage 1+2: reachable (host alive) + port_open (service port listening)
+    # rule 27 R2 — Stage 분리:
+    #   Stage 1 ping = TCP SYN 으로 host 도달 가능성 (timeout vs refused 구분)
+    #   Stage 2 port = target_type별 service port 응답
     # =========================================================================
-    any_port_open = False
+    any_response = False  # 어떤 포트라도 응답 (refused 포함 → host alive)
+    target_port_open = False
     open_port = None
+    port_errors = []
 
     for port in ports:
         ok, err = tcp_check(host, port, module.params["timeout_port"])
         if ok:
-            any_port_open = True
+            any_response = True
+            target_port_open = True
             open_port = port
             break
+        # ConnectionRefusedError → host alive 이지만 port 닫힘
+        if err and ("거부" in err or "refused" in err.lower()):
+            any_response = True
+        port_errors.append("port={0}: {1}".format(port, err))
 
-    if not any_port_open:
+    if not any_response:
+        # Stage 1 fail: host 자체가 응답 안 함 (all timeout)
         result["reachable"] = False
         result["port_open"] = False
         result["failure_stage"] = "reachable"
@@ -335,7 +346,19 @@ def run_module():
             "대상 호스트에 연결할 수 없습니다. "
             "네트워크 도달 불가 또는 호스트가 꺼져 있습니다."
         )
-        result["detail"] = "ports={0}, host={1}".format(ports, host)
+        result["detail"] = "; ".join(port_errors)
+        module.exit_json(**result)
+
+    if not target_port_open:
+        # Stage 2 fail: host 응답하지만 service port 닫힘 (refused)
+        result["reachable"] = True
+        result["port_open"] = False
+        result["failure_stage"] = "port"
+        result["failure_reason"] = (
+            "호스트는 응답하지만 서비스 포트가 닫혀 있습니다. "
+            "방화벽 또는 서비스 미기동 가능성."
+        )
+        result["detail"] = "; ".join(port_errors)
         module.exit_json(**result)
 
     result["reachable"] = True

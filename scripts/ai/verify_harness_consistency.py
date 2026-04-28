@@ -96,7 +96,16 @@ def _scan_file(path: Path) -> Tuple[List[str], List[str], List[str], List[str], 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="하네스 일관성 검증")
-    parser.add_argument("--strict", action="store_true", help="잔재 어휘도 위반 처리")
+    parser.add_argument(
+        "--no-forbidden-check",
+        action="store_true",
+        help="잔재 어휘 검사 비활성화 (default: 활성화 — rule 00 약속)",
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="(deprecated) 잔재 어휘 검사는 default. 호환성 위해 유지.",
+    )
     parser.add_argument("--repo-root", default=".")
     args = parser.parse_args()
 
@@ -193,7 +202,8 @@ def main() -> int:
             print(f"  - {d}")
         print("  → redfish_gather.py _BUILTIN_VENDOR_MAP과 vendor_aliases.yml 동기화 확인")
 
-    if issues or (args.strict and forbidden_total):
+    forbidden_check_active = not args.no_forbidden_check
+    if issues or (forbidden_check_active and forbidden_total):
         return 2
 
     print("\n통과: 모든 참조 정합 확인")
