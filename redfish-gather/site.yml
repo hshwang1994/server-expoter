@@ -167,9 +167,9 @@
             msg: "{{ (_output | default({
                        'schema_version': '1',
                        'target_type': 'redfish',
-                       'collection_method': 'redfish',
-                       'ip': _rf_ip | default(none),
-                       'hostname': _rf_ip | default(none),
+                       'collection_method': 'redfish_api',
+                       'ip': _rf_ip | default(inventory_hostname),
+                       'hostname': _rf_ip | default(inventory_hostname),
                        'vendor': _rf_detected_vendor | default(none),
                        'status': 'failed',
                        'sections': {},

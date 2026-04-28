@@ -164,9 +164,9 @@
             msg: "{{ (_output | default({
                        'schema_version': '1',
                        'target_type': 'esxi',
-                       'collection_method': 'vmware',
-                       'ip': _ip | default(none),
-                       'hostname': _ip | default(none),
+                       'collection_method': 'vsphere_api',
+                       'ip': _e_ip | default(inventory_hostname),
+                       'hostname': _e_ip | default(inventory_hostname),
                        'vendor': none,
                        'status': 'failed',
                        'sections': {},
