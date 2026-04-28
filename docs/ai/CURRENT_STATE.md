@@ -1,12 +1,20 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-008 — MED/LOW 일괄 정합)
+## 일자: 2026-04-28 (cycle-009 — fallback envelope + rule 5요소 보강)
 
 ## 요약
 
-server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-008 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-008 (사용자 "새 vendor 제외 모두" 명시 승인)에서 P2 MED/LOW 일괄 정리 (11건):
+server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-009 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-009 (사용자 "JSON 출력 컨벤션 검증 + T2-A7 보강" 명시 승인)에서 두 작업 일괄:
 
-cycle-008 변경 (이번 세션):
+cycle-009 변경 (이번 세션):
+
+- **3-channel `site.yml` fallback envelope 13 필드 일관성**:
+  - **HIGH 버그 fix #1**: `os-gather/site.yml` PLAY 3 (Windows) `always` fallback이 2 필드 (`status` / `errors`) 만 → 13 필드 envelope 보강 (rule 13 R5 / rule 20 R1 정합)
+  - **HIGH 버그 fix #2**: `esxi-gather/site.yml` `always` fallback의 `_ip` 변수명 오류 → `_e_ip` 정정 (fallback 시 ip null 출력되던 문제 해결)
+  - **MED fix**: `collection_method` 값 build_meta와 일관성 (OS: `ansible`→`agent`, ESXi: `vmware`→`vsphere_api`, Redfish: `redfish`→`redfish_api`)
+- **T2-A7 — rule 7개 5요소 보강**: `rule 24` (completion-gate), `rule 26` (multi-session-guide), `rule 41` (mermaid-visualization), `rule 50` (vendor-adapter-policy), `rule 60` (security-and-secrets), `rule 70` (docs-and-evidence-policy), `rule 90` (commit-convention) 본문 R-번호 + Default/Allowed/Forbidden/Why/재검토 5요소 구조 적용 (rule 00 표기 구조 컨벤션 정합)
+
+cycle-008 변경 (이전 세션):
 
 - **redfish_gather.py — 함수 분리 추가**: `gather_system` 103→57줄 (vendor OEM helper 4종 `_extract_oem_{hpe,dell,lenovo,supermicro}` 추출 + `_OEM_EXTRACTORS` dispatch dict), `detect_vendor` 64→37줄 (`_fetch_service_root` + `_resolve_first_member_uri` 추출), `main` 67→45줄 (`_make_section_runner` + `_collect_all_sections` + `_compute_final_status` 추출). rule 10 R3 정합
 - **os-gather/tasks/linux/gather_system.yml**: 346→322줄. `build_identifier_diagnostics.yml` 별도 task로 분리 (rule 10 R3)
@@ -66,19 +74,19 @@ cycle-005 (이전):
 | full-sweep 2026-04-28 (Tier 1+2) | docs/rule/잔재어휘 정합 + code/schema 결함 + adapter origin/policy/settings | 1eb6abe / dd88aac / c1d6f9b |
 | full-sweep 잔여 (T2-B2/C2/C8) | forbidden default 활성화 + precheck Stage 분리 + gather_users 함수 통합 | ad87006 |
 | cycle-007 (4축 검수 + HIGH 4 일괄) | rule 22 R7 drift 정합 + redfish_gather.py 5 함수 분리 + precheck/adapter_loader 함수 분리 + requests 의존 제거 | 6a473bd |
-| **cycle-008 (P2 MED/LOW 일괄)** | **redfish_gather 추가 함수 분리 (gather_system/detect_vendor/main) + linux gather_system identifier_diagnostics 분리 + HPE priority 차등 + Lenovo/Cisco bmc fallback + json_only debug + adapter_loader 동률 문서화** | (이번 세션) |
+| cycle-008 (P2 MED/LOW 일괄) | redfish_gather 추가 함수 분리 (gather_system/detect_vendor/main) + linux gather_system identifier_diagnostics 분리 + HPE priority 차등 + Lenovo/Cisco bmc fallback + json_only debug + adapter_loader 동률 문서화 | 756e1e77 |
+| **cycle-009 (fallback envelope + rule 5요소)** | **3-channel fallback envelope 13 필드 일관성 (HIGH fix 2건 + MED fix 1건) + T2-A7 rule 7개 5요소 보강 (24/26/41/50/60/70/90)** | (이번 세션) |
 
-## 검증 결과 (cycle-008 후)
+## 검증 결과 (cycle-009 후)
 
 ```
 [정적]
 verify_harness_consistency.py        : PASS (rules 29 / skills 43 / agents 51 / policies 10)
 validate_claude_structure.py         : OK
-check_project_map_drift.py           : PASS
+check_project_map_drift.py           : PASS (site.yml 3 fingerprint 갱신)
 scan_suspicious_patterns.py          : clean (11 패턴 0건)
-verify_vendor_boundary.py            : PASS — 0건 (cycle-005 26 → 0 유지)
+verify_vendor_boundary.py            : PASS — 0건
 output_schema_drift_check.py         : 정합 (sections=10, fd_paths=46, fd_section_prefixes=10)
-python -m py_compile                 : PASS (변경 3 파일)
 ansible-playbook --syntax-check       : PASS — 3 채널 (WSL)
 pytest tests/                         : PASS — 95/95
 ```

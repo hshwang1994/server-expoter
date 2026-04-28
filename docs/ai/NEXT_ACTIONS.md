@@ -1,6 +1,19 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-28 (cycle-008 후 갱신)
+## 일자: 2026-04-28 (cycle-009 후 갱신)
+
+## 완료 항목 (cycle-009 — fallback envelope HIGH fix 2건 + T2-A7 rule 5요소 보강 7개)
+
+- [x] **HIGH 버그 fix #1** — `os-gather/site.yml` Windows PLAY 3 `always` fallback envelope 2 필드 → 13 필드 (rule 13 R5 / rule 20 R1 정합)
+- [x] **HIGH 버그 fix #2** — `esxi-gather/site.yml` `always` fallback의 미정의 변수 `_ip` → `_e_ip` 정정 (fallback 시 ip null 출력되던 문제)
+- [x] **MED fix** — 3채널 fallback envelope `collection_method` 값 build_meta와 일관성 (OS `ansible`→`agent`, ESXi `vmware`→`vsphere_api`, Redfish `redfish`→`redfish_api`)
+- [x] **T2-A7 rule 24** — completion-gate 5요소 보강 (R1~R9, 정적 검증 / 버그 0건 / 문서 4종 / 후속 식별 / Git push / Schema 회귀 / 종결어 금지 / "남은 작업" 답변 / 보고 포맷)
+- [x] **T2-A7 rule 26** — multi-session-guide 5요소 보강 (R1~R8, 진입 조건 / 오너십 / commit pathspec / 공용 파일 / 동기화 / CONTINUATION / 마커 / 종료 갱신)
+- [x] **T2-A7 rule 41** — mermaid-visualization 5요소 보강 (R1~R18, 타입 / 가시성 / 색상 / 형상 / ID / 라벨 / 30노드 / 성공실패 / AS-IS / vendor / 문맥 / 범례 / 호환 / sequence / state / gantt / er / ASCII)
+- [x] **T2-A7 rule 50** — vendor-adapter-policy 5요소 보강 (R1~R6, 정규화 정본 / 9단계 / 점수 / branch / 경계 / generic fallback)
+- [x] **T2-A7 rule 60** — security-and-secrets 5요소 보강 (R1~R8, encrypt / 회전 / redaction / verify / 자격증명 / stacktrace / 입력 / 스캔)
+- [x] **T2-A7 rule 70** — docs-and-evidence-policy 5요소 보강 (R1~R7, 갱신 매핑 / fingerprint / 작성 원칙 / 정본 보호 / 보존 판정 / archive / cycle 자문)
+- [x] **T2-A7 rule 90** — commit-convention 5요소 보강 (R1~R6, type 8 / 길이 / 금지어 / 본문 / 강제 수준 / AI 동등)
 
 ## 완료 항목 (cycle-008 — P2 MED/LOW 11건 일괄, 사용자 "새 vendor 제외 모두" 명시 승인)
 
@@ -82,7 +95,6 @@
 - [ ] **T2-D2** cisco_baseline.json `data.users` `null` → `[]` (rule 13 R4 — 실측 evidence 필요)
 
 ### Rule 재구조화 (대규모, 별도 cycle 필요)
-- [ ] **T2-A7** rule 7개 5요소 보강 (rule 24/26/41/50/60/70/90)
 - [ ] **DRIFT-006 옵션 (2)**: redfish_gather.py vendor-agnostic 리팩토링 — _OEM_EXTRACTORS dispatch는 cycle-008에서 적용. 다음 단계는 dispatch 자체를 adapter capabilities로 위임. 영향 vendor 전부 회귀 + Round 권장
 
 ## 결정 필요 (사용자, cycle-007 진입 시점)
@@ -90,7 +102,6 @@
 | 항목 | 옵션 | 비고 |
 |---|---|---|
 | T2-D2 (cisco_baseline.json data.users) | `null` → `[]` | rule 13 R4 — 실측 evidence 필요 |
-| T2-A7 (rule 7개 5요소 보강) | 진행 / 보류 | rule 24/26/41/50/60/70/90 큰 재구조화 |
 | T3-04 (adapter version 추적) | 의미 있는 버전 / 무시 | 추적 메커니즘 |
 | T3-05 (redfish BMC IP N+1) | 첫 멤버만 / 병렬 / 유지 | 성능 vs 단순성. cycle-008에서 `_resolve_first_member_uri` helper 추출했지만 정책 자체는 "첫 멤버만" 유지 |
 | T3-06 (governance 결정 ADR 필수) | 의무 / 선택 | trace 강도 |
