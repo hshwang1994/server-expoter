@@ -55,6 +55,12 @@
             visible_mb:  "{{ ansible_memtotal_mb | default(none) }}"
             free_mb:     "{{ ansible_memfree_mb  | default(none) }}"
             slots:       []
+            # P3 (cycle 2026-04-28): group summary — Linux 는 P5 dmidecode 보강 후 채움
+            summary:
+              groups: []
+              grand_total_gb: >-
+                {%- set v = (_l_mem_phys_raw.stdout | trim | int) if (_l_mem_phys_raw.stdout | trim | length > 0) else (ansible_memtotal_mb | default(0) | int) -%}
+                {{ (v / 1024) | round(0, 'floor') | int }}
         _sections_supported_fragment: ['memory']
         _sections_collected_fragment: ['memory']
         _sections_failed_fragment:    []
@@ -117,6 +123,14 @@
             free_mb: >-
               {{ ((_l_mem_rp.MEM_AVAIL_KB | default('0')) | trim | int / 1024) | round(0,'floor') | int }}
             slots: []
+            # P3 (cycle 2026-04-28): group summary
+            summary:
+              groups: []
+              grand_total_gb: >-
+                {%- set phys = (_l_mem_rp.MEM_PHYS_MB | default('0')) | trim | int -%}
+                {%- set vis_kb = (_l_mem_rp.MEM_TOTAL_KB | default('0')) | trim | int -%}
+                {%- set v = phys if phys > 0 else (vis_kb / 1024) | round(0,'floor') | int -%}
+                {{ (v / 1024) | round(0, 'floor') | int }}
         _sections_supported_fragment: ['memory']
         _sections_collected_fragment: ['memory']
         _sections_failed_fragment:    []
