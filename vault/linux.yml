@@ -1,7 +1,17 @@
 ---
-# 로컬 테스트용 플레이스홀더. 운영 환경에서는 Jenkins credentials binding으로 대체한다.
-# 사용법: ansible-playbook --vault-password-file .vault_pass ... 또는 Jenkins withCredentials 블록
-# Linux SSH 접속 계정
-# GitLab repo 접근 권한으로 보안 통제
+# 로컬 테스트용 플레이스홀더. 운영 환경에서는 ansible-vault encrypt 후 commit한다.
+# 사용법:
+#   ansible-playbook --vault-password-file .vault_pass ...
+#   또는 Jenkins withCredentials([file(credentialsId: 'ansible-vault-password', ...)])
+# (정본 절차: docs/01_jenkins-setup.md, scripts/bootstrap_vault_encrypt.sh)
+#
+# Linux SSH 접속 계정 후보 (1차 → 2차 순차 시도, P1 도입 cycle 2026-04-28)
+# 모두 실패 시 build_failed_output.yml 경로로 envelope 출력.
+
+accounts:
+  - { username: cloviradmin, password: "Goodmit0802!", label: linux_legacy,    role: primary   }
+  - { username: infraops,    password: "Goodmit0802!", label: linux_infraops,  role: secondary }
+
+# Backward-compat (P0~P2 마이그레이션 동안 dual-write 유지) — accounts[0] 와 동기화
 ansible_user:     "cloviradmin"
 ansible_password: "Goodmit0802!"

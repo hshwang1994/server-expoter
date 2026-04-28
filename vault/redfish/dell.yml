@@ -1,7 +1,18 @@
 ---
-# 로컬 테스트용 플레이스홀더. 운영 환경에서는 Jenkins credentials binding으로 대체한다.
-# 사용법: ansible-playbook --vault-password-file .vault_pass ... 또는 Jenkins withCredentials 블록
-# dell BMC Redfish 접속 계정
-# GitLab repo 접근 권한으로 보안 통제
-ansible_user:     "root"
-ansible_password: "GoodskInfra1!"
+# 로컬 테스트용 플레이스홀더. 운영 환경에서는 ansible-vault encrypt 후 commit한다.
+# (정본 절차: docs/01_jenkins-setup.md, scripts/bootstrap_vault_encrypt.sh)
+#
+# Dell BMC (iDRAC) 접속 계정 후보 (P1 도입 cycle 2026-04-28)
+# 우선순위:
+#   1. infraops (공통계정, P1 — 본 PR)
+#   2. dell root/Dellidrac1! (recovery, P2 AccountService 진입점)
+#   3. dell root/calvin       (recovery, 공장 초기 — 마지막 시도)
+
+accounts:
+  - { username: infraops, password: "Passw0rd1!",   label: common_infraops,        role: primary  }
+  - { username: root,     password: "Dellidrac1!",  label: dell_root_dellidrac1,   role: recovery }
+  - { username: root,     password: "calvin",       label: dell_root_calvin,       role: recovery }
+
+# Backward-compat — accounts[0] 와 동기화 (현재 운영 1차 = infraops)
+ansible_user:     "infraops"
+ansible_password: "Passw0rd1!"

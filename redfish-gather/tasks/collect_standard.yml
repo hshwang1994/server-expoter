@@ -1,29 +1,76 @@
 ---
 # redfish-gather/tasks/collect_standard.yml
-# 표준 Redfish 수집 (벤더 공통)
-# → _rf_raw_collect, _rf_collect_ok, _rf_vendor
-# vendor_aliases.yml 기반 정규화 (하드코딩 벤더 목록 제거)
+#
+# 표준 Redfish 수집 (벤더 공통).
+# P1 (cycle 2026-04-28): 단일 자격 → 후보 순차 시도 (primary → secondary → recovery)
+#
+# 출력:
+#   _rf_raw_collect    : redfish_gather 결과 (성공한 후보 기준)
+#   _rf_collect_ok     : bool
+#   _rf_vendor         : 정규화된 vendor (vendor_aliases.yml 기반)
+#   _rf_used_account   : 성공한 계정 메타 (username/label/role, password 미포함)
+#   _rf_attempts_meta  : 후보별 시도 결과 (운영 가시성 — meta.auth)
 
-- name: "redfish | collect_standard | run redfish_gather"
-  redfish_gather:
-    bmc_ip:     "{{ _rf_ip }}"
-    username:   "{{ ansible_user | default('') }}"
-    password:   "{{ ansible_password | default('') }}"
-    timeout:    "{{ _rf_timeout }}"
-    verify_ssl: false    # BMC 자체서명 인증서 사용. 운영 보안 정책에 따라 변경 검토
-  register:    _rf_raw_collect
-  failed_when: false
+- name: "redfish | collect_standard | init attempt state"
+  ansible.builtin.set_fact:
+    _rf_collect_ok: false
+    _rf_used_account: {}
   no_log: true
 
-- name: "redfish | collect_standard | set collect status"
+- name: "redfish | collect_standard | warn no accounts"
+  ansible.builtin.debug:
+    msg: >-
+      vault accounts 비어 있음 (vault/redfish/{{ _rf_vault_profile | default('?') }}.yml).
+      자격증명 없이 수집 시도.
+  when: (_rf_accounts | default([])) | length == 0
+
+# 후보가 전혀 없으면 빈 자격으로 1회 시도 (legacy 호환)
+- when: (_rf_accounts | default([])) | length == 0
+  block:
+    - name: "redfish | collect_standard | empty-credential attempt"
+      redfish_gather:
+        bmc_ip:     "{{ _rf_ip }}"
+        username:   ""
+        password:   ""
+        timeout:    "{{ _rf_timeout }}"
+        verify_ssl: false
+      register:    _rf_raw_collect
+      failed_when: false
+      no_log: true
+
+    - name: "redfish | collect_standard | set ok (empty creds)"
+      ansible.builtin.set_fact:
+        _rf_collect_ok: >-
+          {{ _rf_raw_collect is not failed and
+             (_rf_raw_collect.status | default('failed')) != 'failed' }}
+      no_log: true
+
+# 후보 순차 시도 — 성공 시 try_one_account.yml 의 when 가드로 이후 후보 skip
+- name: "redfish | collect_standard | try accounts in order"
+  ansible.builtin.include_tasks: try_one_account.yml
+  loop: "{{ _rf_accounts | default([]) }}"
+  loop_control:
+    loop_var: _try_account
+    label:    "{{ _try_account.label | default('unlabeled') }}"
+  when: (_rf_accounts | default([])) | length > 0
+
+# vendor 정규화 (성공 후보 기준 — vendor_aliases.yml 기반, detect_vendor 가 이미 채움)
+- name: "redfish | collect_standard | set vendor"
   ansible.builtin.set_fact:
-    _rf_collect_ok: >-
-      {{ _rf_raw_collect is not failed and
-         (_rf_raw_collect.status | default('failed')) != 'failed' }}
-    # adapter 기반 벤더 결정: detect_vendor에서 정규화된 값 사용
-    # vendor_aliases.yml이 벤더 목록 역할을 하므로 하드코딩 불필요
     _rf_vendor: >-
       {{ _rf_detected_vendor
          if (_rf_detected_vendor | default('unknown')) != 'unknown'
          else none }}
+  no_log: true
+
+# 운영 가시성 — meta.auth 에 합쳐질 정보 (build_meta.yml 시 활용)
+- name: "redfish | collect_standard | record attempts meta"
+  ansible.builtin.set_fact:
+    _rf_attempts_meta:
+      attempted_count: "{{ _rf_accounts | default([]) | length }}"
+      used_label:      "{{ (_rf_used_account | default({})).label | default(none) }}"
+      used_role:       "{{ (_rf_used_account | default({})).role  | default(none) }}"
+      fallback_used: >-
+        {{ ((_rf_used_account | default({})).role | default('primary')) != 'primary'
+           and _rf_collect_ok | bool }}
   no_log: true

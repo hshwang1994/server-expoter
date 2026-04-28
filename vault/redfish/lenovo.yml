@@ -1,7 +1,10 @@
 ---
-# 로컬 테스트용 플레이스홀더. 운영 환경에서는 Jenkins credentials binding으로 대체한다.
-# 사용법: ansible-playbook --vault-password-file .vault_pass ... 또는 Jenkins withCredentials 블록
-# lenovo BMC Redfish 접속 계정
-# GitLab repo 접근 권한으로 보안 통제
-ansible_user:     "USERID"
-ansible_password: "VMware1!"
+# Lenovo XCC/IMM 접속 계정 후보 (P1 도입 cycle 2026-04-28)
+
+accounts:
+  - { username: infraops, password: "Passw0rd1!", label: common_infraops,        role: primary  }
+  - { username: USERID,   password: "Passw0rd1!", label: lenovo_userid_default,  role: recovery }
+
+# Backward-compat — accounts[0] 와 동기화
+ansible_user:     "infraops"
+ansible_password: "Passw0rd1!"

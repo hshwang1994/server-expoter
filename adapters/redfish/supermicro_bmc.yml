@@ -38,6 +38,8 @@ normalize:
 credentials:
   profile: "supermicro"
   fallback_profiles: []
+  # P2 AccountService 진입점 — vendor recovery 후보 미정의 (운영자 별도 설정 후 vault label 추가)
+  recovery_accounts: []
 
 auth:
   preferred: [basic]

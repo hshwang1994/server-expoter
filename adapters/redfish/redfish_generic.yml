@@ -36,6 +36,8 @@ normalize:
 credentials:
   profile: ""
   fallback_profiles: []
+  # P2 AccountService 진입점 — generic fallback 은 vendor 미상이므로 recovery 미정의
+  recovery_accounts: []
 
 graceful_degradation:
   on_section_fail: continue

@@ -1,7 +1,10 @@
 ---
-# 로컬 테스트용 플레이스홀더. 운영 환경에서는 Jenkins credentials binding으로 대체한다.
-# 사용법: ansible-playbook --vault-password-file .vault_pass ... 또는 Jenkins withCredentials 블록
-# cisco BMC Redfish 접속 계정
-# GitLab repo 접근 권한으로 보안 통제
-ansible_user:     "admin"
-ansible_password: "Goodmit1!"
+# Cisco CIMC 접속 계정 후보 (P1 도입 cycle 2026-04-28)
+# 사용자가 명시한 vendor recovery 후보 없음 — common infraops 만 사용
+
+accounts:
+  - { username: infraops, password: "Passw0rd1!", label: common_infraops, role: primary }
+
+# Backward-compat — accounts[0] 와 동기화
+ansible_user:     "infraops"
+ansible_password: "Passw0rd1!"
