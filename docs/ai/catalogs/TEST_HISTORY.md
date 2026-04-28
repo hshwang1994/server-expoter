@@ -16,6 +16,28 @@
 
 ---
 
+## 2026-04-28 — cycle-010 (T3-04/05/06 일괄 + rule 70 R8 신설)
+
+- 환경: Windows 11 + Python 3.11.9 (호스트)
+- 변경 영역:
+  - 27 adapter YAML — `version: "1.0.0"` placeholder 1줄 일괄 삭제 (T3-04)
+  - `.claude/rules/70-docs-and-evidence-policy.md` — R8 (ADR 의무 trigger) 신설 + 금지 패턴 + 리뷰 포인트
+  - `docs/ai/decisions/ADR-2026-04-28-rule12-oem-namespace-exception.md` — DRIFT-006 소급 ADR (R8 첫 적용)
+  - `.claude/policy/project-map-fingerprint.yaml` — adapters fingerprint 갱신
+  - 증거 문서 — CURRENT_STATE / NEXT_ACTIONS / TEST_HISTORY / harness/cycle-010.md
+- 명령:
+  - `grep -c "^version:" adapters/**/*.yml` → 27/27 = 0건
+  - `python yaml.safe_load 27 adapter` → PASS, version 키 부재
+  - `python scripts/ai/verify_harness_consistency.py` → PASS (rules: 29, skills: 43, agents: 51, policies: 10)
+  - `python scripts/ai/verify_vendor_boundary.py` → PASS (vendor 하드코딩 0건)
+  - `python scripts/ai/check_project_map_drift.py --update` → adapters fingerprint 갱신
+  - `ansible-playbook --syntax-check` → SKIP (Windows 메인 환경 제약)
+- 결과: 정적 검증 4/5 PASS + 1 SKIP (환경 제약)
+- Baseline 갱신: 없음 (T3-04는 schema 영향 없음)
+- Evidence: `docs/ai/harness/cycle-010.md`
+
+---
+
 ## 2026-04-28 — cycle-008 (P2 MED/LOW 11건 일괄 정합)
 
 - 환경: Windows 11 + Python 3.11.9 (호스트)

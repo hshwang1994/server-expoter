@@ -12,7 +12,6 @@
 adapter_id: redfish_cisco_bmc
 channel: redfish
 priority: 10
-version: "1.0.0"
 
 match:
   vendor: ["Cisco", "Cisco Systems Inc", "Cisco Systems Inc.", "Cisco Systems", "cisco"]

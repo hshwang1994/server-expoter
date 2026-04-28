@@ -9,7 +9,6 @@
 adapter_id: os_windows_generic
 channel: os
 priority: 0
-version: "1.0.0"
 generic: true
 
 match:

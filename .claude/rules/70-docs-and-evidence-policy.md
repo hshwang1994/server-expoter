@@ -129,6 +129,20 @@
 - **Why**: 매 cycle 자문이 가장 효과적인 catalog stale 차단
 - **재검토**: cycle 종료 자동 archive hook 도입 시
 
+### R8. ADR 의무 trigger (governance trace)
+
+- **Default**: 다음 3 trigger 중 하나라도 해당 시 `docs/ai/decisions/ADR-YYYY-MM-DD-<주제>.md` 작성 의무
+  1. **rule 본문 의미 변경** — Default / Allowed / Forbidden 절 추가·삭제·변경 (오타·표현 다듬기 제외). 예: rule 12 R1 Allowed 절 추가 (DRIFT-006)
+  2. **표면 카운트 변경** — `.claude/policy/surface-counts.yaml`의 rules / skills / agents / policies 카운트 증감
+  3. **보호 경로 정책 변경** — `.claude/policy/protected-paths.yaml` 추가·삭제·완화
+- **Allowed**: 위 3 trigger 외의 결정은 rule 본문 + `CONVENTION_DRIFT.md` 만으로 trace
+- **Forbidden**:
+  - 3 trigger 발생 + ADR 작성 누락
+  - ADR 없이 표면 카운트 + rule 본문 동시 변경
+- **ADR 필수 4 섹션**: 컨텍스트(Why) / 결정(What) / 결과(Impact) / 대안 비교(Considered)
+- **Why**: governance 결정은 미래 작업자가 "왜 이 정책인지" 추적 가능해야 함. 작은 결정은 rule 본문에 흡수, 큰 결정은 ADR로 reasoning 분리. 모든 결정 ADR 의무화는 overhead 과대 (06-A 거절 사유)
+- **재검토**: ADR 작성 자동화 도구 도입 시 trigger 확대 검토
+
 ## 금지 패턴
 
 - 코드 변경 후 문서 갱신 누락 — R1
@@ -138,6 +152,7 @@
 - V-number 증가 / 본문 cycle 태그 — R5
 - 1회성 review를 active catalog에 누적 — R5/R6
 - cycle 자문 skip — R7
+- 3 trigger 발생 + ADR 누락 — R8
 
 ## 리뷰 포인트
 
@@ -146,6 +161,7 @@
 - [ ] PROJECT_MAP fingerprint 갱신 (구조 변경 시)
 - [ ] 절대 날짜 (YYYY-MM-DD)
 - [ ] cycle 종료 시 자문
+- [ ] R8 trigger 해당 시 ADR 작성
 
 ## 관련
 

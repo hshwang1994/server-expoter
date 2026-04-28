@@ -9,7 +9,6 @@
 adapter_id: esxi_8x
 channel: esxi
 priority: 100
-version: "1.0.0"
 
 match:
   version_patterns: ["^8\\."]

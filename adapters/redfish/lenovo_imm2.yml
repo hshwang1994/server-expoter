@@ -14,7 +14,6 @@
 adapter_id: redfish_lenovo_imm2
 channel: redfish
 priority: 50
-version: "1.0.0"
 
 match:
   vendor: ["Lenovo", "LENOVO"]

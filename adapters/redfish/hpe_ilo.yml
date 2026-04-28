@@ -10,7 +10,6 @@
 adapter_id: redfish_hpe_ilo
 channel: redfish
 priority: 10
-version: "1.0.0"
 
 match:
   vendor: ["HPE", "Hewlett Packard Enterprise", "HP Enterprise"]

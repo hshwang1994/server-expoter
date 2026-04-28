@@ -9,7 +9,6 @@
 adapter_id: esxi_7x
 channel: esxi
 priority: 50
-version: "1.0.0"
 
 match:
   version_patterns: ["^7\\."]

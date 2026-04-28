@@ -9,7 +9,6 @@
 adapter_id: esxi_generic
 channel: esxi
 priority: 0
-version: "1.0.0"
 generic: true
 
 match: {}

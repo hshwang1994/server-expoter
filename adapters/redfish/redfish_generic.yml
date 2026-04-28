@@ -10,7 +10,6 @@
 adapter_id: redfish_generic
 channel: redfish
 priority: 0
-version: "1.0.0"
 generic: true
 
 match: {}

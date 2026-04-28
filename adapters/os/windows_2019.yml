@@ -9,7 +9,6 @@
 adapter_id: os_windows_2019
 channel: os
 priority: 50
-version: "1.0.0"
 
 match:
   os_type: windows

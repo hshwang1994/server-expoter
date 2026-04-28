@@ -1,12 +1,19 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-009 — fallback envelope + rule 5요소 보강)
+## 일자: 2026-04-28 (cycle-010 — T3-04/05/06 일괄 처리 + rule 70 R8 신설)
 
 ## 요약
 
-server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-009 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-009 (사용자 "JSON 출력 컨벤션 검증 + T2-A7 보강" 명시 승인)에서 두 작업 일괄:
+server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-010 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-010 (사용자 "권장하는 작업 모두 수행 + 후속 작업 마무리" 명시 승인)에서 cycle-009의 NEXT_ACTIONS 사용자 결정 대기 매트릭스 3건 (T3-04/05/06) 일괄 처리 + 신규 governance rule 1건 (R8 신설):
 
-cycle-009 변경 (이번 세션):
+cycle-010 변경 (이번 세션):
+
+- **T3-04 (04-A 채택)** — 27개 adapter (redfish 16 + os 7 + esxi 4) 의 `version: "1.0.0"` placeholder 1줄 일괄 삭제. `adapter_loader.py` / `module_utils/adapter_common.py` 참조 0건 검증. `tested_against` (rule 96 R1)이 펌웨어 검증 추적 충실
+- **T3-05 (05-A 유지)** — redfish_gather.py BMC IP 수집 break-on-first-IP 패턴 (평균 1~2회 호출)이 실 N+1 아니므로 현재 유지. cycle-008 `_resolve_first_member_uri` helper로 가독성 개선됨. NEXT_ACTIONS T3-05 close
+- **T3-06 (06-B 채택)** — `rule 70` R8 신설 (ADR 의무 trigger 3종): rule 본문 의미 변경 / 표면 카운트 변경 / 보호 경로 정책 변경. `ADR-2026-04-28-rule12-oem-namespace-exception.md` 소급 작성 (DRIFT-006 governance trace 보강 — R8 적용 첫 사례)
+- **검증**: `verify_harness_consistency.py` PASS (29/43/51/10), `verify_vendor_boundary.py` PASS (0건), 27 adapter YAML 파싱 PASS + version 키 0/27, PROJECT_MAP fingerprint 갱신 (adapters)
+
+cycle-009 변경 (이전 세션):
 
 - **3-channel `site.yml` fallback envelope 13 필드 일관성**:
   - **HIGH 버그 fix #1**: `os-gather/site.yml` PLAY 3 (Windows) `always` fallback이 2 필드 (`status` / `errors`) 만 → 13 필드 envelope 보강 (rule 13 R5 / rule 20 R1 정합)

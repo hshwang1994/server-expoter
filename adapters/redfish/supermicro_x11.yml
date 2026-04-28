@@ -10,7 +10,6 @@
 adapter_id: redfish_supermicro_x11
 channel: redfish
 priority: 100
-version: "1.0.0"
 
 match:
   vendor: ["Supermicro", "Super Micro Computer, Inc.", "Super Micro Computer", "SUPERMICRO"]

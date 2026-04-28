@@ -1,6 +1,15 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-28 (cycle-009 후 갱신)
+## 일자: 2026-04-28 (cycle-010 후 갱신)
+
+## 완료 항목 (cycle-010 — T3-04/05/06 일괄 + rule 70 R8 신설)
+
+- [x] **T3-04 (04-A 채택)** — 27 adapter `version: "1.0.0"` placeholder 일괄 삭제 (참조 0건 검증)
+- [x] **T3-05 (05-A 유지)** — redfish_gather.py BMC IP 수집 현재 유지. break-on-first-IP가 실 N+1 아니므로 NEXT_ACTIONS close
+- [x] **T3-06 (06-B 채택)** — `rule 70 R8` 신설 (ADR 의무 trigger 3종: rule 본문 의미 변경 / 표면 카운트 변경 / 보호 경로 정책 변경)
+- [x] **소급 ADR 작성** — `ADR-2026-04-28-rule12-oem-namespace-exception.md` (DRIFT-006 governance trace 보강 — R8 적용 첫 사례)
+- [x] **검증 5종 PASS** — verify_harness_consistency / verify_vendor_boundary / 27 adapter YAML 파싱 / project_map_drift --update / version 키 0/27
+- [x] **증거 문서 4종 갱신** — CURRENT_STATE / NEXT_ACTIONS / TEST_HISTORY / harness/cycle-010.md
 
 ## 완료 항목 (cycle-009 — fallback envelope HIGH fix 2건 + T2-A7 rule 5요소 보강 7개)
 
@@ -97,23 +106,23 @@
 ### Rule 재구조화 (대규모, 별도 cycle 필요)
 - [ ] **DRIFT-006 옵션 (2)**: redfish_gather.py vendor-agnostic 리팩토링 — _OEM_EXTRACTORS dispatch는 cycle-008에서 적용. 다음 단계는 dispatch 자체를 adapter capabilities로 위임. 영향 vendor 전부 회귀 + Round 권장
 
-## 결정 필요 (사용자, cycle-007 진입 시점)
+## 결정 필요 (사용자)
 
 | 항목 | 옵션 | 비고 |
 |---|---|---|
 | T2-D2 (cisco_baseline.json data.users) | `null` → `[]` | rule 13 R4 — 실측 evidence 필요 |
-| T3-04 (adapter version 추적) | 의미 있는 버전 / 무시 | 추적 메커니즘 |
-| T3-05 (redfish BMC IP N+1) | 첫 멤버만 / 병렬 / 유지 | 성능 vs 단순성. cycle-008에서 `_resolve_first_member_uri` helper 추출했지만 정책 자체는 "첫 멤버만" 유지 |
-| T3-06 (governance 결정 ADR 필수) | 의무 / 선택 | trace 강도 |
 | 새 vendor 추가 일정 | Huawei / NEC / Inspur | PO + 실장비 |
 | Round 11 검증 | 새 펌웨어 / 새 모델 | 실장비 + 일정 |
 | harness-cycle 정기 주기 | 자동 trigger 도입? | 운영 정책 |
 
-## 해결됨 (cycle-007 / cycle-008)
+## 해결됨 (cycle-007 / cycle-008 / cycle-010)
 
 - T3-01 (precheck requests 의존) → cycle-007에서 stdlib only로 해결
 - T3-02 (HPE iLO5/6 priority 동률) → cycle-008에서 차등 (90/100) 적용
 - T3-03 (Lenovo generic fallback) → cycle-008에서 lenovo_bmc.yml 추가 (Cisco도 같이)
+- T3-04 (adapter version 추적) → cycle-010에서 04-A 삭제 채택 (placeholder 1줄 일괄 제거)
+- T3-05 (redfish BMC IP N+1) → cycle-010에서 05-A 유지 결정 (break-on-first-IP가 실 N+1 아님)
+- T3-06 (governance ADR 의무) → cycle-010에서 06-B 채택 (rule 70 R8 신설 + 조건부 trigger 3종)
 
 ## 정본 reference
 

@@ -10,7 +10,6 @@
 adapter_id: redfish_dell_idrac8
 channel: redfish
 priority: 50
-version: "1.0.0"
 
 match:
   vendor: ["Dell", "Dell Inc.", "DELL"]
