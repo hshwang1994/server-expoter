@@ -1,6 +1,6 @@
 # command: vim-cmd vmsvc/getallvms 2>&1
 # rc: 0
-# fetched: 2026-04-28T06:45:34.339174+00:00
+# fetched: 2026-04-28T12:42:59.179936+00:00
 #
 Vmid                     Name                                                                          File                                                                Guest OS            Version                                                                                                                                                                                                                                        Annotation                                                                                                                                                                                                                                      
 1      work01-domain-esxi01                        [ESXi02-Local-RAID5] work01-domain-esxi01/work01-domain-esxi01.vmx                                             vmkernel7Guest               vmx-19    Nested ESXi 8.0U3C Appliance (Build 24414501) www.williamlam.com                                                                                                                                                                                                                                                                                                                                                                                                                     

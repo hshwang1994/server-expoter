@@ -1,6 +1,6 @@
 # command: esxcli network ip interface ipv4 get
 # rc: 0
-# fetched: 2026-04-28T06:45:06.598078+00:00
+# fetched: 2026-04-28T12:42:31.502471+00:00
 #
 Name  IPv4 Address  IPv4 Netmask   IPv4 Broadcast  Address Type  Gateway        DHCP DNS
 ----  ------------  -------------  --------------  ------------  -------------  --------

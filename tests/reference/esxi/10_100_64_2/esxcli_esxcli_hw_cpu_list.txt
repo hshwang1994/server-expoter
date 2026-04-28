@@ -1,6 +1,6 @@
 # command: esxcli hardware cpu list
 # rc: 0
-# fetched: 2026-04-28T06:44:45.208254+00:00
+# fetched: 2026-04-28T12:42:09.292392+00:00
 #
 CPU:0
    Id: 0

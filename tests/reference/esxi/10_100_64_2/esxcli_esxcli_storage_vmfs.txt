@@ -1,6 +1,6 @@
 # command: esxcli storage vmfs extent list; esxcli storage vmfs snapshot list
 # rc: 0
-# fetched: 2026-04-28T06:44:55.342886+00:00
+# fetched: 2026-04-28T12:42:19.500099+00:00
 #
 Volume Name                                 VMFS UUID                            Extent Number  Device Name                           Partition
 ------------------------------------------  -----------------------------------  -------------  ------------------------------------  ---------

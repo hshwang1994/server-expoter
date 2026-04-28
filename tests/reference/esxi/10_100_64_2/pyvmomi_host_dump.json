@@ -91,7 +91,7 @@
             "sensorType": "processor",
             "id": "0.3.1.239",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -106,7 +106,7 @@
             "sensorType": "temperature",
             "id": "0.7.4.214",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -114,33 +114,18 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 4600,
+            "currentReading": 4500,
             "unitModifier": -2,
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
             "id": "0.7.3.213",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
             "name": "System Board 2 RISER1_OUTLETTMP",
-            "healthState": {
-              "key": "<truncated:str>"
-            },
-            "currentReading": 4300,
-            "unitModifier": -2,
-            "baseUnits": "degrees C",
-            "rateUnits": "none",
-            "sensorType": "temperature",
-            "id": "0.7.2.212",
-            "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
-            "fru": null
-          },
-          {
-            "name": "System Board 9 RISER1_INLET_TMP",
             "healthState": {
               "key": "<truncated:str>"
             },
@@ -149,9 +134,24 @@
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
+            "id": "0.7.2.212",
+            "sensorNumber": null,
+            "timeStamp": "2026-04-28T12:34:28Z",
+            "fru": null
+          },
+          {
+            "name": "System Board 9 RISER1_INLET_TMP",
+            "healthState": {
+              "key": "<truncated:str>"
+            },
+            "currentReading": 4300,
+            "unitModifier": -2,
+            "baseUnits": "degrees C",
+            "rateUnits": "none",
+            "sensorType": "temperature",
             "id": "0.7.9.211",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -166,7 +166,7 @@
             "sensorType": "voltage",
             "id": "0.3.2.210",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -181,7 +181,7 @@
             "sensorType": "voltage",
             "id": "0.3.2.209",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -196,7 +196,7 @@
             "sensorType": "voltage",
             "id": "0.3.1.208",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -211,7 +211,7 @@
             "sensorType": "voltage",
             "id": "0.3.1.207",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -226,7 +226,7 @@
             "sensorType": "voltage",
             "id": "0.3.2.206",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -241,7 +241,7 @@
             "sensorType": "voltage",
             "id": "0.3.2.205",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -256,7 +256,7 @@
             "sensorType": "voltage",
             "id": "0.3.1.204",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -271,7 +271,7 @@
             "sensorType": "voltage",
             "id": "0.3.1.203",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -286,7 +286,7 @@
             "sensorType": "voltage",
             "id": "0.3.2.202",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -301,7 +301,7 @@
             "sensorType": "voltage",
             "id": "0.3.2.201",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -316,7 +316,7 @@
             "sensorType": "voltage",
             "id": "0.3.1.200",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -331,7 +331,7 @@
             "sensorType": "voltage",
             "id": "0.3.1.199",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -346,7 +346,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.198",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -354,14 +354,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 181,
+            "currentReading": 182,
             "unitModifier": -2,
             "baseUnits": "Volts",
             "rateUnits": "none",
             "sensorType": "voltage",
             "id": "0.3.2.197",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -376,7 +376,7 @@
             "sensorType": "voltage",
             "id": "0.3.1.196",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -391,7 +391,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.195",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -399,14 +399,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 149,
+            "currentReading": 148,
             "unitModifier": -2,
             "baseUnits": "Volts",
             "rateUnits": "none",
             "sensorType": "voltage",
             "id": "0.7.0.194",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -421,7 +421,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.193",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -436,7 +436,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.192",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -451,7 +451,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.191",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -466,7 +466,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.190",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -481,7 +481,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.189",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -496,7 +496,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.188",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -511,7 +511,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.187",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -526,7 +526,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.186",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -541,7 +541,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.185",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -556,7 +556,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.184",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -571,7 +571,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.183",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -579,14 +579,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 283,
+            "currentReading": 285,
             "unitModifier": -2,
             "baseUnits": "Volts",
             "rateUnits": "none",
             "sensorType": "voltage",
             "id": "0.7.0.182",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -601,7 +601,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.181",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -616,7 +616,7 @@
             "sensorType": "voltage",
             "id": "0.7.0.180",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -624,14 +624,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 4500,
+            "currentReading": 4600,
             "unitModifier": -2,
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
             "id": "0.7.0.179",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -646,7 +646,7 @@
             "sensorType": "temperature",
             "id": "0.10.2.178",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -654,14 +654,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 4300,
+            "currentReading": 4200,
             "unitModifier": -2,
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
             "id": "0.10.1.177",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -669,14 +669,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 23200,
+            "currentReading": 21600,
             "unitModifier": -2,
             "baseUnits": "Watts",
             "rateUnits": "none",
             "sensorType": "power",
             "id": "0.10.2.176",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -684,14 +684,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 22400,
+            "currentReading": 21600,
             "unitModifier": -2,
             "baseUnits": "Watts",
             "rateUnits": "none",
             "sensorType": "power",
             "id": "0.10.1.175",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -699,14 +699,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 44000,
+            "currentReading": 43200,
             "unitModifier": -2,
             "baseUnits": "Watts",
             "rateUnits": "none",
             "sensorType": "power",
             "id": "0.7.0.174",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -721,7 +721,7 @@
             "sensorType": "power",
             "id": "0.20.0.173",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -736,7 +736,7 @@
             "sensorType": "systemBoard",
             "id": "0.7.0.172",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -751,7 +751,7 @@
             "sensorType": "systemBoard",
             "id": "0.7.0.170",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -766,7 +766,7 @@
             "sensorType": "memory",
             "id": "0.8.22.166",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -781,7 +781,7 @@
             "sensorType": "memory",
             "id": "0.8.21.165",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -796,7 +796,7 @@
             "sensorType": "memory",
             "id": "0.8.19.163",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -811,7 +811,7 @@
             "sensorType": "memory",
             "id": "0.8.18.162",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -826,7 +826,7 @@
             "sensorType": "memory",
             "id": "0.8.16.160",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -841,7 +841,7 @@
             "sensorType": "memory",
             "id": "0.8.15.159",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -856,7 +856,7 @@
             "sensorType": "memory",
             "id": "0.8.13.157",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -871,7 +871,7 @@
             "sensorType": "memory",
             "id": "0.8.12.156",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -886,7 +886,7 @@
             "sensorType": "memory",
             "id": "0.8.10.154",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -901,7 +901,7 @@
             "sensorType": "memory",
             "id": "0.8.9.153",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -916,7 +916,7 @@
             "sensorType": "memory",
             "id": "0.8.7.151",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -931,7 +931,7 @@
             "sensorType": "memory",
             "id": "0.8.6.150",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -946,7 +946,7 @@
             "sensorType": "memory",
             "id": "0.8.4.148",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -961,7 +961,7 @@
             "sensorType": "memory",
             "id": "0.8.3.147",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -976,7 +976,7 @@
             "sensorType": "memory",
             "id": "0.8.1.145",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -991,26 +991,11 @@
             "sensorType": "memory",
             "id": "0.8.0.144",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
             "name": "Processor 2 P2_TEMP_SENS",
-            "healthState": {
-              "key": "<truncated:str>"
-            },
-            "currentReading": 5750,
-            "unitModifier": -2,
-            "baseUnits": "degrees C",
-            "rateUnits": "none",
-            "sensorType": "temperature",
-            "id": "0.3.2.143",
-            "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
-            "fru": null
-          },
-          {
-            "name": "Processor 1 P1_TEMP_SENS",
             "healthState": {
               "key": "<truncated:str>"
             },
@@ -1019,9 +1004,24 @@
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
+            "id": "0.3.2.143",
+            "sensorNumber": null,
+            "timeStamp": "2026-04-28T12:34:28Z",
+            "fru": null
+          },
+          {
+            "name": "Processor 1 P1_TEMP_SENS",
+            "healthState": {
+              "key": "<truncated:str>"
+            },
+            "currentReading": 5650,
+            "unitModifier": -2,
+            "baseUnits": "degrees C",
+            "rateUnits": "none",
+            "sensorType": "temperature",
             "id": "0.3.1.142",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1036,7 +1036,7 @@
             "sensorType": "temperature",
             "id": "0.8.22.128",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1044,14 +1044,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 5000,
+            "currentReading": 4900,
             "unitModifier": -2,
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
             "id": "0.8.21.126",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1066,7 +1066,7 @@
             "sensorType": "temperature",
             "id": "0.8.19.122",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1081,7 +1081,7 @@
             "sensorType": "temperature",
             "id": "0.8.18.120",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1096,7 +1096,7 @@
             "sensorType": "temperature",
             "id": "0.8.16.115",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1111,7 +1111,7 @@
             "sensorType": "temperature",
             "id": "0.8.15.113",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1126,7 +1126,7 @@
             "sensorType": "temperature",
             "id": "0.8.13.109",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1134,14 +1134,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 5100,
+            "currentReading": 5000,
             "unitModifier": -2,
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
             "id": "0.8.12.107",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1156,7 +1156,7 @@
             "sensorType": "temperature",
             "id": "0.8.10.102",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1171,7 +1171,7 @@
             "sensorType": "temperature",
             "id": "0.8.9.100",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1186,7 +1186,7 @@
             "sensorType": "temperature",
             "id": "0.8.7.96",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1201,56 +1201,11 @@
             "sensorType": "temperature",
             "id": "0.8.6.94",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
             "name": "Memory Module 4 DDR4_P1_B2_TEMP",
-            "healthState": {
-              "key": "<truncated:str>"
-            },
-            "currentReading": 4400,
-            "unitModifier": -2,
-            "baseUnits": "degrees C",
-            "rateUnits": "none",
-            "sensorType": "temperature",
-            "id": "0.8.4.89",
-            "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
-            "fru": null
-          },
-          {
-            "name": "Memory Module 3 DDR4_P1_B1_TEMP",
-            "healthState": {
-              "key": "<truncated:str>"
-            },
-            "currentReading": 4400,
-            "unitModifier": -2,
-            "baseUnits": "degrees C",
-            "rateUnits": "none",
-            "sensorType": "temperature",
-            "id": "0.8.3.87",
-            "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
-            "fru": null
-          },
-          {
-            "name": "Memory Module 1 DDR4_P1_A2_TEMP",
-            "healthState": {
-              "key": "<truncated:str>"
-            },
-            "currentReading": 4400,
-            "unitModifier": -2,
-            "baseUnits": "degrees C",
-            "rateUnits": "none",
-            "sensorType": "temperature",
-            "id": "0.8.1.83",
-            "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
-            "fru": null
-          },
-          {
-            "name": "Memory Module 0 DDR4_P1_A1_TEMP",
             "healthState": {
               "key": "<truncated:str>"
             },
@@ -1259,9 +1214,54 @@
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
+            "id": "0.8.4.89",
+            "sensorNumber": null,
+            "timeStamp": "2026-04-28T12:34:28Z",
+            "fru": null
+          },
+          {
+            "name": "Memory Module 3 DDR4_P1_B1_TEMP",
+            "healthState": {
+              "key": "<truncated:str>"
+            },
+            "currentReading": 4500,
+            "unitModifier": -2,
+            "baseUnits": "degrees C",
+            "rateUnits": "none",
+            "sensorType": "temperature",
+            "id": "0.8.3.87",
+            "sensorNumber": null,
+            "timeStamp": "2026-04-28T12:34:28Z",
+            "fru": null
+          },
+          {
+            "name": "Memory Module 1 DDR4_P1_A2_TEMP",
+            "healthState": {
+              "key": "<truncated:str>"
+            },
+            "currentReading": 4500,
+            "unitModifier": -2,
+            "baseUnits": "degrees C",
+            "rateUnits": "none",
+            "sensorType": "temperature",
+            "id": "0.8.1.83",
+            "sensorNumber": null,
+            "timeStamp": "2026-04-28T12:34:28Z",
+            "fru": null
+          },
+          {
+            "name": "Memory Module 0 DDR4_P1_A1_TEMP",
+            "healthState": {
+              "key": "<truncated:str>"
+            },
+            "currentReading": 4600,
+            "unitModifier": -2,
+            "baseUnits": "degrees C",
+            "rateUnits": "none",
+            "sensorType": "temperature",
             "id": "0.8.0.81",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1276,7 +1276,7 @@
             "sensorType": "storage",
             "id": "0.4.7.75",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1291,7 +1291,7 @@
             "sensorType": "storage",
             "id": "0.4.6.74",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1306,7 +1306,7 @@
             "sensorType": "storage",
             "id": "0.4.5.73",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1321,7 +1321,7 @@
             "sensorType": "storage",
             "id": "0.4.4.72",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1336,7 +1336,7 @@
             "sensorType": "storage",
             "id": "0.4.3.71",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1351,7 +1351,7 @@
             "sensorType": "storage",
             "id": "0.4.2.70",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1366,7 +1366,7 @@
             "sensorType": "storage",
             "id": "0.4.1.69",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1381,7 +1381,7 @@
             "sensorType": "storage",
             "id": "0.4.0.68",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1396,7 +1396,7 @@
             "sensorType": "temperature",
             "id": "0.12.1.67",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1411,7 +1411,7 @@
             "sensorType": "temperature",
             "id": "0.11.8.62",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1419,14 +1419,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 4300,
+            "currentReading": 4400,
             "unitModifier": -2,
             "baseUnits": "degrees C",
             "rateUnits": "none",
             "sensorType": "temperature",
             "id": "0.11.7.59",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1441,7 +1441,7 @@
             "sensorType": "power",
             "id": "0.10.2.49",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1456,7 +1456,7 @@
             "sensorType": "power",
             "id": "0.10.2.48",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1471,7 +1471,7 @@
             "sensorType": "voltage",
             "id": "0.10.2.47",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1486,7 +1486,7 @@
             "sensorType": "power",
             "id": "0.10.2.46",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1501,7 +1501,7 @@
             "sensorType": "power",
             "id": "0.10.2.44",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1509,14 +1509,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 20800,
+            "currentReading": 20000,
             "unitModifier": -2,
             "baseUnits": "Watts",
             "rateUnits": "none",
             "sensorType": "power",
             "id": "0.10.1.43",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1531,7 +1531,7 @@
             "sensorType": "power",
             "id": "0.10.1.42",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1546,7 +1546,7 @@
             "sensorType": "voltage",
             "id": "0.10.1.41",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1561,7 +1561,7 @@
             "sensorType": "power",
             "id": "0.10.1.40",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1576,7 +1576,7 @@
             "sensorType": "power",
             "id": "0.10.1.38",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1591,7 +1591,7 @@
             "sensorType": "processor",
             "id": "0.3.1.37",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1606,7 +1606,7 @@
             "sensorType": "processor",
             "id": "0.3.1.36",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1621,7 +1621,7 @@
             "sensorType": "processor",
             "id": "0.3.2.35",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1636,7 +1636,7 @@
             "sensorType": "processor",
             "id": "0.3.2.34",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1651,7 +1651,7 @@
             "sensorType": "processor",
             "id": "0.3.2.33",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1666,7 +1666,7 @@
             "sensorType": "processor",
             "id": "0.3.1.32",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1681,7 +1681,7 @@
             "sensorType": "processor",
             "id": "0.3.2.31",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1696,7 +1696,7 @@
             "sensorType": "processor",
             "id": "0.3.2.30",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1711,7 +1711,7 @@
             "sensorType": "processor",
             "id": "0.3.1.29",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1726,7 +1726,7 @@
             "sensorType": "processor",
             "id": "0.3.1.28",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1734,14 +1734,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 1410000,
+            "currentReading": 1330000,
             "unitModifier": -2,
             "baseUnits": "RPM",
             "rateUnits": "none",
             "sensorType": "fan",
             "id": "0.29.6.26",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1756,7 +1756,7 @@
             "sensorType": "fan",
             "id": "0.29.6.25",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1771,7 +1771,7 @@
             "sensorType": "fan",
             "id": "0.29.5.24",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1786,7 +1786,7 @@
             "sensorType": "fan",
             "id": "0.29.5.23",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1794,14 +1794,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 1330000,
+            "currentReading": 1410000,
             "unitModifier": -2,
             "baseUnits": "RPM",
             "rateUnits": "none",
             "sensorType": "fan",
             "id": "0.29.4.22",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1816,7 +1816,7 @@
             "sensorType": "fan",
             "id": "0.29.4.21",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1831,7 +1831,7 @@
             "sensorType": "fan",
             "id": "0.29.3.20",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1839,14 +1839,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 1200000,
+            "currentReading": 1260000,
             "unitModifier": -2,
             "baseUnits": "RPM",
             "rateUnits": "none",
             "sensorType": "fan",
             "id": "0.29.3.19",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1861,7 +1861,7 @@
             "sensorType": "fan",
             "id": "0.29.2.18",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1869,14 +1869,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 1200000,
+            "currentReading": 1140000,
             "unitModifier": -2,
             "baseUnits": "RPM",
             "rateUnits": "none",
             "sensorType": "fan",
             "id": "0.29.2.17",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1884,14 +1884,14 @@
             "healthState": {
               "key": "<truncated:str>"
             },
-            "currentReading": 1410000,
+            "currentReading": 1330000,
             "unitModifier": -2,
             "baseUnits": "RPM",
             "rateUnits": "none",
             "sensorType": "fan",
             "id": "0.29.1.16",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1906,7 +1906,7 @@
             "sensorType": "fan",
             "id": "0.29.1.15",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1921,7 +1921,7 @@
             "sensorType": "processor",
             "id": "0.3.1.4",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1936,7 +1936,7 @@
             "sensorType": "processor",
             "id": "0.3.2.3",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1951,7 +1951,7 @@
             "sensorType": "processor",
             "id": "0.3.1.2",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           },
           {
@@ -1966,7 +1966,7 @@
             "sensorType": "processor",
             "id": "0.7.0.1",
             "sensorNumber": null,
-            "timeStamp": "2026-04-28T06:37:54Z",
+            "timeStamp": "2026-04-28T12:34:28Z",
             "fru": null
           }
         ]
@@ -12097,12 +12097,12 @@
           "agentVmNetwork": null
         },
         "quickStats": {
-          "overallCpuUsage": 63707,
-          "overallMemoryUsage": 639108,
+          "overallCpuUsage": 54609,
+          "overallMemoryUsage": 639709,
           "distributedCpuFairness": null,
           "distributedMemoryFairness": null,
           "availablePMemCapacity": null,
-          "uptime": 12284367
+          "uptime": 12305807
         },
         "overallStatus": "gray",
         "rebootRequired": false,
@@ -53033,6 +53033,7 @@
               "<truncated:vim.option.OptionValue>",
               "<truncated:vim.option.OptionValue>",
               "<truncated:vim.option.OptionValue>",
+              "<truncated:vim.option.OptionValue>",
               "<truncated:vim.option.OptionValue>"
             ],
             "cpuFeatureMask": [
@@ -53169,13 +53170,13 @@
             "snapshot": [
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>"
             ],
-            "timestamp": "2026-04-28 06:27:59.353648+00:00"
+            "timestamp": "2026-04-28 12:28:09.169743+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.353940+00:00"
+            "timestamp": "2026-04-28 12:28:09.169911+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -54008,13 +54009,13 @@
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>",
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>"
             ],
-            "timestamp": "2026-04-28 06:27:59.331783+00:00"
+            "timestamp": "2026-04-28 12:28:09.152392+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.331955+00:00"
+            "timestamp": "2026-04-28 12:28:09.152529+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -54848,13 +54849,13 @@
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>",
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>"
             ],
-            "timestamp": "2026-04-28 06:27:59.203301+00:00"
+            "timestamp": "2026-04-28 12:28:09.020582+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.203595+00:00"
+            "timestamp": "2026-04-28 12:28:09.021095+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -55661,13 +55662,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.293868+00:00"
+            "timestamp": "2026-04-28 12:28:09.117443+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.294034+00:00"
+            "timestamp": "2026-04-28 12:28:09.117686+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -56458,13 +56459,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.368152+00:00"
+            "timestamp": "2026-04-28 12:28:09.184136+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.368374+00:00"
+            "timestamp": "2026-04-28 12:28:09.184296+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -57255,13 +57256,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.402308+00:00"
+            "timestamp": "2026-04-28 12:28:09.208113+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.402477+00:00"
+            "timestamp": "2026-04-28 12:28:09.208227+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -58052,13 +58053,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.242797+00:00"
+            "timestamp": "2026-04-28 12:28:09.062803+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.242974+00:00"
+            "timestamp": "2026-04-28 12:28:09.062990+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -58849,13 +58850,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.277779+00:00"
+            "timestamp": "2026-04-28 12:28:09.100782+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.278105+00:00"
+            "timestamp": "2026-04-28 12:28:09.100927+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -59646,13 +59647,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.396408+00:00"
+            "timestamp": "2026-04-28 12:28:09.203558+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.396614+00:00"
+            "timestamp": "2026-04-28 12:28:09.203663+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -60443,13 +60444,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.269604+00:00"
+            "timestamp": "2026-04-28 12:28:09.094252+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.269764+00:00"
+            "timestamp": "2026-04-28 12:28:09.094493+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -61240,13 +61241,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.389265+00:00"
+            "timestamp": "2026-04-28 12:28:09.198536+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.389489+00:00"
+            "timestamp": "2026-04-28 12:28:09.198651+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -65388,7 +65389,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'\\x1f\\xaa!\\xb3 \\xd5O\\xe3u\\xf0M\\x9d\\xe3\\x94\\xa7\\xc8\\x1b\\xfd\\xdf\\\\'",
+            "vmxConfigChecksum": "b'_Z\\xc6{\\x9f\\xc5D\\x13\\xbanc\\xc0\\xd7\\xc2\\xd18\\xf9\\x83\\xdcP'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -65464,13 +65465,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.236712+00:00"
+            "timestamp": "2026-04-28 12:28:09.056516+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.236875+00:00"
+            "timestamp": "2026-04-28 12:28:09.056734+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -66213,7 +66214,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'\\xfd\\x0e\\xb12\\x9d\\xcf(\\xe0\\\\\\x97\\x99z?}o\\xc6\\xfe\\xd4\\xee0'",
+            "vmxConfigChecksum": "b'~I\\\\\\xc6}\\xf4M\\xb7\\xbb\\xd3w#\\xd3\\xccsa\\x0b\\xa2T}'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -67081,7 +67082,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'\\x18\\xee\\xfbEm)e\\xc7\\xcb`G\\x12\\n\\x0f=\\xd8\\x86\\xe4D3'",
+            "vmxConfigChecksum": "b'z\\x86\\xa9U7\\xd6Rq\\x01\\xc9\\x9c\\x8af\\x97\\x1dV\\xaay-\\xc6'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -67161,13 +67162,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.287780+00:00"
+            "timestamp": "2026-04-28 12:28:09.109191+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.288016+00:00"
+            "timestamp": "2026-04-28 12:28:09.109364+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -67896,7 +67897,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'\\xd6\\xb2\\xcd8qU\\x90r\\xe0\\xbe\\xfd\\x10k;\\xf7w\\xfc\\x13\\xba\\xba'",
+            "vmxConfigChecksum": "b'F|\\xf8JqV\\xd3\\x96x\\xa0\\xd2]o\\x8d\\x07Y\\xb20\\xb9Z'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -67988,13 +67989,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.320440+00:00"
+            "timestamp": "2026-04-28 12:28:09.142369+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.320758+00:00"
+            "timestamp": "2026-04-28 12:28:09.142562+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -68726,7 +68727,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'n\\xf3\\x07\\x0e\\x9f\\xe0\\t\\xde\\x0e\\x17\\x88\\x0f(\\x1a\\x02\\xb9\\xb0cG{'",
+            "vmxConfigChecksum": "b'\\x05o\\xdbe\\x98\\xe4Aw\\xe6O\\x9fU\\xc3\\xeflT\\xeeT\\xd6\\x90'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -68806,13 +68807,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.341168+00:00"
+            "timestamp": "2026-04-28 12:28:09.160579+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.341420+00:00"
+            "timestamp": "2026-04-28 12:28:09.160696+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -70485,13 +70486,13 @@
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>",
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>"
             ],
-            "timestamp": "2026-04-28 06:27:59.263359+00:00"
+            "timestamp": "2026-04-28 12:28:09.086687+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.263601+00:00"
+            "timestamp": "2026-04-28 12:28:09.086840+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -71319,13 +71320,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.250210+00:00"
+            "timestamp": "2026-04-28 12:28:09.069702+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.250435+00:00"
+            "timestamp": "2026-04-28 12:28:09.069860+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -71622,7 +71623,7 @@
             "guestKernelCrashed": false,
             "appState": "none",
             "guestOperationsReady": true,
-            "interactiveGuestOperationsReady": false,
+            "interactiveGuestOperationsReady": true,
             "guestStateChangeSupported": true,
             "generationInfo": [],
             "hwVersion": "vmx-19",
@@ -73674,7 +73675,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'U\\xf3\\x1b\\x1c}\\x8cZ\\xa4r4bv\\x99\\xf2q\\xb2\\xcf\\xd4\\xf9\\xf6'",
+            "vmxConfigChecksum": "b'\\x15\\xfc^\\xe8\\xd5\\xefvO\\xef\\x9c\\xc9\\x18\\xdbTg\\x86\\x15\\xc6M\\xbc'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -74491,7 +74492,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'\"7\\xe0\\x0b\\x9a\\x89\\xda\\xbaA\\xad{\\xcfVv\\xa6\\x88\\x9f\\xc3\\x8e\\x7f'",
+            "vmxConfigChecksum": "b']\\xf9\\x08\\xe6T\\x9b\\xe2\\xf0%\\xe6\\x8e^\\x06A\\x93\\xb9\\xec\\xda\\xbd\\xb7'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -74590,13 +74591,13 @@
             "snapshot": [
               "<truncated:vim.vm.FileLayoutEx.SnapshotLayout>"
             ],
-            "timestamp": "2026-04-28 06:27:59.227373+00:00"
+            "timestamp": "2026-04-28 12:28:09.044936+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.227591+00:00"
+            "timestamp": "2026-04-28 12:28:09.045142+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -75482,13 +75483,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.362006+00:00"
+            "timestamp": "2026-04-28 12:28:09.177086+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.362146+00:00"
+            "timestamp": "2026-04-28 12:28:09.177240+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -79628,13 +79629,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.381765+00:00"
+            "timestamp": "2026-04-28 12:28:09.193651+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.381958+00:00"
+            "timestamp": "2026-04-28 12:28:09.193760+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -80338,7 +80339,7 @@
             },
             "forkConfigInfo": null,
             "vFlashCacheReservation": null,
-            "vmxConfigChecksum": "b'X3\\x7f\\xab\\xa5\\x00iI\\xbd.j\\x83Q\\xbe\\x04\\x7f\\xd8c\\xc4I'",
+            "vmxConfigChecksum": "b'\\xfb2$X2TWXKY!i\\x99g\"X\\xb2\\xf5.O'",
             "messageBusTunnelEnabled": false,
             "vmStorageObjectId": null,
             "swapStorageObjectId": null,
@@ -80407,13 +80408,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.307280+00:00"
+            "timestamp": "2026-04-28 12:28:09.131364+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.307492+00:00"
+            "timestamp": "2026-04-28 12:28:09.131610+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -81200,13 +81201,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.211072+00:00"
+            "timestamp": "2026-04-28 12:28:09.028875+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.211320+00:00"
+            "timestamp": "2026-04-28 12:28:09.028994+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -81993,13 +81994,13 @@
               "<truncated:vim.vm.FileLayoutEx.DiskLayout>"
             ],
             "snapshot": [],
-            "timestamp": "2026-04-28 06:27:59.299574+00:00"
+            "timestamp": "2026-04-28 12:28:09.124154+00:00"
           },
           "storage": {
             "perDatastoreUsage": [
               "<truncated:vim.vm.StorageInfo.UsageOnDatastore>"
             ],
-            "timestamp": "2026-04-28 06:27:59.299727+00:00"
+            "timestamp": "2026-04-28 12:28:09.124406+00:00"
           },
           "environmentBrowser": {
             "datastoreBrowser": {
@@ -82491,7 +82492,7 @@
             "name": "ESXi02-Local-RAID5",
             "url": "/vmfs/volumes/67ecc266-4a382602-09f9-0027e38875cc",
             "capacity": 6258304221184,
-            "freeSpace": 663427743744,
+            "freeSpace": 659502923776,
             "uncommitted": 3569931894764,
             "accessible": true,
             "multipleHostAccess": null,
@@ -83209,7 +83210,7 @@
             "name": "ESXi02-Local-RAID0",
             "url": "/vmfs/volumes/67ecd33b-09e3e5c6-ad98-0027e38875cc",
             "capacity": 11519907594240,
-            "freeSpace": 480658849792,
+            "freeSpace": 480657801216,
             "uncommitted": 381384578146,
             "accessible": true,
             "multipleHostAccess": null,
@@ -86542,18 +86543,18 @@
         "licenseProductVersion": "7.0"
       },
       "vmotionEnabled": false,
-      "faultToleranceEnabled": true,
+      "faultToleranceEnabled": false,
       "featureVersion": [],
       "agentVmDatastore": null,
       "agentVmNetwork": null
     },
     "quickStats": {
-      "overallCpuUsage": 63707,
-      "overallMemoryUsage": 639108,
+      "overallCpuUsage": 54609,
+      "overallMemoryUsage": 639709,
       "distributedCpuFairness": null,
       "distributedMemoryFairness": null,
       "availablePMemCapacity": null,
-      "uptime": 12284367
+      "uptime": 12305807
     },
     "overallStatus": "gray",
     "rebootRequired": false,

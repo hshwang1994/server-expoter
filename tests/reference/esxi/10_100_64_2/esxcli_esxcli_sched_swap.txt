@@ -1,6 +1,6 @@
 # command: esxcli sched swap system get 2>&1
 # rc: 0
-# fetched: 2026-04-28T06:45:23.723002+00:00
+# fetched: 2026-04-28T12:42:47.661106+00:00
 #
    Datastore Active: false
    Datastore Enabled: false

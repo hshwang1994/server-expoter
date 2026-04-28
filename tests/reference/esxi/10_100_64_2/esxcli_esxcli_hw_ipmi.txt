@@ -1,6 +1,6 @@
 # command: esxcli hardware ipmi sel list 2>&1; esxcli hardware ipmi fru list 2>&1
 # rc: 0
-# fetched: 2026-04-28T06:45:30.766446+00:00
+# fetched: 2026-04-28T12:42:55.480444+00:00
 #
 Record:1
    Record Id: 1

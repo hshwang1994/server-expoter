@@ -1,6 +1,6 @@
 # command: esxcli storage san fc list 2>&1; esxcli storage san sas list 2>&1
 # rc: 0
-# fetched: 2026-04-28T06:44:59.057830+00:00
+# fetched: 2026-04-28T12:42:23.239293+00:00
 #
    Adapter: vmhba2
    Port ID: 000000

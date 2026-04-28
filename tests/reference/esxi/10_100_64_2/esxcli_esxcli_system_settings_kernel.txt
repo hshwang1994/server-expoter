@@ -1,6 +1,6 @@
 # command: esxcli system settings kernel list
 # rc: 0
-# fetched: 2026-04-28T06:44:39.588097+00:00
+# fetched: 2026-04-28T12:42:03.852348+00:00
 #
 Name                                     Type    Configured          Runtime                           Default             Description
 ---------------------------------------  ------  ------------------  --------------------------------  ------------------  -----------

@@ -1,218 +1,274 @@
 {
   "target": "esxi-10.100.64.2",
   "ip": "10.100.64.2",
-  "started_at": "2026-04-28T12:32:55.201493+00:00",
+  "started_at": "2026-04-28T12:41:55.702507+00:00",
   "commands": [
     {
       "name": "uname",
-      "status": "cached"
+      "rc": 0,
+      "size": 99
     },
     {
       "name": "vmware_version",
-      "status": "cached"
+      "rc": 0,
+      "size": 58
     },
     {
       "name": "hostname",
-      "status": "cached"
+      "rc": 1,
+      "size": 7
     },
     {
       "name": "uptime",
-      "status": "cached"
+      "rc": 0,
+      "size": 64
     },
     {
       "name": "esxcli_system_version",
-      "status": "cached"
+      "rc": 0,
+      "size": 100
     },
     {
       "name": "esxcli_system_uuid",
-      "status": "cached"
+      "rc": 0,
+      "size": 37
     },
     {
       "name": "esxcli_system_hostname",
-      "status": "cached"
+      "rc": 0,
+      "size": 77
     },
     {
       "name": "esxcli_system_module",
-      "status": "cached"
+      "rc": 0,
+      "size": 5035
     },
     {
       "name": "esxcli_system_settings_advanced",
-      "status": "cached"
+      "rc": 0,
+      "size": 232820
     },
     {
       "name": "esxcli_system_settings_kernel",
-      "status": "cached"
+      "rc": 0,
+      "size": 55816
     },
     {
       "name": "esxcli_system_stats_uptime",
-      "status": "cached"
+      "rc": 0,
+      "size": 15
     },
     {
       "name": "esxcli_system_account_user",
-      "status": "cached"
+      "rc": 0,
+      "size": 135
     },
     {
       "name": "esxcli_hw_platform",
-      "status": "cached"
+      "rc": 0,
+      "size": 293
     },
     {
       "name": "esxcli_hw_cpu_global",
-      "status": "cached"
+      "rc": 0,
+      "size": 169
     },
     {
       "name": "esxcli_hw_cpu_list",
-      "status": "cached"
+      "rc": 0,
+      "size": 35255
     },
     {
       "name": "esxcli_hw_memory",
-      "status": "cached"
+      "rc": 0,
+      "size": 90
     },
     {
       "name": "esxcli_hw_pci_list",
-      "status": "cached"
+      "rc": 0,
+      "size": 201815
     },
     {
       "name": "esxcli_hw_clock",
-      "status": "cached"
+      "rc": 0,
+      "size": 21
     },
     {
       "name": "esxcli_hw_bootdevice",
-      "status": "cached"
+      "rc": 0,
+      "size": 0
     },
     {
       "name": "esxcli_hw_trusted_boot",
-      "status": "cached"
+      "rc": 0,
+      "size": 44
     },
     {
       "name": "esxcli_storage_core_dev",
-      "status": "cached"
+      "rc": 0,
+      "size": 2537
     },
     {
       "name": "esxcli_storage_core_path",
-      "status": "cached"
+      "rc": 0,
+      "size": 1281
     },
     {
       "name": "esxcli_storage_filesys",
-      "status": "cached"
+      "rc": 0,
+      "size": 1246
     },
     {
       "name": "esxcli_storage_vmfs",
-      "status": "cached"
+      "rc": 0,
+      "size": 720
     },
     {
       "name": "esxcli_storage_nvme",
-      "status": "cached"
+      "rc": 0,
+      "size": 0
     },
     {
       "name": "esxcli_storage_iscsi",
-      "status": "cached"
+      "rc": 0,
+      "size": 0
     },
     {
       "name": "esxcli_storage_san",
-      "status": "cached"
+      "rc": 0,
+      "size": 1104
     },
     {
       "name": "esxcli_network_nic",
-      "status": "cached"
+      "rc": 0,
+      "size": 1046
     },
     {
       "name": "esxcli_network_nic_stats",
-      "status": "cached"
+      "rc": 0,
+      "size": 3963
     },
     {
       "name": "esxcli_network_ip_iface",
-      "status": "cached"
+      "rc": 0,
+      "size": 386
     },
     {
       "name": "esxcli_network_ip_ipv4",
-      "status": "cached"
+      "rc": 0,
+      "size": 267
     },
     {
       "name": "esxcli_network_ip_route",
-      "status": "cached"
+      "rc": 1,
+      "size": 261
     },
     {
       "name": "esxcli_network_dns",
-      "status": "cached"
+      "rc": 0,
+      "size": 52
     },
     {
       "name": "esxcli_network_vswitch_std",
-      "status": "cached"
+      "rc": 0,
+      "size": 332
     },
     {
       "name": "esxcli_network_vswitch_dvs",
-      "status": "cached"
+      "rc": 0,
+      "size": 0
     },
     {
       "name": "esxcli_network_portgroup",
-      "status": "cached"
+      "rc": 0,
+      "size": 360
     },
     {
       "name": "esxcli_network_firewall",
-      "status": "cached"
+      "rc": 0,
+      "size": 2072
     },
     {
       "name": "esxcli_software_vib",
-      "status": "cached"
+      "rc": 0,
+      "size": 9099
     },
     {
       "name": "esxcli_software_profile",
-      "status": "cached"
+      "rc": 0,
+      "size": 3603
     },
     {
       "name": "esxcli_software_baseimg",
-      "status": "cached"
+      "rc": 0,
+      "size": 3371
     },
     {
       "name": "esxcli_vm_process",
-      "status": "cached"
+      "rc": 0,
+      "size": 10496
     },
     {
       "name": "esxcli_sched_swap",
-      "status": "cached"
+      "rc": 0,
+      "size": 261
     },
     {
       "name": "esxcli_hw_ipmi",
-      "status": "cached"
+      "rc": 0,
+      "size": 164286
     },
     {
       "name": "vim_cmd_hostsvc",
-      "status": "cached"
+      "rc": 0,
+      "size": 262049
     },
     {
       "name": "vim_cmd_listsvc",
-      "status": "cached"
+      "rc": 1,
+      "size": 46
     },
     {
       "name": "vim_cmd_vmsvc",
-      "status": "cached"
+      "rc": 0,
+      "size": 25482
     },
     {
       "name": "vmkernel_log_tail",
-      "status": "cached"
+      "rc": 0,
+      "size": 26038
     },
     {
       "name": "hostd_log_tail",
-      "status": "cached"
+      "rc": 0,
+      "size": 4328
     },
     {
       "name": "vobd_log_tail",
-      "status": "cached"
+      "rc": 0,
+      "size": 14268
     },
     {
       "name": "esx_conf",
-      "status": "cached"
+      "rc": 0,
+      "size": 11943
     },
     {
       "name": "services_xml",
-      "status": "cached"
+      "rc": 1,
+      "size": 67
     },
     {
       "name": "esxcli_vsan",
-      "status": "cached"
+      "rc": 1,
+      "size": 44
+    },
+    {
+      "name": "pyvmomi",
+      "size": 3380340
     }
   ],
   "errors": [],
-  "elapsed_seconds": 0.6,
-  "completed_at": "2026-04-28T12:32:55.813102+00:00"
+  "elapsed_seconds": 115.6,
+  "completed_at": "2026-04-28T12:43:53.564437+00:00"
 }

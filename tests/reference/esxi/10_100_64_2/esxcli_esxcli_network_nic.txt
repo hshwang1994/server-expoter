@@ -1,6 +1,6 @@
 # command: esxcli network nic list
 # rc: 0
-# fetched: 2026-04-28T06:45:00.018165+00:00
+# fetched: 2026-04-28T12:42:24.914482+00:00
 #
 Name    PCI Device    Driver  Admin Status  Link Status  Speed  Duplex  MAC Address         MTU  Description
 ------  ------------  ------  ------------  -----------  -----  ------  -----------------  ----  -----------

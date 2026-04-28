@@ -1,6 +1,6 @@
 # command: esxcli storage core path list
 # rc: 0
-# fetched: 2026-04-28T06:44:52.070946+00:00
+# fetched: 2026-04-28T12:42:16.386345+00:00
 #
 sas.5f80bcbeac326eb0-sas.607f66fd1ece98e3-naa.6f80bcbeac326eb02f7f66fd1ece98e3
    UID: sas.5f80bcbeac326eb0-sas.607f66fd1ece98e3-naa.6f80bcbeac326eb02f7f66fd1ece98e3

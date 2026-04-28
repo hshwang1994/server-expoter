@@ -13,11 +13,14 @@
 - [x] **verify_harness_consistency / verify_vendor_boundary** PASS
 - [x] **SSH/WinRM 자동화 재시도** — Win Server 2022 (10.100.64.135) 28/28 PASS, 4.14 MB raw archive 수집 → `tests/reference/os/win2022/10_100_64_135/`
 - [x] **evidence 작성** — `tests/evidence/2026-04-28-win2022-validation.md`
-- [ ] **Win10 (10.100.64.120) 자격 재확인** — `gooddit/[vault]` NTLM+Basic 모두 reject. 사용자 측 자격 정정 또는 다른 사용자 계정 정보 필요
-- [ ] **WinServer2022 (10.100.64.132) WinRM 활성화** — `winrm quickconfig` 사용자 측 작업 (현재 5985/5986 모두 closed)
-- [ ] **settings.local.json** — AI self-modification 차단으로 사용자 직접 편집 필요 (또는 settings.json만으로 충분 시 skip)
+- [x] **Round 12 자동 재수집** — Linux 6/6 + ESXi 3/3 (SSH 활성화 후 모두 OK) + Redfish 9/11 + Agent 4/4
+- [-] **Win10 (10.100.64.120)** — 사용자 결정으로 **제외** (자격 미해결)
+- [-] **WinServer2022 (10.100.64.132)** — 사용자 결정으로 **제외** (WinRM 비활성)
+- [-] **Dell 10.100.15.32** — 사용자 결정으로 **제외** (vendor mismatch / AMI Redfish Server)
+- [ ] **Cisco 10.100.15.1 Redfish 활성화** — 웹 UI는 200 OK, but `/redfish/v1/` → 503. CIMC에서 Redfish service 별도 enable 필요 (Cisco UCS Manager 또는 CIMC CLI: `scope cimc; scope https; set redfish-enabled yes; commit`)
+- [ ] **Cisco 10.100.15.3 라우팅 확인** — 사용자 PC에서는 웹 접근 OK, but Agent 154 (Jenkins)에서는 모든 포트 unreachable. 네트워크 라우팅 / 방화벽 정책 확인 필요
+- [ ] **settings.local.json** — AI self-modification 차단으로 사용자 직접 편집 필요 (settings.json만으로 자동화 풀림 확인됨)
 - [ ] **25개 stale reference cleanup** — advisory, 후속 incremental
-- [ ] **Linux/ESXi 자동 reference 수집** — gather_os_full.py 같은 패턴으로 RHEL/Rocky/Ubuntu/ESXi 일괄 (사용 가능한 자격 정보 채팅 공유분 활용)
 
 ## 완료 항목 (cycle-010 — T3-04/05/06 일괄 + rule 70 R8 신설)
 

@@ -1,6 +1,6 @@
 # command: vim-cmd hostsvc/hosthardware 2>&1; vim-cmd hostsvc/hostsummary 2>&1
 # rc: 0
-# fetched: 2026-04-28T06:45:32.294850+00:00
+# fetched: 2026-04-28T12:42:57.086105+00:00
 #
 (vim.host.HardwareInfo) {
    systemInfo = (vim.host.SystemInfo) {
@@ -4504,7 +4504,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.239", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4521,7 +4521,7 @@
                   sensorType = "temperature", 
                   id = "0.7.4.214", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4531,35 +4531,18 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 4600, 
+                  currentReading = 4500, 
                   unitModifier = -2, 
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
                   id = "0.7.3.213", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
                   name = "System Board 2 RISER1_OUTLETTMP", 
-                  healthState = (vim.ElementDescription) {
-                     label = "Green", 
-                     summary = "The sensor is operating under normal conditions", 
-                     key = "Green"
-                  }, 
-                  currentReading = 4300, 
-                  unitModifier = -2, 
-                  baseUnits = "degrees C", 
-                  rateUnits = "none", 
-                  sensorType = "temperature", 
-                  id = "0.7.2.212", 
-                  sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
-                  fru = (vim.host.Fru) null
-               }, 
-               (vim.host.NumericSensorInfo) {
-                  name = "System Board 9 RISER1_INLET_TMP", 
                   healthState = (vim.ElementDescription) {
                      label = "Green", 
                      summary = "The sensor is operating under normal conditions", 
@@ -4570,9 +4553,26 @@
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
+                  id = "0.7.2.212", 
+                  sensorNumber = <unset>, 
+                  timeStamp = "2026-04-28T12:34:28Z", 
+                  fru = (vim.host.Fru) null
+               }, 
+               (vim.host.NumericSensorInfo) {
+                  name = "System Board 9 RISER1_INLET_TMP", 
+                  healthState = (vim.ElementDescription) {
+                     label = "Green", 
+                     summary = "The sensor is operating under normal conditions", 
+                     key = "Green"
+                  }, 
+                  currentReading = 4300, 
+                  unitModifier = -2, 
+                  baseUnits = "degrees C", 
+                  rateUnits = "none", 
+                  sensorType = "temperature", 
                   id = "0.7.9.211", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4589,7 +4589,7 @@
                   sensorType = "voltage", 
                   id = "0.3.2.210", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4606,7 +4606,7 @@
                   sensorType = "voltage", 
                   id = "0.3.2.209", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4623,7 +4623,7 @@
                   sensorType = "voltage", 
                   id = "0.3.1.208", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4640,7 +4640,7 @@
                   sensorType = "voltage", 
                   id = "0.3.1.207", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4657,7 +4657,7 @@
                   sensorType = "voltage", 
                   id = "0.3.2.206", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4674,7 +4674,7 @@
                   sensorType = "voltage", 
                   id = "0.3.2.205", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4691,7 +4691,7 @@
                   sensorType = "voltage", 
                   id = "0.3.1.204", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4708,7 +4708,7 @@
                   sensorType = "voltage", 
                   id = "0.3.1.203", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4725,7 +4725,7 @@
                   sensorType = "voltage", 
                   id = "0.3.2.202", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4742,7 +4742,7 @@
                   sensorType = "voltage", 
                   id = "0.3.2.201", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4759,7 +4759,7 @@
                   sensorType = "voltage", 
                   id = "0.3.1.200", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4776,7 +4776,7 @@
                   sensorType = "voltage", 
                   id = "0.3.1.199", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4793,7 +4793,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.198", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4803,14 +4803,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 181, 
+                  currentReading = 182, 
                   unitModifier = -2, 
                   baseUnits = "Volts", 
                   rateUnits = "none", 
                   sensorType = "voltage", 
                   id = "0.3.2.197", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4827,7 +4827,7 @@
                   sensorType = "voltage", 
                   id = "0.3.1.196", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4844,7 +4844,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.195", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4854,14 +4854,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 149, 
+                  currentReading = 148, 
                   unitModifier = -2, 
                   baseUnits = "Volts", 
                   rateUnits = "none", 
                   sensorType = "voltage", 
                   id = "0.7.0.194", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4878,7 +4878,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.193", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4895,7 +4895,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.192", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4912,7 +4912,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.191", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4929,7 +4929,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.190", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4946,7 +4946,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.189", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4963,7 +4963,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.188", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4980,7 +4980,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.187", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -4997,7 +4997,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.186", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5014,7 +5014,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.185", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5031,7 +5031,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.184", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5048,7 +5048,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.183", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5058,14 +5058,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 283, 
+                  currentReading = 285, 
                   unitModifier = -2, 
                   baseUnits = "Volts", 
                   rateUnits = "none", 
                   sensorType = "voltage", 
                   id = "0.7.0.182", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5082,7 +5082,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.181", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5099,7 +5099,7 @@
                   sensorType = "voltage", 
                   id = "0.7.0.180", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5109,14 +5109,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 4500, 
+                  currentReading = 4600, 
                   unitModifier = -2, 
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
                   id = "0.7.0.179", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5133,7 +5133,7 @@
                   sensorType = "temperature", 
                   id = "0.10.2.178", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5143,14 +5143,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 4300, 
+                  currentReading = 4200, 
                   unitModifier = -2, 
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
                   id = "0.10.1.177", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5160,14 +5160,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 23200, 
+                  currentReading = 21600, 
                   unitModifier = -2, 
                   baseUnits = "Watts", 
                   rateUnits = "none", 
                   sensorType = "power", 
                   id = "0.10.2.176", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5177,14 +5177,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 22400, 
+                  currentReading = 21600, 
                   unitModifier = -2, 
                   baseUnits = "Watts", 
                   rateUnits = "none", 
                   sensorType = "power", 
                   id = "0.10.1.175", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5194,14 +5194,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 44000, 
+                  currentReading = 43200, 
                   unitModifier = -2, 
                   baseUnits = "Watts", 
                   rateUnits = "none", 
                   sensorType = "power", 
                   id = "0.7.0.174", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5218,7 +5218,7 @@
                   sensorType = "power", 
                   id = "0.20.0.173", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5235,7 +5235,7 @@
                   sensorType = "systemBoard", 
                   id = "0.7.0.172", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5252,7 +5252,7 @@
                   sensorType = "systemBoard", 
                   id = "0.7.0.170", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5269,7 +5269,7 @@
                   sensorType = "memory", 
                   id = "0.8.22.166", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5286,7 +5286,7 @@
                   sensorType = "memory", 
                   id = "0.8.21.165", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5303,7 +5303,7 @@
                   sensorType = "memory", 
                   id = "0.8.19.163", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5320,7 +5320,7 @@
                   sensorType = "memory", 
                   id = "0.8.18.162", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5337,7 +5337,7 @@
                   sensorType = "memory", 
                   id = "0.8.16.160", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5354,7 +5354,7 @@
                   sensorType = "memory", 
                   id = "0.8.15.159", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5371,7 +5371,7 @@
                   sensorType = "memory", 
                   id = "0.8.13.157", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5388,7 +5388,7 @@
                   sensorType = "memory", 
                   id = "0.8.12.156", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5405,7 +5405,7 @@
                   sensorType = "memory", 
                   id = "0.8.10.154", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5422,7 +5422,7 @@
                   sensorType = "memory", 
                   id = "0.8.9.153", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5439,7 +5439,7 @@
                   sensorType = "memory", 
                   id = "0.8.7.151", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5456,7 +5456,7 @@
                   sensorType = "memory", 
                   id = "0.8.6.150", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5473,7 +5473,7 @@
                   sensorType = "memory", 
                   id = "0.8.4.148", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5490,7 +5490,7 @@
                   sensorType = "memory", 
                   id = "0.8.3.147", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5507,7 +5507,7 @@
                   sensorType = "memory", 
                   id = "0.8.1.145", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5524,28 +5524,11 @@
                   sensorType = "memory", 
                   id = "0.8.0.144", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
                   name = "Processor 2 P2_TEMP_SENS", 
-                  healthState = (vim.ElementDescription) {
-                     label = "Green", 
-                     summary = "The sensor is operating under normal conditions", 
-                     key = "Green"
-                  }, 
-                  currentReading = 5750, 
-                  unitModifier = -2, 
-                  baseUnits = "degrees C", 
-                  rateUnits = "none", 
-                  sensorType = "temperature", 
-                  id = "0.3.2.143", 
-                  sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
-                  fru = (vim.host.Fru) null
-               }, 
-               (vim.host.NumericSensorInfo) {
-                  name = "Processor 1 P1_TEMP_SENS", 
                   healthState = (vim.ElementDescription) {
                      label = "Green", 
                      summary = "The sensor is operating under normal conditions", 
@@ -5556,9 +5539,26 @@
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
+                  id = "0.3.2.143", 
+                  sensorNumber = <unset>, 
+                  timeStamp = "2026-04-28T12:34:28Z", 
+                  fru = (vim.host.Fru) null
+               }, 
+               (vim.host.NumericSensorInfo) {
+                  name = "Processor 1 P1_TEMP_SENS", 
+                  healthState = (vim.ElementDescription) {
+                     label = "Green", 
+                     summary = "The sensor is operating under normal conditions", 
+                     key = "Green"
+                  }, 
+                  currentReading = 5650, 
+                  unitModifier = -2, 
+                  baseUnits = "degrees C", 
+                  rateUnits = "none", 
+                  sensorType = "temperature", 
                   id = "0.3.1.142", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5575,7 +5575,7 @@
                   sensorType = "temperature", 
                   id = "0.8.22.128", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5585,14 +5585,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 5000, 
+                  currentReading = 4900, 
                   unitModifier = -2, 
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
                   id = "0.8.21.126", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5609,7 +5609,7 @@
                   sensorType = "temperature", 
                   id = "0.8.19.122", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5626,7 +5626,7 @@
                   sensorType = "temperature", 
                   id = "0.8.18.120", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5643,7 +5643,7 @@
                   sensorType = "temperature", 
                   id = "0.8.16.115", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5660,7 +5660,7 @@
                   sensorType = "temperature", 
                   id = "0.8.15.113", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5677,7 +5677,7 @@
                   sensorType = "temperature", 
                   id = "0.8.13.109", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5687,14 +5687,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 5100, 
+                  currentReading = 5000, 
                   unitModifier = -2, 
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
                   id = "0.8.12.107", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5711,7 +5711,7 @@
                   sensorType = "temperature", 
                   id = "0.8.10.102", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5728,7 +5728,7 @@
                   sensorType = "temperature", 
                   id = "0.8.9.100", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5745,7 +5745,7 @@
                   sensorType = "temperature", 
                   id = "0.8.7.96", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5762,62 +5762,11 @@
                   sensorType = "temperature", 
                   id = "0.8.6.94", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
                   name = "Memory Module 4 DDR4_P1_B2_TEMP", 
-                  healthState = (vim.ElementDescription) {
-                     label = "Green", 
-                     summary = "The sensor is operating under normal conditions", 
-                     key = "Green"
-                  }, 
-                  currentReading = 4400, 
-                  unitModifier = -2, 
-                  baseUnits = "degrees C", 
-                  rateUnits = "none", 
-                  sensorType = "temperature", 
-                  id = "0.8.4.89", 
-                  sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
-                  fru = (vim.host.Fru) null
-               }, 
-               (vim.host.NumericSensorInfo) {
-                  name = "Memory Module 3 DDR4_P1_B1_TEMP", 
-                  healthState = (vim.ElementDescription) {
-                     label = "Green", 
-                     summary = "The sensor is operating under normal conditions", 
-                     key = "Green"
-                  }, 
-                  currentReading = 4400, 
-                  unitModifier = -2, 
-                  baseUnits = "degrees C", 
-                  rateUnits = "none", 
-                  sensorType = "temperature", 
-                  id = "0.8.3.87", 
-                  sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
-                  fru = (vim.host.Fru) null
-               }, 
-               (vim.host.NumericSensorInfo) {
-                  name = "Memory Module 1 DDR4_P1_A2_TEMP", 
-                  healthState = (vim.ElementDescription) {
-                     label = "Green", 
-                     summary = "The sensor is operating under normal conditions", 
-                     key = "Green"
-                  }, 
-                  currentReading = 4400, 
-                  unitModifier = -2, 
-                  baseUnits = "degrees C", 
-                  rateUnits = "none", 
-                  sensorType = "temperature", 
-                  id = "0.8.1.83", 
-                  sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
-                  fru = (vim.host.Fru) null
-               }, 
-               (vim.host.NumericSensorInfo) {
-                  name = "Memory Module 0 DDR4_P1_A1_TEMP", 
                   healthState = (vim.ElementDescription) {
                      label = "Green", 
                      summary = "The sensor is operating under normal conditions", 
@@ -5828,9 +5777,60 @@
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
+                  id = "0.8.4.89", 
+                  sensorNumber = <unset>, 
+                  timeStamp = "2026-04-28T12:34:28Z", 
+                  fru = (vim.host.Fru) null
+               }, 
+               (vim.host.NumericSensorInfo) {
+                  name = "Memory Module 3 DDR4_P1_B1_TEMP", 
+                  healthState = (vim.ElementDescription) {
+                     label = "Green", 
+                     summary = "The sensor is operating under normal conditions", 
+                     key = "Green"
+                  }, 
+                  currentReading = 4500, 
+                  unitModifier = -2, 
+                  baseUnits = "degrees C", 
+                  rateUnits = "none", 
+                  sensorType = "temperature", 
+                  id = "0.8.3.87", 
+                  sensorNumber = <unset>, 
+                  timeStamp = "2026-04-28T12:34:28Z", 
+                  fru = (vim.host.Fru) null
+               }, 
+               (vim.host.NumericSensorInfo) {
+                  name = "Memory Module 1 DDR4_P1_A2_TEMP", 
+                  healthState = (vim.ElementDescription) {
+                     label = "Green", 
+                     summary = "The sensor is operating under normal conditions", 
+                     key = "Green"
+                  }, 
+                  currentReading = 4500, 
+                  unitModifier = -2, 
+                  baseUnits = "degrees C", 
+                  rateUnits = "none", 
+                  sensorType = "temperature", 
+                  id = "0.8.1.83", 
+                  sensorNumber = <unset>, 
+                  timeStamp = "2026-04-28T12:34:28Z", 
+                  fru = (vim.host.Fru) null
+               }, 
+               (vim.host.NumericSensorInfo) {
+                  name = "Memory Module 0 DDR4_P1_A1_TEMP", 
+                  healthState = (vim.ElementDescription) {
+                     label = "Green", 
+                     summary = "The sensor is operating under normal conditions", 
+                     key = "Green"
+                  }, 
+                  currentReading = 4600, 
+                  unitModifier = -2, 
+                  baseUnits = "degrees C", 
+                  rateUnits = "none", 
+                  sensorType = "temperature", 
                   id = "0.8.0.81", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5847,7 +5847,7 @@
                   sensorType = "storage", 
                   id = "0.4.7.75", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5864,7 +5864,7 @@
                   sensorType = "storage", 
                   id = "0.4.6.74", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5881,7 +5881,7 @@
                   sensorType = "storage", 
                   id = "0.4.5.73", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5898,7 +5898,7 @@
                   sensorType = "storage", 
                   id = "0.4.4.72", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5915,7 +5915,7 @@
                   sensorType = "storage", 
                   id = "0.4.3.71", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5932,7 +5932,7 @@
                   sensorType = "storage", 
                   id = "0.4.2.70", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5949,7 +5949,7 @@
                   sensorType = "storage", 
                   id = "0.4.1.69", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5966,7 +5966,7 @@
                   sensorType = "storage", 
                   id = "0.4.0.68", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -5983,7 +5983,7 @@
                   sensorType = "temperature", 
                   id = "0.12.1.67", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6000,7 +6000,7 @@
                   sensorType = "temperature", 
                   id = "0.11.8.62", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6010,14 +6010,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 4300, 
+                  currentReading = 4400, 
                   unitModifier = -2, 
                   baseUnits = "degrees C", 
                   rateUnits = "none", 
                   sensorType = "temperature", 
                   id = "0.11.7.59", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6034,7 +6034,7 @@
                   sensorType = "power", 
                   id = "0.10.2.49", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6051,7 +6051,7 @@
                   sensorType = "power", 
                   id = "0.10.2.48", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6068,7 +6068,7 @@
                   sensorType = "voltage", 
                   id = "0.10.2.47", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6085,7 +6085,7 @@
                   sensorType = "power", 
                   id = "0.10.2.46", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6102,7 +6102,7 @@
                   sensorType = "power", 
                   id = "0.10.2.44", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6112,14 +6112,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 20800, 
+                  currentReading = 20000, 
                   unitModifier = -2, 
                   baseUnits = "Watts", 
                   rateUnits = "none", 
                   sensorType = "power", 
                   id = "0.10.1.43", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6136,7 +6136,7 @@
                   sensorType = "power", 
                   id = "0.10.1.42", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6153,7 +6153,7 @@
                   sensorType = "voltage", 
                   id = "0.10.1.41", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6170,7 +6170,7 @@
                   sensorType = "power", 
                   id = "0.10.1.40", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6187,7 +6187,7 @@
                   sensorType = "power", 
                   id = "0.10.1.38", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6204,7 +6204,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.37", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6221,7 +6221,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.36", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6238,7 +6238,7 @@
                   sensorType = "processor", 
                   id = "0.3.2.35", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6255,7 +6255,7 @@
                   sensorType = "processor", 
                   id = "0.3.2.34", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6272,7 +6272,7 @@
                   sensorType = "processor", 
                   id = "0.3.2.33", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6289,7 +6289,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.32", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6306,7 +6306,7 @@
                   sensorType = "processor", 
                   id = "0.3.2.31", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6323,7 +6323,7 @@
                   sensorType = "processor", 
                   id = "0.3.2.30", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6340,7 +6340,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.29", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6357,7 +6357,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.28", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6367,14 +6367,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 1410000, 
+                  currentReading = 1330000, 
                   unitModifier = -2, 
                   baseUnits = "RPM", 
                   rateUnits = "none", 
                   sensorType = "fan", 
                   id = "0.29.6.26", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6391,7 +6391,7 @@
                   sensorType = "fan", 
                   id = "0.29.6.25", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6408,7 +6408,7 @@
                   sensorType = "fan", 
                   id = "0.29.5.24", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6425,7 +6425,7 @@
                   sensorType = "fan", 
                   id = "0.29.5.23", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6435,14 +6435,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 1330000, 
+                  currentReading = 1410000, 
                   unitModifier = -2, 
                   baseUnits = "RPM", 
                   rateUnits = "none", 
                   sensorType = "fan", 
                   id = "0.29.4.22", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6459,7 +6459,7 @@
                   sensorType = "fan", 
                   id = "0.29.4.21", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6476,7 +6476,7 @@
                   sensorType = "fan", 
                   id = "0.29.3.20", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6486,14 +6486,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 1200000, 
+                  currentReading = 1260000, 
                   unitModifier = -2, 
                   baseUnits = "RPM", 
                   rateUnits = "none", 
                   sensorType = "fan", 
                   id = "0.29.3.19", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6510,7 +6510,7 @@
                   sensorType = "fan", 
                   id = "0.29.2.18", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6520,14 +6520,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 1200000, 
+                  currentReading = 1140000, 
                   unitModifier = -2, 
                   baseUnits = "RPM", 
                   rateUnits = "none", 
                   sensorType = "fan", 
                   id = "0.29.2.17", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6537,14 +6537,14 @@
                      summary = "The sensor is operating under normal conditions", 
                      key = "Green"
                   }, 
-                  currentReading = 1410000, 
+                  currentReading = 1330000, 
                   unitModifier = -2, 
                   baseUnits = "RPM", 
                   rateUnits = "none", 
                   sensorType = "fan", 
                   id = "0.29.1.16", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6561,7 +6561,7 @@
                   sensorType = "fan", 
                   id = "0.29.1.15", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6578,7 +6578,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.4", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6595,7 +6595,7 @@
                   sensorType = "processor", 
                   id = "0.3.2.3", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6612,7 +6612,7 @@
                   sensorType = "processor", 
                   id = "0.3.1.2", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }, 
                (vim.host.NumericSensorInfo) {
@@ -6629,7 +6629,7 @@
                   sensorType = "processor", 
                   id = "0.7.0.1", 
                   sensorNumber = <unset>, 
-                  timeStamp = "2026-04-28T06:37:54Z", 
+                  timeStamp = "2026-04-28T12:34:28Z", 
                   fru = (vim.host.Fru) null
                }
             ], 
@@ -7198,18 +7198,18 @@
          licenseProductVersion = "7.0"
       }, 
       vmotionEnabled = false, 
-      faultToleranceEnabled = false, 
+      faultToleranceEnabled = true, 
       featureVersion = <unset>, 
       agentVmDatastore = <unset>, 
       agentVmNetwork = <unset>
    }, 
    quickStats = (vim.host.Summary.QuickStats) {
-      overallCpuUsage = 63707, 
-      overallMemoryUsage = 639108, 
+      overallCpuUsage = 54609, 
+      overallMemoryUsage = 639709, 
       distributedCpuFairness = <unset>, 
       distributedMemoryFairness = <unset>, 
       availablePMemCapacity = <unset>, 
-      uptime = 12284367
+      uptime = 12305807
    }, 
    overallStatus = "gray", 
    rebootRequired = false, 
