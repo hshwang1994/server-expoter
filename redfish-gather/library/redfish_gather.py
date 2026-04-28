@@ -95,6 +95,64 @@ def _get(bmc_ip, path, username, password, timeout, verify_ssl):
     except (OSError, ValueError) as e:
         return 0, {}, f'Unexpected: {type(e).__name__}: {e}'
 
+def _post(bmc_ip, path, body, username, password, timeout, verify_ssl):
+    """P2 (cycle 2026-04-28): AccountService 계정 생성 (POST /Accounts)."""
+    url = f'https://{bmc_ip}/redfish/v1/{path.lstrip("/")}'
+    payload = json.dumps(body).encode('utf-8')
+    req = urlreq.Request(url, data=payload, method='POST', headers={
+        'Authorization': _auth(username, password),
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'OData-Version': '4.0',
+    })
+    try:
+        with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
+            raw = resp.read()
+            try:
+                data = json.loads(raw.decode('utf-8', errors='replace')) if raw else {}
+            except (json.JSONDecodeError, ValueError, UnicodeDecodeError):
+                data = {}
+            return resp.status, data, None
+    except urlerr.HTTPError as e:
+        try:    body_err = json.loads(e.read().decode('utf-8', errors='replace'))
+        except (json.JSONDecodeError, ValueError, UnicodeDecodeError): body_err = {}
+        return e.code, body_err, f'HTTP {e.code}: {e.reason}'
+    except urlerr.URLError as e:
+        return 0, {}, f'URLError: {e.reason}'
+    except socket.timeout:
+        return 0, {}, f'Timeout after {timeout}s'
+    except (OSError, ValueError) as e:
+        return 0, {}, f'Unexpected: {type(e).__name__}: {e}'
+
+def _patch(bmc_ip, path, body, username, password, timeout, verify_ssl):
+    """P2 (cycle 2026-04-28): AccountService 계정 update (PATCH /Accounts/{id})."""
+    url = f'https://{bmc_ip}/redfish/v1/{path.lstrip("/")}'
+    payload = json.dumps(body).encode('utf-8')
+    req = urlreq.Request(url, data=payload, method='PATCH', headers={
+        'Authorization': _auth(username, password),
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'OData-Version': '4.0',
+    })
+    try:
+        with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
+            raw = resp.read()
+            try:
+                data = json.loads(raw.decode('utf-8', errors='replace')) if raw else {}
+            except (json.JSONDecodeError, ValueError, UnicodeDecodeError):
+                data = {}
+            return resp.status, data, None
+    except urlerr.HTTPError as e:
+        try:    body_err = json.loads(e.read().decode('utf-8', errors='replace'))
+        except (json.JSONDecodeError, ValueError, UnicodeDecodeError): body_err = {}
+        return e.code, body_err, f'HTTP {e.code}: {e.reason}'
+    except urlerr.URLError as e:
+        return 0, {}, f'URLError: {e.reason}'
+    except socket.timeout:
+        return 0, {}, f'Timeout after {timeout}s'
+    except (OSError, ValueError) as e:
+        return 0, {}, f'Unexpected: {type(e).__name__}: {e}'
+
 def _p(uri):
     """@odata.id URI → _get() path 인수"""
     return _removeprefix(_removeprefix(uri.lstrip('/'), 'redfish/v1/'), 'redfish/v1').rstrip('/')
@@ -862,6 +920,114 @@ def gather_network(bmc_ip, system_uri, username, password, timeout, verify_ssl):
     return nics, errors
 
 
+def gather_network_adapters_chassis(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
+    """P4 (cycle 2026-04-28): Chassis/{id}/NetworkAdapters 수집.
+
+    NetworkAdapters → adapters[] (NIC 카드 모델/firmware)
+    NetworkPorts    → ports[]    (port-level link state)
+    PortType 기반 분류 → fc_hbas[] / infiniband[] (HBA/IB 별도 buckets)
+
+    일부 vendor (Cisco CIMC 등)에서 미지원 가능 → 빈 결과로 graceful degradation.
+    """
+    out = {'adapters': [], 'ports': [], 'fc_hbas': [], 'infiniband': []}
+    errors = []
+    if not chassis_uri:
+        return out, errors
+
+    base = _p(chassis_uri) + '/NetworkAdapters'
+    st, coll, err = _get(bmc_ip, base, username, password, timeout, verify_ssl)
+    if err or st != 200:
+        # 미지원 vendor 는 errors 에 기록하되 graceful degradation
+        errors.append(_err('network_adapters',
+                           f'NetworkAdapters 미지원 또는 실패: {err or st}'))
+        return out, errors
+
+    for member in (_safe(coll, 'Members') or []):
+        adp_uri = _safe(member, '@odata.id')
+        if not adp_uri:
+            continue
+        st2, adata, aerr = _get(bmc_ip, _p(adp_uri), username, password, timeout, verify_ssl)
+        if aerr or st2 != 200:
+            errors.append(_err('network_adapters', f'NetworkAdapter {adp_uri} 실패: {aerr or st2}'))
+            continue
+
+        adapter_id = _safe(adata, 'Id')
+        # FirmwareVersion: Controllers[0].FirmwarePackageVersion 또는 root
+        fw_ver = None
+        ctrls = _safe(adata, 'Controllers', default=[]) or []
+        if ctrls and isinstance(ctrls, list):
+            fw_ver = _safe(ctrls[0], 'FirmwarePackageVersion')
+        adapter_info = {
+            'id':               adapter_id,
+            'name':             _safe(adata, 'Name'),
+            'manufacturer':     _safe(adata, 'Manufacturer'),
+            'model':            _safe(adata, 'Model'),
+            'part_number':      _safe(adata, 'PartNumber'),
+            'serial_number':    _safe(adata, 'SerialNumber'),
+            'firmware_version': fw_ver,
+        }
+        out['adapters'].append(adapter_info)
+
+        # NetworkPorts (Redfish 1.5 이전) 또는 Ports (1.6+)
+        ports_link = (_safe(adata, 'NetworkPorts', '@odata.id')
+                      or _safe(adata, 'Ports', '@odata.id'))
+        if not ports_link:
+            continue
+        st3, pcoll, perr = _get(bmc_ip, _p(ports_link), username, password, timeout, verify_ssl)
+        if perr or st3 != 200:
+            errors.append(_err('network_adapters',
+                               f'NetworkPorts {ports_link} 실패: {perr or st3}'))
+            continue
+
+        for pmember in (_safe(pcoll, 'Members') or []):
+            p_uri = _safe(pmember, '@odata.id')
+            if not p_uri:
+                continue
+            st4, pdata, perr2 = _get(bmc_ip, _p(p_uri), username, password, timeout, verify_ssl)
+            if perr2 or st4 != 200:
+                continue
+            speed_mbps = _safe(pdata, 'CurrentLinkSpeedMbps')
+            speed_gbps = (speed_mbps / 1000.0) if isinstance(speed_mbps, (int, float)) else None
+            assoc = _safe(pdata, 'AssociatedNetworkAddresses', default=[]) or []
+            primary_addr = assoc[0] if assoc else None
+            port_type = _safe(pdata, 'PortType') or ''
+            port_info = {
+                'adapter_id':              adapter_id,
+                'adapter_model':           adapter_info['model'],
+                'port_id':                 _safe(pdata, 'Id'),
+                'name':                    _safe(pdata, 'Name'),
+                'physical_port_number':    _safe(pdata, 'PhysicalPortNumber'),
+                'link_status':             _safe(pdata, 'LinkStatus'),
+                'link_state':              _safe(pdata, 'LinkState'),
+                'current_link_speed_mbps': speed_mbps,
+                'port_type':               port_type,
+                'health':                  _safe(pdata, 'Status', 'Health'),
+                'associated_address':      primary_addr,
+            }
+            out['ports'].append(port_info)
+
+            pt_lower = (port_type or '').lower()
+            if 'fibrechannel' in pt_lower or pt_lower == 'fc':
+                out['fc_hbas'].append({
+                    'adapter_id':       adapter_id,
+                    'adapter_model':    adapter_info['model'],
+                    'port_id':          _safe(pdata, 'Id'),
+                    'wwpn':             primary_addr,
+                    'link_status':      _safe(pdata, 'LinkStatus'),
+                    'link_speed_gbps':  speed_gbps,
+                })
+            elif 'infiniband' in pt_lower or pt_lower == 'ib':
+                out['infiniband'].append({
+                    'adapter_id':       adapter_id,
+                    'adapter_model':    adapter_info['model'],
+                    'port_id':          _safe(pdata, 'Id'),
+                    'link_status':      _safe(pdata, 'LinkStatus'),
+                    'link_speed_gbps':  speed_gbps,
+                })
+
+    return out, errors
+
+
 def gather_firmware(bmc_ip, username, password, timeout, verify_ssl):
     """
     UpdateService/FirmwareInventory — 벤더 공통
@@ -975,18 +1141,24 @@ def _make_section_runner(all_errors, collected, failed):
 def _collect_all_sections(bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
                           username, password, timeout, verify_ssl,
                           all_errors, collected, failed):
-    """8개 섹션 dispatch (system / bmc / processors / memory / storage / network / firmware / power)."""
+    """9개 섹션 dispatch (system / bmc / processors / memory / storage / network /
+    firmware / power / network_adapters[P4]).
+    """
     _run = _make_section_runner(all_errors, collected, failed)
     creds = (username, password, timeout, verify_ssl)
     return {
-        'system':     _run('system',     gather_system,     bmc_ip, system_uri, vendor, *creds),
-        'bmc':        _run('bmc',        gather_bmc,        bmc_ip, manager_uri, vendor, *creds),
-        'processors': _run('processors', gather_processors, bmc_ip, system_uri,          *creds),
-        'memory':     _run('memory',     gather_memory,     bmc_ip, system_uri,          *creds),
-        'storage':    _run('storage',    gather_storage,    bmc_ip, system_uri,          *creds),
-        'network':    _run('network',    gather_network,    bmc_ip, system_uri,          *creds),
-        'firmware':   _run('firmware',   gather_firmware,   bmc_ip,                      *creds),
-        'power':      _run('power',      gather_power,      bmc_ip, chassis_uri,         *creds),
+        'system':            _run('system',     gather_system,     bmc_ip, system_uri, vendor, *creds),
+        'bmc':               _run('bmc',        gather_bmc,        bmc_ip, manager_uri, vendor, *creds),
+        'processors':        _run('processors', gather_processors, bmc_ip, system_uri,          *creds),
+        'memory':            _run('memory',     gather_memory,     bmc_ip, system_uri,          *creds),
+        'storage':           _run('storage',    gather_storage,    bmc_ip, system_uri,          *creds),
+        'network':           _run('network',    gather_network,    bmc_ip, system_uri,          *creds),
+        'firmware':          _run('firmware',   gather_firmware,   bmc_ip,                      *creds),
+        'power':             _run('power',      gather_power,      bmc_ip, chassis_uri,         *creds),
+        # P4 (cycle 2026-04-28): NIC 카드 + port-level + FC HBA / InfiniBand 분류
+        'network_adapters':  _run('network_adapters',
+                                   gather_network_adapters_chassis,
+                                   bmc_ip, chassis_uri, *creds),
     }
 
 
@@ -1000,14 +1172,218 @@ def _compute_final_status(collected, failed):
     return 'success', clean
 
 
+# ── P2 (cycle 2026-04-28): AccountService — 공통계정 자동 생성/복구 ──────────
+# vendor 분기는 Redfish API spec OEM namespace 의존 (rule 96 R1 외부 계약).
+# Dell  : slot 기반 PATCH (/Accounts/{N}, N=1..17). POST 미지원
+# HPE / Lenovo / Supermicro: POST /Accounts 표준
+# Cisco : AccountService 표준 미지원 (errors[]에 not_supported 기록 후 종료)
+
+def account_service_get(bmc_ip, username, password, timeout, verify_ssl):
+    """GET /redfish/v1/AccountService + Accounts 컬렉션 enumerate.
+
+    Returns: (acct_service: dict|None, accounts: list[{slot_uri, username, role_id, enabled}], errors)
+    """
+    errors = []
+    code, root_data, err = _get(bmc_ip, 'AccountService', username, password, timeout, verify_ssl)
+    if code != 200 or err:
+        errors.append(_err('account_service', f'GET AccountService 실패', detail=err or f'HTTP {code}'))
+        return None, [], errors
+    accounts_link = _safe(root_data, 'Accounts', '@odata.id')
+    if not accounts_link:
+        errors.append(_err('account_service', 'AccountService.Accounts 링크 없음', detail=str(root_data)[:200]))
+        return root_data, [], errors
+    code, acc_coll, err = _get(bmc_ip, _p(accounts_link), username, password, timeout, verify_ssl)
+    if code != 200 or err:
+        errors.append(_err('account_service', 'GET Accounts 컬렉션 실패', detail=err or f'HTTP {code}'))
+        return root_data, [], errors
+    members = _safe(acc_coll, 'Members', default=[]) or []
+    accounts = []
+    for m in members:
+        slot_uri = _safe(m, '@odata.id')
+        if not slot_uri:
+            continue
+        code_a, acc_data, err_a = _get(bmc_ip, _p(slot_uri), username, password, timeout, verify_ssl)
+        if code_a != 200 or err_a:
+            errors.append(_err('account_service', f'GET {slot_uri} 실패', detail=err_a or f'HTTP {code_a}'))
+            continue
+        accounts.append({
+            'slot_uri': slot_uri,
+            'id':       _safe(acc_data, 'Id'),
+            'username': _safe(acc_data, 'UserName', default=''),
+            'role_id':  _safe(acc_data, 'RoleId',   default=''),
+            'enabled':  bool(_safe(acc_data, 'Enabled', default=False)),
+        })
+    return root_data, accounts, errors
+
+
+def account_service_find_user(accounts, target_username):
+    """기존 사용자 slot URI 검색. None 반환 = 미존재."""
+    for acc in accounts:
+        if (acc.get('username') or '') == target_username:
+            return acc
+    return None
+
+
+def account_service_find_empty_slot(accounts):
+    """빈 사용자 슬롯 검색 (Dell PATCH 패턴). UserName='' 인 첫 슬롯 반환."""
+    for acc in accounts:
+        if not (acc.get('username') or ''):
+            return acc
+    return None
+
+
+def account_service_provision(
+    bmc_ip, vendor, current_username, current_password,
+    target_username, target_password, target_role,
+    timeout, verify_ssl, dryrun=True,
+):
+    """공통계정(target) 생성 또는 복구.
+
+    Args:
+        bmc_ip:           BMC IP
+        vendor:           정규화 vendor (dell/hpe/lenovo/supermicro/cisco) — vendor 분기용
+        current_username: recovery 자격 (현재 인증된 사용자)
+        current_password: recovery 자격 비밀번호
+        target_username:  생성/복구할 공통계정명 (예: 'infraops')
+        target_password:  설정할 공통계정 비밀번호
+        target_role:      RoleId (예: 'Administrator')
+        timeout:          HTTP timeout
+        verify_ssl:       BMC 인증서 검증
+        dryrun:           True 시 실제 PATCH/POST 호출하지 않고 시뮬레이션 (default ON)
+
+    Returns:
+        dict: {
+          'recovered': bool,
+          'method':    'patch_existing' | 'patch_empty_slot' | 'post_new' | 'noop' | 'not_supported',
+          'slot_uri':  '...' or None,
+          'dryrun':    bool,
+          'errors':    [_err(...), ...],
+        }
+    """
+    out = {
+        'recovered': False,
+        'method':    'noop',
+        'slot_uri':  None,
+        'dryrun':    bool(dryrun),
+        'errors':    [],
+    }
+
+    # 1) AccountService GET
+    _, accounts, errs = account_service_get(
+        bmc_ip, current_username, current_password, timeout, verify_ssl
+    )
+    out['errors'].extend(errs)
+
+    # Cisco CIMC 등 표준 미지원 처리
+    if vendor == 'cisco':                                                     # nosec rule12-r1
+        out['method'] = 'not_supported'
+        out['errors'].append(_err(
+            'account_service',
+            'Cisco CIMC AccountService 표준 미지원 — 운영자 수동 복구 필요',  # nosec rule12-r1
+        ))
+        return out
+
+    # 2) 기존 사용자 검색
+    existing = account_service_find_user(accounts, target_username)
+
+    if existing:
+        out['method']   = 'patch_existing'
+        out['slot_uri'] = existing.get('slot_uri')
+        if dryrun:
+            return out
+        # 비밀번호 + Enabled + RoleId 갱신
+        body = {
+            'Password': target_password,
+            'Enabled':  True,
+            'RoleId':   target_role,
+        }
+        code, _, err = _patch(
+            bmc_ip, _p(existing['slot_uri']), body,
+            current_username, current_password, timeout, verify_ssl,
+        )
+        if code in (200, 204) and not err:
+            out['recovered'] = True
+        else:
+            out['errors'].append(_err(
+                'account_service',
+                f'PATCH 기존 사용자 실패 (slot={existing.get("id")})',
+                detail=err or f'HTTP {code}',
+            ))
+        return out
+
+    # 3) 신규 생성 — vendor 분기 (Dell=slot PATCH, 그 외=POST)
+    if vendor == 'dell':                                                      # nosec rule12-r1
+        empty = account_service_find_empty_slot(accounts)
+        if not empty:
+            out['errors'].append(_err(
+                'account_service', 'Dell iDRAC 빈 슬롯 없음 — 사용자 정리 필요',  # nosec rule12-r1
+            ))
+            return out
+        out['method']   = 'patch_empty_slot'
+        out['slot_uri'] = empty.get('slot_uri')
+        if dryrun:
+            return out
+        body = {
+            'UserName': target_username,
+            'Password': target_password,
+            'Enabled':  True,
+            'RoleId':   target_role,
+        }
+        code, _, err = _patch(
+            bmc_ip, _p(empty['slot_uri']), body,
+            current_username, current_password, timeout, verify_ssl,
+        )
+        if code in (200, 204) and not err:
+            out['recovered'] = True
+        else:
+            out['errors'].append(_err(
+                'account_service',
+                f'Dell PATCH 빈 슬롯 실패 (slot={empty.get("id")})',  # nosec rule12-r1
+                detail=err or f'HTTP {code}',
+            ))
+        return out
+
+    # HPE / Lenovo / Supermicro: POST 표준
+    out['method'] = 'post_new'
+    if dryrun:
+        return out
+    body = {
+        'UserName': target_username,
+        'Password': target_password,
+        'Enabled':  True,
+        'RoleId':   target_role,
+    }
+    code, resp_data, err = _post(
+        bmc_ip, 'AccountService/Accounts', body,
+        current_username, current_password, timeout, verify_ssl,
+    )
+    if code in (200, 201, 204) and not err:
+        out['recovered'] = True
+        out['slot_uri']  = _safe(resp_data, '@odata.id')
+    else:
+        out['errors'].append(_err(
+            'account_service',
+            'POST /AccountService/Accounts 실패',
+            detail=err or f'HTTP {code}',
+        ))
+    return out
+
+
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            bmc_ip     = dict(type='str',  required=True),
-            username   = dict(type='str',  required=True),
-            password   = dict(type='str',  required=True, no_log=True),
-            timeout    = dict(type='int',  default=30),
-            verify_ssl = dict(type='bool', default=False),
+            bmc_ip          = dict(type='str',  required=True),
+            username        = dict(type='str',  required=True),
+            password        = dict(type='str',  required=True, no_log=True),
+            timeout         = dict(type='int',  default=30),
+            verify_ssl      = dict(type='bool', default=False),
+            # P2 (cycle 2026-04-28): AccountService 통합
+            mode            = dict(type='str',  default='gather',
+                                   choices=['gather', 'account_provision']),
+            target_username = dict(type='str',  default=''),
+            target_password = dict(type='str',  default='', no_log=True),
+            target_role     = dict(type='str',  default='Administrator'),
+            dryrun          = dict(type='bool', default=True),
         ),
         supports_check_mode=True,
     )
@@ -1018,7 +1394,39 @@ def main():
     p = module.params
     bmc_ip, username, password = p['bmc_ip'], p['username'], p['password']
     timeout, verify_ssl = p['timeout'], p['verify_ssl']
+    mode = p['mode']
 
+    # ── P2: AccountService provision mode ────────────────────────────────
+    if mode == 'account_provision':
+        target_username = p['target_username']
+        target_password = p['target_password']
+        target_role     = p['target_role']
+        dryrun          = p['dryrun']
+
+        if not target_username or not target_password:
+            module.fail_json(
+                msg='mode=account_provision 시 target_username/target_password 필수'
+            )
+
+        # detect_vendor 로 vendor 정규화 (분기 라우팅 용도)
+        vendor, _, _, _, det_errors = detect_vendor(
+            bmc_ip, username, password, timeout, verify_ssl
+        )
+        result = account_service_provision(
+            bmc_ip, vendor, username, password,
+            target_username, target_password, target_role,
+            timeout, verify_ssl, dryrun=dryrun,
+        )
+        result['errors'] = list(det_errors) + (result.get('errors') or [])
+        module.exit_json(
+            changed=bool(result.get('recovered')),
+            mode='account_provision',
+            vendor=vendor,
+            account_service=result,
+        )
+        return
+
+    # ── 기존 gather mode (변경 없음) ─────────────────────────────────────
     all_errors, collected, failed = [], [], []
 
     vendor, system_uri, manager_uri, chassis_uri, det_errors = detect_vendor(

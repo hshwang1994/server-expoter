@@ -1,0 +1,94 @@
+---
+# redfish-gather/tasks/account_service.yml
+#
+# P2 (cycle 2026-04-28): recovery 자격으로 접속한 경우 공통계정(infraops) 자동 생성/복구.
+#
+# 진입 조건:
+#   - _rf_used_account.role == 'recovery'
+#   - _rf_collect_ok == true (recovery 로 1차 수집은 성공한 상태)
+#   - vault accounts 안에 role=primary 후보 1개 이상
+#
+# 동작:
+#   1. vault accounts 에서 role=primary 후보 1개 추출 → target_username/target_password
+#   2. dryrun (default ON, 사용자 결정 #4) 시 시뮬레이션만
+#   3. dryrun OFF 시 redfish_gather mode='account_provision' 호출
+#   4. 결과를 envelope.meta.account_service 에 노출 (password 미포함)
+#
+# dryrun 변수:
+#   _rf_account_service_dryrun (default true)
+#   외부 override: -e _rf_account_service_dryrun=false (사용자 명시 승인 후에만)
+
+- name: "redfish | account_service | resolve target primary account"
+  ansible.builtin.set_fact:
+    _rf_target_account: >-
+      {{ (_rf_accounts | default([]) | selectattr('role', 'eq', 'primary') | list | first) | default({}) }}
+    _rf_account_service_dryrun: "{{ _rf_account_service_dryrun | default(true) }}"
+  no_log: true
+
+- name: "redfish | account_service | abort if no primary target"
+  ansible.builtin.debug:
+    msg: >-
+      account_service skip — vault accounts 에 role=primary 후보 없음.
+      vault/redfish/{{ _rf_vault_profile }}.yml 갱신 후 재시도.
+  when: (_rf_target_account | default({})).username | default('') == ''
+
+- when:
+    - (_rf_target_account | default({})).username | default('') != ''
+  block:
+
+    - name: "redfish | account_service | log intent"
+      ansible.builtin.debug:
+        msg: >-
+          account_service intent — vendor={{ _rf_vendor | default('unknown') }},
+          recovery_label={{ (_rf_used_account | default({})).label | default('?') }},
+          target_username={{ _rf_target_account.username }},
+          dryrun={{ _rf_account_service_dryrun }}
+
+    # ── recovery 자격으로 AccountService 호출 ────────────────────────────
+    - name: "redfish | account_service | invoke"
+      redfish_gather:
+        bmc_ip:          "{{ _rf_ip }}"
+        username:        "{{ ansible_user | default('') }}"
+        password:        "{{ ansible_password | default('') }}"
+        timeout:         "{{ _rf_timeout }}"
+        verify_ssl:      false
+        mode:            "account_provision"
+        target_username: "{{ _rf_target_account.username }}"
+        target_password: "{{ _rf_target_account.password }}"
+        target_role:     "Administrator"
+        dryrun:          "{{ _rf_account_service_dryrun | bool }}"
+      register: _rf_acct_result
+      failed_when: false
+      no_log: true
+
+    - name: "redfish | account_service | record meta"
+      ansible.builtin.set_fact:
+        _rf_account_service_meta:
+          recovered: "{{ (_rf_acct_result.account_service | default({})).recovered | default(false) }}"
+          method:    "{{ (_rf_acct_result.account_service | default({})).method    | default('noop') }}"
+          dryrun:    "{{ (_rf_acct_result.account_service | default({})).dryrun    | default(true) }}"
+          slot_uri:  "{{ (_rf_acct_result.account_service | default({})).slot_uri  | default(none) }}"
+      no_log: true
+
+    - name: "redfish | account_service | log result"
+      ansible.builtin.debug:
+        msg: >-
+          account_service result — recovered={{ _rf_account_service_meta.recovered }},
+          method={{ _rf_account_service_meta.method }},
+          dryrun={{ _rf_account_service_meta.dryrun }}
+
+    # ── primary 자격으로 재수집 (recovered=true, dryrun=false 일 때만) ──
+    - when:
+        - _rf_account_service_meta.recovered | bool
+        - not (_rf_account_service_meta.dryrun | bool)
+      block:
+
+        - name: "redfish | account_service | rotate to primary creds"
+          ansible.builtin.set_fact:
+            ansible_user:     "{{ _rf_target_account.username }}"
+            ansible_password: "{{ _rf_target_account.password }}"
+            _rf_collect_ok:   false
+          no_log: true
+
+        - name: "redfish | account_service | re-collect with primary"
+          ansible.builtin.include_tasks: collect_standard.yml
