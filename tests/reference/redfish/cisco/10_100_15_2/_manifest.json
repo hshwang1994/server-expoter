@@ -2,13 +2,13 @@
   "target": "cisco-10.100.15.2",
   "ip": "10.100.15.2",
   "vendor": "cisco",
-  "endpoints_total": 759,
-  "endpoints_ok": 756,
+  "endpoints_total": 559,
+  "endpoints_ok": 556,
   "endpoints_fail": 3,
-  "endpoints_cached": 396,
-  "elapsed_seconds": 888.9,
+  "endpoints_cached": 559,
+  "elapsed_seconds": 6.1,
   "max_depth_reached": 6,
-  "completed_at": "2026-04-28T08:16:07.894484+00:00",
+  "completed_at": "2026-04-28T12:34:03.065895+00:00",
   "manifest": [
     {
       "path": "/redfish/v1/",
@@ -127,1406 +127,6 @@
       "depth": 2,
       "status": "cached",
       "file": "redfish_v1_eventservice_subscriptions.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/AccountService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_accountservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/AccountService.v1_3_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_accountservice.v1_3_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ActionInfo",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_actioninfo.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ActionInfo.v1_1_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_actioninfo.v1_1_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Assembly",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_assembly.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Assembly.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_assembly.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/AttributeRegistry",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_attributeregistry.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/AttributeRegistry.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_attributeregistry.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Bios",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_bios.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Bios.v1_0_4",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_bios.v1_0_4.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/BootOption",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_bootoption.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/BootOption.v1_0_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_bootoption.v1_0_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/BootOptionCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_bootoptioncollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Chassis",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_chassis.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Chassis.v1_8_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_chassis.v1_8_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ChassisCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_chassiscollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/CollectionCapabilities",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_collectioncapabilities.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/CollectionCapabilities.v1_1_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_collectioncapabilities.v1_1_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/CompositionService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_compositionservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/CompositionService.v1_1_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_compositionservice.v1_1_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ComputerSystem",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_computersystem.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ComputerSystem.v1_5_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_computersystem.v1_5_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ComputerSystemCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_computersystemcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Drive",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_drive.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Drive.v1_5_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_drive.v1_5_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Endpoint",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_endpoint.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Endpoint.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_endpoint.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EndpointCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_endpointcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EthernetInterface",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_ethernetinterface.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EthernetInterface.v1_4_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_ethernetinterface.v1_4_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EthernetInterfaceCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_ethernetinterfacecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Event",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_event.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Event.v1_3_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_event.v1_3_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EventDestination",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_eventdestination.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EventDestination.v1_4_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_eventdestination.v1_4_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EventDestinationCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_eventdestinationcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EventService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_eventservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/EventService.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_eventservice.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ExternalAccountProvider",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_externalaccountprovider.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ExternalAccountProvider.v1_0_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_externalaccountprovider.v1_0_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ExternalAccountProviderCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_externalaccountprovidercollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Fabric",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_fabric.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Fabric.v1_0_4",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_fabric.v1_0_4.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/FabricCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_fabriccollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/HostInterface",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_hostinterface.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/HostInterface.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_hostinterface.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/HostInterfaceCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_hostinterfacecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/IPAddresses",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_ipaddresses.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/IPAddresses.v1_1_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_ipaddresses.v1_1_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Job",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_job.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Job.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_job.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/JobCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_jobcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/JobService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_jobservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/JobService.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_jobservice.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/JsonSchemaFile",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_jsonschemafile.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/JsonSchemaFile.v1_1_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_jsonschemafile.v1_1_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/JsonSchemaFileCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_jsonschemafilecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/LogEntry",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_logentry.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/LogEntry.v1_4_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_logentry.v1_4_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/LogEntryCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_logentrycollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/LogService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_logservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/LogService.v1_1_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_logservice.v1_1_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/LogServiceCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_logservicecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Manager",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_manager.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Manager.v1_5_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_manager.v1_5_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ManagerAccount",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_manageraccount.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ManagerAccount.v1_1_3",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_manageraccount.v1_1_3.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ManagerAccountCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_manageraccountcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ManagerCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_managercollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ManagerNetworkProtocol",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_managernetworkprotocol.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ManagerNetworkProtocol.v1_3_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_managernetworkprotocol.v1_3_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Memory",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memory.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Memory.v1_6_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memory.v1_6_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryChunks",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorychunks.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryChunks.v1_2_2",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorychunks.v1_2_2.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryChunksCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorychunkscollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorycollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryDomain",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorydomain.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryDomain.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorydomain.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryDomainCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorydomaincollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryMetrics",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorymetrics.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MemoryMetrics.v1_1_4",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_memorymetrics.v1_1_4.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Message",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_message.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Message.v1_0_6",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_message.v1_0_6.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MessageRegistry",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_messageregistry.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MessageRegistry.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_messageregistry.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MessageRegistryCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_messageregistrycollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MessageRegistryFile",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_messageregistryfile.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MessageRegistryFile.v1_1_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_messageregistryfile.v1_1_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MessageRegistryFileCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_messageregistryfilecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricDefinition",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricdefinition.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricDefinition.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricdefinition.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricDefinitionCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricdefinitioncollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricReport",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricreport.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricReport.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricreport.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricReportCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricreportcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricReportDefinition",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricreportdefinition.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricReportDefinition.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricreportdefinition.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/MetricReportDefinitionCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_metricreportdefinitioncollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkAdapter",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkadapter.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkAdapter.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkadapter.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkAdapterCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkadaptercollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkDeviceFunction",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkdevicefunction.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkDeviceFunction.v1_3_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkdevicefunction.v1_3_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkDeviceFunctionCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkdevicefunctioncollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkInterface",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkinterface.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkInterface.v1_1_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkinterface.v1_1_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkInterfaceCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkinterfacecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkPort",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkport.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkPort.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkport.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/NetworkPortCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_networkportcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PCIeDevice",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_pciedevice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PCIeDevice.v1_3_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_pciedevice.v1_3_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PCIeFunction",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_pciefunction.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PCIeFunction.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_pciefunction.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PCIeSlots",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_pcieslots.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PCIeSlots.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_pcieslots.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PhysicalContext",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_physicalcontext.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PhysicalContext.v1_3_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_physicalcontext.v1_3_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Port",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_port.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Port.v1_1_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_port.v1_1_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PortCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_portcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Power",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_power.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Power.v1_5_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_power.v1_5_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PrivilegeRegistry",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_privilegeregistry.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/PrivilegeRegistry.v1_1_2",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_privilegeregistry.v1_1_2.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Privileges",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_privileges.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Privileges.v1_0_4",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_privileges.v1_0_4.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Processor",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_processor.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Processor.v1_3_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_processor.v1_3_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ProcessorCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_processorcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Protocol",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_protocol.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Redundancy",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_redundancy.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Redundancy.v1_3_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_redundancy.v1_3_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Resource",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_resource.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Resource.v1_7_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_resource.v1_7_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ResourceBlock",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_resourceblock.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ResourceBlock.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_resourceblock.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ResourceBlockCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_resourceblockcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Role",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_role.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Role.v1_2_2",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_role.v1_2_2.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/RoleCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_rolecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Schedule",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_schedule.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Schedule.v1_2_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_schedule.v1_2_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SecureBoot",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_secureboot.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SecureBoot.v1_0_4",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_secureboot.v1_0_4.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SerialInterface",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_serialinterface.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SerialInterface.v1_1_3",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_serialinterface.v1_1_3.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SerialInterfaceCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_serialinterfacecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ServiceRoot",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_serviceroot.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ServiceRoot.v1_4_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_serviceroot.v1_4_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Session",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_session.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Session.v1_1_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_session.v1_1_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SessionCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_sessioncollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SessionService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_sessionservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SessionService.v1_1_4",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_sessionservice.v1_1_4.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Settings",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_settings.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Settings.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_settings.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SimpleStorage",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_simplestorage.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SimpleStorage.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_simplestorage.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SimpleStorageCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_simplestoragecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SoftwareInventory",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_softwareinventory.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SoftwareInventory.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_softwareinventory.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SoftwareInventoryCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_softwareinventorycollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Storage",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_storage.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Storage.v1_5_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_storage.v1_5_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/StorageCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_storagecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Switch",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_switch.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Switch.v1_1_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_switch.v1_1_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/SwitchCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_switchcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Task",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_task.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Task.v1_3_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_task.v1_3_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/TaskCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_taskcollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/TaskService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_taskservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/TaskService.v1_1_2",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_taskservice.v1_1_2.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/TelemetryService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_telemetryservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/TelemetryService.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_telemetryservice.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Thermal",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_thermal.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Thermal.v1_5_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_thermal.v1_5_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Triggers",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_triggers.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Triggers.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_triggers.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/TriggersCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_triggerscollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/UpdateService",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_updateservice.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/UpdateService.v1_3_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_updateservice.v1_3_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/VLanNetworkInterface",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_vlannetworkinterface.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/VLanNetworkInterface.v1_1_2",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_vlannetworkinterface.v1_1_2.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/VLanNetworkInterfaceCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_vlannetworkinterfacecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/VirtualMedia",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_virtualmedia.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/VirtualMedia.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_virtualmedia.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/VirtualMediaCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_virtualmediacollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Volume",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_volume.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Volume.v1_0_3",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_volume.v1_0_3.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/VolumeCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_volumecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Zone",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_zone.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/Zone.v1_2_1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_zone.v1_2_1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/ZoneCollection",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_zonecollection.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/odata.v4_0_3",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_odata.v4_0_3.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/redfish-payload-annotations.v1_0_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_redfish-payload-annotations.v1_0_0.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/redfish-schema-v1",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_redfish-schema-v1.json",
-      "code": 200
-    },
-    {
-      "path": "/redfish/v1/JsonSchemas/redfish-schema.v1_5_0",
-      "depth": 2,
-      "status": "cached",
-      "file": "redfish_v1_jsonschemas_redfish-schema.v1_5_0.json",
       "code": 200
     },
     {
@@ -2785,2543 +1385,2543 @@
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/PCIeDevices/1/PCIeFunctions",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 2844.0,
-      "file": "redfish_v1_systems_fch2116v1v0_pciedevices_1_pciefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_pciedevices_1_pciefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/PCIeDevices/2/PCIeFunctions",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 1562.0,
-      "file": "redfish_v1_systems_fch2116v1v0_pciedevices_2_pciefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_pciedevices_2_pciefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/PCIeDevices/HBA/PCIeFunctions",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 1469.0,
-      "file": "redfish_v1_systems_fch2116v1v0_pciedevices_hba_pciefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_pciedevices_hba_pciefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 1734.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 1485.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/Fault",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 1750.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_fault.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_fault.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_A1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3547.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_a1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_a1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_A2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3500.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_a2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_a2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_B1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3031.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_b1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_b1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_B2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3203.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_b2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_b2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_C1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 2969.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_c1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_c1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_C2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 6812.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_c2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_c2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_D1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 2735.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_d1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_d1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_D2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 2968.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_d2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_d2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_E1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3610.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_e1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_e1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_E2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 4000.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_e2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_e2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_F1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 2890.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_f1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_f1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_F2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3172.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_f2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_f2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_G1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3078.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_g1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_g1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_G2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 4328.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_g2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_g2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_H1",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 3188.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_h1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_h1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/Memory/DIMM_H2",
       "depth": 4,
-      "code": 200,
-      "elapsed_ms": 2891.0,
-      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_h2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_memory_dimm_h2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/L/PCIeFunctions/L",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 8109.0,
-      "file": "redfish_v1_chassis_1_pciedevices_l_pciefunctions_l.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_l_pciefunctions_l.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/L/PCIeFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 1641.0,
-      "file": "redfish_v1_chassis_1_pciedevices_l_pciefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_l_pciefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/1/PCIeFunctions/1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 6828.0,
-      "file": "redfish_v1_chassis_1_pciedevices_1_pciefunctions_1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_1_pciefunctions_1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/1/PCIeFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 1734.0,
-      "file": "redfish_v1_chassis_1_pciedevices_1_pciefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_1_pciefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/2/PCIeFunctions/2",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 7422.0,
-      "file": "redfish_v1_chassis_1_pciedevices_2_pciefunctions_2.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_2_pciefunctions_2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/2/PCIeFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 1516.0,
-      "file": "redfish_v1_chassis_1_pciedevices_2_pciefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_2_pciefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/HBA/PCIeFunctions/HBA",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 8484.0,
-      "file": "redfish_v1_chassis_1_pciedevices_hba_pciefunctions_hba.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_hba_pciefunctions_hba.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/PCIeDevices/HBA/PCIeFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 1719.0,
-      "file": "redfish_v1_chassis_1_pciedevices_hba_pciefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_pciedevices_hba_pciefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 2687.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 2890.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/Fault/Entries",
       "depth": 5,
-      "code": 404,
-      "elapsed_ms": 1719.0,
-      "file": "redfish_v1_chassis_1_logservices_fault_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_fault_entries.json",
+      "code": 404
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkPorts",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3156.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkports.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkports.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkDeviceFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 10282.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkPorts/Port-0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 6609.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkports_port-0.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkports_port-0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkPorts/Port-1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3609.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkports_port-1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkports_port-1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkDeviceFunctions/eth0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 4719.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_eth0.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_eth0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkDeviceFunctions/eth1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 6250.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_eth1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_eth1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkDeviceFunctions/fc0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 4625.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_fc0.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_fc0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/1/NetworkDeviceFunctions/fc1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 7985.0,
-      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_fc1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_1_networkdevicefunctions_fc1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkPorts",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3375.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkports.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkports.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkDeviceFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3140.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkPorts/Port-0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3641.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkports_port-0.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkports_port-0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkPorts/Port-1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 4781.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkports_port-1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkports_port-1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkDeviceFunctions/eth0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 8281.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_eth0.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_eth0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkDeviceFunctions/eth1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 5703.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_eth1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_eth1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkDeviceFunctions/fc0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 4829.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_fc0.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_fc0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/NetworkAdapters/2/NetworkDeviceFunctions/fc1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 5156.0,
-      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_fc1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_networkadapters_2_networkdevicefunctions_fc1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3375.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3140.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/Fault/Entries",
       "depth": 5,
-      "code": 404,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_managers_cimc_logservices_fault_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_fault_entries.json",
+      "code": 404
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/1/NetworkPorts",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 2641.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkports.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkports.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/1/NetworkDeviceFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3781.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkdevicefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkdevicefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/2/NetworkPorts",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 6110.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkports.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkports.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/2/NetworkDeviceFunctions",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3375.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkdevicefunctions.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkdevicefunctions.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/1/NetworkPorts/Port-0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3625.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkports_port-0.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkports_port-0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/1/NetworkPorts/Port-1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 6828.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkports_port-1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_1_networkports_port-1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/2/NetworkPorts/Port-0",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3703.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkports_port-0.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkports_port-0.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/NetworkInterfaces/2/NetworkPorts/Port-1",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3484.0,
-      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkports_port-1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_networkinterfaces_2_networkports_port-1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3282.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries",
       "depth": 5,
-      "code": 200,
-      "elapsed_ms": 3593.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/Fault/Entries",
       "depth": 5,
-      "code": 404,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_fault_entries.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_fault_entries.json",
+      "code": 404
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/858",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1688.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_858.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_858.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/857",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1890.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_857.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_857.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/856",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1844.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_856.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_856.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/855",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2047.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_855.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_855.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/854",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2031.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_854.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_854.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/853",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2453.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_853.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_853.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/852",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2000.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_852.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_852.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/851",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1610.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_851.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_851.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/850",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2296.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_850.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_850.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/849",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2016.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_849.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_849.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/848",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1703.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_848.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_848.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/847",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2188.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_847.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_847.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/846",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2578.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_846.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_846.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/845",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1640.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_845.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_845.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/844",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1860.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_844.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_844.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/843",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1828.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_843.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_843.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/842",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1672.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_842.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_842.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/841",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2015.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_841.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_841.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/840",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2047.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_840.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_840.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/839",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 3282.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_839.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_839.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/838",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1609.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_838.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_838.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/837",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2156.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_837.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_837.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/836",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1860.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_836.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_836.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/835",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 5015.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_835.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_835.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/834",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2531.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_834.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_834.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/833",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1829.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_833.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_833.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/832",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1968.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_832.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_832.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/831",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 4907.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_831.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_831.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/830",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2343.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_830.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_830.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/829",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1782.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_829.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_829.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/828",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2609.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_828.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_828.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/827",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1734.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_827.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_827.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/826",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1828.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_826.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_826.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/825",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1969.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_825.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_825.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/824",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1641.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_824.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_824.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/823",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2031.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_823.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_823.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/822",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1969.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_822.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_822.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/821",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2875.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_821.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_821.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/820",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2000.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_820.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_820.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/819",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_819.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_819.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/818",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_818.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_818.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/817",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1890.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_817.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_817.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/816",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2235.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_816.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_816.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/815",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2921.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_815.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_815.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/814",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1641.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_814.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_814.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/813",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1859.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_813.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_813.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/812",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1532.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_812.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_812.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/811",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1890.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_811.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_811.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/810",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2032.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_810.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_810.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/SEL/Entries/809",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2156.0,
-      "file": "redfish_v1_chassis_1_logservices_sel_entries_809.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_sel_entries_809.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/1",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 3109.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_1.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/2",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1719.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_2.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/3",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2219.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_3.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_3.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/4",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1812.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_4.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_4.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/5",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1703.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_5.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_5.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/6",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2016.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_6.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_6.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/7",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2094.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_7.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_7.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/8",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 3000.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_8.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_8.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/9",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1734.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_9.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_9.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/10",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1750.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_10.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_10.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/11",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1984.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_11.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_11.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/12",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1938.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_12.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_12.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/13",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2328.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_13.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_13.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/14",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1859.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_14.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_14.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/15",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2594.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_15.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_15.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/16",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1735.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_16.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_16.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/17",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2000.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_17.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_17.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/18",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2296.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_18.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_18.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/19",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_19.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_19.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/20",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2110.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_20.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_20.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/21",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2109.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_21.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_21.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/22",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 5078.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_22.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_22.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/23",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1735.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_23.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_23.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/24",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1922.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_24.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_24.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/25",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1828.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_25.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_25.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/26",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1907.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_26.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_26.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/27",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2546.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_27.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_27.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/28",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2766.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_28.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_28.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/29",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1969.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_29.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_29.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/30",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1797.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_30.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_30.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/31",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2016.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_31.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_31.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/32",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1937.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_32.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_32.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/33",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2047.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_33.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_33.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/34",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2078.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_34.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_34.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/35",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2469.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_35.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_35.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/36",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2235.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_36.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_36.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/37",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1921.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_37.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_37.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/38",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1516.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_38.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_38.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/39",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1843.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_39.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_39.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/40",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2219.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_40.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_40.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/41",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2266.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_41.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_41.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/42",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2406.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_42.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_42.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/43",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1922.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_43.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_43.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/44",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1797.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_44.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_44.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/45",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1718.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_45.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_45.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/46",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2438.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_46.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_46.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/47",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2016.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_47.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_47.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/48",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2031.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_48.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_48.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/49",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2344.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_49.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_49.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Chassis/1/LogServices/CIMC/Entries/50",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2093.0,
-      "file": "redfish_v1_chassis_1_logservices_cimc_entries_50.json"
+      "status": "cached",
+      "file": "redfish_v1_chassis_1_logservices_cimc_entries_50.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/858",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1938.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_858.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_858.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/857",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1953.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_857.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_857.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/856",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1562.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_856.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_856.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/855",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2094.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_855.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_855.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/854",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1735.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_854.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_854.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/853",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2718.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_853.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_853.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/852",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1735.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_852.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_852.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/851",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2032.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_851.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_851.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/850",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1828.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_850.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_850.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/849",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1578.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_849.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_849.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/848",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 5203.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_848.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_848.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/847",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1781.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_847.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_847.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/846",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1610.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_846.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_846.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/845",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 4671.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_845.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_845.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/844",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1688.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_844.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_844.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/843",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2078.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_843.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_843.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/842",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2438.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_842.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_842.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/841",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2125.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_841.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_841.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/840",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1562.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_840.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_840.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/839",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1797.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_839.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_839.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/838",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1578.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_838.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_838.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/837",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1906.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_837.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_837.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/836",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2141.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_836.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_836.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/835",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2250.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_835.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_835.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/834",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2281.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_834.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_834.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/833",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_833.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_833.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/832",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1797.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_832.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_832.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/831",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2000.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_831.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_831.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/830",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_830.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_830.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/829",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2203.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_829.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_829.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/828",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2062.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_828.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_828.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/827",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2328.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_827.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_827.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/826",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2141.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_826.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_826.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/825",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1844.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_825.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_825.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/824",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1500.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_824.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_824.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/823",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2125.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_823.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_823.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/822",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2328.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_822.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_822.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/821",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2906.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_821.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_821.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/820",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_820.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_820.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/819",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1797.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_819.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_819.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/818",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1922.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_818.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_818.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/817",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1609.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_817.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_817.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/816",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1953.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_816.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_816.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/815",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2313.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_815.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_815.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/814",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2078.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_814.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_814.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/813",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2125.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_813.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_813.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/812",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1640.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_812.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_812.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/811",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1829.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_811.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_811.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/810",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_810.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_810.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/SEL/Entries/809",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1968.0,
-      "file": "redfish_v1_managers_cimc_logservices_sel_entries_809.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_sel_entries_809.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/1",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1985.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_1.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/2",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2015.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_2.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/3",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2813.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_3.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_3.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/4",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_4.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_4.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/5",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1954.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_5.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_5.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/6",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2015.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_6.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_6.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/7",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1610.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_7.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_7.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/8",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2562.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_8.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_8.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/9",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 5188.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_9.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_9.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/10",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_10.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_10.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/11",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1718.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_11.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_11.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/12",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2203.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_12.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_12.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/13",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1782.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_13.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_13.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/14",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2437.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_14.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_14.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/15",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2063.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_15.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_15.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/16",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2781.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_16.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_16.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/17",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_17.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_17.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/18",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1734.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_18.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_18.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/19",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1860.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_19.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_19.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/20",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_20.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_20.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/21",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2468.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_21.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_21.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/22",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2954.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_22.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_22.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/23",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1687.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_23.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_23.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/24",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1859.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_24.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_24.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/25",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1938.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_25.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_25.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/26",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2109.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_26.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_26.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/27",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1610.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_27.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_27.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/28",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2328.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_28.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_28.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/29",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2734.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_29.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_29.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/30",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_30.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_30.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/31",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2235.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_31.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_31.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/32",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_32.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_32.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/33",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1734.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_33.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_33.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/34",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1812.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_34.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_34.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/35",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2266.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_35.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_35.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/36",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 3000.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_36.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_36.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/37",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1703.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_37.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_37.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/38",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1766.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_38.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_38.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/39",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1906.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_39.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_39.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/40",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2000.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_40.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_40.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/41",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2453.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_41.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_41.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/42",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2063.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_42.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_42.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/43",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2500.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_43.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_43.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/44",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1937.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_44.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_44.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/45",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2141.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_45.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_45.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/46",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2140.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_46.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_46.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/47",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_47.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_47.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/48",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2266.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_48.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_48.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/49",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2781.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_49.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_49.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Managers/CIMC/LogServices/CIMC/Entries/50",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2125.0,
-      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_50.json"
+      "status": "cached",
+      "file": "redfish_v1_managers_cimc_logservices_cimc_entries_50.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/858",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_858.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_858.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/857",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 4344.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_857.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_857.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/856",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1718.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_856.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_856.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/855",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2391.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_855.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_855.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/854",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2391.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_854.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_854.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/853",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1797.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_853.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_853.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/852",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1718.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_852.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_852.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/851",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1766.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_851.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_851.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/850",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2078.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_850.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_850.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/849",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1938.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_849.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_849.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/848",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1890.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_848.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_848.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/847",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2406.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_847.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_847.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/846",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1657.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_846.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_846.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/845",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2312.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_845.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_845.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/844",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1844.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_844.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_844.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/843",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1672.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_843.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_843.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/842",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1812.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_842.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_842.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/841",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2282.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_841.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_841.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/840",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2953.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_840.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_840.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/839",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1781.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_839.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_839.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/838",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 4312.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_838.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_838.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/837",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 4266.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_837.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_837.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/836",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2016.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_836.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_836.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/835",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2359.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_835.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_835.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/834",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_834.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_834.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/833",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2109.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_833.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_833.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/832",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_832.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_832.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/831",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1750.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_831.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_831.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/830",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1813.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_830.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_830.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/829",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2078.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_829.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_829.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/828",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2875.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_828.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_828.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/827",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1781.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_827.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_827.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/826",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1641.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_826.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_826.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/825",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1718.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_825.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_825.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/824",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1657.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_824.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_824.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/823",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2047.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_823.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_823.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/822",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2312.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_822.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_822.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/821",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2375.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_821.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_821.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/820",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1813.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_820.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_820.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/819",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1531.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_819.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_819.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/818",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1953.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_818.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_818.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/817",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2078.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_817.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_817.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/816",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2313.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_816.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_816.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/815",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1781.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_815.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_815.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/814",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 5187.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_814.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_814.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/813",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1532.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_813.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_813.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/812",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2031.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_812.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_812.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/811",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2015.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_811.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_811.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/810",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_810.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_810.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/SEL/Entries/809",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2360.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_809.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_sel_entries_809.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/1",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1937.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_1.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_1.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/2",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2375.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_2.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_2.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/3",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1859.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_3.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_3.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/4",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2032.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_4.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_4.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/5",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2187.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_5.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_5.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/6",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1594.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_6.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_6.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/7",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2109.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_7.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_7.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/8",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2032.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_8.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_8.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/9",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2578.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_9.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_9.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/10",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2328.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_10.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_10.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/11",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1672.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_11.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_11.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/12",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1984.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_12.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_12.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/13",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1969.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_13.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_13.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/14",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2250.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_14.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_14.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/15",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 3000.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_15.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_15.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/16",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1812.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_16.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_16.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/17",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_17.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_17.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/18",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_18.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_18.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/19",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_19.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_19.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/20",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2406.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_20.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_20.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/21",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1938.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_21.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_21.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/22",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2562.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_22.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_22.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/23",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1860.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_23.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_23.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/24",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2328.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_24.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_24.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/25",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1906.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_25.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_25.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/26",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1937.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_26.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_26.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/27",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2422.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_27.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_27.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/28",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2438.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_28.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_28.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/29",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2234.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_29.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_29.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/30",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1906.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_30.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_30.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/31",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_31.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_31.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/32",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1844.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_32.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_32.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/33",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1937.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_33.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_33.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/34",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2594.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_34.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_34.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/35",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2406.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_35.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_35.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/36",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_36.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_36.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/37",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1625.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_37.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_37.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/38",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 4828.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_38.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_38.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/39",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2094.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_39.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_39.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/40",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2828.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_40.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_40.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/41",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1563.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_41.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_41.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/42",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2203.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_42.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_42.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/43",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2016.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_43.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_43.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/44",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2015.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_44.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_44.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/45",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1875.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_45.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_45.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/46",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2156.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_46.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_46.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/47",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 2657.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_47.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_47.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/48",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1937.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_48.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_48.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/49",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1688.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_49.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_49.json",
+      "code": 200
     },
     {
       "path": "/redfish/v1/Systems/FCH2116V1V0/LogServices/CIMC/Entries/50",
       "depth": 6,
-      "code": 200,
-      "elapsed_ms": 1968.0,
-      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_50.json"
+      "status": "cached",
+      "file": "redfish_v1_systems_fch2116v1v0_logservices_cimc_entries_50.json",
+      "code": 200
     }
   ]
 }

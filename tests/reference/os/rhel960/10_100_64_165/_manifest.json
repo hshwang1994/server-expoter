@@ -2,540 +2,430 @@
   "target": "rhel960-10.100.64.165",
   "ip": "10.100.64.165",
   "distro": "rhel960",
-  "started_at": "2026-04-28T06:43:49.648206+00:00",
+  "started_at": "2026-04-28T12:32:35.807524+00:00",
   "commands": [
     {
       "name": "hostnamectl",
-      "rc": 0,
-      "size": 564
+      "status": "cached"
     },
     {
       "name": "uname",
-      "rc": 0,
-      "size": 139
+      "status": "cached"
     },
     {
       "name": "os_release",
-      "rc": 0,
-      "size": 617
+      "status": "cached"
     },
     {
       "name": "redhat_release",
-      "rc": 0,
-      "size": 44
+      "status": "cached"
     },
     {
       "name": "uptime",
-      "rc": 0,
-      "size": 93
+      "status": "cached"
     },
     {
       "name": "timedatectl",
-      "rc": 0,
-      "size": 313
+      "status": "cached"
     },
     {
       "name": "machine_id",
-      "rc": 0,
-      "size": 33
+      "status": "cached"
     },
     {
       "name": "dmidecode_full",
-      "rc": 0,
-      "size": 50016
+      "status": "cached"
     },
     {
       "name": "dmidecode_system",
-      "rc": 0,
-      "size": 765
+      "status": "cached"
     },
     {
       "name": "dmidecode_chassis",
-      "rc": 0,
-      "size": 481
+      "status": "cached"
     },
     {
       "name": "dmidecode_baseboard",
-      "rc": 0,
-      "size": 640
+      "status": "cached"
     },
     {
       "name": "dmidecode_processor",
-      "rc": 0,
-      "size": 2743
+      "status": "cached"
     },
     {
       "name": "dmidecode_memory",
-      "rc": 0,
-      "size": 40479
+      "status": "cached"
     },
     {
       "name": "dmidecode_bios",
-      "rc": 0,
-      "size": 425
+      "status": "cached"
     },
     {
       "name": "dmidecode_oem",
-      "rc": 2,
-      "size": 170
+      "status": "cached"
     },
     {
       "name": "lscpu",
-      "rc": 0,
-      "size": 2713
+      "status": "cached"
     },
     {
       "name": "lscpu_json",
-      "rc": 0,
-      "size": 3913
+      "status": "cached"
     },
     {
       "name": "cpuinfo",
-      "rc": 0,
-      "size": 4388
+      "status": "cached"
     },
     {
       "name": "cpu_topology",
-      "rc": 0,
-      "size": 210
+      "status": "cached"
     },
     {
       "name": "cpu_freq_cur",
-      "rc": 0,
-      "size": 0
+      "status": "cached"
     },
     {
       "name": "meminfo",
-      "rc": 0,
-      "size": 1587
+      "status": "cached"
     },
     {
       "name": "free_h",
-      "rc": 0,
-      "size": 207
+      "status": "cached"
     },
     {
       "name": "vmstat",
-      "rc": 0,
-      "size": 245
+      "status": "cached"
     },
     {
       "name": "swap",
-      "rc": 0,
-      "size": 70
+      "status": "cached"
     },
     {
       "name": "lsblk_json",
-      "rc": 0,
-      "size": 20153
+      "status": "cached"
     },
     {
       "name": "lsblk_tree",
-      "rc": 0,
-      "size": 1152
+      "status": "cached"
     },
     {
       "name": "df_h",
-      "rc": 0,
-      "size": 761
+      "status": "cached"
     },
     {
       "name": "findmnt_json",
-      "rc": 0,
-      "size": 7251
+      "status": "cached"
     },
     {
       "name": "blkid",
-      "rc": 0,
-      "size": 719
+      "status": "cached"
     },
     {
       "name": "smartctl_scan",
-      "rc": 0,
-      "size": 98
+      "status": "cached"
     },
     {
       "name": "smartctl_all",
-      "rc": 4,
-      "size": 1708
+      "status": "cached"
     },
     {
       "name": "nvme_list",
-      "rc": 1,
-      "size": 66
+      "status": "cached"
     },
     {
       "name": "mdstat",
-      "rc": 0,
-      "size": 40
+      "status": "cached"
     },
     {
       "name": "lvm_pv",
-      "rc": 0,
-      "size": 916
+      "status": "cached"
     },
     {
       "name": "lvm_vg",
-      "rc": 0,
-      "size": 1450
+      "status": "cached"
     },
     {
       "name": "lvm_lv",
-      "rc": 0,
-      "size": 2167
+      "status": "cached"
     },
     {
       "name": "multipath",
-      "rc": 1,
-      "size": 294
+      "status": "cached"
     },
     {
       "name": "storcli",
-      "rc": 127,
-      "size": 130
+      "status": "cached"
     },
     {
       "name": "ip_addr",
-      "rc": 0,
-      "size": 1804
+      "status": "cached"
     },
     {
       "name": "ip_link",
-      "rc": 0,
-      "size": 819
+      "status": "cached"
     },
     {
       "name": "ip_route",
-      "rc": 0,
-      "size": 458
+      "status": "cached"
     },
     {
       "name": "ip_route6",
-      "rc": 0,
-      "size": 279
+      "status": "cached"
     },
     {
       "name": "ip_neigh",
-      "rc": 0,
-      "size": 694
+      "status": "cached"
     },
     {
       "name": "ip_tunnel",
-      "rc": 0,
-      "size": 3
+      "status": "cached"
     },
     {
       "name": "ip_vrf",
-      "rc": 0,
-      "size": 3
+      "status": "cached"
     },
     {
       "name": "bridge_link",
-      "rc": 0,
-      "size": 3
+      "status": "cached"
     },
     {
       "name": "bridge_vlan",
-      "rc": 0,
-      "size": 3
+      "status": "cached"
     },
     {
       "name": "bonding",
-      "rc": 1,
-      "size": 0
+      "status": "cached"
     },
     {
       "name": "ss_listen",
-      "rc": 0,
-      "size": 1796
+      "status": "cached"
     },
     {
       "name": "ss_estab",
-      "rc": 0,
-      "size": 338
+      "status": "cached"
     },
     {
       "name": "ethtool_all",
-      "rc": 0,
-      "size": 7436
+      "status": "cached"
     },
     {
       "name": "nmcli",
-      "rc": 0,
-      "size": 1381
+      "status": "cached"
     },
     {
       "name": "resolv_conf",
-      "rc": 0,
-      "size": 73
+      "status": "cached"
     },
     {
       "name": "hosts_file",
-      "rc": 0,
-      "size": 158
+      "status": "cached"
     },
     {
       "name": "nsswitch",
-      "rc": 0,
-      "size": 3012
+      "status": "cached"
     },
     {
       "name": "firewall_iptables",
-      "rc": 0,
-      "size": 435
+      "status": "cached"
     },
     {
       "name": "firewall_nft",
-      "rc": 0,
-      "size": 7737
+      "status": "cached"
     },
     {
       "name": "firewall_firewalld",
-      "rc": 0,
-      "size": 326
+      "status": "cached"
     },
     {
       "name": "lspci_v",
-      "rc": 0,
-      "size": 119847
+      "status": "cached"
     },
     {
       "name": "lspci_nn",
-      "rc": 0,
-      "size": 3546
+      "status": "cached"
     },
     {
       "name": "lspci_tree",
-      "rc": 0,
-      "size": 1375
+      "status": "cached"
     },
     {
       "name": "lsusb",
-      "rc": 1,
-      "size": 0
+      "status": "cached"
     },
     {
       "name": "lsusb_tree",
-      "rc": 0,
-      "size": 0
+      "status": "cached"
     },
     {
       "name": "lshw",
-      "rc": 0,
-      "size": 109679
+      "status": "cached"
     },
     {
       "name": "lshw_short",
-      "rc": 0,
-      "size": 13013
+      "status": "cached"
     },
     {
       "name": "inxi",
-      "rc": 127,
-      "size": 30
+      "status": "cached"
     },
     {
       "name": "hwinfo",
-      "rc": 127,
-      "size": 55
+      "status": "cached"
     },
     {
       "name": "biosdecode",
-      "rc": 1,
-      "size": 65
+      "status": "cached"
     },
     {
       "name": "efivars",
-      "rc": 0,
-      "size": 1987
+      "status": "cached"
     },
     {
       "name": "ipmitool_mc",
-      "rc": 127,
-      "size": 57
+      "status": "cached"
     },
     {
       "name": "ipmitool_lan",
-      "rc": 127,
-      "size": 57
+      "status": "cached"
     },
     {
       "name": "ipmitool_sel",
-      "rc": 0,
-      "size": 57
+      "status": "cached"
     },
     {
       "name": "ipmitool_sensor",
-      "rc": 127,
-      "size": 57
+      "status": "cached"
     },
     {
       "name": "ipmitool_chassis",
-      "rc": 127,
-      "size": 57
+      "status": "cached"
     },
     {
       "name": "ipmitool_fru",
-      "rc": 127,
-      "size": 57
+      "status": "cached"
     },
     {
       "name": "idrac_racadm",
-      "rc": 127,
-      "size": 96
+      "status": "cached"
     },
     {
       "name": "kernel_cmdline",
-      "rc": 0,
-      "size": 214
+      "status": "cached"
     },
     {
       "name": "loaded_modules",
-      "rc": 0,
-      "size": 3326
+      "status": "cached"
     },
     {
       "name": "kernel_log_tail",
-      "rc": 0,
-      "size": 18194
+      "status": "cached"
     },
     {
       "name": "sysctl_all",
-      "rc": 0,
-      "size": 41899
+      "status": "cached"
     },
     {
       "name": "systemctl_list",
-      "rc": 0,
-      "size": 18473
+      "status": "cached"
     },
     {
       "name": "systemctl_failed",
-      "rc": 0,
-      "size": 58
+      "status": "cached"
     },
     {
       "name": "systemctl_timers",
-      "rc": 0,
-      "size": 669
+      "status": "cached"
     },
     {
       "name": "ps_aux",
-      "rc": 0,
-      "size": 30174
+      "status": "cached"
     },
     {
       "name": "crontab_root",
-      "rc": 0,
-      "size": 802
+      "status": "cached"
     },
     {
       "name": "rpm_qa",
-      "rc": 0,
-      "size": 40367
+      "status": "cached"
     },
     {
       "name": "dpkg_l",
-      "rc": 127,
-      "size": 0
+      "status": "cached"
     },
     {
       "name": "yum_repolist",
-      "rc": 0,
-      "size": 170
+      "status": "cached"
     },
     {
       "name": "apt_sources",
-      "rc": 2,
-      "size": 0
+      "status": "cached"
     },
     {
       "name": "passwd_users",
-      "rc": 0,
-      "size": 1911
+      "status": "cached"
     },
     {
       "name": "groups",
-      "rc": 0,
-      "size": 766
+      "status": "cached"
     },
     {
       "name": "ssh_config",
-      "rc": 0,
-      "size": 3811
+      "status": "cached"
     },
     {
       "name": "sudoers",
-      "rc": 0,
-      "size": 4624
+      "status": "cached"
     },
     {
       "name": "selinux",
-      "rc": 0,
-      "size": 431
+      "status": "cached"
     },
     {
       "name": "apparmor",
-      "rc": 127,
-      "size": 58
+      "status": "cached"
     },
     {
       "name": "logged_users",
-      "rc": 0,
-      "size": 1622
+      "status": "cached"
     },
     {
       "name": "locale",
-      "rc": 0,
-      "size": 349
+      "status": "cached"
     },
     {
       "name": "ntp_status",
-      "rc": 1,
-      "size": 1019
+      "status": "cached"
     },
     {
       "name": "virt_what",
-      "rc": 0,
-      "size": 30
+      "status": "cached"
     },
     {
       "name": "docker_info",
-      "rc": 127,
-      "size": 137
+      "status": "cached"
     },
     {
       "name": "podman_info",
-      "rc": 0,
-      "size": 3945
+      "status": "cached"
     },
     {
       "name": "k8s_kubelet",
-      "rc": 127,
-      "size": 74
+      "status": "cached"
     },
     {
       "name": "hdparm_sda",
-      "rc": 0,
-      "size": 525
+      "status": "cached"
     },
     {
       "name": "messages_tail",
-      "rc": 0,
-      "size": 17144
+      "status": "cached"
     },
     {
       "name": "journal_errors",
-      "rc": 0,
-      "size": 4334
-    },
-    {
-      "name": "ansible_setup",
-      "rc": 0,
-      "size": 37414
+      "status": "cached"
     }
   ],
   "errors": [],
-  "elapsed_seconds": 46.1,
-  "completed_at": "2026-04-28T06:44:35.787723+00:00"
+  "elapsed_seconds": 1.1,
+  "completed_at": "2026-04-28T12:32:36.909171+00:00"
 }

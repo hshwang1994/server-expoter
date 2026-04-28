@@ -6,9 +6,9 @@
   "endpoints_ok": 1621,
   "endpoints_fail": 3,
   "endpoints_cached": 1624,
-  "elapsed_seconds": 0.4,
+  "elapsed_seconds": 17.5,
   "max_depth_reached": 7,
-  "completed_at": "2026-04-28T07:43:03.160965+00:00",
+  "completed_at": "2026-04-28T12:34:41.374035+00:00",
   "manifest": [
     {
       "path": "/redfish/v1/",

@@ -6,9 +6,9 @@
 - OK (HTTP 200): 1621
 - Fail (non-200): 3
 - Cached (skip): 1624
-- Elapsed: 0.4s
+- Elapsed: 17.5s
 - Max depth: 7
-- Completed: 2026-04-28T07:43:03.160965+00:00
+- Completed: 2026-04-28T12:34:41.374035+00:00
 
 ## Endpoint list (status / depth)
 

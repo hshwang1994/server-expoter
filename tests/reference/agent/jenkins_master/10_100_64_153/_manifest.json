@@ -2,205 +2,166 @@
   "target": "master-10.100.64.153",
   "ip": "10.100.64.153",
   "role": "jenkins_master",
-  "started_at": "2026-04-28T06:47:33.904328+00:00",
+  "started_at": "2026-04-28T12:36:19.166599+00:00",
   "commands": [
     {
       "name": "os_release",
-      "rc": 0,
-      "size": 400
+      "status": "cached"
     },
     {
       "name": "uname",
-      "rc": 0,
-      "size": 135
+      "status": "cached"
     },
     {
       "name": "hostnamectl",
-      "rc": 0,
-      "size": 481
+      "status": "cached"
     },
     {
       "name": "uptime",
-      "rc": 0,
-      "size": 71
+      "status": "cached"
     },
     {
       "name": "java_version",
-      "rc": 0,
-      "size": 219
+      "status": "cached"
     },
     {
       "name": "java_alt",
-      "rc": 0,
-      "size": 503
+      "status": "cached"
     },
     {
       "name": "python_versions",
-      "rc": 1,
-      "size": 507
+      "status": "cached"
     },
     {
       "name": "pip_freeze_default",
-      "rc": 0,
-      "size": 38
+      "status": "cached"
     },
     {
       "name": "pip_freeze_ansible_env",
-      "rc": 0,
-      "size": 66
+      "status": "cached"
     },
     {
       "name": "ansible_version",
-      "rc": 127,
-      "size": 41
+      "status": "cached"
     },
     {
       "name": "ansible_config_dump",
-      "rc": 127,
-      "size": 48
+      "status": "cached"
     },
     {
       "name": "ansible_collections",
-      "rc": 127,
-      "size": 48
+      "status": "cached"
     },
     {
       "name": "ansible_roles",
-      "rc": 127,
-      "size": 48
+      "status": "cached"
     },
     {
       "name": "jenkins_status",
-      "rc": -1,
-      "size": 0
+      "status": "cached"
     },
     {
       "name": "jenkins_user",
-      "rc": 0,
-      "size": 110
+      "status": "cached"
     },
     {
       "name": "jenkins_jobs",
-      "rc": 0,
-      "size": 152
+      "status": "cached"
     },
     {
       "name": "ip_addr",
-      "rc": 0,
-      "size": 1139
+      "status": "cached"
     },
     {
       "name": "ip_route",
-      "rc": 0,
-      "size": 204
+      "status": "cached"
     },
     {
       "name": "resolv_conf",
-      "rc": 0,
-      "size": 920
+      "status": "cached"
     },
     {
       "name": "hosts_file",
-      "rc": 0,
-      "size": 372
+      "status": "cached"
     },
     {
       "name": "listening_ports",
-      "rc": 0,
-      "size": 1312
+      "status": "cached"
     },
     {
       "name": "firewall_state",
-      "rc": 0,
-      "size": 346
+      "status": "cached"
     },
     {
       "name": "disk_layout",
-      "rc": 0,
-      "size": 1198
+      "status": "cached"
     },
     {
       "name": "df_h",
-      "rc": 0,
-      "size": 316
+      "status": "cached"
     },
     {
       "name": "mount",
-      "rc": 0,
-      "size": 1713
+      "status": "cached"
     },
     {
       "name": "se_project_layout",
-      "rc": 2,
-      "size": 151
+      "status": "cached"
     },
     {
       "name": "ansible_cfg",
-      "rc": 0,
-      "size": 1215
+      "status": "cached"
     },
     {
       "name": "vault_files",
-      "rc": 0,
-      "size": 1833
+      "status": "cached"
     },
     {
       "name": "smartctl",
-      "rc": 0,
-      "size": 42
+      "status": "cached"
     },
     {
       "name": "ipmitool",
-      "rc": 127,
-      "size": 42
+      "status": "cached"
     },
     {
       "name": "nvme_cli",
-      "rc": 127,
-      "size": 38
+      "status": "cached"
     },
     {
       "name": "racadm",
-      "rc": 1,
-      "size": 40
+      "status": "cached"
     },
     {
       "name": "storcli",
-      "rc": 127,
-      "size": 114
+      "status": "cached"
     },
     {
       "name": "redis_status",
-      "rc": 0,
-      "size": 847
+      "status": "cached"
     },
     {
       "name": "time_sync",
-      "rc": 127,
-      "size": 389
+      "status": "cached"
     },
     {
       "name": "running_processes",
-      "rc": 0,
-      "size": 5768
+      "status": "cached"
     },
     {
       "name": "cpu_summary",
-      "rc": 0,
-      "size": 2987
+      "status": "cached"
     },
     {
       "name": "memory_summary",
-      "rc": 0,
-      "size": 207
+      "status": "cached"
     },
     {
       "name": "journal_recent",
-      "rc": 0,
-      "size": 2141
+      "status": "cached"
     }
   ],
   "errors": [],
-  "elapsed_seconds": 142.4,
-  "completed_at": "2026-04-28T06:49:56.361899+00:00"
+  "elapsed_seconds": 0.9,
+  "completed_at": "2026-04-28T12:36:20.100486+00:00"
 }

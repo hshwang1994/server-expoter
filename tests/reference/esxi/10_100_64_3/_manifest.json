@@ -1,13 +1,8 @@
 {
   "target": "esxi-10.100.64.3",
   "ip": "10.100.64.3",
-  "started_at": "2026-04-28T06:46:32.536539+00:00",
-  "commands": [
-    {
-      "name": "pyvmomi",
-      "size": 3900109
-    }
-  ],
+  "started_at": "2026-04-28T12:32:55.826153+00:00",
+  "commands": [],
   "errors": [
     {
       "step": "ssh_connect",
@@ -15,6 +10,6 @@
       "err": "SSH connect fail: [Errno None] Unable to connect to port 22 on 10.100.64.3"
     }
   ],
-  "elapsed_seconds": 68.7,
-  "completed_at": "2026-04-28T06:47:41.305720+00:00"
+  "elapsed_seconds": 0.0,
+  "completed_at": "2026-04-28T12:32:55.837099+00:00"
 }

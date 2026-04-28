@@ -1,7 +1,7 @@
 # OS Gather — rhel810-10.100.64.161
 distro: rhel810
 ip: 10.100.64.161
-elapsed: 0.8s
+elapsed: 0.9s
 commands: 105
 errors: 0
 
