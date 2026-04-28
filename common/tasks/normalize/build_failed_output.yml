@@ -77,7 +77,7 @@
         'system':   none, 'hardware': none, 'bmc': none,
         'cpu':      none, 'memory':   none,
         'storage':  {'filesystems':[], 'physical_disks':[],
-                     'datastores':[], 'controllers':[]},
+                     'datastores':[], 'controllers':[], 'logical_volumes':[]},
         'network':  {'dns_servers':[], 'default_gateways':[], 'interfaces':[]},
         'users':    [], 'firmware': [], 'power': none
       })

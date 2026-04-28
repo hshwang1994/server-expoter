@@ -161,6 +161,21 @@
             _output: "{{ _output | combine({'schema_version': '1'}) }}"
 
       always:
+        # rule 13 R5 / rule 20 R1: 호출자는 13 필드 envelope을 보장받음. _output 미생성 시도 13 필드 모두 채운다.
         - name: OUTPUT
           ansible.builtin.debug:
-            msg: "{{ (_output | default({'status':'failed','errors':[{'section':'gather','message':'_output 미생성 — block/rescue 모두 실패'}]})) | to_json }}"
+            msg: "{{ (_output | default({
+                       'schema_version': '1',
+                       'target_type': 'redfish',
+                       'collection_method': 'redfish',
+                       'ip': _rf_ip | default(none),
+                       'hostname': _rf_ip | default(none),
+                       'vendor': _rf_detected_vendor | default(none),
+                       'status': 'failed',
+                       'sections': {},
+                       'diagnosis': {'precheck': none, 'gather_mode': 'fallback', 'details': ['_output 미생성 — block/rescue 모두 실패']},
+                       'meta': {},
+                       'correlation': {},
+                       'errors': [{'section':'gather','message':'_output 미생성 — block/rescue 모두 실패'}],
+                       'data': {}
+                     })) | to_json }}"

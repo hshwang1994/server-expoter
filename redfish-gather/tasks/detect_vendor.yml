@@ -25,13 +25,25 @@
     _rf_detected_vendor: >-
       {%- set raw = _rf_probe_result.vendor | default('') | trim | lower -%}
       {%- set found = namespace(canon='unknown') -%}
+      {#- 1) 정확 매칭 우선 -#}
       {%- for canonical, alias_list in (_va.vendor_aliases | default({})).items() -%}
         {%- for alias in alias_list -%}
-          {%- if alias | lower == raw -%}
+          {%- if alias | lower == raw and found.canon == 'unknown' -%}
             {%- set found.canon = canonical -%}
           {%- endif -%}
         {%- endfor -%}
       {%- endfor -%}
+      {#- 2) 부분 매칭 fallback (Manufacturer 표기 변형 흡수: "Dell Inc" 마침표 누락 등) -#}
+      {%- if found.canon == 'unknown' and raw -%}
+        {%- for canonical, alias_list in (_va.vendor_aliases | default({})).items() -%}
+          {%- for alias in alias_list -%}
+            {%- set al = alias | lower -%}
+            {%- if al and (al in raw or raw in al) and found.canon == 'unknown' -%}
+              {%- set found.canon = canonical -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endfor -%}
+      {%- endif -%}
       {{ found.canon | default('unknown') }}
     _rf_probe_facts:
       vendor: "{{ _rf_probe_result.vendor | default('') }}"

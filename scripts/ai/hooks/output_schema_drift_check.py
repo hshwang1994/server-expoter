@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Output schema drift check — sections.yml ↔ field_dictionary.yml ↔ baseline_v1 정합.
 
+분류 (rule 80 R1 / Jenkins Stage 3):
+    이 스크립트는 git hook도 Claude hook도 아닌 **CI/수동 검증 도구**다.
+    - Jenkins Stage 3 (Validate Schema)에서 호출 (`docs/ai/references/jenkins/pipeline-syntax.md` 참조)
+    - 사용자가 schema 변경 후 수동 실행 (rule 13 + rule 28 #1)
+    - cycle 보고서에서 정적 검증으로 호출
+    scripts/ai/hooks/ 디렉터리에 위치하지만 등록된 hook 아님 (git hook은 install-git-hooks.sh가 관리, Claude hook은 .claude/settings.json이 관리).
+
 매칭 로직:
 - sections.yml: top-level 'sections:' 아래 indent 2 key (10 섹션 — system/hardware/bmc/cpu/memory/...)
 - field_dictionary.yml: top-level 'fields:' 아래 indent 2 key (dotted path 형식 — 'hardware.health', 'cpu.cores_physical', 'status', ...)

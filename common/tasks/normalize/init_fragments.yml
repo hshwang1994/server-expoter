@@ -40,10 +40,11 @@
       cpu:      null
       memory:   null
       storage:
-        filesystems:    []
-        physical_disks: []
-        datastores:     []
-        controllers:    []
+        filesystems:     []
+        physical_disks:  []
+        datastores:      []
+        controllers:     []
+        logical_volumes: []
       network:
         dns_servers:      []
         default_gateways: []

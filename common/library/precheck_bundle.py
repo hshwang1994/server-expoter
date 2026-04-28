@@ -69,7 +69,7 @@ options:
     type: bool
     default: false
 author:
-  - ClovierOne Portal Team
+  - server-exporter
 """
 
 from ansible.module_utils.basic import AnsibleModule

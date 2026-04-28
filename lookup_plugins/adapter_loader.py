@@ -19,7 +19,7 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 name: adapter_loader
-author: ClovierOne Portal Team
+author: server-exporter
 short_description: Adapter 자동 탐색 및 선택
 description:
   - adapters/<channel>/ 디렉토리의 YAML 파일을 스캔합니다.

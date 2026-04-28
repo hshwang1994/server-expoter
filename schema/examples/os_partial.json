@@ -63,7 +63,8 @@
       "architecture": "x86_64",
       "uptime_seconds": 8640000,
       "selinux": "enforcing",
-      "fqdn": "server01.example.com"
+      "fqdn": "server01.example.com",
+      "hosting_type": "bare_metal"
     },
     "hardware": null,
     "bmc": null,
@@ -86,14 +87,24 @@
       "filesystems": [],
       "physical_disks": [],
       "datastores": [],
-      "controllers": []
+      "controllers": [],
+      "logical_volumes": []
     },
     "network": {
       "dns_servers": ["8.8.8.8", "8.8.4.4"],
       "default_gateways": [{"family": "ipv4", "address": "10.10.1.1"}],
       "interfaces": []
     },
-    "users": [],
+    "users": [
+      {
+        "name": "root",
+        "uid": 0,
+        "groups": ["root"],
+        "home": "/root",
+        "shell": "/bin/bash",
+        "last_access_time": "2026-04-28T03:21:11Z"
+      }
+    ],
     "firmware": null,
     "power": null
   }

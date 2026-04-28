@@ -159,7 +159,8 @@ def validate():
     for schema_path in SCHEMA_EXAMPLES:
         if os.path.exists(schema_path):
             try:
-                with open(schema_path) as f:
+                # encoding 명시 — Windows cp949 default 회피 (한글 주석 포함 시 실패 원인)
+                with open(schema_path, encoding='utf-8') as f:
                     schema_data = json.load(f)
                 paths = extract_output_paths(schema_data)
                 all_output_paths.update(paths)

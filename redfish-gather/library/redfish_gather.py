@@ -921,8 +921,10 @@ def main():
             collected.append(section)
             if errs: failed.append(section)
             return val
-        except Exception:
-            all_errors.append(_err(section, '예외 발생', traceback.format_exc(limit=3)))
+        except Exception as e:
+            # rule 60: stacktrace 노출 금지 — type + message만 detail에. traceback은 console verbose log에서만 확인.
+            sys.stderr.write("[redfish_gather] %s 예외: %s\n%s\n" % (section, type(e).__name__, traceback.format_exc(limit=3)))
+            all_errors.append(_err(section, '예외 발생', "%s: %s" % (type(e).__name__, str(e)[:200])))
             failed.append(section)
             return None
 

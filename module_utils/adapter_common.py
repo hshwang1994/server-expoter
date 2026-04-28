@@ -39,13 +39,36 @@ def load_vendor_aliases(aliases_path):
     return mapping
 
 
+def _flatten_aliases(aliases):
+    """
+    aliases dict를 {alias_lower: canonical} 평탄형으로 정규화한다.
+
+    허용 입력:
+      - 평탄형:  {"dell inc.": "dell", "hpe": "hpe", ...}                  (정상)
+      - 역형:    {"dell": ["Dell Inc.", "Dell"], "hpe": [...]}              (vendor_aliases.yml 원본 형태)
+
+    역형이 들어오면 평탄화한 새 dict를 반환. 평탄형은 lower-case 보장만 적용.
+    """
+    if not aliases:
+        return {}
+    sample = next(iter(aliases.values()), None)
+    if isinstance(sample, list):
+        flat = {}
+        for canonical, alias_list in aliases.items():
+            for alias in alias_list:
+                if isinstance(alias, str):
+                    flat[alias.strip().lower()] = canonical
+        return flat
+    return {str(k).strip().lower(): v for k, v in aliases.items() if isinstance(v, str)}
+
+
 def normalize_vendor(raw_vendor, aliases=None):
     """
-    원시 벤더 문자열을 정규화된 이름으로 변환합니다.
+    원시 벤더 문자열을 정규화된 이름으로 변환한다.
 
     Args:
         raw_vendor: Redfish Manufacturer 등에서 가져온 원시 문자열
-        aliases: {alias_lower: canonical} 매핑 딕셔너리
+        aliases: {alias_lower: canonical} 평탄형. 역형도 허용 (자동 평탄화).
 
     Returns:
         str or None: 정규화된 벤더명 ("dell", "hpe" 등) 또는 None
@@ -54,26 +77,18 @@ def normalize_vendor(raw_vendor, aliases=None):
         return None
 
     v = raw_vendor.strip().lower()
+    flat = _flatten_aliases(aliases)
 
-    if aliases:
-        canonical = aliases.get(v)
+    if flat:
+        canonical = flat.get(v)
         if canonical:
-            # {canonical: [alias_list]} 형태로 잘못 전달된 경우 방어
-            if isinstance(canonical, list):
-                # v가 키(=canonical)와 일치 → v 자체가 정규화된 이름
-                return v
             return canonical
-        # 부분 매칭 시도
-        for alias, canon in aliases.items():
-            if isinstance(canon, list):
-                # {canonical: [alias_list]} 형태 — alias_list에서 검색
-                if v in [a.strip().lower() for a in canon]:
-                    return alias
-                continue
-            if alias in v or v in alias:
+        # 부분 매칭 시도 — alias가 v에 포함되거나 그 역
+        for alias, canon in flat.items():
+            if alias and (alias in v or v in alias):
                 return canon
 
-    return v if v else None
+    return v
 
 
 def pattern_match_any(patterns, value):
