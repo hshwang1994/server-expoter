@@ -1,10 +1,25 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-010 — T3-04/05/06 일괄 처리 + rule 70 R8 신설)
+## 일자: 2026-04-28 (cycle-011 — 보안 정책 자체 해제 + AI 자동화 권한 부여)
 
 ## 요약
 
-server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-010 + full-sweep (Tier 1+2) 완료**. 2026-04-28 cycle-010 (사용자 "권장하는 작업 모두 수행 + 후속 작업 마무리" 명시 승인)에서 cycle-009의 NEXT_ACTIONS 사용자 결정 대기 매트릭스 3건 (T3-04/05/06) 일괄 처리 + 신규 governance rule 1건 (R8 신설):
+server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-011 + full-sweep (Tier 1+2) 완료**. cycle-011에서 사용자 명시 결정으로 **보안 정책 자체 해제** — rule 60 + 관련 정책/hook/agent 11개 일괄 제거. AI 자동화 권한 확대.
+
+cycle-011 변경 (이번 세션):
+
+- **rule 60 (security-and-secrets) 삭제**: rules 29 → 28
+- **policy/security-redaction-policy.yaml 삭제**: policies 10 → 9 (protected-paths.yaml은 stub로 잔존)
+- **scripts/ai/hooks/pre_commit_policy.py 삭제**: hooks 19 → 18 + git hooks 재설치
+- **scripts/ai/policy_loader.py 삭제**
+- **agents/security-reviewer + vault-rotator 삭제**: agents 51 → 49
+- **.claude/settings.json 보안 deny 38건 모두 제거** + `disableBypassPermissionsMode` 제거 + `defaultMode: bypassPermissions` + sandbox `allowUnsandboxedCommands: true`
+- **PreToolUse pre_edit_guard hook 삭제**
+- **rule 00 보호 경로 절** "참고용 (정책 강제 해제됨)"으로 갱신
+- **ADR 작성**: `ADR-2026-04-28-security-policy-removal.md` (rule 70 R8 적용 두 번째 사례 — 3 trigger 모두 해당)
+- **검증**: verify_harness_consistency PASS (28/43/49/9), verify_vendor_boundary PASS
+
+cycle-010 변경 (이전 세션): 2026-04-28 cycle-010 (사용자 "권장하는 작업 모두 수행 + 후속 작업 마무리" 명시 승인)에서 cycle-009의 NEXT_ACTIONS 사용자 결정 대기 매트릭스 3건 (T3-04/05/06) 일괄 처리 + 신규 governance rule 1건 (R8 신설):
 
 cycle-010 변경 (이번 세션):
 

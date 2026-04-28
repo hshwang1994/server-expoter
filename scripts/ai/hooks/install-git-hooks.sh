@@ -2,7 +2,7 @@
 # install-git-hooks.sh — server-exporter git hooks 설치
 #
 # 설치 항목:
-# - pre-commit: pre_commit_policy + pre_commit_harness_drift + pre_commit_skill_guard
+# - pre-commit: pre_commit_harness_drift + pre_commit_skill_guard
 #               + pre_commit_jenkinsfile_guard
 # - commit-msg: commit_msg_check (rule 90)
 # - post-commit: post_commit_measurement_trigger (rule 28)
@@ -59,7 +59,6 @@ EOF
 
 echo "Installing git hooks..."
 write_hook "pre-commit" \
-    "pre_commit_policy.py" \
     "pre_commit_harness_drift.py" \
     "pre_commit_skill_guard.py" \
     "pre_commit_jenkinsfile_guard.py"
@@ -78,7 +77,6 @@ echo "Done. PYTHON=${PYTHON} (override with: PYTHON=python3 bash $0)"
 echo ""
 echo "비활성화 환경변수:"
 echo "  HARNESS_DRIFT_SKIP=1     — pre_commit_harness_drift skip"
-echo "  PRE_COMMIT_POLICY_SKIP=1 — pre_commit_policy skip"
 echo "  SKILL_GUARD_SKIP=1       — pre_commit_skill_guard skip"
 echo "  JENKINSFILE_GUARD_SKIP=1 — pre_commit_jenkinsfile_guard skip"
 echo "  POST_MERGE_GAP_SKIP=1    — post_merge_gap_check skip"

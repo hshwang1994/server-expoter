@@ -1,6 +1,19 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-28 (cycle-010 후 갱신)
+## 일자: 2026-04-28 (cycle-011 후 갱신)
+
+## 완료 항목 (cycle-011 — 보안 정책 자체 해제)
+
+- [x] **rule 60 + 정책 / hook / agent 11개 일괄 제거** (사용자 명시 결정 옵션 A)
+- [x] **settings.json 보안 deny 38건 + disableBypassPermissionsMode 제거** + defaultMode bypassPermissions + sandbox allowUnsandboxedCommands
+- [x] **git hooks 재설치** (pre_commit_policy 제거)
+- [x] **rule 00 보호 경로 절 갱신** (참고용으로 변경)
+- [x] **ADR 작성** (rule 70 R8 두 번째 적용)
+- [x] **surface-counts.yaml 갱신** (28/43/49/9)
+- [x] **verify_harness_consistency / verify_vendor_boundary** PASS
+- [ ] **settings.local.json** — AI self-modification 차단으로 사용자 직접 편집 필요 (또는 settings.json만으로 충분 시 skip)
+- [ ] **SSH/WinRM 자동화 재시도** — Win10 10.100.64.120 수집 (cycle-012 진입 예정)
+- [ ] **25개 stale reference cleanup** — advisory, 후속 incremental
 
 ## 완료 항목 (cycle-010 — T3-04/05/06 일괄 + rule 70 R8 신설)
 

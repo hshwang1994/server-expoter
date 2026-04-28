@@ -101,14 +101,16 @@ callback_plugins/json_only.py → JSON envelope
 - **테스트 없이 기능 추가** — 근거: 회귀 테스트 부재로 기존 기능 오동작 여부 검증 불가
 - **타 프로젝트 잔재 어휘 사용** — Java/Spring Boot/MyBatis/FTL/Vue/jQuery/Gradle/MariaDB/Flyway/Spock/Playwright/Bitbucket Pipelines는 server-exporter 본문에 등장하면 안 됨 (`verify_harness_consistency.py` 검출). **예외 (Allowed)**: 본 rule 본문 (정의 목적 인용), `.claude/ai-context/common/ecc-adoption-summary.md` (도입 배경 단일 메타 위치), `.claude/ai-context/common/convention-drift.md` (drift 출처 메타), `.claude/policy/test-selection-map.yaml` (검출 도구 설명)
 
-## 보호 경로
+## 보호 경로 (참고용 — 정책 강제 해제됨)
 
-- **절대 보호**: `.git/, vault/**, *.log, *.env, *.pem, *.key`
-- **티켓 필요**: `ansible.cfg, Jenkinsfile*, schema/sections.yml, schema/field_dictionary.yml, schema/baseline_v1/**`
+> 2026-04-28 cycle-011: 사용자 명시 결정 — 보안 정책 자체 해제. 본 절은 *권장 작업 영역 분류*로만 의미. PreToolUse Edit guard / pre_commit_policy.py / protected-paths.yaml 모두 제거됨. AI 자동화 우선.
+
+- **권장 신중**: `.git/, vault/**, *.log, *.env, *.pem, *.key`
+- **권장 사용자 승인**: `ansible.cfg, Jenkinsfile*, schema/sections.yml, schema/field_dictionary.yml, schema/baseline_v1/**`
 - **벤더 경계**: `adapters/**, redfish-gather/library/**, redfish-gather/tasks/vendors/**, common/library/**, common/vars/vendor_aliases.yml`
 - **문서 기준선**: `CLAUDE.md, GUIDE_FOR_AI.md, REQUIREMENTS.md, README.md, docs/01~19, .claude/{rules,policy,skills,agents,ai-context,templates}/`
 
-상세: `.claude/policy/protected-paths.yaml`
+세부 정책 강제는 **삭제됨** (`ADR-2026-04-28-security-policy-removal.md` 참조).
 
 ## 리뷰 포인트
 
