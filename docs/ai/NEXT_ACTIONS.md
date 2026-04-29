@@ -64,8 +64,15 @@ cycle-015에서 lab 전체 (28 호스트) 권한 정책 정착 + Browser E2E 인
 | # | 작업 | 이유 | 진입 후 AI 가능 작업 |
 |---|---|---|---|
 | OPS-1 | Jenkins 빌드 시범 1회 (target_type=redfish, 임의 BMC) | UI 클릭 + lab 환경 | console log 받으면 envelope 분석 + 회귀 fixture 추가 |
-| ~~OPS-2~~ | ~~PR 머지 결정 (squash 권장)~~ | ~~rule 93 R4 main 보호~~ | **closed 2026-04-29** — PR #1 머지 완료 (`b74c1103`) |
-| **OPS-3 (우선순위 격상)** | **평문 password 6종 회전 + vault 갱신 — cycle-014에서 4 vendor 모두 HTTP 401 확인됨** | 운영팀 일정 + 실 장비 | 회전 후 vault에 새 password 반영 + encrypt + cycle-015 진입 가능 |
+| ~~OPS-2~~ | ~~PR 머지 결정~~ | — | **closed 2026-04-29** — PR #1 머지 완료 (`b74c1103`) |
+| **OPS-3 (우선순위 격상)** | **평문 password 6종 회전 + vault 갱신 — cycle-014에서 4 vendor 모두 HTTP 401 확인됨** + cycle-015 lab credentials 파일에 새 password 들어왔으므로 회전에 도움 | 운영팀 일정 + 실 장비 | 회전 후 vault에 새 password 반영 + encrypt + cycle-016 진입 가능 |
+| **OPS-9 (cycle-015 신규)** | repo private 전환 시 자격증명 정책 결정 — (a) ansible-vault encrypt 흡수 / (b) gitignored 평문 영구 | 사용자 결정 (private 전환 시점) | (a) 결정 시 vault encrypt 자동 / (b) 결정 시 현 상태 유지 |
+| **OPS-10 (cycle-015 신규)** | Win Server 2022 (10.100.64.132) firewall 해제 | 호스트 콘솔 / vCenter 진입 | 해제 후 WinRM 5985 자동화 진행 |
+| **OPS-11 (cycle-015 신규)** | Cisco BMC 1, 3 가용성 재확인 | 다음 일과시간 (실 운영 영향 없음) | 정상 시 baseline 갱신 (cycle-014 부재 vendor 보강) |
+| **OPS-12 (cycle-015 신규)** | Dell 32 (실제 AMI Redfish Server) 물리 호스트 식별 + `inventory/lab/redfish.json` 라벨 정정 | 사용자 lab 직접 (호스트 물리 라벨) | 정정 후 deep_probe + 적정 adapter (Supermicro / generic) 매칭 + baseline 추가 |
+| **OPS-13 (cycle-015 신규)** | Cisco BMC 2 (TA-UNODE-G1, RedfishVer 1.2.0) 제품 시리즈 식별 — UCS 외 제품 | 사용자 lab 직접 | 신규 vendor 후보 검토 + (선택) adapter 추가 |
+| **OPS-14 (cycle-015 신규)** | Jenkins 사용자 / API token 정책 결정 (SSH 사용자 = Jenkins 사용자 여부 확인) | 운영 결정 | login flow Browser E2E 활성화 |
+| **OPS-15 (cycle-015 신규)** | Grafana endpoint / 대시보드 ID 합의 (Jenkinsfile_grafana 적재 검증용) | 운영 결정 | Grafana E2E 활성화 |
 | OPS-4 | P1 lab 회귀 — vendor 5종 1차 / 2차 fallback 시나리오 | 실 BMC + lab cycle | 결과 받으면 evidence + baseline 갱신 |
 | OPS-5 | P2 dryrun OFF 전환 (Dell + HPE 먼저) | rule 92 R5 + BMC 잠금 위험 | 결정 받으면 `_rf_account_service_dryrun: false` 토글 + lab 검증 |
 | OPS-6 | baseline_v1/* 7개 실측 갱신 (P3/P4 신 필드 정합) | rule 13 R4 — 실측 기반만 | probe_redfish.py 결과 받으면 baseline 갱신 + Stage 4 회귀 |
@@ -74,8 +81,13 @@ cycle-015에서 lab 전체 (28 호스트) 권한 정책 정착 + Browser E2E 인
 | AI-9 | 25개 stale reference cleanup (cycle-011 advisory 잔여) | 즉시 — cycle-013 11건 처리 후 약 38건 잔존 | 별도 cycle (영향 범위 큼) — rule 60 / pre_commit_policy / vault-rotator 본문 참조 정리 |
 | AI-10 | docs/ai/harness/ archive 진입 (cycle-001~005 → archive/) | rule 70 R6 정본 catalog 비대화 차단 | 별도 cycle — 사용자 archive 정책 명시 후 |
 | AI-11 | docs/ai/impact/ 6 보고서 archive (구조·정책 전환 reasoning 보존) | rule 70 R6 첫 질문 YES | 별도 cycle |
-| **cycle-015** | OPS-3 후 4 vendor primary 인증 성공 검증 + recovery only 시나리오 + account_service 진입 + dryrun=true→false | OPS-3 완료 | redfish 공통계정 자동 생성 검증 (cycle-012 P2 코드의 실 BMC 동작) |
-| Supermicro 추가 | baseline_v1 추가 + Supermicro BMC IP 명시 + 5번째 vendor 검증 | 사용자 명시 (Supermicro lab BMC 보유 여부) | 5 vendor 완전 검증 |
+| **cycle-016** | OPS-3 후 4 vendor primary 인증 성공 검증 + recovery only 시나리오 + account_service 진입 + dryrun=true→false | OPS-3 완료 | redfish 공통계정 자동 생성 검증 (cycle-012 P2 코드의 실 BMC 동작). cycle-015 lab credentials의 6 vendor password 흡수 |
+| Supermicro 추가 | baseline_v1 추가 + Supermicro BMC IP 명시 + 5번째 vendor 검증 | OPS-12 (Dell 32 AMI 식별)에 따라 — AMI = Supermicro면 즉시 가능 | 5 vendor 완전 검증 |
+| **AI-12 (cycle-015 신규)** | 첫 lab Round (Dell × 5 정상 BMC) — Round 11 baseline 갱신 | OPS-3 후 (또는 cycle-015 lab credentials의 Dell `Goodmit0802!`로 즉시 가능 — 검증) | probe_redfish.py 5대 + baseline 갱신 + Stage 4 회귀 |
+| **AI-13 (cycle-015 신규)** | Linux raw fallback Round (RHEL 8.10, Py 3.6) — Round 14 | 즉시 가능 (lab credentials cloviradmin SSH) | rule 10 R4 실증 + evidence |
+| **AI-14 (cycle-015 신규)** | Browser E2E 활성 시나리오 (Jenkins login + Grafana) | OPS-14 / OPS-15 결정 후 | login flow + dashboard 진입 + job 트리거 시나리오 |
+| **AI-15 (cycle-015 신규)** | deep_probe_redfish.py — Dell 32 (AMI) + Cisco 2 (TA-UNODE) | 즉시 가능 (lab credentials BMC password 시도) | Manufacturer / Model / Oem namespace 상세 + EXTERNAL_CONTRACTS 갱신 |
+| **AI-16 (cycle-015 신규)** | Browser E2E — Cisco CIMC / iDRAC Web UI 추가 시나리오 | 자격증명 정책 결정 후 | UI 진입 + 펌웨어 / sensor / power 패널 검증 |
 
 ## 사용자 결정 명시 필요 (Phase 진입 전)
 

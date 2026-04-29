@@ -1,14 +1,14 @@
 # PROJECT_MAP fingerprint — 디렉터리별 SHA-1 (앞 12자)
 # scripts/ai/check_project_map_drift.py --update 로 갱신
 
-adapters: e6f1d55c7353
+adapters: 4a517c098f42
 callback_plugins: cd21ab1484aa
-common: a8c5f4e85585
-esxi-gather: b6de34810b97
+common: 9932c28dbeee
+esxi-gather: c295bdf3b4d8
 filter_plugins: 7f804ef3b04a
 lookup_plugins: 9198f7689dd1
 module_utils: 32d2047adc60
-os-gather: 51235de76959
-redfish-gather: b5547d3b5df5
-schema: cc1a48f4e3a1
-tests: 7355e32fa07c
+os-gather: 897471dfb7cd
+redfish-gather: 8b91305fc17f
+schema: 3dc54a301ae6
+tests: e98674357db8
