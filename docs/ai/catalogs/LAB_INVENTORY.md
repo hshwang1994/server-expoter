@@ -30,9 +30,13 @@
 | ESXi host | 3 | esxi-gather | community.vmware 6.2.0 검증 |
 
 > **cycle-015 변경**: 사용자 명시 결정으로 다음 정정
-> - 제거 (사내 부재): 10.100.15.32 (Dell GPU — AMI Redfish), 10.100.15.2 (Cisco — TA-UNODE-G1), 10.100.64.120 (Windows 10)
+> - 제거 (사내 부재): 10.100.15.32 (Dell GPU — AMI Redfish), 10.100.64.120 (Windows 10)
 > - IP 정정: Windows Server 2022 = 10.100.64.132 → **10.100.64.135**
 > - firewall 해제: 10.100.64.135 (cycle-015 후 사용자 직접 작업)
+>
+> **cycle-016 Phase K 정정 (2026-04-29 사용자 직접 정정)**: cycle-015 의 Cisco IP 매핑 오류 정정
+> - 제거 (사내 부재 / non-Redfish): **10.100.15.1** (lab 부재 또는 Redfish 미지원), **10.100.15.3** (ping fail 부재)
+> - 추가 (실 작동 BMC): **10.100.15.2** (Cisco TA-UNODE-G1, admin/Goodmit1!) — 빌드 #91 SUCCESS 검증 / DDR4 64GB×16=1TB / SSD SATA 18.2TB
 
 ## 3. 네트워크 zone
 
