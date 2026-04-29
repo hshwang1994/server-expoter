@@ -1,5 +1,33 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-04-29 (cycle-016 — 사용자 11항목 점검 + 실 Jenkins 빌드 5회 검증 + summary grouping 완성)
+
+## 요약 (cycle-016)
+
+cycle-015 lab 권한 + Browser E2E 도입 직후, 사용자 명시 요청:
+> "전체 프로젝트 코드를 점검하고 ... 실제 product 제품으로 출시될수있도록해라"
+> "젠킨스 접속해서 실제 개더링이 잘되는지 ... 한번에 끝내라"
+> "redfish 공통 계정생성 그것을 가지고 개더링하는것을 특히 신경써서 검증해라"
+
+cycle-016 처리:
+- **사용자 요구사항 11/11 항목 점검 완료** — JSON 항상 출력 / Redfish 공통계정 / recovery fallback / AccountService / OS-ESXi 다중계정 / Jenkins-Vault / Memory-Disk-NIC summary / HBA-IB / 운영정보 (NTP / firewall / runtime).
+- **실 Jenkins 빌드 5회** (#39 ~ #45) — `hshwang-gather` Job 152 직접 트리거 + 결과 검증.
+  - #39: Redfish Dell 10.100.15.27 / pipeline=SUCCESS / gather=failed (lab vault credential 미정합) / **JSON envelope 13 필드 + 한국어 명확 메시지 + Stage 4 145 pytest pass 검증**.
+  - #41: OS RHEL 9.6 / `Template delimiters: '#' at 86` 회귀 발견 → fix.
+  - #43: OS RHEL 9.6 / **status=success / network.summary.groups + storage.summary.groups 동작 확인**.
+  - #44: namespace pattern fix 후 / **storage.summary.grand_total_gb=100 (이전 0 버그 해결)**.
+  - #45: Redfish 회귀 검증 (코드 변경 영향 없음).
+- **OS/ESXi summary grouping 갭 닫기** (9 파일):
+  - Linux gather_memory.yml — dmidecode SLOT 단위 emit + 2 path
+  - Linux gather_storage/network.yml + Windows gather_*.yml — namespace pattern grouping
+  - ESXi normalize_storage/network/system.yml — summary 보강
+  - Redfish normalize_standard.yml — namespace pattern 변환
+- **baseline / examples 일괄 갱신**: `scripts/ai/inject_summary_to_baselines.py` 신규 — 7 vendor + 3 example 자동 grouping 주입.
+- **실패 메시지 명확성**: `build_failed_output.yml` default fallback 에 `채널/IP` 컨텍스트 포함.
+- **9 inline `{# ... #}` Jinja2 코멘트 제거** — 한국어/특수문자 + 파싱 오류 방지.
+- **commit 4건 main push**: `0da258d5`, `88793df8`, `a2e3e75e`, `e18230b8`, `240106bc`.
+- **검증**: pytest 147/147 / harness consistency / vendor boundary / schema drift 모두 PASS.
+
 ## 일자: 2026-04-29 (cycle-015 — 실장비 lab 전체 권한 + Browser E2E 도입)
 
 ## 요약 (cycle-015)

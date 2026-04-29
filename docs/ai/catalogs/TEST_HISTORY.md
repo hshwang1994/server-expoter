@@ -16,6 +16,26 @@
 
 ---
 
+## 2026-04-29 — cycle-016 (사용자 11 항목 일괄 점검 + 실 Jenkins 빌드 5회 + summary grouping 완성)
+
+- 환경: Windows 11 호스트 (PowerShell + Bash) + Jenkins master 10.100.64.152 (cloviradmin) + agent jenkins-agent
+- Job: `hshwang-gather` (`https://github.com/hshwang1994/server-expoter` main pull)
+- 명령: PowerShell `Invoke-WebRequest` + crumb + Basic Auth → `buildWithParameters` POST + console log fetch
+- 결과:
+  - **Build #39** target=redfish 10.100.15.27 → pipeline=SUCCESS / gather=failed (lab vault 자격 미정합) — JSON envelope 13 필드 + 한국어 메시지 + Stage 4 145 pytest pass
+  - **Build #41** target=os 10.100.64.165 (RHEL 9.6) → 회귀 발견 `Template delimiters: '#' at 86`
+  - **Build #42** 부분 fix 후 재발 → 추가 inline 코멘트 9개 제거
+  - **Build #43** OS 첫 정상 가동 → status=success / network.summary.groups + storage.summary.groups 동작 확인 / system.runtime 채워짐
+  - **Build #44** namespace pattern fix 후 → storage.summary.grand_total_gb=100 (이전 0 → 정상)
+  - **Build #45** Redfish 회귀 검증 (코드 변경 영향 없음)
+- pytest: 147 PASS (실 Jenkins agent + 로컬 모두 일치)
+- harness consistency / vendor boundary / schema drift: 모두 PASS
+- Baseline 갱신: 7 vendor + 3 example (`scripts/ai/inject_summary_to_baselines.py` 일괄)
+- Evidence: `docs/ai/harness/cycle-016.md`
+- commit: `0da258d5`, `88793df8`, `a2e3e75e`, `e18230b8`, `240106bc` main push 완료
+
+---
+
 ## 2026-04-29 — cycle-014 (4 vendor BMC 실 검증 + HIGH Jinja2 fix + vault sync 발견)
 
 - 환경: Windows 11 호스트 (paramiko 4.0.0) + Jenkins agent 10.100.64.154 (cloviradmin / Ubuntu 6.8 / ansible-core 2.20.3 — REQUIREMENTS.md 정합)

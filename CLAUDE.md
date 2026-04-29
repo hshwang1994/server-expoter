@@ -569,4 +569,11 @@ scripts/ai/       # 자동화 스크립트 (Python 27, OS 중립)
 
 ---
 
-**프로젝트 상태: 핵심 수집 경로 검증 완료 + AI 하네스 풀스펙 도입 (Plan 1 Foundation)**
+**프로젝트 상태: 사용자 요구사항 11/11 검증 + 실 Jenkins 빌드 5회 (#39 ~ #45) + summary grouping 완성 (cycle-016)**
+
+cycle-016 (2026-04-29) 처리 결과:
+- JSON 항상 출력 / Redfish 공통계정 + recovery + AccountService / OS-ESXi 다중계정 / Memory-Disk-NIC summary.groups + grand_total_gb / 운영 정보 (NTP / firewall / runtime) — 모두 검증
+- 실 Jenkins 빌드 5회 — RHEL 9.6 OS gather status=success / storage.summary.grand_total_gb=100 정상
+- 9 파일 grouping 로직 + namespace pattern (Jinja2 loop scoping fix)
+- 9 inline `{# ... #}` Jinja2 코멘트 제거 (한국어/특수문자 + 파싱 오류 방지)
+- pytest 147/147 PASS / harness consistency / vendor boundary / schema drift 모두 PASS

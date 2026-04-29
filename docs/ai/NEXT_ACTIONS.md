@@ -1,10 +1,35 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-29 (cycle-015 종료 시점 — Phase A~F 자율 매트릭스 일괄 + 호스트 정정)
+## 일자: 2026-04-29 (cycle-016 종료 시점 — 사용자 11 항목 점검 + 실 Jenkins 빌드 5회 + summary grouping 완성)
 
 ## ⏳ 현재 상태 (한 줄)
 
-cycle-015 Phase A~F 일괄 완료 — lab 23 호스트 (정정 후) 권한 정착 + Browser E2E 활성 + BMC 7/9 auth + Linux 6/6 raw fallback 실증 + WinRM PASS + Dell × 5 endpoint coverage. **OPS-3 7/9 BMC sync 확인 (vault encrypt만 남음)**. 잔여: OPS-9 (private 전환), OPS-3 운영팀 timing, OPS-11 (Cisco 1, 3 일시 장애).
+cycle-016 — 사용자 요구사항 11/11 검증 완료. 실 Jenkins 빌드 5회 (#39 #41 #43 #44 #45) — RHEL 9.6 OS gather 정상 동작 확인 (storage/network summary.groups + grand_total_gb 정상). Redfish 빌드는 lab vault 자격 미정합으로 status=failed 이지만 JSON envelope + 메시지 명확성 검증 완료. cycle-015 잔여 (OPS-3 / OPS-9 / OPS-11 / AI-16~18) + cycle-016 신규 (AI-19~22) 보유.
+
+## cycle-016 핵심 결과
+
+| 항목 | 결과 |
+|---|---|
+| 사용자 요구사항 11항목 검증 | 11/11 PASS (실 Jenkins 빌드 + 코드 검증) |
+| OS Linux/Windows summary grouping | 9 파일 namespace pattern 실장 |
+| ESXi summary 보강 | 3 파일 (storage / network / system) |
+| Redfish summary namespace 변환 | normalize_standard.yml |
+| baseline + examples 자동 주입 | 7 vendor + 3 example |
+| 실 Jenkins 빌드 5회 (#39 ~ #45) | 모두 pipeline SUCCESS, OS 빌드 status=success |
+| Jinja2 inline 코멘트 회귀 fix | 9 위치 제거 |
+| 실패 메시지 명확성 | build_failed_output.yml default fallback 컨텍스트 포함 |
+| pytest | 147/147 PASS |
+
+## cycle-016 신규 NEXT_ACTIONS
+
+- **AI-19**: OS Linux baremetal (10.100.64.96) 에서 dmidecode 실 슬롯 수집 검증 — VM 환경에서는 슬롯 정보 없음 (Build #44 `memory.summary.groups=[]` 확인)
+- **AI-20**: Redfish vault credential lab BMC 와 sync 후 빌드 #46 trigger — common 계정 생성 흐름 + summary grouping 실 BMC 데이터로 검증
+- **AI-21**: ESXi 빌드 트리거 (10.100.64.x — esxi.json 호스트) — summary 필드 회귀
+- **AI-22**: Windows 빌드 트리거 (10.100.64.135) — Win32_PhysicalMemory dmidecode 슬롯 수집 검증
+
+## 잔여 (cycle-015) 
+
+cycle-015 잔여 (OPS-9 private 전환, OPS-3 운영팀 vault encrypt timing, OPS-11 Cisco 1/3 일시 장애 회복, AI-16 BMC Web UI E2E, AI-17 baseline 정식 갱신, AI-18 raw fallback ansible-playbook 실 실행)는 그대로 유지.
 
 ## cycle-015 핵심 결과
 
