@@ -1,8 +1,43 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-04-29 (cycle-015 — 실장비 lab 전체 권한 + Browser E2E 도입)
+
+## 요약 (cycle-015)
+
+cycle-014 (4 vendor BMC code path + HIGH Jinja2 fix `bf247266`) 직후, 사용자가 lab 전체 (28 호스트) 권한 + Browser E2E 인프라 명시 결정. cycle-015 5 Phase 자율 처리 완료.
+
+cycle-015 변경 (이번 세션, 2026-04-29):
+
+- **Phase A — 자격증명 + 인벤토리** (gitignored):
+  - `vault/.lab-credentials.yml` 신규 (5 그룹 28 호스트)
+  - `inventory/lab/{os-linux,os-windows,redfish,esxi,jenkins}.json` (INVENTORY_JSON 형식)
+  - `inventory/lab/README.md`
+  - `.gitignore` 강화 (`vault/.lab-credentials.yml` + `inventory/lab/**` 추가 차단)
+- **Phase B — LAB_INVENTORY catalog** (sanitized — IP/자격증명 제외):
+  - `docs/ai/catalogs/LAB_INVENTORY.md` 신규 (8 섹션 — 권한정책 / 호스트카운트 / zone / 특이호스트 / Round매핑 / 자격증명정책 / 참고파일 / 갱신trigger)
+- **Phase C — 연결성 검증** (Windows 클라이언트 직접):
+  - 21 호스트 ICMP/TCP protocol PASS (Linux SSH 22 / Redfish HTTPS 443 / ESXi HTTPS 443 / Win10 WinRM 5985 / Jenkins HTTP 8080 모두 OPEN)
+  - **rule 96 DRIFT-011 검출** — Dell 32 → 실 `Vendor='AMI'` (사용자 라벨 "dell, GPU") / Cisco 2 → `Product='TA-UNODE-G1'` (사용자 라벨 "cisco")
+  - Win Server 2022 (10.100.64.132) 모든 포트 closed → OPS-10 (사용자 firewall 해제)
+  - Cisco BMC 1, 3 일시 장애 (503 / timeout) → OPS-11 (다음 일과시간 재확인)
+- **Phase D — Playwright Browser E2E**:
+  - `requirements-test.txt` 신규 (playwright 1.58 + pytest-playwright 0.7.2 + paramiko 4.0 + pywinrm 0.5.0 + pyyaml + requests)
+  - `tests/e2e_browser/` 신규 (lab_loader / conftest / test_jenkins_master / test_grafana_ingest / __init__ / README)
+  - Chromium 1208 다운로드 완료
+  - **smoke `test_master_dashboard_reachable[chromium]` PASSED 2.42s** (10.100.64.152:8080)
+- **Phase E — Catalog + ADR**:
+  - `CONVENTION_DRIFT.md` DRIFT-011 entry (open) — user-label vs Redfish Manufacturer
+  - `EXTERNAL_CONTRACTS.md` "실 lab 발견 — 비표준 BMC" 절 (AMI 1.11.0 + TA-UNODE-G1 + Cisco 일시 장애)
+  - `FAILURE_PATTERNS.md` `user-label-vs-redfish-manufacturer-drift` 첫 실 사례
+  - `ADR-2026-04-29-lab-access-grant.md` 신규 (rule 70 R8 #2 trigger — catalogs +1 / 신규 디렉터리 2개)
+  - `cycle-015.md` 신규 governance log
+  - `tests/evidence/cycle-015/connectivity-2026-04-29.md` 신규
+- **표면 카운트**: catalogs 8→9 (+LAB_INVENTORY), decisions 4→5 (+lab-access-grant), 신규 디렉터리 2 (`inventory/lab/` gitignored, `tests/e2e_browser/`)
+- **검증**: Browser E2E smoke 1/1 PASS. harness consistency / vendor boundary / project_map_drift는 본 cycle 종료 직전 실행.
+
 ## 일자: 2026-04-29 (cycle-014 — 4 vendor BMC 실 검증 + HIGH Jinja2 fix + vault sync 발견)
 
-cycle-014 변경 (이번 세션, 2026-04-29):
+cycle-014 변경 (이전 세션, 2026-04-29):
 
 - **사용자 명시 권한 부여**: AI에게 모든 권한 (하네스 + 실 장비). e2e Chrome 가능. 메모리 기록 (`feedback_full_authority.md` + `environment_lab.md`).
 - **4 vendor BMC 검증** (벤더당 1대): Dell 10.50.11.162 / HPE 10.50.11.231 / Lenovo 10.50.11.232 / Cisco 10.100.15.2 (baseline_v1 정본 IP)

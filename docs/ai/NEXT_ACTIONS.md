@@ -1,10 +1,26 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-29 (cycle-014 종료 시점 — 4 vendor BMC 검증 + HIGH Jinja2 fix + vault sync 발견)
+## 일자: 2026-04-29 (cycle-015 종료 시점 — 실장비 lab 전체 권한 + Browser E2E 도입)
 
 ## ⏳ 현재 상태 (한 줄)
 
-cycle-014에서 4 vendor BMC (Dell/HPE/Lenovo/Cisco) 코드 경로 검증 완료. 발견한 cycle-013 main HIGH 회귀 (`_precheck_ok` Jinja2 syntax error) commit `bf247266` fix + main push. vault 자격 ↔ 실 BMC sync 안 됨 발견 → **OPS-3 회전 매트릭스 우선순위 격상**.
+cycle-015에서 lab 전체 (28 호스트) 권한 정책 정착 + Browser E2E 인프라 (Playwright) 도입. 21 호스트 연결성 검증 PASS + **rule 96 DRIFT-011 검출** (Dell 32 = AMI / Cisco 2 = TA-UNODE). cycle-014 OPS-3 (vault password 회전) 잔여 + cycle-015 신규 OPS-9~15 / AI-12~16.
+
+## cycle-015 핵심 결과
+
+| 항목 | 결과 |
+|---|---|
+| lab 자격증명 + inventory (gitignored) | 28 호스트 5 그룹 |
+| LAB_INVENTORY catalog | 신규 (sanitized) |
+| 21 호스트 연결성 검증 | 21/21 ICMP + TCP protocol PASS |
+| rule 96 DRIFT-011 발견 | Dell 32 AMI / Cisco 2 TA-UNODE-G1 (사용자 라벨 vs Manufacturer 불일치) |
+| Win Server 2022 firewall | 모든 포트 closed → OPS-10 |
+| Cisco BMC 1, 3 일시 장애 | 503 / timeout → OPS-11 |
+| Playwright + Chromium 설치 | 완료 |
+| Browser E2E smoke | 1/1 PASS (Jenkins master dashboard 도달) |
+| 표면 카운트 | catalogs +1 / decisions +1 / 신규 dir 2 |
+
+## cycle-014 핵심 결과 (이전 세션)
 
 ## cycle-014 핵심 결과
 

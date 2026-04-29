@@ -20,9 +20,28 @@
 
 ---
 
-## (현재 비어있음 — 첫 사례 발견 시 추가)
+## 2026-04-29 — user-label-vs-redfish-manufacturer-drift (cycle-015)
 
-Plan 1+2 도입 시점에는 server-exporter 자체 사례 미발견.
+- 카테고리: external-contract-drift
+- 발견 위치: `inventory/lab/redfish.json` ↔ 실 Redfish ServiceRoot 응답 (rule 27 R3 1단계)
+- 증상: 사용자가 BMC IP에 vendor 라벨 부여 ("dell" / "cisco") 했으나 무인증 ServiceRoot 응답이 다른 Manufacturer로 회신 (`AMI` / `TA-UNODE-G1`)
+- 원인:
+  1. 사용자가 호스트 라벨을 OS / 사용 환경 기준으로 부여 (e.g. "이 머신에 Dell 서버 OS 깔려있음")하지만 실제 BMC는 별도 OEM
+  2. Whitebox / GPU 호스트는 보드 OEM과 BMC OEM이 다른 케이스 잦음
+  3. Cisco TelePresence / Tetration 같은 비-UCS 제품도 Cisco 그룹으로 통칭
+- 영향:
+  - rule 27 R3 1단계가 자동 검출 → graceful degradation 가능 (회귀 영향 0)
+  - 단, 사용자 라벨에 의존한 inventory 작업 / vault 매핑은 잘못된 vendor 사용 위험
+- 수정: 본 cycle 시점 inventory/lab/redfish.json은 `_vendor` 메타 보존 + DRIFT-011 entry로 추적. 실측 deep_probe 후 라벨 정정.
+- 재발 방지:
+  - **rule 27 R3 1단계 (무인증 ServiceRoot detect) 의무 — 이미 채택**
+  - rule 96 R4 — drift 발견 시 3 곳 기록 의무 (이미 채택)
+  - **신규 권장**: 새 BMC inventory 등록 시 사용자 라벨 + Redfish 실 응답 1회 확인 의무 (skill `add-new-vendor` 본문에 추가 권장 — 후속)
+- 관련 rule: rule 27 R3 (Vault 2단계 — 1단계가 본 drift 검출), rule 96 R1 (외부계약 origin), rule 50 R1 (vendor 정규화)
+- 관련 evidence: `tests/evidence/cycle-015/connectivity-2026-04-29.md` 5절
+
+## 향후 가능 패턴 (Plan 1+2 도입 시점 예측)
+
 참고 — clovirone에서 학습한 일반 패턴은 rule 95 R1 (의심 패턴 11종)에 흡수됨.
 
 ### 향후 가능 패턴

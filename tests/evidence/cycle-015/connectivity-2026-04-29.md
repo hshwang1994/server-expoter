@@ -1,6 +1,7 @@
-# cycle-014 — 실장비 연결성 검증 (2026-04-29)
+# cycle-015 — 실장비 lab 권한 확장 + 연결성 검증 (2026-04-29)
 
-> 사용자가 cycle-014에서 실장비 권한 부여한 직후 첫 연결성 검증.
+> cycle-015 (4 vendor BMC code path 검증)에 이어 사용자가 lab 전체 (28 호스트) 권한 부여 + Browser E2E 도입 결정.
+> 본 evidence는 cycle-015 (lab access grant) 첫 연결성 검증.
 > 환경: Windows 클라이언트 (직접) → lab zones (10.100.64.0/24, 10.100.15.0/24, 10.50.11.0/24)
 
 ## 1. ICMP 도달성 (21/21 PASS)

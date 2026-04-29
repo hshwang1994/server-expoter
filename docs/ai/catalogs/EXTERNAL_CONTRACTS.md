@@ -128,6 +128,32 @@
 # (HPE / Lenovo / Supermicro / Cisco는 OEM 별도 처리 — adapter YAML)
 ```
 
+## 실 lab 발견 — 비표준 BMC (2026-04-29 cycle-015)
+
+cycle-015 첫 연결성 검증에서 사용자 라벨 vs 실 Manufacturer drift 2건 (DRIFT-011):
+
+### AMI Redfish Server 1.11.0 (10.100.15.32)
+
+- 사용자 라벨: dell (GPU 카드 설치)
+- 실 응답: `Vendor='AMI', Product='AMI Redfish Server', RedfishVersion=1.11.0`
+- 분류: AMI MegaRAC (Supermicro / Asrock / whitebox 가능)
+- 현재 adapter 매칭: `redfish_generic.yml` 또는 `supermicro_bmc.yml` 후보 — Dell adapter 매칭 안 됨
+- 후속: 물리 호스트 식별 필요 (OPS-12)
+
+### TA-UNODE-G1 RedfishVersion 1.2.0 (10.100.15.2)
+
+- 사용자 라벨: cisco
+- 실 응답: `Product='TA-UNODE-G1', RedfishVersion=1.2.0`
+- 분류: 표준 Cisco UCS Product 형식 아님 (UCS C-series는 보통 `Product='UCS C220 M5'`)
+- 가능성: Cisco TelePresence / Tetration / 3rd party
+- 후속: 제품 시리즈 식별 필요 (OPS-13)
+
+### Cisco BMC 일시 장애
+
+- 10.100.15.1 → 503 Service Unavailable
+- 10.100.15.3 → timeout 5s
+- 다음 일과시간 재확인 (OPS-11)
+
 ## 정본 reference
 
 - `redfish-gather/library/redfish_gather.py` (정본 — 약 350줄, stdlib only)
