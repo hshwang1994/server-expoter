@@ -337,15 +337,18 @@
       {{ [] if (ansible_distribution is defined
                 or (_l_fb is defined and _l_fb.DIST is defined))
          else ['system'] }}
+    # 2026-04-30: B80 진단 instrumentation 제거 — root cause는 build_output.yml의
+    # `_out_vendor: null` overwrite (commit 0d3058c4)였고 이미 해결됨.
+    # vendor 정상 추출(asv=Dell Inc.) 호스트에서도 항상 에러로 emit되어 호출자 혼란.
+    # vendor가 진짜 미정의(UNDEF)인 케이스만 진단으로 emit.
     _errors_fragment: >-
       {{ (_l_id_diagnostics | default([])) +
-         [{'section': 'b80_evidence',
-           'message': 'asv=' ~ (ansible_system_vendor | default('UNDEF')) ~
-                      ' lnv=' ~ (_l_norm_vendor | default('UNSET')) ~
-                      ' hv_asv=' ~ (hostvars[inventory_hostname].ansible_system_vendor | default('UNSET_hv')) ~
-                      ' hv_lnv=' ~ (hostvars[inventory_hostname]._l_norm_vendor | default('UNSET_hv_lnv')) ~
-                      ' inv_host=' ~ inventory_hostname,
-           'detail': none}]
+         ([{'section': 'system',
+            'message': 'vendor extraction failed — ansible_system_vendor undefined and _l_raw_vendor unset',
+            'detail': 'inv_host=' ~ inventory_hostname}]
+          if (ansible_system_vendor is not defined
+              and (_l_raw_vendor | default(none)) is none)
+          else []) }}
       }}
     _l_fb: "{{ _l_fb | default({}) }}"
   no_log: true

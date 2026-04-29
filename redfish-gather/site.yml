@@ -79,9 +79,25 @@
         - name: "redfish | collect standard"
           ansible.builtin.include_tasks: tasks/collect_standard.yml
 
+        # 2026-04-30: precheck/diagnosis가 이미 식별한 실패 단계에 따라 specific 메시지.
+        # ServiceRoot(/redfish/v1/)는 Redfish 표준상 무인증 → protocol_supported=true이면
+        # 네트워크/방화벽/서비스 모두 정상 증명됨. 인증만 실패한 경우 vault만 안내.
         - name: "redfish | abort if collect completely failed"
           ansible.builtin.fail:
-            msg: "Redfish 수집 완전 실패 — BMC 연결 또는 인증 문제. BMC IP/포트(443) 접근, 방화벽 규칙, Redfish 서비스 활성화 여부, 자격증명(vault)을 확인하세요."
+            msg: >-
+              {%- set d = _diagnosis | default({}) -%}
+              {%- if not (d.reachable | default(false)) -%}
+              Redfish 수집 실패 — BMC 도달 불가 ({{ _rf_ip }}). ICMP/네트워크 경로, BMC 전원 상태를 확인하세요.
+              {%- elif not (d.port_open | default(false)) -%}
+              Redfish 수집 실패 — BMC TCP/443 포트 닫힘 ({{ _rf_ip }}). 방화벽 규칙, BMC 측 HTTPS 서비스 상태를 확인하세요.
+              {%- elif not (d.protocol_supported | default(false)) -%}
+              Redfish 수집 실패 — BMC가 Redfish API 미응답 ({{ _rf_ip }}:443). Redfish 서비스 활성화 / BMC 펌웨어 버전 호환성을 확인하세요.
+              {%- elif (d.auth_success | default(none)) is none or not (d.auth_success | bool) -%}
+              Redfish 수집 실패 — 인증 실패 ({{ _rf_ip }}). 네트워크/Redfish API는 정상 (Redfish {{ d.details.redfish_version | default('?') }} / {{ d.details.product | default('Unknown') }}).
+              vault/redfish/{{ _rf_vendor | default('<vendor>') }}.yml 자격증명을 확인하세요. 시도된 계정 수: {{ (_rf_attempts_meta | default({})).attempted_count | default('?') }}.
+              {%- else -%}
+              Redfish 수집 실패 — 인증 후 endpoint 수집 단계 실패 ({{ _rf_ip }}). 펌웨어 호환성 / OEM 경로 문제 가능. errors[] 상세 확인.
+              {%- endif -%}
           when: not (_rf_collect_ok | bool)
 
         # ── P2 (cycle 2026-04-28): recovery 자격 사용 시 공통계정 자동 복구 ──
