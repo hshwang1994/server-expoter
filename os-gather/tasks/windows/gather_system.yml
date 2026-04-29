@@ -67,6 +67,7 @@
       {%- set hyp   = (_w_hosting.HypervisorPresent | default('')) | string -%}
       {%- set vm_models = ['Virtual Machine', 'VMware Virtual Platform', 'VirtualBox', 'KVM', 'QEMU Virtual Machine', 'Standard PC'] -%}
       {%- set vm_mfrs   = ['VMware, Inc.', 'QEMU', 'Xen', 'Amazon EC2', 'Google', 'DigitalOcean'] -%}
+      {# nosec rule12-r1: hosting_type 판정용 OEM mfr list (set membership 패턴, 분기 아님) #}
       {%- set oem_mfrs  = ['Dell Inc.', 'HPE', 'Hewlett Packard Enterprise', 'Lenovo', 'Cisco Systems Inc', 'Supermicro', 'Fujitsu', 'Inspur'] -%}
       {%- set is_vm_model = model in vm_models -%}
       {%- set is_vm_mfr   = mfr in vm_mfrs -%}

@@ -142,7 +142,9 @@
 # Raw Fallback Path — /proc/meminfo + dmidecode (raw only)
 # =============================================================================
 - block:
+    # cycle-016 후속 (HIGH-1 fix): raw fallback path 도 become: true (sudo dmidecode)
     - name: "linux | memory | raw gather"
+      become: true
       ansible.builtin.raw: |
         echo "MEM_TOTAL_KB=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2}')"
         echo "MEM_AVAIL_KB=$(grep MemAvailable /proc/meminfo 2>/dev/null | awk '{print $2}')"

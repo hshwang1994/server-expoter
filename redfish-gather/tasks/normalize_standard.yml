@@ -174,8 +174,8 @@
     _rf_summary_storage: >-
       {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for d in (_rf_norm_physical_disks | default([])) -%}
-        {%- if d.total_mb -%}
-          {%- set cap_gb = (d.total_mb | int / 1024) | round(0, 'floor') | int -%}
+        {%- set cap_gb = ((d.total_mb | default(0)) | int / 1024) | round(0, 'floor') | int -%}
+        {%- if cap_gb > 0 -%}
           {%- set mt = d.media_type | default(none) -%}
           {%- set pr = d.protocol | default(none) -%}
           {%- set key = (cap_gb | string) ~ '|' ~ (mt | string) ~ '|' ~ (pr | string) -%}

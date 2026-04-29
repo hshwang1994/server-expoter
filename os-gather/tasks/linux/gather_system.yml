@@ -186,6 +186,7 @@
       {%- set vrole = (ansible_virtualization_role | default('')) | lower -%}
       {%- set vendor = (ansible_system_vendor | default('')) -%}
       {%- set vm_signals = ['vmware', 'kvm', 'qemu', 'xen', 'hyperv', 'microsoft', 'oracle', 'parallels', 'bhyve', 'lxc', 'docker', 'podman', 'openvz', 'virtualbox', 'bochs', 'uml'] -%}
+      {# nosec rule12-r1: hosting_type 판정용 OEM vendor list (set membership 패턴, 분기 아님) #}
       {%- set oem_vendors = ['Dell Inc.', 'HPE', 'Hewlett Packard Enterprise', 'Hewlett-Packard', 'Lenovo', 'Cisco Systems Inc', 'Supermicro', 'Fujitsu', 'Inspur'] -%}
       {%- if sdv in vm_signals -%}virtual
       {%- elif vtype in vm_signals and vrole == 'guest' -%}virtual
