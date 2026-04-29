@@ -38,12 +38,19 @@
     _w_cpu_data: "{{ _w_cpu_raw.stdout | default('{}') | from_json }}"
   no_log: true
 
+# cycle-016 Phase O 후속: Linux 와 일관 — manufacturer 정규화 (GenuineIntel → Intel)
 - name: "windows | cpu | compute summary groups"
   ansible.builtin.set_fact:
     _w_cpu_summary: >-
       {%- set ns = namespace(groups=[], seen={}) -%}
       {%- for p in (_w_cpu_data.processors | default([])) -%}
         {%- set m = p.name | default('unknown') -%}
+        {%- set raw_mfr = p.manufacturer | default('') -%}
+        {%- set mfr = none -%}
+        {%- if 'GenuineIntel' in raw_mfr or 'Intel' in raw_mfr -%}{%- set mfr = 'Intel' -%}
+        {%- elif 'AuthenticAMD' in raw_mfr or 'AMD' in raw_mfr -%}{%- set mfr = 'AMD' -%}
+        {%- elif raw_mfr -%}{%- set mfr = raw_mfr -%}
+        {%- endif -%}
         {%- if m in ns.seen -%}
           {%- set idx = ns.seen[m] -%}
           {%- set _ = ns.groups[idx].update({'sockets': ns.groups[idx].sockets + 1, 'total_cores': ns.groups[idx].total_cores + (p.cores | default(0) | int)}) -%}
@@ -51,7 +58,7 @@
           {%- set _ = ns.seen.update({m: ns.groups | length}) -%}
           {%- set _ = ns.groups.append({
             'model': m,
-            'manufacturer': p.manufacturer | default(none),
+            'manufacturer': mfr,
             'max_speed_mhz': p.max_clock_mhz | default(none),
             'l2_cache_kb': p.l2_cache_kb | default(none),
             'l3_cache_kb': p.l3_cache_kb | default(none),
@@ -72,7 +79,13 @@
         cores_physical:  "{{ _w_cpu_data.cores    | default(none) }}"
         logical_threads: "{{ _w_cpu_data.logical  | default(ansible_processor_vcpus | default(none)) }}"
         model:           "{{ _w_cpu_data.model    | default(none) }}"
-        manufacturer:    "{{ _w_cpu_data.manufacturer | default(none) }}"
+        manufacturer: >-
+          {%- set v = _w_cpu_data.manufacturer | default('') -%}
+          {%- if 'GenuineIntel' in v or 'Intel' in v -%}Intel
+          {%- elif 'AuthenticAMD' in v or 'AMD' in v -%}AMD
+          {%- elif v -%}{{ v }}
+          {%- else -%}{{ none }}
+          {%- endif -%}
         max_speed_mhz:   "{{ _w_cpu_data.max_clock_mhz | default(none) }}"
         architecture: >-
           {%- set _arch = ansible_architecture | default('') -%}

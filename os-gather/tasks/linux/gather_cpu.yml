@@ -43,6 +43,7 @@
                   | select('search', '=') | map('split', '=', 1) | list) }}
       no_log: true
 
+    # cycle-016 Phase O 후속: Win 과 일관 — l2/l3_cache_kb (정수 KB) 통일
     - name: "linux | cpu | compute summary groups"
       ansible.builtin.set_fact:
         _l_cpu_summary: >-
@@ -62,13 +63,32 @@
           {%- elif 'AuthenticAMD' in vendor or 'AMD' in model -%}{%- set mfr = 'AMD' -%}
           {%- elif vendor -%}{%- set mfr = vendor -%}
           {%- endif -%}
+          {# l2/l3 cache 를 KB 정수로 정규화 — '48 MiB' or '1024 KiB' 같은 lscpu 표현 파싱 #}
+          {%- set l2_raw = (_l_cpu_parsed.L2_CACHE | default('')) | trim -%}
+          {%- set l3_raw = (_l_cpu_parsed.L3_CACHE | default('')) | trim -%}
+          {%- set l2_num = (l2_raw | regex_search('^[0-9]+(?:\\.[0-9]+)?')) -%}
+          {%- set l3_num = (l3_raw | regex_search('^[0-9]+(?:\\.[0-9]+)?')) -%}
+          {%- set l2_unit = (l2_raw | regex_search('(MiB|MB|KiB|KB)') | default('') | upper) -%}
+          {%- set l3_unit = (l3_raw | regex_search('(MiB|MB|KiB|KB)') | default('') | upper) -%}
+          {%- set l2_kb = none -%}
+          {%- set l3_kb = none -%}
+          {%- if l2_num -%}
+            {%- if 'M' in l2_unit -%}{%- set l2_kb = (l2_num | float * 1024) | int -%}
+            {%- else -%}{%- set l2_kb = l2_num | float | int -%}
+            {%- endif -%}
+          {%- endif -%}
+          {%- if l3_num -%}
+            {%- if 'M' in l3_unit -%}{%- set l3_kb = (l3_num | float * 1024) | int -%}
+            {%- else -%}{%- set l3_kb = l3_num | float | int -%}
+            {%- endif -%}
+          {%- endif -%}
           {%- if model and sockets > 0 -%}
             {{ {'groups': [{
               'model': model,
               'manufacturer': mfr,
               'max_speed_mhz': max_mhz_int,
-              'l2_cache': (_l_cpu_parsed.L2_CACHE | default('')) | trim or none,
-              'l3_cache': (_l_cpu_parsed.L3_CACHE | default('')) | trim or none,
+              'l2_cache_kb': l2_kb,
+              'l3_cache_kb': l3_kb,
               'sockets': sockets,
               'cores_per_socket': cps,
               'total_cores': total_cores
