@@ -62,11 +62,14 @@
           {%- for line in (_l_mem_slots_raw.stdout_lines | default([])) -%}
             {%- if line.startswith('SLOT|') -%}
               {%- set parts = line.split('|') -%}
-              {%- if parts | length >= 3 -%}
+              {%- if parts | length >= 4 -%}
+                {%- set cap = parts[1] | int -%}
+                {%- set t = parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none -%}
+                {%- set sp = parts[3] | regex_replace('[^0-9]', '') -%}
                 {%- set _ = out.append({
-                  'capacity_mb': parts[1] | int,
-                  'type': parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none,
-                  'speed_mhz': (parts[3] | int) if (parts | length >= 4 and parts[3] | regex_search('^[0-9]+$')) else none
+                  'capacity_mb': cap,
+                  'type': t,
+                  'speed_mhz': (sp | int) if sp else none
                 }) -%}
               {%- endif -%}
             {%- endif -%}
@@ -192,11 +195,14 @@
           {%- for line in (_l_mem_raw_result.stdout_lines | default([])) -%}
             {%- if line.startswith('SLOT|') -%}
               {%- set parts = line.split('|') -%}
-              {%- if parts | length >= 3 -%}
+              {%- if parts | length >= 4 -%}
+                {%- set cap = parts[1] | int -%}
+                {%- set t = parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none -%}
+                {%- set sp = parts[3] | regex_replace('[^0-9]', '') -%}
                 {%- set _ = out.append({
-                  'capacity_mb': parts[1] | int,
-                  'type': parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none,
-                  'speed_mhz': (parts[3] | int) if (parts | length >= 4 and parts[3] | regex_search('^[0-9]+$')) else none
+                  'capacity_mb': cap,
+                  'type': t,
+                  'speed_mhz': (sp | int) if sp else none
                 }) -%}
               {%- endif -%}
             {%- endif -%}
