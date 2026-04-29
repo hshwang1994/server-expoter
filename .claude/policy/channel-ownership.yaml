@@ -73,12 +73,12 @@ modules:
     related_rule: "80-ci-jenkins-policy"
 
   vault_secrets:
-    description: "Ansible Vault 시크릿"
+    description: "Ansible Vault 시크릿 (cycle-012 encrypt 채택)"
     paths:
       - "vault/"
     role: "infra"
     primary_owner: "hshwang"
-    related_rule: "60-security-and-secrets"
+    related_rule: "(cycle-011: rule 60 해제 — 운영 권장 수준)"
 
   testing:
     description: "pytest + redfish-probe + baseline + fixtures"

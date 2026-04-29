@@ -16,6 +16,68 @@
 
 ---
 
+## 2026-04-29 — cycle-013 (cycle-012 PR 머지 + 자율 매트릭스 + 정합 정정)
+
+- 환경: Windows 11 + Python 3.11.9 (호스트)
+- 변경 영역:
+  - **AI-1** schema/examples — redfish_success.json + os_partial.json 11 path 보강
+  - **AI-2** PROJECT_MAP — fingerprint 갱신 + 본문 stale 4건 정정
+  - **AI-3** JENKINS_PIPELINES — vault binding 절 신규
+  - **AI-4** SCHEMA_FIELDS — Must 31 / Nice 20 / Skip 6 = 57 정정 (1건 over count)
+  - **AI-5** VENDOR_ADAPTERS — recovery_accounts 메타 절 신규
+  - **AI-6** harness/cycle-012.md — 신규 (cycle-012 보고서 보존)
+  - **AI-7** decisions/ADR-2026-04-29-vault-encrypt-adoption — advisory governance trace
+  - **field_dictionary.yml** 헤더 주석 1줄 정정 (Nice 21 → 20)
+- 명령 (실측):
+  - `python -c "import json; ..."` schema/examples 2 파일 → PASS
+  - `python tests/validate_field_dictionary.py` → **PASS** (10 checks, 8 passed, 0 failed, **0 warnings** ← 11 WARN 해소)
+  - `python scripts/ai/verify_harness_consistency.py` → PASS (rules: 28, skills: 43, agents: 49, policies: 9)
+  - `python scripts/ai/verify_vendor_boundary.py` → PASS (vendor 하드코딩 0건)
+  - `python scripts/ai/check_project_map_drift.py` → PASS (drift 0건, fingerprint 갱신 후)
+- 결과: 정적 검증 4/4 PASS. 도메인 코드 변경 없음 (catalog/문서만), 회귀 영향 없음.
+- Baseline 갱신: 없음.
+- Git: feature/3channel-expansion 3 commit (`0150fa2e` / `57745bd1` / `b1d8014c`) push 완료. main 머지는 OPS-8 (rule 93 R2 사용자 명시 승인) 대기.
+- Evidence: `docs/ai/harness/cycle-012.md` (cycle-012 보존), `docs/ai/harness/cycle-013.md` (본 cycle 보고서), `docs/ai/decisions/ADR-2026-04-29-vault-encrypt-adoption.md`, `docs/ai/handoff/2026-04-29-cycle-013.md`, `docs/ai/archive/README.md`
+
+### Phase 3 추가 작업 (본 응답 후반)
+
+- stale inline 47건 일괄 trace 표기 (rule 60 / pre_commit_policy / vault-rotator / security-reviewer / protected-paths)
+- archive 진입: harness/cycle-001~005 (5) + impact/ 6 보고서 → docs/ai/archive/
+- SECURITY_POLICY.md deprecated 헤더
+- cycle-013 보고서 + handoff + archive README 신규
+- 검증 4종 재확인: 모두 PASS
+
+---
+
+## 2026-04-29 — cycle-012 (3-channel gather 대형 확장 P0~P5 + 후속 PR 갱신)
+
+- 환경: Windows 11 + Python 3.11.9 (호스트)
+- 변경 영역:
+  - **P0 Foundation** — Jenkinsfile 3종 + tests/e2e/test_envelope_failure_modes.py + .gitignore + scripts/bootstrap_vault_encrypt.sh + docs/01_jenkins-setup.md
+  - **P1 Auth Multi-Candidate** — vault accounts list (8 파일) + redfish load_vault/collect_standard/try_one_account + os/esxi try_credentials + adapters 16개 recovery_accounts 메타
+  - **P2 + P4 (Redfish)** — redfish_gather.py AccountService 4 메서드 + dryrun ON default + gather_network_adapters_chassis + account_service.yml
+  - **P3 + P4 normalize** — Redfish summary + Linux memory summary + normalize_standard.yml HBA/IB 매핑
+  - **P4 OS/ESXi** — gather_hba_ib.yml (Linux raw) + windows/gather_storage.yml Get-InitiatorPort + esxi/collect_network_extended.yml
+  - **P5** — Linux/Windows gather_runtime.yml
+  - **schema** — sections.yml 신 sub-key 명시 + field_dictionary.yml 12 entries Nice 추가 (총 58)
+- 명령 (실측):
+  - `python -c "import ast; ast.parse(...)"` → redfish_gather.py + test_envelope_failure_modes.py PASS
+  - `python -c "import yaml; ..."` 38 modified/new YAML safe_load → PASS
+  - `python -m pytest tests/e2e/test_envelope_failure_modes.py -v` → 50/50 PASS
+  - `python -m pytest tests/e2e/` → **195 PASS** (145 기존 + 50 신규)
+  - `python scripts/ai/verify_vendor_boundary.py` → PASS (rule 12 R1 nosec 처리)
+  - `python scripts/ai/verify_harness_consistency.py` → PASS (rules: 28, skills: 43, agents: 49, policies: 9)
+  - `python tests/validate_field_dictionary.py` → PASS (Must 31 / Nice 21 / Skip 6 = 58)
+  - `ansible-playbook --syntax-check` → SKIP (Windows 메인 환경 제약, WSL 보류)
+- 결과: 정적 검증 7/8 PASS + 1 SKIP (환경 제약). 회귀 195/195 PASS.
+- Baseline 갱신: 없음 (rule 13 R4 — 실측 기반만 허용. P3/P4 신 필드는 Nice 분류로 baseline 회귀 영향 없음)
+- Commit: `f0f621ce` P0 / `fe0be36c` P1 / `0448d00d` P2+P4(Redfish) / `fbb0f357` P3+P4 normalize / `92b935c3` P5(Linux). 후속 commit (P4 OS/ESXi + P5 Windows + schema + docs) 진행 중.
+- Branch: `feature/3channel-expansion` (origin push 완료, PR 사용자 직접 생성 — 옵션 A1)
+- Plan: `C:\Users\hshwa\.claude\plans\1-snazzy-haven.md`
+- Evidence: 본 항목
+
+---
+
 ## 2026-04-28 — cycle-010 (T3-04/05/06 일괄 + rule 70 R8 신설)
 
 - 환경: Windows 11 + Python 3.11.9 (호스트)

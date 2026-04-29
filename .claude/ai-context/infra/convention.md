@@ -47,9 +47,9 @@ vault/
     └── generic.yml        # 알 수 없는 vendor fallback
 ```
 
-모든 vault 파일은 ansible-vault encrypt 필수. 평문 commit 금지 (rule 60).
+모든 vault 파일은 ansible-vault encrypt 운영 권장 (cycle-011: rule 60 해제 + cycle-012: 8 vault encrypt 채택).
 
-회전: `rotate-vault` skill로만.
+회전: `rotate-vault` skill 절차 — 운영자 직접 실행 (cycle-011: vault-rotator agent 제거).
 
 ## 4. Redis fact cache
 
@@ -89,4 +89,4 @@ url = url.strip().rstrip('/')
 - `scheduler-change-playbook` — Jenkins cron 변경
 - `investigate-ci-failure` — Jenkins 실패 분석
 - `rotate-vault` — Vault 회전
-- agent: `jenkins-refactor-worker`, `jenkinsfile-engineer`, `vault-rotator`, `deploy-orchestrator`, `release-manager`, `ansible-perf-investigator`
+- agent: `jenkins-refactor-worker`, `jenkinsfile-engineer`, `deploy-orchestrator`, `release-manager`, `ansible-perf-investigator` (cycle-011: vault-rotator 제거)

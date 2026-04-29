@@ -102,7 +102,7 @@ Round X 추가 (Huawei iBMC 3.x 검증)
 - **rule 12** (adapter-vendor-boundary) R3 (3단계 절차)
 - **rule 50** (vendor-adapter-policy) R2 (9 파일 list)
 - rule 96 R1 (origin 주석)
-- rule 60 (vault encrypt)
+- (cycle-011: rule 60 해제 — vault encrypt는 cycle-012에서 운영 권장으로 채택)
 - rule 40 (baseline 회귀)
 - skill: `probe-redfish-vendor`, `update-vendor-baseline`, `score-adapter-match`, `vendor-change-impact`
 - agent: `vendor-onboarding-worker` (이 skill의 메인 실행자), `adapter-author`

@@ -25,7 +25,7 @@
 
 ### R2. HTTPS verify 정책
 
-- **Default**: Redfish는 자체 서명 인증서 환경이 일반적 → `verify=False` 허용. 단 코드에 명시 주석 (rule 60 예외)
+- **Default**: Redfish는 자체 서명 인증서 환경이 일반적 → `verify=False` 허용. 단 코드에 의도 명시 주석 (cycle-011 보안 정책 해제 후에도 트레이스 차원 유지)
 - **Forbidden**: verify 정책 명시 없이 random fallback
 
 ### R3. Timeout

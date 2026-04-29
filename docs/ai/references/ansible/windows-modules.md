@@ -77,4 +77,4 @@ server-exporter Agent (10.100.64.154):
 - rule 10 (gather-core) — 모듈 선택
 - rule 27 (precheck-guard-first) — 4단계 진단 (Windows: ping → 5985/5986 port → WinRM → auth)
 - rule 30 (integration-redfish-vmware-os) — 외부 시스템 통합
-- rule 60 (security-and-secrets) — vault/windows.yml
+- (cycle-011: rule 60 해제 — vault/windows.yml은 cycle-012 encrypt 운영 권장)

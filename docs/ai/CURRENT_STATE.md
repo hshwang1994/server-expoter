@@ -1,10 +1,53 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-28 (cycle-011 — 보안 정책 자체 해제 + AI 자동화 권한 부여)
+## 일자: 2026-04-29 (cycle-013 — cycle-012 PR 머지 + 자율 매트릭스 + 정합 정정)
 
 ## 요약
 
-server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-011 + full-sweep (Tier 1+2) 완료**. cycle-011에서 사용자 명시 결정으로 **보안 정책 자체 해제** — rule 60 + 관련 정책/hook/agent 11개 일괄 제거. AI 자동화 권한 확대.
+server-exporter AI 하네스 **Plan 1+2+3 + cycle-001 ~ cycle-013 완료**. cycle-012 PR #1 머지 완료 (`b74c1103`). cycle-013에서 자율 매트릭스 7건 (AI-1~AI-7) 일괄 처리 + 발견된 분포 1건 over count 정합 정정.
+
+cycle-013 변경 (이번 세션, 2026-04-29):
+
+- **AI-2 PROJECT_MAP fingerprint 갱신** — drift 6 → 0. 본문 stale 4건 정정 (adapters 25→27, schema 46→57, scripts/ai 8 supporting, Stage 4 pipeline별 분화).
+- **AI-3 JENKINS_PIPELINES.md** — vault binding 절 신규 (`server-gather-vault-password` Secret File credential, 3 Jenkinsfile 위치 실측).
+- **AI-4 SCHEMA_FIELDS.md** — 분포 정정 **Must 31 / Nice 20 / Skip 6 = 57 entries**. cycle-012 commit `8e536447` 메시지 "Nice 12종" + 헤더 주석 "Nice 21 / 58" 1건 over count 발견 → field_dictionary.yml 헤더 주석 + 모든 catalog 정합.
+- **AI-5 VENDOR_ADAPTERS.md** — `recovery_accounts` 메타 절 신규 (Redfish 16 adapter 전부, dryrun 정책, Cisco 한정 미지원).
+- **AI-6 cycle-012.md 신규** — P0~P5 + vault encrypt + 9 commit 시퀀스 + 검증 + 후속 매트릭스 보존.
+- **AI-7 ADR-2026-04-29-vault-encrypt-adoption** — rule 70 R8 trigger 미해당 분석 명시 후 advisory governance trace (옵션 A1/A2/B 비교).
+- **AI-1 schema/examples 11 path 보강** — redfish_success.json 7 path + os_partial.json 8 path → **validate_field_dictionary 11 WARN → 0 WARN**.
+- **AI-8 (PR 머지 후 main 정리)** — OPS-2 (PR 머지) 완료 확인. main pull / 브랜치 전환은 rule 93 R2 사용자 명시 승인 필요 → OPS-8로 transfer.
+- **AI-9 stale reference 일괄 cleanup** — cycle-011 advisory 25 list 보다 많은 49 파일 발견. 47 inline trace 표기로 일괄 정리 (rule + agent + skill + role + ai-context + commands + policy yaml + docs/ai/policy + workflows + catalogs + references).
+- **AI-10 docs/ai/harness/ archive (rule 70 R6)** — cycle-001~005 (5개) → `docs/ai/archive/harness/`. active catalog 11 → 6.
+- **AI-11 docs/ai/impact/ archive** — 6 보고서 → `docs/ai/archive/impact/`. active catalog 6 → 0.
+- **SECURITY_POLICY.md deprecated 헤더** — cycle-011 정책 자체 해제 + cycle-012 vault encrypt ADR reference로 변환.
+- **archive README.md 신규** — 진입 reasoning + 보존 정책.
+- **cycle-013.md 신규 + handoff 신규** — governance 보존 + 다음 세션 cold start 인계.
+- **검증**: harness consistency PASS (28/43/49/9), vendor boundary PASS, project_map_drift PASS, validate_field_dictionary PASS (0 WARN).
+- **commit**: 3개 (`0150fa2e` 10 files / `57745bd1` 16 files / `b1d8014c` 38 files) feature/3channel-expansion push 완료. main 머지는 OPS-8 (rule 93 R2 사용자 명시 승인) 대기.
+
+cycle-012 변경 (이전 세션, 2026-04-29):
+
+server-exporter AI 하네스 cycle-012에서 사용자 plan-mode 승인으로 **3-channel gather 확장 (vault multi-auth + AccountService + Group Summary + NIC/HBA/IB depth + runtime)** 6 Phase 진행. PR #1 머지 완료.
+
+cycle-012 변경 (이번 세션, 2026-04-29):
+
+- **plan**: `C:\Users\hshwa\.claude\plans\1-snazzy-haven.md` (P0~P5 6 Phase 분할). 사용자 결정 4건 확정: 6 Phase 직렬, ansible-vault encrypt 후 commit, schema v1 minor 유지, AccountService P2 분리 + dryrun ON default.
+- **P0 Foundation** (`f0f621ce`): Jenkinsfile 3종 `withCredentials([file('ansible-vault-password')])` + `.gitignore` (.vault_pass 차단) + `scripts/bootstrap_vault_encrypt.sh` + `docs/01_jenkins-setup.md` 갱신 + `tests/e2e/test_envelope_failure_modes.py` 12 fixture × 50 testcase.
+- **P1 Auth Multi-Candidate** (`fe0be36c`): vault `accounts: list` 신키 + `ansible_user/password` dual-write 호환. redfish: load_vault.yml + try_one_account.yml + collect_standard.yml loop. OS/ESXi: try_credentials.yml (raw probe + `meta: reset_connection`). 16 redfish adapter 에 `recovery_accounts` 메타 (P2 진입점).
+- **P2 AccountService + P4 NetworkAdapters** (`0448d00d`): `redfish_gather.py` `_post`/`_patch` 헬퍼 + `account_service_provision()` 4 메서드 (Dell slot PATCH / HPE-Lenovo-SM POST / Cisco not_supported). main() `mode='account_provision'` + `dryrun: True` default. `gather_network_adapters_chassis()` (NetworkAdapters/Ports + PortType FC/IB 자동 분류). `account_service.yml` 신규.
+- **P3 Group Summary + P4 normalize 매핑** (`fbb0f357`): Redfish CPU/memory/storage/network 4종 group summary + Linux memory summary 빈값. `_rf_proc_map` 에 network_adapters → network 추가.
+- **P5 Linux runtime** (`92b935c3`): `gather_runtime.yml` 신규 — NTP (timedatectl) / firewall (firewalld/ufw/iptables 자동 감지) / listening ports (ss/netstat) / swap (free -m). `data.system.runtime` sub-key.
+- **추가 작업 (PR 갱신, cycle-012 후반부)**:
+  - **P4 Linux** — `gather_hba_ib.yml` (FC HBA `/sys/class/fc_host` + InfiniBand `/sys/class/infiniband` + NIC driver/VLAN/bond raw fallback)
+  - **P4 Windows** — `gather_storage.yml` 에 `Get-InitiatorPort` 추가 (FC HBA WWPN)
+  - **P4 ESXi** — `collect_network_extended.yml` 신규 (vmware_host_vmnic_info + vmware_host_vmhba_info + vmware_vswitch_info + vmware_portgroup_info)
+  - **P5 sub-phase b** — Windows `gather_runtime.yml` 신규 (w32tm/Get-NetFirewallProfile/Get-NetTCPConnection/Win32_PageFileUsage)
+  - **schema 갱신** — `schema/sections.yml` storage/network 에 hbas/infiniband/adapters/ports/virtual_switches/portgroups/driver_map/summary 사용 가능 sub-key 명시. `schema/field_dictionary.yml` 12 entries Nice 추가 (cpu/memory/storage/network.summary, network.adapters/ports/virtual_switches/driver_map, storage.hbas/infiniband, system.runtime)
+- **검증**: 145 기존 e2e + 50 신규 fixture = 195 PASS. harness 일관성 PASS (28/43/49/9). vendor boundary PASS (rule 12 R1 nosec). field_dictionary PASS.
+- **PR**: `feature/3channel-expansion` GitHub push 완료, PR 사용자 직접 생성 (옵션 A1).
+- **잔여 사용자 작업**: (1) 평문 commit된 password 6종 회전 (Passw0rd1!/Goodmit0802!/Dellidrac1!/calvin/hpinvent1!/VMware1!), (2) `.vault_pass` 결정 → `bash scripts/bootstrap_vault_encrypt.sh`, (3) Jenkins credentials store 등록 (`ansible-vault-password` Secret File), (4) lab 검증 (P1 vendor 5종 → P2 dryrun ON Dell+HPE → 후 OFF), (5) baseline_v1/* 7개 실측 갱신 (P3/P4 schema 변경 정합).
+
+cycle-011 변경 (이전 세션):
 
 cycle-011 변경 (이번 세션):
 
@@ -119,22 +162,24 @@ pytest tests/                         : PASS — 95/95
 - pytest 95 PASS — 영향 vendor 회귀 0건
 - **모든 harness 도구 0건 — 100% 정합 달성**
 
-## 카탈로그 (실측, 2026-04-27 cycle-004 후)
+## 카탈로그 (실측, 2026-04-29 cycle-013 후)
 
 | 카테고리 | 카운트 | 변화 |
 |---|---|---|
-| rules | 29 | 변화 없음 |
+| rules | 28 | cycle-011 rule 60 삭제 |
 | skills | 43 | 변화 없음 |
-| agents | 51 | 변화 없음 |
-| policies | 10 | 변화 없음 |
+| agents | 49 | cycle-011 security-reviewer + vault-rotator 삭제 |
+| policies | 9 | cycle-011 security-redaction 삭제 |
 | roles | 6 | 변화 없음 |
-| ai-context | 12 | 변화 없음 |
+| ai-context | 14 | cycle-009/010 추가 |
 | templates | 8 | 변화 없음 |
 | commands | 5 | 변화 없음 |
-| hooks (Python) | 19 + supporting 8 | 변화 없음 |
+| hooks (Python) | 18 + supporting 8 | cycle-011 pre_commit_policy 삭제 |
 | references (외부 docs) | 14 | 변화 없음 |
-| **adapters** | **27** (cycle-008 lenovo_bmc + cisco_bmc 신규 추가, 모두 origin 주석 보유) | 100% rule 96 R1 정합 |
-| **DRIFT 등재** | **6** (resolved 3 + open 3) | DRIFT-004/005/006 신규 |
+| **adapters** | **27** (cycle-008 lenovo_bmc + cisco_bmc, cycle-012 recovery_accounts 메타 16 redfish) | 100% rule 96 R1 정합 |
+| **schema entries** | **57** (Must 31 / Nice 20 / Skip 6 — cycle-012 +11 Nice, cycle-013 1건 over count 정정) | rule 13 R5 정합 |
+| **vault encrypt** | **8/8** (cycle-012 ansible-vault AES256, Jenkins credential `server-gather-vault-password`) | OPS-3 password 회전 대기 |
+| **DRIFT 등재** | **6** (resolved 모두) | cycle-013 추가 발견 없음 |
 
 ## 채널별 / Vendor 상태
 

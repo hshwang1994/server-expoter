@@ -96,7 +96,7 @@ server-exporter `adapters/esxi/`:
 ## Best Practices for server-exporter
 
 1. **vault**: `vault/esxi.yml`의 `vault_esxi_user` (root) + `vault_esxi_password`
-2. **validate_certs**: 자체 서명 인증서 환경 → `false` + rule 60에 명시 주석
+2. **validate_certs**: 자체 서명 인증서 환경 → `false` + 코드에 의도 주석 (cycle-011: rule 60 해제)
 3. **stdlib 보완**: 일부 vmware 모듈이 lxml 기반 — `pip install lxml`
 4. **Connection 재사용**: 한 host에 여러 facts → 각 모듈마다 connect/disconnect 발생. 가능하면 vmware_host_facts 한 번에
 5. **Adapter capability**: 일부 모듈이 vCenter 전용 (datacenter / cluster) — ESXi 직접 연결 시 미동작

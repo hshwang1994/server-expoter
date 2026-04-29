@@ -1,6 +1,84 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-28 (cycle-011 후 갱신)
+## 일자: 2026-04-29 (cycle-013 종료 시점 — cycle-012 자율 매트릭스 7건 closed + 정합 정정)
+
+## ⏳ 현재 상태 (한 줄)
+
+cycle-012 PR #1 머지 완료 (`b74c1103`). cycle-013에서 자율 매트릭스 7건 (AI-1~AI-7) 모두 closed + 분포 1건 over count 정정. **lab 검증 + main 정리 대기 중**.
+
+## 다음 세션 시작 시 확인 순서 (cold start)
+
+1. **main 갭** — `git fetch origin && git log --oneline origin/main..HEAD` 으로 cycle-013 commit (`0150fa2e`) main 머지 여부 확인 (현재 ahead 1, behind 1)
+2. **운영자 빌드 결과 확인** — OPS-1 Jenkins 시범 결과 받았는지 (envelope `meta.auth.fallback_used` 값)
+3. **자율 매트릭스 잔여** — 본 매트릭스의 AI-8 (main pull + 정리)만 잔여 (rule 93 R2 사용자 명시 승인 필요)
+
+## 자율 진행 closed (cycle-013 완료)
+
+| # | 작업 | 결과 | commit |
+|---|---|---|---|
+| AI-1 | schema/examples 11 path 보강 | validate_field_dictionary 11 WARN → 0 WARN | `0150fa2e` |
+| AI-2 | PROJECT_MAP fingerprint 재계산 | drift 6 → 0 + 본문 stale 4건 정정 | `0150fa2e` |
+| AI-3 | JENKINS_PIPELINES.md 갱신 | vault binding 절 신규 (server-gather-vault-password) | `0150fa2e` |
+| AI-4 | SCHEMA_FIELDS.md 갱신 | Must 31 / Nice 20 / Skip 6 = 57 (1건 over count 정정) | `0150fa2e` |
+| AI-5 | VENDOR_ADAPTERS.md 헤더 갱신 | recovery_accounts 메타 절 신규 | `0150fa2e` |
+| AI-6 | cycle-012.md 신규 | governance 보존 | `0150fa2e` |
+| AI-7 | ADR vault-encrypt-adoption | rule 70 R8 trigger 미해당 advisory governance trace | `0150fa2e` |
+
+## 자율 진행 잔여 (다음 세션 AI)
+
+| # | 작업 | 전제 | 차단 사유 |
+|---|---|---|---|
+| AI-8 | main pull 후 cycle-013 commit 정리 + CURRENT_STATE 종료 갱신 | rule 93 R2 사용자 명시 승인 | main 머지 / 브랜치 전환은 사용자 결정 |
+
+## 사용자 개입 필요 (자율 불가, 명시 승인 후 진행)
+
+| # | 작업 | 이유 | 진입 후 AI 가능 작업 |
+|---|---|---|---|
+| OPS-1 | Jenkins 빌드 시범 1회 (target_type=redfish, 임의 BMC) | UI 클릭 + lab 환경 | console log 받으면 envelope 분석 + 회귀 fixture 추가 |
+| ~~OPS-2~~ | ~~PR 머지 결정 (squash 권장)~~ | ~~rule 93 R4 main 보호~~ | **closed 2026-04-29** — PR #1 머지 완료 (`b74c1103`) |
+| OPS-3 | 평문 password 6종 회전 (Passw0rd1!/Goodmit0802!/Dellidrac1!/calvin/hpinvent1!/VMware1!) — Git history 잔존 | 운영팀 일정 + 실 장비 | 회전 후 vault에 새 password 반영 + encrypt + 새 PR |
+| OPS-4 | P1 lab 회귀 — vendor 5종 1차 / 2차 fallback 시나리오 | 실 BMC + lab cycle | 결과 받으면 evidence + baseline 갱신 |
+| OPS-5 | P2 dryrun OFF 전환 (Dell + HPE 먼저) | rule 92 R5 + BMC 잠금 위험 | 결정 받으면 `_rf_account_service_dryrun: false` 토글 + lab 검증 |
+| OPS-6 | baseline_v1/* 7개 실측 갱신 (P3/P4 신 필드 정합) | rule 13 R4 — 실측 기반만 | probe_redfish.py 결과 받으면 baseline 갱신 + Stage 4 회귀 |
+| OPS-7 | settings.local.json 편집 — AI self-modification 차단 (cycle-011 잔여) | settings.json만으로 풀림 확인됨 | 운영자 직접 편집 |
+| OPS-8 | main에 cycle-013 commit 정리 (PR 또는 직접) | rule 93 R2 머지 사용자 명시 승인 | 승인 받으면 main 정리 + CURRENT_STATE 종료 갱신 (AI-8) |
+| AI-9 | 25개 stale reference cleanup (cycle-011 advisory 잔여) | 즉시 — cycle-013 11건 처리 후 약 38건 잔존 | 별도 cycle (영향 범위 큼) — rule 60 / pre_commit_policy / vault-rotator 본문 참조 정리 |
+| AI-10 | docs/ai/harness/ archive 진입 (cycle-001~005 → archive/) | rule 70 R6 정본 catalog 비대화 차단 | 별도 cycle — 사용자 archive 정책 명시 후 |
+| AI-11 | docs/ai/impact/ 6 보고서 archive (구조·정책 전환 reasoning 보존) | rule 70 R6 첫 질문 YES | 별도 cycle |
+
+## 사용자 결정 명시 필요 (Phase 진입 전)
+
+| # | 항목 | 후보 | AI 추천 |
+|---|---|---|---|
+| DEC-1 | OS/ESXi secondary 자격 사용 시 envelope `meta.auth.fallback_used: true` 노출 정책 | 노출 / 비노출 | 노출 (이미 P1 commit에 적용됨) |
+| DEC-2 | P5 sub-phase 우선순위 (Linux NTP+firewall+listening 완료 / Windows runtime 완료 / ESXi vSwitch 완료) | 다음 sub-phase = ESXi multipath / license? | 본 cycle은 sub-phase a+b 완료 — c (multipath/license) 별도 cycle |
+| DEC-3 | Cisco AccountService 미지원 처리 — 운영자 수동 복구 절차 매뉴얼 | 작성 / 보류 | docs/ 별도 매뉴얼 |
+
+## cycle-013 요약 (이번 세션 완료)
+
+`0150fa2e` cycle-013 catalog 5종 + cycle-012 보고서 + ADR + examples 11 path
+
+**자율 매트릭스 7건 (AI-1~AI-7) closed**:
+- catalog 4종 (PROJECT_MAP / JENKINS_PIPELINES / SCHEMA_FIELDS / VENDOR_ADAPTERS) 갱신
+- cycle-012.md 보고서 + ADR-2026-04-29-vault-encrypt-adoption advisory 신규
+- schema/examples 11 path 보강 (validate 11 WARN → 0)
+
+**발견 + 정정**: cycle-012 commit 메시지 / 헤더 주석 1건 over count (Nice 21 → 20, 58 → 57). 모든 catalog 정합.
+
+**검증**: harness consistency / vendor boundary / project_map_drift / validate_field_dictionary 모두 PASS.
+
+## cycle-012 요약 (이전 세션 완료)
+
+`f0f621ce` P0 / `fe0be36c` P1 / `0448d00d` P2+P4(Redfish) / `fbb0f357` P3+P4 normalize / `92b935c3` P5 Linux / `b6d24fd3` P4 OS/ESXi + P5 Windows / `8e536447` schema 12 entries / `c37138ca` docs / `29fee49a` vault encrypt + credential 'server-gather-vault-password'
+
+**검증**: 145 e2e PASS / harness 28-43-49-9 / vendor boundary / field_dictionary Must31-Nice21-Skip6=58
+**plan**: `C:\Users\hshwah\.claude\plans\1-snazzy-haven.md`
+**handoff**: `docs/ai/handoff/2026-04-29-cycle-012.md`
+**branch**: `feature/3channel-expansion`
+
+---
+
+## 완료 항목 (cycle-011 — 보안 정책 자체 해제)
 
 ## 완료 항목 (cycle-011 — 보안 정책 자체 해제)
 

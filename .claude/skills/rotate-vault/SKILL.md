@@ -103,11 +103,11 @@ ansible-vault create vault/redfish/huawei.yml
 
 ## 적용 rule / 관련
 
-- **rule 60** (security-and-secrets) 정본
+- (cycle-011: rule 60 보안 정책 해제. 본 skill은 운영 절차 가이드로만 유효)
 - rule 50 R2 (새 vendor 추가 시 vault 9단계)
 - rule 70 (docs-and-evidence) — evidence 기록
 - skill: `add-new-vendor`, `debug-precheck-failure` (auth 실패 시)
-- agent: `vault-rotator` (이 skill의 메인 실행자), `security-reviewer`
+- agent: 본 skill의 운영 실행자는 사용자 (cycle-011: vault-rotator + security-reviewer agent 제거)
 - 정본: `docs/03_agent-setup.md` 보안 부분
 - reference: `docs/ai/references/ansible/ansible-vault.md`
 

@@ -33,6 +33,46 @@
   failed_when: false
   no_log: true
 
+# P4 (cycle 2026-04-29): FC HBA / iSCSI / SAS Initiator
+- name: "windows | storage | initiator ports (HBA)"
+  ansible.windows.win_shell: |
+    if (Get-Command Get-InitiatorPort -ErrorAction SilentlyContinue) {
+      Get-InitiatorPort | ForEach-Object {
+        [PSCustomObject]@{
+          node_addr   = $_.NodeAddress
+          port_addr   = $_.PortAddress
+          conn_type   = [string]$_.ConnectionType
+          oper_status = [string]$_.OperationalStatus
+        } | ConvertTo-Json -Compress
+      }
+    }
+  register: _w_hba_raw
+  changed_when: false
+  failed_when: false
+  no_log: true
+
+- name: "windows | storage | normalize HBAs"
+  ansible.builtin.set_fact:
+    _w_hbas: >-
+      {%- set out = [] -%}
+      {%- for line in (_w_hba_raw.stdout_lines | default([])) -%}
+        {%- if line | trim -%}
+          {%- set h = line | from_json -%}
+          {%- set ct = (h.conn_type | default('')) | lower -%}
+          {%- set is_fc = 'fibrechannel' in ct or 'fc' == ct -%}
+          {%- set _ = out.append({
+            'node_addr':   h.node_addr   | default(none),
+            'port_addr':   h.port_addr   | default(none),
+            'wwpn':        h.port_addr   | default(none) if is_fc else none,
+            'connection':  h.conn_type   | default(none),
+            'link_status': h.oper_status | default(none),
+            'port_type':   'FibreChannel' if is_fc else h.conn_type | default(none),
+          }) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ out }}
+  no_log: true
+
 - name: "windows | storage | normalize filesystems"
   ansible.builtin.set_fact:
     _w_norm_filesystems: >-
@@ -88,6 +128,9 @@
         datastores:      []
         controllers:     []
         logical_volumes: []
+        # P4 (cycle 2026-04-29): Get-InitiatorPort 결과
+        hbas:            "{{ _w_hbas | default([]) }}"
+        infiniband:      []  # Windows 표준 API 로 IB 일관 수집 어려움
     _sections_supported_fragment: ['storage']
     _sections_collected_fragment: ['storage']
     _sections_failed_fragment:    []

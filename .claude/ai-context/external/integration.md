@@ -6,7 +6,7 @@
 
 - **진입점**: `https://<bmc_ip>/redfish/v1/` (ServiceRoot, 무인증 detect 가능)
 - **인증**: HTTPS Basic Auth (Vault 2단계 로딩으로 vendor에 맞는 자격증명 사용)
-- **HTTPS verify**: 자체 서명 인증서 환경에서는 verify=False (rule 60 예외 명시)
+- **HTTPS verify**: 자체 서명 인증서 환경에서는 verify=False (코드에 의도 명시 — cycle-011: rule 60 해제)
 - **TLS 버전**: 일부 구 펌웨어는 TLS 1.0/1.1만 — Python ssl context로 명시
 - **라이브러리**: stdlib만 (urllib / ssl / json) — `redfish-gather/library/redfish_gather.py`
 - **계약 변경**: rule 96 R1 origin 주석 + R3 영향 범위 분석 의무

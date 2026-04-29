@@ -58,7 +58,7 @@ skill 결과를 사용자에게 제시하기 전, 별도 reviewer agent 호출:
 - 도메인 코드 변경 → code-reviewer / fragment-engineer / vendor-boundary-guardian
 - schema 변경 → schema-mapping-reviewer / output-schema-reviewer
 - adapter 변경 → adapter-boundary-reviewer
-- 보안 영향 → security-reviewer
+- (cycle-011: security-reviewer 제거 — 보안 영향은 운영자 권장 수준 검토)
 - 머지 / 릴리즈 → release-manager (이미 reviewer 역할)
 
 ## 관련

@@ -104,4 +104,4 @@ server-exporter는 venv (`/opt/ansible-env/`)에서 관리.
 ## 적용 rule
 
 - rule 30 (integration-redfish-vmware-os) — vSphere 통합
-- rule 60 (security-and-secrets) — vault/esxi.yml + validate_certs 정책
+- (cycle-011: rule 60 해제 — vault/esxi.yml은 cycle-012 encrypt 운영 권장 / validate_certs 정책은 운영자 결정)

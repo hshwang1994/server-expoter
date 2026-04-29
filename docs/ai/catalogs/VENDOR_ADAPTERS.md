@@ -1,9 +1,11 @@
 # VENDOR_ADAPTERS — server-exporter
 
 > 5 vendor x 채널별 adapter 매트릭스 (rule 28 #3 측정 대상, TTL 14일).
-> 실측 (`grep adapter_id|priority adapters/`) — 2026-04-28 (cycle-010 갱신).
+> 실측 (`grep adapter_id|priority adapters/`) — 2026-04-29 (cycle-012 후속 갱신).
 >
 > **cycle-010 변경**: 27 adapter (redfish 16 + os 7 + esxi 4) 모두에서 placeholder `version: "1.0.0"` 1줄 일괄 삭제 (T3-04 04-A 채택). 매트릭스 자체 (adapter_id / priority / vendor) 영향 없음.
+>
+> **cycle-012 변경 (recovery_accounts 메타 도입)**: 16개 Redfish adapter에 `recovery_accounts: [{vault_label, role}]` list 추가 — P1 후보 순차 인증 (vault accounts list) + P2 AccountService dryrun 기반 자동 복구 절차 메타. OS/ESXi 채널은 `try_credentials` 패턴 (vault 1차 → 2차 fallback) 적용, envelope `meta.auth.fallback_used` 노출. dryrun 기본값 `true` (BMC 잠금 위험 회피, 사용자 명시 OFF 전환은 OPS-5).
 
 ## Redfish 채널 (16 adapters)
 
@@ -48,6 +50,22 @@
 | `esxi_7x.yml` | ESXi 7.x |
 | `esxi_6x.yml` | ESXi 6.x |
 | `esxi_generic.yml` | fallback |
+
+## recovery_accounts 메타 (cycle-012)
+
+각 Redfish adapter에 `recovery_accounts:` 블록 — vault accounts list 순서대로 후보 인증 + AccountService dryrun 복구 매핑. 형식:
+
+```yaml
+recovery_accounts:
+  - { vault_label: <vault key>, role: recovery }
+  - { vault_label: <vault key>, role: recovery }
+```
+
+**커버리지 (16/16)**: dell_idrac×3, hpe_ilo×4, lenovo_xcc/imm2/bmc, supermicro_x11/x9/bmc, cisco_cimc/bmc, redfish_generic.
+
+**dryrun 정책**: `_rf_account_service_dryrun: true` (기본). lab 검증 후 vendor별 OFF 전환은 사용자 명시 승인 (rule 92 R5 — OPS-5 매트릭스).
+
+**Cisco 한정**: AccountService 미지원 (Round 11 실측). dryrun 의미 없음 — 운영자 수동 복구 절차 매뉴얼 별도 (DEC-3 매트릭스).
 
 ## 점수 일관성 검증 (rule 12 R2)
 

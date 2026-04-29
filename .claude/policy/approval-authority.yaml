@@ -14,7 +14,7 @@ vendor_adapter_approver:
   related_rule: ".claude/rules/12-adapter-vendor-boundary.md"
 
 protected_paths_approver:
-  description: ".claude/policy/protected-paths.yaml 자체 변경 승인"
+  description: "(deprecated cycle-011) .claude/policy/protected-paths.yaml 자체 변경 승인 — stub 잔존"
   default: "hshwang"
   fallback: "저장소 관리자"
 
@@ -37,10 +37,10 @@ jenkinsfile_approver:
   related_rule: ".claude/rules/80-ci-jenkins-policy.md"
 
 vault_approver:
-  description: "vault/{linux,windows,esxi}.yml + vault/redfish/{vendor}.yml 회전"
+  description: "vault/{linux,windows,esxi}.yml + vault/redfish/{vendor}.yml 회전 (cycle-012 vault encrypt 채택)"
   default: "hshwang"
-  fallback: "보안 담당자"
-  related_rule: ".claude/rules/60-security-and-secrets.md"
+  fallback: "운영 담당자"
+  related_rule: "(cycle-011: rule 60 보안 정책 해제 — 운영 권장 수준)"
 
 # 승인 기록 포맷
 approval_record_format: |

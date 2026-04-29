@@ -26,15 +26,17 @@
 ## 사고 → rule 추가 (예시)
 
 ```
-1. 사고 발생 (예: vault 누설)
-2. FAILURE_PATTERNS.md append (vault-leak 카테고리)
+1. 사고 발생 (예: 잘못된 baseline 회귀)
+2. FAILURE_PATTERNS.md append (해당 카테고리)
 3. observer가 다음 cycle에 검출
-4. architect가 rule 60 보강 명세
+4. architect가 관련 rule 보강 명세 (예: rule 13 / 22 / 92)
 5. reviewer / governor 심사
-6. updater 적용 → rule 60에 새 R 추가
+6. updater 적용 → 해당 rule에 새 R 추가
 7. verifier 검증
 8. cycle 로그 기록
 ```
+
+(cycle-011: 본 예시는 rule 60 vault 누설을 예로 들었으나 rule 60 자체 해제됨. 도메인별 rule로 일반화)
 
 ## 정기 cycle 주기
 

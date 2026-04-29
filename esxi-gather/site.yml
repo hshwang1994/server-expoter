@@ -108,6 +108,10 @@
         - name: "esxi | normalize storage"
           ansible.builtin.include_tasks: tasks/normalize_storage.yml
 
+        # P4 (cycle 2026-04-29): vmnic/vmhba/vSwitch/portgroup 확장
+        - name: "esxi | collect network extended (P4)"
+          ansible.builtin.include_tasks: tasks/collect_network_extended.yml
+
         - name: "esxi | build_sections"
           ansible.builtin.include_tasks:
             file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/build_sections.yml"

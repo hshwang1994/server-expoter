@@ -31,7 +31,7 @@ vault/
     └── generic.yml          # vendor 미매치 fallback
 ```
 
-각 vault 파일은 ansible-vault encrypt 필수. 평문 commit 금지 (rule 60).
+각 vault 파일은 ansible-vault encrypt 운영 권장 (cycle-011: rule 60 해제 / cycle-012: 8 vault encrypt 채택).
 
 ## Vault 파일 내용 예시
 
@@ -108,7 +108,7 @@ server-exporter는 일반적으로 **단일 vault password** (운영 단순화).
 
 ## Best Practices for server-exporter
 
-1. **모든 vault encrypt**: 평문 절대 commit 금지 (rule 60 + pre_commit_policy.py 검출)
+1. **모든 vault encrypt** (운영 권장): 평문 commit 비권장 (cycle-011: rule 60 + pre_commit_policy.py 모두 제거 — 정책 강제 없음)
 2. **password 파일 안전**: `chmod 600 ~/.vault_pass` + Jenkins credentials store
 3. **명명 규칙**: vault 변수는 `vault_<scope>_<name>` (예: `vault_redfish_password`)
 4. **회전 주기**: 분기/반기 정기 + 사고 시 즉시
@@ -116,14 +116,14 @@ server-exporter는 일반적으로 **단일 vault password** (운영 단순화).
 
 ## Forbidden 패턴
 
-- 평문 vault commit (`pre_commit_policy.py`가 차단)
+- 평문 vault commit (cycle-011: pre_commit_policy.py 제거됨, 운영자 권장 차단)
 - `--extra-vars "password=..."` 평문 CLI (Jenkins log 노출)
 - environment variable로 password 전달 (process list 노출 가능)
 - vault 파일을 직접 편집 (`vim vault/redfish/dell.yml`) — `ansible-vault edit` 사용
 
 ## 적용 rule
 
-- rule 60 (security-and-secrets)
+- (cycle-011: rule 60 해제 — vault 운영은 권장 수준)
 - rule 27 (precheck-guard-first / Vault 2단계)
 - rule 50 (vendor-adapter-policy)
 - rule 92 R5 (의존성 / 버전 사용자 확인)

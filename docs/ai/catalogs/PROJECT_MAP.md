@@ -3,7 +3,7 @@
 > 디렉터리 구조 카탈로그. session_start hook이 fingerprint drift 자동 검사.
 > fingerprint: `.claude/policy/project-map-fingerprint.yaml`
 
-## 일자: 2026-04-28 (full-sweep 갱신)
+## 일자: 2026-04-29 (cycle-012 후속 갱신)
 
 ## 최상위 트리
 
@@ -12,8 +12,8 @@ server-exporter/
 ├── CLAUDE.md, README.md, GUIDE_FOR_AI.md, REQUIREMENTS.md  (정본)
 ├── ansible.cfg                                              (Ansible 설정)
 ├── Jenkinsfile, Jenkinsfile_grafana, Jenkinsfile_portal     (3종 4-Stage 파이프라인)
-├── adapters/                # 25 YAML — vendor/세대별 추상화
-│   ├── redfish/             # 14 (generic + dell×3 + hpe×4 + lenovo×2 + supermicro×3 + cisco)
+├── adapters/                # 27 vendor adapter YAML + registry.yml
+│   ├── redfish/             # 16 (generic + dell×3 + hpe×4 + lenovo×3 + supermicro×3 + cisco×2)
 │   ├── os/                  # 7 (linux_*/windows_*)
 │   └── esxi/                # 4 (generic + 6x/7x/8x)
 ├── callback_plugins/        # json_only.py (stdout callback, OUTPUT만 JSON)
@@ -31,7 +31,7 @@ server-exporter/
 │   └── tasks/vendors/{vendor}/      (OEM tasks)
 ├── schema/
 │   ├── sections.yml         # 10 섹션 정의
-│   ├── field_dictionary.yml # 31 Must + 9 Nice + 6 Skip = 46 entries
+│   ├── field_dictionary.yml # 31 Must + 20 Nice + 6 Skip = 57 entries (cycle-012: P3/P4/P5 +11 Nice)
 │   ├── fields/              # 섹션별 상세
 │   ├── baseline_v1/         # 7+ vendor baseline JSON
 │   └── examples/            # success/partial/failed
@@ -60,21 +60,22 @@ server-exporter/
 │   └── ai/                                   (AI 협업 메타 — 본 디렉터리)
 ├── scripts/
 │   └── ai/
-│       ├── (8 supporting: policy_loader / detect_session_context /
+│       ├── (8 supporting: detect_session_context /
 │       │   validate_claude_structure / collect_repo_facts /
 │       │   check_project_map_drift / check_gap_against_main /
-│       │   verify_harness_consistency / verify_vendor_boundary)
-│       └── hooks/ (19 Python hooks + install-git-hooks.sh)
+│       │   verify_harness_consistency / verify_vendor_boundary /
+│       │   scan_suspicious_patterns)
+│       └── hooks/ (18 Python hooks + install-git-hooks.sh)
 └── .claude/
-    ├── settings.json                         (16 hooks 등록 + 보호 경로)
+    ├── settings.json                         (hooks 등록 — cycle-011에서 보안 deny 38건 제거)
     ├── settings.local.json                   (개인)
-    ├── rules/         (29 .md)
+    ├── rules/         (28 .md)
     ├── skills/        (43 SKILL.md, 폴더당 1)
-    ├── agents/        (51 .md)
-    ├── policy/        (10 YAML)
+    ├── agents/        (49 .md)
+    ├── policy/        (9 YAML)
     ├── role/          (6 README: gather/output-schema/infra/qa/po/tpm)
-    ├── ai-context/    (12: common 5 + gather/output-schema/infra/external + vendors 5)
-    ├── templates/     (10)
+    ├── ai-context/    (14: common + gather/output-schema/infra/external + vendors)
+    ├── templates/     (8)
     └── commands/      (5: harness-cycle / harness-full-sweep / review-guide / scheduler-guide / usage-guide)
 ```
 
@@ -90,9 +91,14 @@ Jenkins Job (Jenkinsfile / _grafana / _portal, 4-Stage)
   │   ├─ esxi-gather/site.yml
   │   └─ redfish-gather/site.yml (precheck → detect → adapter → collect → normalize)
   ├─ [3 Validate Schema] field_dictionary 정합 (FAIL 게이트)
-  ├─ [4 E2E Regression] pytest baseline (FAIL 게이트)
-  └─ [Post] callback_plugins/json_only.py → JSON envelope → callback URL
+  ├─ [4 (pipeline별)] FAIL 게이트
+  │   ├─ Jenkinsfile          → E2E Regression (pytest baseline)
+  │   ├─ Jenkinsfile_grafana  → Ingest (Grafana 적재, master)
+  │   └─ Jenkinsfile_portal   → Callback (호출자 통보, master)
+  └─ [Post] callback_plugins/json_only.py → JSON envelope
 ```
+
+**vault binding (cycle-012)**: Jenkins credential `server-gather-vault-password` (Secret File) 등록 → Jenkinsfile×3 모두 `withCredentials([file(credentialsId: 'server-gather-vault-password', variable: 'VAULT_PWD')])` 패턴으로 사용.
 
 ## fingerprint 갱신
 

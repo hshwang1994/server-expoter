@@ -114,4 +114,4 @@ Enable-WSManCredSSP -Role Server -Force
 - rule 10 (gather-core)
 - rule 27 (precheck-guard-first / WinRM 4단계)
 - rule 30 (integration)
-- rule 60 (security / NTLM 전송 / cert 검증 정책)
+- (cycle-011: rule 60 해제 — NTLM 전송 / cert 검증은 운영자 결정)

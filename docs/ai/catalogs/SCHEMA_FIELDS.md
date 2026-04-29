@@ -1,7 +1,7 @@
 # SCHEMA_FIELDS — server-exporter
 
 > sections.yml + field_dictionary.yml 카탈로그. rule 28 #1 측정 대상 (TTL 14일).
-> 실측 — 2026-04-28 (cycle-006 + full-sweep).
+> 실측 — 2026-04-29 (cycle-012: P3/P4/P5 +11 Nice 추가 후 갱신).
 
 ## 10 섹션 (sections.yml — 실측)
 
@@ -18,23 +18,30 @@
 | users | os | 로컬 시스템 사용자 계정 |
 | power | redfish | PSU 상태 / 전력 정보 |
 
-## Field Dictionary (실측 카운트, 2026-04-28)
+## Field Dictionary (실측 카운트, 2026-04-29)
 
 ```bash
 $ python3 -c "import yaml; from collections import Counter; \
     d=yaml.safe_load(open('schema/field_dictionary.yml')); \
     print(Counter(e.get('priority') for e in d['fields'].values()))"
-Counter({'must': 31, 'nice': 9, 'skip': 6})
+Counter({'must': 31, 'nice': 20, 'skip': 6})
 ```
 
 | 분류 | 카운트 | 의미 |
 |---|---|---|
 | Must | **31** | 모든 vendor baseline에 존재 필수 |
-| Nice | **9** | vendor-specific 허용 |
+| Nice | **20** | vendor-specific 허용 |
 | Skip | **6** | 의도적 미수집 |
-| **합계** | **46 entries** | YAML key 기준 (validate_field_dictionary.py) |
+| **합계** | **57 entries** | YAML key 기준 (validate_field_dictionary.py) |
 
-**[INFO]** 정본 분포는 cycle-006에서 users[] 6 항목 추가 후 **31 Must / 9 Nice / 6 Skip = 46 entries**. grep 기반 카운트는 헤더 주석 noise를 잡으므로 YAML 파싱 기반 (위 명령) 권장. 과거 stale 분포 (28/7/5, 29/8/?, etc.)는 갱신 이력에 기록.
+**[INFO]** cycle-012에서 P3/P4/P5 신 필드 11개 Nice 추가:
+- **P3 group summary (4)**: cpu/memory/storage/network.summary
+- **P4 NIC/HBA/IB (6)**: network.{adapters[], ports[], virtual_switches[], driver_map[]} + storage.{hbas[], infiniband[]}
+- **P5 runtime (1)**: system.runtime
+
+**[WARN]** 헤더 주석 + cycle-012 commit `8e536447` 메시지 표기 "Nice 21 / 58" 은 1건 over count — 실측은 **Nice 20 / 57** (P4 commit 메시지 7 → 6, storage.summary 갱신은 P3 group summary에 흡수). 본 catalog가 정본.
+
+**baseline 영향**: Nice 분류로 **baseline 회귀 영향 없음** (rule 13 R4 — baseline 갱신 보류, OPS-4 lab 회귀 후 별도 PR).
 
 ## 갱신 trigger (rule 28 #1)
 
@@ -63,6 +70,7 @@ python scripts/ai/hooks/output_schema_drift_check.py
 | 2026-04-27 | cycle-002에서 Must 28 → 29 정정 (잘못된 정정 — grep 헤더 noise) | 4b5ec30 |
 | 2026-04-28 | cycle-005에서 DRIFT-007 재정정: Must 28 / Nice 7 / Skip 5 (validate_field_dictionary.py 기준) | (cycle-005) |
 | 2026-04-28 | cycle-006에서 DRIFT-004 resolved: users 섹션 +6 추가 → **Must 31 / Nice 9 / Skip 6 = 46 entries** | (cycle-006) |
+| 2026-04-29 | cycle-012 P3/P4/P5 신 필드 +11 Nice → **Must 31 / Nice 20 / Skip 6 = 57 entries** | `8e536447` |
 
 ## 정본 reference
 

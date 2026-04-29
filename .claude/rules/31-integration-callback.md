@@ -55,5 +55,5 @@
 
 ## 관련
 
-- rule: `20-output-json-callback`, `60-security-and-secrets`, `80-ci-jenkins-policy`
+- rule: `20-output-json-callback`, `80-ci-jenkins-policy` (cycle-011: rule 60 보안 정책 해제됨)
 - 정본: commit 4ccc1d7

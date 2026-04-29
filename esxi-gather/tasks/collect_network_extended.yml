@@ -1,0 +1,160 @@
+---
+# esxi-gather/tasks/collect_network_extended.yml
+#
+# P4 (cycle 2026-04-29): ESXi 확장 네트워크 / 스토리지 어댑터 수집.
+# vmware_host_vmnic_info / vmware_host_vmhba_info / vmware_vswitch_info /
+# vmware_portgroup_info / vmware_vmkernel_info.
+#
+# best-effort: 일부 vCenter 권한/펌웨어에서 모듈 미지원 시 빈 결과.
+#
+# 출력 fragment sub-key:
+#   data.network.adapters[]         — vmnic (NIC HW)
+#   data.network.virtual_switches[] — vSwitch + portgroup
+#   data.network.vmkernels[]        — vmkernel adapter
+#   data.storage.hbas[]             — vmhba (FC / iSCSI / SAS)
+#   data.storage.infiniband[]       — port_type 기준 분리 (해당 시)
+
+- block:
+    - name: "esxi | extended | vmnic info"
+      community.vmware.vmware_host_vmnic_info:
+        hostname:       "{{ _e_ip }}"
+        username:       "{{ ansible_user }}"
+        password:       "{{ ansible_password }}"
+        validate_certs: false
+        esxi_hostname:  "{{ _e_ip }}"
+      register:    _e_vmnic
+      failed_when: false
+      no_log: true
+
+    - name: "esxi | extended | vmhba info"
+      community.vmware.vmware_host_vmhba_info:
+        hostname:       "{{ _e_ip }}"
+        username:       "{{ ansible_user }}"
+        password:       "{{ ansible_password }}"
+        validate_certs: false
+        esxi_hostname:  "{{ _e_ip }}"
+      register:    _e_vmhba
+      failed_when: false
+      no_log: true
+
+    - name: "esxi | extended | vswitch info"
+      community.vmware.vmware_vswitch_info:
+        hostname:       "{{ _e_ip }}"
+        username:       "{{ ansible_user }}"
+        password:       "{{ ansible_password }}"
+        validate_certs: false
+        esxi_hostname:  "{{ _e_ip }}"
+      register:    _e_vswitch
+      failed_when: false
+      no_log: true
+
+    - name: "esxi | extended | portgroup info"
+      community.vmware.vmware_portgroup_info:
+        hostname:       "{{ _e_ip }}"
+        username:       "{{ ansible_user }}"
+        password:       "{{ ansible_password }}"
+        validate_certs: false
+        esxi_hostname:  "{{ _e_ip }}"
+      register:    _e_portgroup
+      failed_when: false
+      no_log: true
+
+    - name: "esxi | extended | normalize"
+      ansible.builtin.set_fact:
+        _e_ext_adapters: >-
+          {%- set out = [] -%}
+          {%- set vmnics = (_e_vmnic.hosts_vmnics_info | default({})).get(_e_ip, {}).get('all', []) -%}
+          {%- for n in vmnics -%}
+            {%- set _ = out.append({
+              'name':         n.device | default(none),
+              'driver':       n.driver | default(none),
+              'mac':          n.mac    | default(none),
+              'link_status':  n.status | default(none),
+              'speed_mbps':   n.actual_speed | default(none),
+              'duplex':       n.actual_duplex | default(none),
+              'pci':          n.pci    | default(none),
+            }) -%}
+          {%- endfor -%}
+          {{ out }}
+        _e_ext_hbas: >-
+          {%- set out = [] -%}
+          {%- set ib  = [] -%}
+          {%- set vmhbas = (_e_vmhba.hosts_vmhbas_info | default({})).get(_e_ip, {}).get('all', []) -%}
+          {%- for h in vmhbas -%}
+            {%- set adapter_type = (h.adapter_type | default('')) | lower -%}
+            {%- set is_fc = 'fc' in adapter_type or 'fibrechannel' in adapter_type -%}
+            {%- set is_ib = 'infiniband' in adapter_type -%}
+            {%- set entry = {
+              'name':         h.device     | default(none),
+              'driver':       h.driver     | default(none),
+              'model':        h.model      | default(none),
+              'adapter_type': h.adapter_type | default(none),
+              'link_status':  h.status     | default(none),
+              'wwpn':         h.port_world_wide_name | default(none),
+              'wwnn':         h.node_world_wide_name | default(none),
+              'pci':          h.pci_slot   | default(none),
+            } -%}
+            {%- if is_ib -%}
+              {%- set _ = ib.append(entry) -%}
+            {%- else -%}
+              {%- set _ = out.append(entry) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ {'hbas': out, 'infiniband': ib} }}
+        _e_ext_vswitches: >-
+          {%- set out = [] -%}
+          {%- set vsws = (_e_vswitch.hosts_vswitch_info | default({})).get(_e_ip, []) -%}
+          {%- for v in vsws -%}
+            {%- set _ = out.append({
+              'name':       v.switch | default(none),
+              'num_ports':  v.num_ports | default(none),
+              'mtu':        v.mtu | default(none),
+              'pnics':      v.pnics | default([]),
+              'portgroups': v.portgroups | default([]),
+            }) -%}
+          {%- endfor -%}
+          {{ out }}
+        _e_ext_portgroups: >-
+          {{ (_e_portgroup.hosts_portgroup_info | default({})).get(_e_ip, []) }}
+      no_log: true
+
+    - name: "esxi | extended | merge fragment"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          network:
+            adapters:         "{{ _e_ext_adapters | default([]) }}"
+            virtual_switches: "{{ _e_ext_vswitches | default([]) }}"
+            portgroups:       "{{ _e_ext_portgroups | default([]) }}"
+          storage:
+            hbas:             "{{ (_e_ext_hbas | default({'hbas':[]})).hbas }}"
+            infiniband:       "{{ (_e_ext_hbas | default({'infiniband':[]})).infiniband }}"
+        _sections_supported_fragment: ['network', 'storage']
+        _sections_collected_fragment: >-
+          {{ (['network'] if (_e_ext_adapters | length > 0 or _e_ext_vswitches | length > 0) else [])
+             + (['storage'] if ((_e_ext_hbas | default({'hbas':[]})).hbas | length > 0) else []) }}
+        _sections_failed_fragment:    []
+        _errors_fragment:             []
+      no_log: true
+  rescue:
+    - name: "esxi | extended | rescue (best-effort skip)"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          network:
+            adapters:         []
+            virtual_switches: []
+            portgroups:       []
+          storage:
+            hbas:             []
+            infiniband:       []
+        _sections_supported_fragment: []
+        _sections_collected_fragment: []
+        _sections_failed_fragment:    []
+        _errors_fragment:
+          - section: esxi_network_extended
+            message: "vmnic/vmhba/vSwitch/portgroup 수집 실패 (best-effort skip)"
+            detail:  "{{ ansible_failed_result.msg | default('') }}"
+      no_log: true
+
+- name: "esxi | extended | merge fragment"
+  ansible.builtin.include_tasks:
+    file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/merge_fragment.yml"

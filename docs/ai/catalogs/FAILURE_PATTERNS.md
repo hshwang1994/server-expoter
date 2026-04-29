@@ -30,7 +30,7 @@ Plan 1+2 도입 시점에는 server-exporter 자체 사례 미발견.
 1. **Fragment 침범** (rule 22): gather가 다른 섹션의 fragment 변수 set_fact
 2. **Vendor 하드코딩** (rule 12): common 코드에 "Dell" 등 직접 분기
 3. **외부 계약 drift** (rule 96): 펌웨어 업그레이드로 Redfish path 변경 → adapter origin 주석 stale
-4. **Vault 누설** (rule 60): Jenkins console log에 BMC password 노출
+4. **Vault 누설** (운영 권장 — cycle-011: rule 60 해제, cycle-012 vault encrypt 채택): Jenkins console log에 BMC password 노출
 5. **Schema 3종 일부만 갱신** (rule 13): sections.yml만 수정하고 field_dictionary / baseline 미갱신
 6. **adapter score 동률** (rule 95 R1 #4): 의도와 다른 adapter 선택
 7. **Linux raw fallback 미고려** (rule 10 R4): Python 3.6 환경에서 setup 모듈 가정

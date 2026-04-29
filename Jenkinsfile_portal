@@ -160,10 +160,10 @@ pipeline {
 
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         // P0: Jenkins credentials store 의 Secret File 등록 vault password
-                        //     credentialsId='ansible-vault-password' (docs/01_jenkins-setup.md)
+                        //     credentialsId='server-gather-vault-password' (docs/01_jenkins-setup.md)
                         withCredentials([
                             file(
-                                credentialsId: 'ansible-vault-password',
+                                credentialsId: 'server-gather-vault-password',
                                 variable     : 'VAULT_PASSWORD_FILE',
                             ),
                         ]) {

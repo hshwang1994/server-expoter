@@ -65,7 +65,7 @@ ctx = ssl.create_default_context()
 ctx.minimum_version = ssl.TLSVersion.TLSv1  # 구 펌웨어 지원
 ```
 
-(rule 60 + rule 96 — 사용자 명시 + adapter origin 주석 / drift 기록)
+(rule 96 — adapter origin 주석 / drift 기록 / cycle-011: rule 60 해제, TLS 정책 운영자 결정)
 
 ### Session-based auth (필요 시 추가)
 
@@ -94,7 +94,7 @@ req.add_header('X-Auth-Token', token)
 
 - **rule 10 R2 (stdlib 우선)** — 핵심 결정 근거
 - rule 30 (integration-redfish-vmware-os)
-- rule 60 (security — TLS verify 정책)
+- (cycle-011: rule 60 해제 — TLS verify 정책은 운영자 결정)
 - rule 96 (external-contract-integrity)
 - 정본: `redfish-gather/library/redfish_gather.py`
 - reference: `docs/ai/references/redfish/redfish-spec.md`

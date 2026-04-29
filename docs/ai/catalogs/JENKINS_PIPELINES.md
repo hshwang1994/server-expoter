@@ -1,7 +1,7 @@
 # JENKINS_PIPELINES — server-exporter
 
 > Jenkins multi-pipeline 3종 카탈로그. rule 28 #4-5 측정 대상 (TTL 7-14일).
-> 실측 (`grep stage Jenkinsfile*`) — 2026-04-27.
+> 실측 (`grep stage Jenkinsfile*`) — 2026-04-29 (cycle-012 vault binding 반영).
 
 ## 3종 Pipeline 4-Stage 매트릭스 (실측)
 
@@ -35,6 +35,27 @@
 
 `Ingest`(Grafana)와 `Callback`(Portal)은 망 분리 정책에 따라 **master에서 실행**.
 
+## vault binding (cycle-012 추가)
+
+Jenkins credential `server-gather-vault-password` (type: **Secret File**) 사용 — ansible-vault password 파일을 안전하게 주입.
+
+| 항목 | 값 |
+|---|---|
+| credential ID | `server-gather-vault-password` |
+| credential type | Secret File |
+| Jenkinsfile 패턴 | `withCredentials([file(credentialsId: 'server-gather-vault-password', variable: 'VAULT_PASSWORD_FILE')]) { ... }` |
+| ansible-playbook 인자 | `--vault-password-file=${VAULT_PASSWORD_FILE}` |
+| 적용 stage | Stage 2 (Gather) — 3종 Jenkinsfile 모두 |
+
+**위치 실측 (2026-04-29)**:
+- `Jenkinsfile:148-161` (Stage 2 Gather, ansiblePlaybook extras 인자)
+- `Jenkinsfile_grafana:153-165` (Stage 2 Gather, sh ansible-playbook)
+- `Jenkinsfile_portal:164-176` (Stage 2 Gather, sh ansible-playbook)
+
+**vault encrypt 상태 (cycle-012)**: 8 vault 파일 (linux/windows/esxi + redfish/{dell,hpe,lenovo,supermicro,cisco}) 모두 ansible-vault AES256 encrypt 완료. 평문 password 더 이상 commit 안 됨.
+
+**참조**: `docs/01_jenkins-setup.md` (credential 등록 절차).
+
 ## cron 인벤토리 (rule 28 #5)
 
 각 Jenkinsfile의 `triggers` 블록 — 실 환경 (Jenkins controller)에서 측정. 본 catalog에 갱신 시 사용자 명시 승인 (rule 80 + 92 R5).
@@ -45,7 +66,7 @@ Jenkinsfile_portal의 Stage 4 Callback이 호출자에게 결과 통지:
 - 정규화: `url.strip().rstrip('/')` (commit 4ccc1d7 fix)
 - Method: POST
 - Body: callback_plugins/json_only.py JSON envelope (rule 20)
-- 보안: URL에 user:pass 형식 금지 (path/token만, rule 60)
+- 보안 권장: URL에 user:pass 형식 금지 (path/token만 — cycle-011 rule 60 해제 후 운영 권장 수준)
 
 ## 갱신 trigger (rule 28 #4 / #5)
 
@@ -71,4 +92,6 @@ grep -E "callback_url|triggers|cron" Jenkinsfile*
 ## 후속 작업 (사용자 결정)
 
 - [x] rule 80 R1-A에 pipeline별 Stage 4 차이 명시 (cycle-006, 2026-04-27 commit `211a0c7`) — closed 2026-04-28 full-sweep
+- [x] vault encrypt + credential `server-gather-vault-password` 등록 (cycle-012, commit `29fee49a`)
 - [ ] Jenkins console에서 cron 표현식 실측 + 본 catalog 갱신
+- [ ] OPS-1 빌드 시범 1회 후 envelope `meta.auth.fallback_used` 값 추가 검증

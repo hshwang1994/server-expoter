@@ -1,0 +1,150 @@
+---
+# os-gather/tasks/windows/gather_runtime.yml
+#
+# P5 sub-phase b (cycle 2026-04-29): Windows 운영 런타임 정보.
+# w32tm / Get-NetFirewallProfile / Get-NetTCPConnection / Win32_PageFile.
+# best-effort: 일부 cmdlet 미설치 / 권한 부족 시 빈 값.
+#
+# 출력 sub-key: data.system.runtime
+
+- block:
+    - name: "windows | runtime | timezone + NTP"
+      ansible.windows.win_shell: |
+        $tz = (Get-TimeZone).Id
+        $svc = Get-Service -Name W32Time -ErrorAction SilentlyContinue
+        $svc_state = if ($svc) { $svc.Status.ToString() } else { "" }
+        $sync = ""
+        try {
+          $w32tm = w32tm /query /status 2>$null
+          if ($w32tm) {
+            $sync = ($w32tm | Select-String "Last Successful Sync Time" | ForEach-Object { ($_ -split ":\s*", 2)[1] }) -join ""
+          }
+        } catch {}
+        @{
+          timezone     = $tz
+          w32time_state = $svc_state
+          last_sync    = $sync
+        } | ConvertTo-Json -Compress
+      register:    _w_rt_ntp
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "windows | runtime | firewall profiles"
+      ansible.windows.win_shell: |
+        if (Get-Command Get-NetFirewallProfile -ErrorAction SilentlyContinue) {
+          Get-NetFirewallProfile | ForEach-Object {
+            [PSCustomObject]@{
+              profile = $_.Name
+              enabled = [bool]$_.Enabled
+              default_inbound  = [string]$_.DefaultInboundAction
+              default_outbound = [string]$_.DefaultOutboundAction
+            } | ConvertTo-Json -Compress
+          }
+        }
+      register:    _w_rt_fw
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "windows | runtime | listening TCP ports"
+      ansible.windows.win_shell: |
+        if (Get-Command Get-NetTCPConnection -ErrorAction SilentlyContinue) {
+          Get-NetTCPConnection -State Listen |
+            Select-Object -ExpandProperty LocalPort -Unique |
+            Sort-Object |
+            Select-Object -First 50 |
+            ForEach-Object { $_ }
+        }
+      register:    _w_rt_ports
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "windows | runtime | pagefile (swap)"
+      ansible.windows.win_shell: |
+        Get-CimInstance Win32_PageFileUsage -ErrorAction SilentlyContinue | ForEach-Object {
+          [PSCustomObject]@{
+            name        = $_.Name
+            size_mb     = [int]$_.AllocatedBaseSize
+            used_mb     = [int]$_.CurrentUsage
+            peak_mb     = [int]$_.PeakUsage
+          } | ConvertTo-Json -Compress
+        }
+      register:    _w_rt_pagefile
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "windows | runtime | parse + build fragment"
+      ansible.builtin.set_fact:
+        _w_rt_ntp_obj: >-
+          {{ (_w_rt_ntp.stdout | default('') | trim | from_json)
+             if (_w_rt_ntp.stdout | default('') | trim | length > 0)
+             else {} }}
+        _w_rt_fw_list: >-
+          {%- set out = [] -%}
+          {%- for line in (_w_rt_fw.stdout_lines | default([])) -%}
+            {%- if line | trim -%}
+              {%- set _ = out.append(line | from_json) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+        _w_rt_ports_list: >-
+          {%- set out = [] -%}
+          {%- for line in (_w_rt_ports.stdout_lines | default([])) -%}
+            {%- if line | trim -%}
+              {%- set _ = out.append(line | trim | int) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+        _w_rt_pagefile_list: >-
+          {%- set out = [] -%}
+          {%- for line in (_w_rt_pagefile.stdout_lines | default([])) -%}
+            {%- if line | trim -%}
+              {%- set _ = out.append(line | from_json) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+      no_log: true
+
+    - name: "windows | runtime | merge fragment"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          system:
+            runtime:
+              timezone:        "{{ _w_rt_ntp_obj.timezone | default(none) }}"
+              ntp_active:      "{{ (_w_rt_ntp_obj.w32time_state | default('')) | lower in ['running','active'] }}"
+              ntp_last_sync:   "{{ _w_rt_ntp_obj.last_sync | default(none) }}"
+              firewall_profiles: "{{ _w_rt_fw_list }}"
+              listening_ports: "{{ _w_rt_ports_list }}"
+              pagefiles:       "{{ _w_rt_pagefile_list }}"
+        _sections_supported_fragment: ['system']
+        _sections_collected_fragment: ['system']
+        _sections_failed_fragment:    []
+        _errors_fragment:             []
+      no_log: true
+  rescue:
+    - name: "windows | runtime | rescue (best-effort skip)"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          system:
+            runtime:
+              timezone:          null
+              ntp_active:        null
+              ntp_last_sync:     null
+              firewall_profiles: []
+              listening_ports:   []
+              pagefiles:         []
+        _sections_supported_fragment: ['system']
+        _sections_collected_fragment: []
+        _sections_failed_fragment:    ['system_runtime']
+        _errors_fragment:
+          - section: windows_runtime
+            message: "Windows runtime 정보 수집 실패 (best-effort skip)"
+            detail:  "{{ ansible_failed_result.msg | default('') }}"
+      no_log: true
+
+- name: "windows | runtime | merge fragment"
+  ansible.builtin.include_tasks:
+    file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/merge_fragment.yml"

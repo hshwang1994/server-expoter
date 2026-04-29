@@ -120,7 +120,7 @@ pipeline {
 
         // ── 2. Ansible 실행 ───────────────────────────────────────────────────
         // P0: vault password 는 Jenkins credentials store 의 Secret File 에 등록
-        //     credentialsId='ansible-vault-password' (사용자 결정 #1, AI 추천 = 그대로)
+        //     credentialsId='server-gather-vault-password' (사용자 결정 cycle-012)
         //     등록 절차는 docs/01_jenkins-setup.md 참고.
         stage('Gather') {
             steps {
@@ -147,7 +147,7 @@ pipeline {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         withCredentials([
                             file(
-                                credentialsId: 'ansible-vault-password',
+                                credentialsId: 'server-gather-vault-password',
                                 variable     : 'VAULT_PASSWORD_FILE',
                             ),
                         ]) {

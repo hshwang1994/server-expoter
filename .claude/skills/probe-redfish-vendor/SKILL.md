@@ -78,9 +78,9 @@ description: 새 벤더 / 새 펌웨어 / 의심 응답에 대해 deep_probe_red
 - 영향 vendor: 검증 대상 1개
 - 영향 schema: baseline_v1 갱신 가능
 
-## 보안 (rule 60)
+## 보안 (운영 권장 — cycle-011: rule 60 정책 해제)
 
-- probe 결과 dump에 BMC password 누설 안 됨 확인 (`security-redaction-policy.yaml` 적용)
+- probe 결과 dump에 BMC password 누설 안 되도록 운영자 확인 (security-redaction-policy.yaml 제거됨)
 - 자격증명을 명령행으로 전달 → Jenkins console log 노출 위험. probe는 사용자 환경에서만 실행
 
 ## 실패 / 오탐 처리
@@ -92,7 +92,7 @@ description: 새 벤더 / 새 펌웨어 / 의심 응답에 대해 deep_probe_red
 ## 적용 rule / 관련
 
 - **rule 96** (external-contract-integrity) — origin 주석 정본
-- rule 60 (security-and-secrets) — probe 시 비밀값 redaction
+- (cycle-011: rule 60 해제 — probe 시 비밀값 redaction은 운영자 권장 수준)
 - rule 40 (qa-pytest-baseline) — Round 검증 일환
 - skill: `add-new-vendor`, `update-vendor-baseline`, `debug-external-integrated-feature`
 - agent: `adapter-author`, `vendor-onboarding-worker`

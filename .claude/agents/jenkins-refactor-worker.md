@@ -18,7 +18,7 @@ model: sonnet
 
 ## 자가 검수 금지
 
-`jenkinsfile-engineer` + `release-manager` + `security-reviewer` 위임.
+`jenkinsfile-engineer` + `release-manager` 위임. (cycle-011: security-reviewer 제거)
 
 ## 분류
 

@@ -1,6 +1,8 @@
 # Security Policy — server-exporter
 
-> rule 60 (security-and-secrets) 정책 정본. `.claude/policy/security-redaction-policy.yaml`과 정합.
+> **[DEPRECATED]** cycle-011 (2026-04-28) 사용자 명시 결정으로 **rule 60 + 보안 정책 자체 해제**. 본 문서는 cycle-011 이전 정책의 역사 reference로 보존. 현재 보안은 cycle-012 vault encrypt + 운영자 권장 수준 (rule 60 의무 없음).
+>
+> 활성 정책: cycle-011 ADR (`docs/ai/decisions/ADR-2026-04-28-security-policy-removal.md`) + cycle-012 vault encrypt ADR (`docs/ai/decisions/ADR-2026-04-29-vault-encrypt-adoption.md`).
 
 ## 1. 비밀값 관리
 

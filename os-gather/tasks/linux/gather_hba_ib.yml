@@ -1,0 +1,164 @@
+---
+# os-gather/tasks/linux/gather_hba_ib.yml
+#
+# P4 (cycle 2026-04-29): Linux FC HBA + InfiniBand 정보 수집.
+# raw 명령으로 /sys/class/fc_host + /sys/class/infiniband 파싱.
+# 미설치 환경에서는 빈 list (graceful degradation, errors 기록 없음).
+#
+# 출력 sub-key:
+#   data.storage.hbas[]       — FC HBA (WWPN, link state, speed)
+#   data.storage.infiniband[] — InfiniBand 어댑터 (node_guid, link state, rate)
+#   data.network.driver_map   — interface → driver 매핑 (P5 NIC 깊이)
+
+- block:
+    - name: "linux | hba_ib | enumerate fc_host"
+      ansible.builtin.raw: |
+        if [ -d /sys/class/fc_host ]; then
+          for h in /sys/class/fc_host/host*; do
+            [ -d "$h" ] || continue
+            host=$(basename "$h")
+            wwpn=$(cat "$h/port_name" 2>/dev/null)
+            sym=$(cat "$h/symbolic_name" 2>/dev/null)
+            state=$(cat "$h/port_state" 2>/dev/null)
+            speed=$(cat "$h/speed" 2>/dev/null)
+            echo "FC|$host|$wwpn|$sym|$state|$speed"
+          done
+        fi
+      register: _l_fc_raw
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "linux | hba_ib | enumerate infiniband"
+      ansible.builtin.raw: |
+        if [ -d /sys/class/infiniband ]; then
+          for ib in /sys/class/infiniband/*; do
+            [ -d "$ib" ] || continue
+            adp=$(basename "$ib")
+            guid=$(cat "$ib/node_guid" 2>/dev/null)
+            for p in "$ib"/ports/*; do
+              [ -d "$p" ] || continue
+              port=$(basename "$p")
+              state=$(awk '{print $2}' "$p/state" 2>/dev/null)
+              rate=$(awk '{print $1" "$2}' "$p/rate" 2>/dev/null)
+              echo "IB|$adp|$port|$guid|$state|$rate"
+            done
+          done
+        fi
+      register: _l_ib_raw
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "linux | hba_ib | NIC driver map"
+      ansible.builtin.raw: |
+        if [ -d /sys/class/net ]; then
+          for n in /sys/class/net/*; do
+            [ -d "$n" ] || continue
+            iface=$(basename "$n")
+            [ "$iface" = "lo" ] && continue
+            drv=""
+            if [ -L "$n/device/driver" ]; then
+              drv=$(basename "$(readlink "$n/device/driver")" 2>/dev/null)
+            fi
+            vlan=""
+            if [ -f "/proc/net/vlan/$iface" ]; then
+              vlan=$(awk -F'[ |]' '/VID:/ {print $2; exit}' "/proc/net/vlan/$iface" 2>/dev/null)
+            fi
+            bond_master=""
+            if [ -f "$n/master/uevent" ]; then
+              bond_master=$(basename "$(readlink "$n/master")" 2>/dev/null)
+            fi
+            echo "NIC|$iface|$drv|$vlan|$bond_master"
+          done
+        fi
+      register: _l_nicdrv_raw
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "linux | hba_ib | parse + build fragment"
+      ansible.builtin.set_fact:
+        _l_hbas_list: >-
+          {%- set out = [] -%}
+          {%- for line in (_l_fc_raw.stdout_lines | default([])) -%}
+            {%- set parts = line.split('|') -%}
+            {%- if parts | length >= 6 and parts[0] == 'FC' -%}
+              {%- set _ = out.append({
+                'host':        parts[1],
+                'wwpn':        parts[2] | default(none),
+                'model':       parts[3] | default(none),
+                'link_status': parts[4] | default(none),
+                'speed':       parts[5] | default(none),
+                'port_type':   'FibreChannel',
+              }) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+        _l_ib_list: >-
+          {%- set out = [] -%}
+          {%- for line in (_l_ib_raw.stdout_lines | default([])) -%}
+            {%- set parts = line.split('|') -%}
+            {%- if parts | length >= 6 and parts[0] == 'IB' -%}
+              {%- set _ = out.append({
+                'adapter':     parts[1],
+                'port':        parts[2],
+                'node_guid':   parts[3] | default(none),
+                'link_status': parts[4] | default(none),
+                'rate':        parts[5] | default(none),
+              }) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+        _l_nic_drivers: >-
+          {%- set out = [] -%}
+          {%- for line in (_l_nicdrv_raw.stdout_lines | default([])) -%}
+            {%- set parts = line.split('|') -%}
+            {%- if parts | length >= 5 and parts[0] == 'NIC' -%}
+              {%- set _ = out.append({
+                'name':        parts[1],
+                'driver':      parts[2] if parts[2] | length > 0 else none,
+                'vlan_id':     (parts[3] | int) if (parts[3] | length > 0 and parts[3] | regex_search('^[0-9]+$')) else none,
+                'bond_master': parts[4] if parts[4] | length > 0 else none,
+              }) -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+      no_log: true
+
+    - name: "linux | hba_ib | merge into storage/network fragments"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          storage:
+            hbas:       "{{ _l_hbas_list }}"
+            infiniband: "{{ _l_ib_list }}"
+          network:
+            driver_map: "{{ _l_nic_drivers }}"
+        _sections_supported_fragment: ['storage', 'network']
+        _sections_collected_fragment: >-
+          {{ (['storage'] if _l_hbas_list or _l_ib_list else [])
+             + (['network'] if _l_nic_drivers else []) }}
+        _sections_failed_fragment:    []
+        _errors_fragment:             []
+      no_log: true
+  rescue:
+    - name: "linux | hba_ib | rescue (best-effort skip)"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          storage:
+            hbas:       []
+            infiniband: []
+          network:
+            driver_map: []
+        _sections_supported_fragment: []
+        _sections_collected_fragment: []
+        _sections_failed_fragment:    []
+        _errors_fragment:
+          - section: linux_hba_ib
+            message: "fc_host / infiniband / driver_map 수집 실패 (best-effort skip)"
+            detail:  "{{ ansible_failed_result.msg | default('') }}"
+      no_log: true
+
+- name: "linux | hba_ib | merge fragment"
+  ansible.builtin.include_tasks:
+    file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/merge_fragment.yml"

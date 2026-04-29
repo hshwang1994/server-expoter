@@ -40,7 +40,7 @@
 #   2. 운영자: 출력 JSON의 특정 필드가 무엇인지 이 파일에서 검색
 #   3. 개발자: 새 필드 추가 시 코드 반영 후 이 파일에 설명 추가
 #
-# 등록 현황: Must 31개 / Nice 9개 / Skip 6개 = 46 entries (실측 2026-04-28 cycle-006, users 섹션 +6 추가)
+# 등록 현황: Must 31 / Nice 20 / Skip 6 = 57 entries (cycle 2026-04-29: P3/P4/P5 +11 nice — 실측 정정 cycle-013)
 #
 # 분류:
 #   priority: must    — 해석이 반드시 필요한 필드 (혼동 가능성 높음)
@@ -746,3 +746,136 @@ fields:
     channel: [redfish]
     help_ko: "펌웨어 업데이트 가능 여부."
     help_en: "Whether firmware is updateable."
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # P3 (cycle 2026-04-29): Group Summary — 단위용량 × 수량 × 그룹총량
+  # ──────────────────────────────────────────────────────────────────────────
+
+  "cpu.summary":
+    type: "object"
+    priority: nice
+    channel: [redfish, os, esxi]
+    help_ko: >-
+      CPU 그룹 summary. groups[]={model, sockets, cores_per_socket, total_cores}.
+      같은 model 의 socket 들을 합쳐 보여준다 — 운영 가시성용.
+    help_en: >-
+      CPU group summary. groups[]={model, sockets, cores_per_socket, total_cores}.
+      Aggregates sockets sharing the same model for operational visibility.
+
+  "memory.summary":
+    type: "object"
+    priority: nice
+    channel: [redfish, os, esxi]
+    help_ko: >-
+      메모리 그룹 summary. groups[]={unit_capacity_gb, type, quantity, group_total_gb}
+      + grand_total_gb. 같은 단위 용량 DIMM 의 수량 + 총량 + 전체 총량.
+    help_en: >-
+      Memory group summary. groups[]={unit_capacity_gb, type, quantity, group_total_gb}
+      + grand_total_gb. Quantity, group total, and grand total of DIMMs by capacity.
+
+  "storage.summary":
+    type: "object"
+    priority: nice
+    channel: [redfish, os, esxi]
+    help_ko: >-
+      디스크 그룹 summary. groups[]={unit_capacity_gb, media_type, protocol, quantity,
+      group_total_gb} + grand_total_gb. 같은 단위 용량/미디어 디스크의 수량 + 총량.
+    help_en: >-
+      Disk group summary. groups[]={unit_capacity_gb, media_type, protocol, quantity,
+      group_total_gb} + grand_total_gb. Quantity and totals by capacity/media.
+
+  "network.summary":
+    type: "object"
+    priority: nice
+    channel: [redfish, os, esxi]
+    help_ko: >-
+      NIC 그룹 summary. groups[]={speed_mbps, link_type, quantity, link_up_count}.
+      같은 대역폭 NIC 의 수량 + link up 개수.
+    help_en: >-
+      NIC group summary. groups[]={speed_mbps, link_type, quantity, link_up_count}.
+      Quantity of NICs and link-up count grouped by speed.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # P4 (cycle 2026-04-29): NIC/HBA/InfiniBand 깊이
+  # ──────────────────────────────────────────────────────────────────────────
+
+  "network.adapters[]":
+    type: "object[]"
+    priority: nice
+    channel: [redfish, esxi]
+    help_ko: >-
+      NIC 카드 (NetworkAdapters) 정보. id/name/manufacturer/model/part_number/
+      serial_number/firmware_version. ESXi 의 vmnic 도 포함.
+    help_en: >-
+      NIC card (NetworkAdapters) info. id/name/manufacturer/model/part_number/
+      serial_number/firmware_version. Includes ESXi vmnic.
+
+  "network.ports[]":
+    type: "object[]"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      NIC port-level 정보. adapter_id/port_id/link_status/current_link_speed_mbps/
+      port_type (Ethernet/FibreChannel/InfiniBand).
+    help_en: >-
+      NIC port-level info. adapter_id/port_id/link_status/current_link_speed_mbps/
+      port_type (Ethernet/FibreChannel/InfiniBand).
+
+  "network.virtual_switches[]":
+    type: "object[]"
+    priority: nice
+    channel: [esxi]
+    help_ko: "ESXi vSwitch 목록 (name/num_ports/mtu/pnics/portgroups)."
+    help_en: "ESXi vSwitch list (name/num_ports/mtu/pnics/portgroups)."
+
+  "network.driver_map[]":
+    type: "object[]"
+    priority: nice
+    channel: [os]
+    help_ko: >-
+      Linux interface → driver / VLAN ID / bond master 매핑.
+      /sys/class/net 기반 raw fallback.
+    help_en: >-
+      Linux interface → driver / VLAN id / bond master mapping.
+      Sourced from /sys/class/net (raw fallback).
+
+  "storage.hbas[]":
+    type: "object[]"
+    priority: nice
+    channel: [redfish, os, esxi]
+    help_ko: >-
+      FC HBA 목록. wwpn/link_status/link_speed_gbps/port_type. Linux 는
+      /sys/class/fc_host, Windows 는 Get-InitiatorPort, ESXi 는 vmware_host_vmhba_info,
+      Redfish 는 NetworkPorts PortType=FibreChannel 분류.
+    help_en: >-
+      FC HBA list. wwpn/link_status/link_speed_gbps/port_type. Sources:
+      Linux=/sys/class/fc_host, Windows=Get-InitiatorPort, ESXi=vmware_host_vmhba_info,
+      Redfish=NetworkPorts PortType=FibreChannel classification.
+
+  "storage.infiniband[]":
+    type: "object[]"
+    priority: nice
+    channel: [redfish, os, esxi]
+    help_ko: >-
+      InfiniBand 어댑터 목록. node_guid/link_status/rate. 벤더/펌웨어 노출
+      여부에 따라 빈 list 가능 (best-effort).
+    help_en: >-
+      InfiniBand adapter list. node_guid/link_status/rate. May be empty depending
+      on vendor/firmware exposure (best-effort).
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # P5 (cycle 2026-04-29): 운영 런타임 (NTP/firewall/listening ports/swap)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  "system.runtime":
+    type: "object"
+    priority: nice
+    channel: [os]
+    help_ko: >-
+      OS 운영 런타임 정보. timezone, ntp_active/synchronized, firewall_tool/state,
+      listening_ports, swap_total/used/free (Linux) 또는 pagefiles[] (Windows).
+      best-effort: 수집 불가 시 null/[].
+    help_en: >-
+      OS runtime info. timezone, ntp_active/synchronized, firewall_tool/state,
+      listening_ports, swap_total/used/free (Linux) or pagefiles[] (Windows).
+      Best-effort: null/[] when unavailable.

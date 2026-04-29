@@ -88,7 +88,17 @@
       "logical_threads": 128,
       "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
       "max_speed_mhz": 3200,
-      "architecture": null
+      "architecture": null,
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
+            "sockets": 2,
+            "cores_per_socket": 32,
+            "total_cores": 64
+          }
+        ]
+      }
     },
     "memory": {
       "total_mb": 524288,
@@ -96,6 +106,12 @@
       "installed_mb": 524288,
       "visible_mb": null,
       "free_mb": null,
+      "summary": {
+        "total_capacity_mib": 524288,
+        "module_count": 16,
+        "module_types": ["DDR4"],
+        "speeds_mhz": [3200]
+      },
       "slots": [
         {
           "id": "1",
@@ -159,7 +175,24 @@
           "state": "Enabled",
           "boot_volume": null
         }
-      ]
+      ],
+      "hbas": [
+        {
+          "id": "HBA-Slot5",
+          "vendor": "Broadcom",
+          "model": "LSI SAS3408",
+          "firmware_version": "16.00.10.00",
+          "ports": 8,
+          "health": "OK"
+        }
+      ],
+      "infiniband": [],
+      "summary": {
+        "physical_disk_count": 1,
+        "logical_volume_count": 1,
+        "total_capacity_mb": 1831420,
+        "media_types": ["SSD"]
+      }
     },
     "network": {
       "dns_servers": [],
@@ -176,7 +209,35 @@
           "is_primary": false,
           "addresses": []
         }
-      ]
+      ],
+      "adapters": [
+        {
+          "id": "NetAdapter-1",
+          "vendor": "Intel",
+          "model": "X710-DA2",
+          "firmware_version": "8.50",
+          "port_count": 2,
+          "health": "OK"
+        }
+      ],
+      "ports": [
+        {
+          "id": "Port-1",
+          "adapter_id": "NetAdapter-1",
+          "mac": "6C:FE:54:3C:EC:90",
+          "speed_mbps": 10000,
+          "link_status": "up",
+          "media_type": "SFP+"
+        }
+      ],
+      "virtual_switches": [],
+      "driver_map": [],
+      "summary": {
+        "interface_count": 1,
+        "adapter_count": 1,
+        "total_port_count": 2,
+        "primary_interface_id": null
+      }
     },
     "users": [],
     "firmware": [

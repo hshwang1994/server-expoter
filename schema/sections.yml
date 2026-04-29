@@ -46,7 +46,7 @@ sections:
   storage:
     key: storage
     display_name: "스토리지 정보"
-    description: "파일시스템, 물리 디스크, 컨트롤러, 데이터스토어, 논리 볼륨"
+    description: "파일시스템, 물리 디스크, 컨트롤러, 데이터스토어, 논리 볼륨, HBA, InfiniBand"
     channels: [os, esxi, redfish]
     empty_value:
       filesystems: []
@@ -54,16 +54,29 @@ sections:
       datastores: []
       controllers: []
       logical_volumes: []
+      # P4 (cycle 2026-04-29): NIC/HBA/InfiniBand 깊이
+      hbas: []
+      infiniband: []
+      # P3 (cycle 2026-04-29): group summary
+      summary: { groups: [], grand_total_gb: 0 }
 
   network:
     key: network
     display_name: "네트워크 정보"
-    description: "인터페이스, IP 주소, DNS, 게이트웨이"
+    description: "인터페이스, IP 주소, DNS, 게이트웨이, NIC 카드 / port-level / vSwitch"
     channels: [os, esxi, redfish]
     empty_value:
       dns_servers: []
       default_gateways: []
       interfaces: []
+      # P4 (cycle 2026-04-29): NIC 카드 / port-level / vSwitch / driver-map
+      adapters: []
+      ports: []
+      virtual_switches: []
+      portgroups: []
+      driver_map: []
+      # P3 (cycle 2026-04-29): group summary
+      summary: { groups: [] }
 
   firmware:
     key: firmware

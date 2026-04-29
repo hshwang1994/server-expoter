@@ -121,7 +121,7 @@ server-exporter는 OEM 처리를 `redfish-gather/tasks/vendors/{vendor}/`에서.
 ## Best Practices for server-exporter
 
 1. **무인증 detect 우선**: 인증 정보 vault 로드 전 ServiceRoot로 vendor 결정 (rule 27)
-2. **HTTPS verify**: 자체 서명 환경 → `verify=False` + 코드 주석 명시 (rule 60)
+2. **HTTPS verify**: 자체 서명 환경 → `verify=False` + 코드 의도 주석 (cycle-011: rule 60 해제)
 3. **Timeout**: `urllib.request.urlopen(req, timeout=30)` 명시 (rule 30 R3)
 4. **OEM은 adapter에**: standard endpoint 우선 + OEM은 `redfish-gather/tasks/vendors/{vendor}/`로 분리
 5. **Adapter 점수**: 같은 vendor면 펌웨어 / 모델 매칭으로 specificity 차등 (rule 12 R2)
@@ -140,7 +140,7 @@ server-exporter는 stdlib만 사용 (의존성 최소화).
 - rule 12 (adapter-vendor-boundary)
 - rule 27 (precheck-guard-first / Vault 2단계)
 - rule 30 (integration-redfish-vmware-os)
-- rule 60 (security / HTTPS verify)
+- (cycle-011: rule 60 해제 — HTTPS verify는 운영자 결정)
 - rule 96 (external-contract-integrity / origin 주석)
 
 ## 관련 표준

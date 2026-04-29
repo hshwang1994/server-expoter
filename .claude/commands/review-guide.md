@@ -40,5 +40,5 @@ server-exporter 코드 리뷰 4축 절차.
 ## 관련
 
 - skill: `review-existing-code`, `verify-adapter-boundary`, `validate-fragment-philosophy`, `verify-json-output`
-- agent: `code-reviewer`, `security-reviewer`, `adapter-boundary-reviewer`, `vendor-boundary-guardian`, `output-schema-reviewer`, `schema-mapping-reviewer`, `naming-consistency-reviewer`, `integration-impact-reviewer`
+- agent: `code-reviewer`, `adapter-boundary-reviewer`, `vendor-boundary-guardian`, `output-schema-reviewer`, `schema-mapping-reviewer`, `naming-consistency-reviewer`, `integration-impact-reviewer` (cycle-011: security-reviewer 제거)
 - policy: `.claude/policy/review-matrix.yaml`

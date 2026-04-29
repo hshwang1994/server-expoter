@@ -51,10 +51,10 @@ server-exporter PR을 origin/main에 머지하기 전 체크리스트 일괄 실
 - [ ] adapter metadata origin 주석
 - [ ] schema 변경 시 호출자 호환성
 
-### 8. 보안 (rule 60)
-- [ ] vault 평문 누설 0건
+### 8. 보안 (운영 권장 — cycle-011: rule 60 정책 해제)
+- [ ] vault encrypt 유지 (cycle-012 8 vault encrypt 채택)
 - [ ] BMC password log 출력 없음
-- [ ] HTTPS verify 정책 명시
+- [ ] HTTPS verify 정책 의도 명시
 
 ## 출력
 

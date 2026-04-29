@@ -134,7 +134,7 @@
 
 ## 관련
 
-- rule: `12-adapter-vendor-boundary`, `60-security-and-secrets`, `93-branch-merge-gate`
+- rule: `12-adapter-vendor-boundary`, `93-branch-merge-gate` (cycle-011: rule 60 보안 정책 해제됨)
 - skill: `add-new-vendor`, `vendor-change-impact`, `score-adapter-match`
 - agent: `vendor-onboarding-worker`, `vendor-boundary-guardian`
 - policy: `.claude/policy/vendor-boundary-map.yaml`

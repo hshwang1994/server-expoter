@@ -15,7 +15,7 @@
 |---|---|
 | `common/library/`, `redfish-gather/library/` | hshwang (common_library_approver) |
 | `adapters/{redfish,os,esxi}/` | hshwang (vendor_adapter_approver) |
-| `.claude/policy/protected-paths.yaml` 자체 | hshwang (protected_paths_approver) |
+| `.claude/policy/protected-paths.yaml` (deprecated stub, cycle-011) | hshwang (protected_paths_approver) |
 | `.claude/rules/`, `.claude/policy/` | hshwang (harness_rule_approver) |
 | `schema/sections.yml`, `field_dictionary.yml`, `baseline_v1/` | hshwang (schema_approver) |
 | `Jenkinsfile*` | hshwang (jenkinsfile_approver) |

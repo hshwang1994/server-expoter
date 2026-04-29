@@ -50,8 +50,9 @@ Ansible 기반 3-channel 서버 정보 수집 개발. 각 채널이 자기 fragm
 | `precheck-engineer` | precheck_bundle.py 4단계 |
 | `adapter-boundary-reviewer` | 벤더 경계 위반 검토 |
 | `vendor-boundary-guardian` | gather 코드에 vendor 하드코딩 검출 |
-| `security-reviewer` | vault 누설 / BMC 인증 검토 |
 | `qa-regression-worker` | 변경 후 baseline 회귀 |
+
+(cycle-011: security-reviewer agent 제거 + rule 60 해제)
 
 ## 주의사항 (Critical)
 - **Fragment 철학 (rule 22)**: 각 gather는 자기 fragment만 만든다. 5 공통 변수 (`_data_fragment` / `_sections_supported_fragment` / `_sections_collected_fragment` / `_sections_failed_fragment` / `_errors_fragment`) 사용 — 변수 이름은 모든 gather 동일, **값**으로 자기 섹션을 채움. 누적 변수 (`_collected_data` 등) 직접 수정 금지.

@@ -55,7 +55,7 @@ description: common / 3-channel 코드에 vendor 이름 하드코딩 검출 (rul
 ## 자동 호출 시점
 
 - 코드 변경 후 (post_edit_hint.py 권고)
-- pre_commit_policy.py가 일부 검사
+- (cycle-011: pre_commit_policy.py 제거됨 — verify_vendor_boundary 단독 호출)
 - review-existing-code의 vendor_boundary 축
 
 ## 적용 rule / 관련

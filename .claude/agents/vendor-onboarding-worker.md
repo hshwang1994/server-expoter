@@ -58,5 +58,5 @@ model: opus
 ## 참조
 
 - skill: `add-new-vendor` (메인 entry)
-- agent: `adapter-author`, `precheck-engineer`, `vault-rotator`, `qa-regression-worker`
-- rule: `50-vendor-adapter-policy`, `12-adapter-vendor-boundary`, `60-security-and-secrets`, `40-qa-pytest-baseline`
+- agent: `adapter-author`, `precheck-engineer`, `qa-regression-worker` (cycle-011: vault-rotator agent 삭제)
+- rule: `50-vendor-adapter-policy`, `12-adapter-vendor-boundary`, `40-qa-pytest-baseline` (cycle-011: rule 60 해제)

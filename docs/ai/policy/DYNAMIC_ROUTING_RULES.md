@@ -16,9 +16,9 @@
 | HIGH | 새 vendor | add-new-vendor + 사용자 승인 |
 | HIGH | 외부 시스템 계약 변경 | debug-external-integrated-feature → 사용자 질의 |
 | Critical | 벤더 경계 | 즉시 중단 + verify-adapter-boundary + 사용자 승인 |
-| Critical | vault 변경 | rotate-vault skill + security-reviewer |
-| Critical | 보호 경로 | 사용자 명시 승인 없이 진입 금지 |
-| Critical | bypass / settings 권한 완화 | rule 60 절대 금지 — Tier 3 |
+| Critical | vault 변경 | rotate-vault skill 절차 (cycle-011: security-reviewer 제거 — 운영자 직접) |
+| Critical | 보호 경로 운영 권장 | 사용자 명시 승인 권장 (cycle-011: 보안 정책 해제, 운영 권장 수준) |
+| Critical | settings 권한 변경 | (cycle-011: bypassPermissions 채택. 본 항목은 deprecated) |
 
 ## 회귀 영역 자동 식별 (rule 91 R7 / rule 92 R9)
 
@@ -45,5 +45,5 @@
 
 - rule 91 R4 (preview 후속 라우팅)
 - rule 92 R9 (자동 회귀 영역)
-- rule 60 (security 절대 금지)
+- (cycle-011: rule 60 해제 — 보안은 운영 권장 수준)
 - skill: task-impact-preview, write-impact-brief, compare-feature-options

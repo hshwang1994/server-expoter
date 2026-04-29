@@ -232,6 +232,10 @@
         - name: "linux | gather users"
           ansible.builtin.include_tasks: tasks/linux/gather_users.yml
 
+        # P4 (cycle 2026-04-29): FC HBA / InfiniBand / NIC driver/VLAN/bond
+        - name: "linux | gather hba_ib"
+          ansible.builtin.include_tasks: tasks/linux/gather_hba_ib.yml
+
         # P5 (cycle 2026-04-28): 운영 런타임 (NTP/firewall/listening ports/swap)
         - name: "linux | gather runtime"
           ansible.builtin.include_tasks: tasks/linux/gather_runtime.yml
@@ -397,6 +401,10 @@
 
         - name: "windows | gather users"
           ansible.builtin.include_tasks: tasks/windows/gather_users.yml
+
+        # P5 sub-phase b (cycle 2026-04-29): Windows runtime
+        - name: "windows | gather runtime"
+          ansible.builtin.include_tasks: tasks/windows/gather_runtime.yml
 
         # ── diagnosis (성공 경로) ───────────────────────────────────────
         - name: "windows | build diagnosis (success path)"

@@ -33,7 +33,7 @@ model: sonnet
 
 ## 자가 검수 금지
 
-`integration-impact-reviewer` 또는 `security-reviewer` 위임.
+`integration-impact-reviewer` 위임. (cycle-011: security-reviewer 제거)
 
 ## 분류
 
@@ -42,5 +42,5 @@ model: sonnet
 ## 참조
 
 - skill: `debug-precheck-failure`, `classify-precheck-layer`
-- rule: `27-precheck-guard-first`, `60-security-and-secrets`, `30-integration-redfish-vmware-os`
+- rule: `27-precheck-guard-first`, `30-integration-redfish-vmware-os` (cycle-011: rule 60 해제)
 - reference: `docs/ai/references/redfish/redfish-spec.md`, `docs/ai/references/winrm/pywinrm.md`

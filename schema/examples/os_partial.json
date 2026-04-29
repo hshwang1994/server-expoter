@@ -64,7 +64,23 @@
       "uptime_seconds": 8640000,
       "selinux": "enforcing",
       "fqdn": "server01.example.com",
-      "hosting_type": "bare_metal"
+      "hosting_type": "bare_metal",
+      "runtime": {
+        "ntp": {
+          "service": "chronyd",
+          "active": true,
+          "synced": true,
+          "sources": ["pool.ntp.org"]
+        },
+        "firewall": {
+          "service": "firewalld",
+          "active": true,
+          "default_zone": "public"
+        },
+        "listening_ports": [
+          {"protocol": "tcp", "port": 22, "process": "sshd"}
+        ]
+      }
     },
     "hardware": null,
     "bmc": null,
@@ -73,7 +89,17 @@
       "cores_physical": 32,
       "logical_threads": 64,
       "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
-      "architecture": "x86_64"
+      "architecture": "x86_64",
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
+            "sockets": 2,
+            "cores_per_socket": 16,
+            "total_cores": 32
+          }
+        ]
+      }
     },
     "memory": {
       "total_mb": 262144,
@@ -81,19 +107,42 @@
       "installed_mb": 262144,
       "visible_mb": 261800,
       "free_mb": 128000,
-      "slots": []
+      "slots": [],
+      "summary": {
+        "total_capacity_mib": 262144,
+        "module_count": null,
+        "module_types": null,
+        "speeds_mhz": null
+      }
     },
     "storage": {
       "filesystems": [],
       "physical_disks": [],
       "datastores": [],
       "controllers": [],
-      "logical_volumes": []
+      "logical_volumes": [],
+      "hbas": [],
+      "infiniband": [],
+      "summary": {
+        "physical_disk_count": 0,
+        "logical_volume_count": 0,
+        "total_capacity_mb": null,
+        "media_types": []
+      }
     },
     "network": {
       "dns_servers": ["8.8.8.8", "8.8.4.4"],
       "default_gateways": [{"family": "ipv4", "address": "10.10.1.1"}],
-      "interfaces": []
+      "interfaces": [],
+      "driver_map": [
+        {"interface": "eth0", "driver": "i40e", "version": "2.22.18"}
+      ],
+      "summary": {
+        "interface_count": 0,
+        "adapter_count": null,
+        "total_port_count": null,
+        "primary_interface_id": null
+      }
     },
     "users": [
       {
