@@ -1,6 +1,6 @@
 # cycle-016 — 실 Jenkins 빌드 evidence (2026-04-29)
 
-## 빌드 매트릭스
+## 빌드 매트릭스 (총 27 빌드 #39 ~ #66)
 
 | Build | Target | 결과 | 비고 |
 |---|---|---|---|
@@ -15,6 +15,16 @@
 | #48 | OS 10.100.64.96 (Dell R760 baremetal Ubuntu 24.04) | **gather=success** | 24 cores / 128GB / multi-NIC |
 | #49 | OS 10.100.64.161 (RHEL 8.10 Py3.6) | **gather=success** | gather_mode=python_incompatible 분기 실증 |
 | #50 | Redfish 10.100.15.27 (Dell vault sync 후) | **gather=success** | recovery fallback + AccountService dryrun + 완전 수집 |
+| #51 | ESXi 10.100.64.1 | **gather=success** | namespace fix 검증 (storage.summary.grand_total_gb=16556) |
+| #52-#55 | Redfish Dell × 4 (10.100.15.28 / 31 / 33 / 34) | **gather=success** | 4대 모두 lab_root recovery + completest 수집. #55 multi-tier (12.8TB) |
+| #56 | Redfish HPE 10.50.11.231 | **gather=success** | lab_hpe_admin recovery / 512GB / 7152GB |
+| #57 | Redfish Lenovo 10.50.11.232 | **gather=success** | lab_lenovo_userid recovery / 512GB / 7152GB |
+| #58 | Redfish Cisco 10.100.15.1 | gather=failed | "이 장비는 Redfish를 지원하지 않습니다" — 명확 한국어 메시지 (TA-UNODE-G1 non-standard) |
+| #59-#61 | OS Linux distro × 3 (RHEL 9.2 / Ubuntu 24.04 / Rocky 9.6) | **gather=success** | distro coverage |
+| #62-#63 | ESXi 10.100.64.2 / 3 | **gather=success** | 3 host 전수 |
+| #64 | Windows 10.100.64.135 | UNSTABLE | port 5985 OPEN 이지만 ansible play1 detect 실패 (lab 간헐) |
+| #65 | OS baremetal 10.100.64.96 (become_pass 추가) | gather=success | 단 dmidecode shell `become: true` 명시 부재로 slot=0 |
+| #66 | OS baremetal 10.100.64.96 (gather_memory become 추가) | **gather=success** | **DIMM slot 8 + DDR5 16GB×8=128GB summary 완전 수집** |
 
 ## 핵심 검증
 
@@ -125,6 +135,9 @@ rule 10 R4 (Linux 2-tier) 의 raw fallback 분기 실 환경 검증.
 
 ## 발견 / 후속
 
-- **F1 Windows 빌드 (#46)**: 10.100.64.135 ports 5985/5986/22 모두 응답 없음. lab 내 firewall 또는 WinRM 서비스 미작동. AI-22 → OPS 이슈로 reopen.
-- **F2 baremetal memory.summary.groups=[] (#48)**: Dell R760 Ubuntu 24.04 에서 dmidecode 슬롯 정보 부재. ansible_become_pass 명시 필요 또는 sudo dmidecode 권한 부재. AI-19 → 추가 조사.
-- **F3 ESXi storage.summary grand_total=0 (#47)**: namespace pattern 누락 → cycle-016 fix 적용 (commit `cd7844e0` 이후 다음 빌드에서 검증 가능).
+- **F1 Windows 빌드 (#46, #64)**: 10.100.64.135 port 5985 시점에 따라 OPEN/closed (간헐). ansible Play1 detect 가 5985 OPEN 이라도 winrm probe 실패 가능. lab firewall 안정성 OPS 조사 필요.
+- **F2 baremetal memory.summary.groups (#48 → #66)**: Dell R760 Ubuntu 24.04 에서 cycle-016 초기 빌드(#48 #65)는 slot 0 → cycle-016 후속 fix (`become: true` 추가) 후 #66에서 **DDR5 16GB × 8 = 128GB 완전 수집 검증**.
+- **F3 ESXi storage.summary grand_total=0 (#47 → #51)**: namespace pattern 누락 → fix 적용 후 #51 = grand_total_gb=16556 (16.5TB 정상).
+- **F4 Cisco BMC 10.100.15.1 (#58)**: TA-UNODE-G1 non-standard BMC. precheck protocol 단계에서 "이 장비는 Redfish를 지원하지 않습니다" 한국어 메시지 명확. lab 실장비 한계.
+- **F5 AccountService dryrun=false 흐름 검증**: agent SSH 직접 ansible-playbook -e _rf_account_service_dryrun=false 실행 → `account_service:{recovered:false, method:"noop", dryrun:false}` 메타 노출. 흐름 진입 + dryrun 토글 검증. method=noop은 BMC 실 상태 (existing primary 일치 또는 mismatch) 기반.
+- **F6 Multi-tier storage grouping (#55)**: Dell R760 (10.100.15.34) 동일 모델이지만 **3 tier storage** 검증 — SSD SATA 1.78TB×6 + HDD SAS 558GB×3 + SSD PCIe 447GB×1 = 12.8TB. 사용자 요구사항 #8 (Disk summary unit_capacity_gb + media_type + protocol grouping) 완벽 충족.
