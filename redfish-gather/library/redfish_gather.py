@@ -556,6 +556,7 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
     # nosec rule12-r1: vendor → BMC 표시명 매핑 (외부 spec 기반 표준 이름)
     bmc_names = {'dell': 'iDRAC', 'hpe': 'iLO', 'lenovo': 'XCC', 'supermicro': 'BMC',
                  'cisco': 'CIMC'}                                              # nosec rule12-r1
+    # cycle-016 Phase M: BMC 운영 정보 강화 — datetime / dns / mac
     result = {
         'name':             bmc_names.get(vendor, 'BMC'),
         'firmware_version': _safe(data, 'FirmwareVersion'),
@@ -563,10 +564,14 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
         'manager_type':     _safe(data, 'ManagerType'),
         'health':           _safe(data, 'Status', 'Health'),
         'ip':               None,
+        'mac_address':      None,
+        'dns_name':         None,
+        'datetime':         _safe(data, 'DateTime'),
+        'datetime_offset':  _safe(data, 'DateTimeLocalOffset'),
         'oem': {},
     }
 
-    # Manager EthernetInterfaces에서 BMC IP 추출
+    # Manager EthernetInterfaces에서 BMC IP / MAC / FQDN 추출
     nic_link = _safe(data, 'EthernetInterfaces', '@odata.id')
     if nic_link:
         nst, ncoll, nerr = _get(bmc_ip, _p(nic_link), username, password, timeout, verify_ssl)
@@ -583,7 +588,12 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
                     if ip and ip not in ('0.0.0.0', ''):
                         result['ip'] = ip
                         break
+                # MAC + FQDN — IP 와 같은 NIC interface 에서 추출
                 if result['ip']:
+                    if not result['mac_address']:
+                        result['mac_address'] = _safe(ndata, 'MACAddress') or _safe(ndata, 'PermanentMACAddress')
+                    if not result['dns_name']:
+                        result['dns_name'] = _safe(ndata, 'FQDN') or _safe(ndata, 'HostName')
                     break
 
     # 벤더별 BMC OEM 확장 (Redfish API spec)

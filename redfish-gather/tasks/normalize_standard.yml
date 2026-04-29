@@ -137,7 +137,7 @@
 
 - name: "redfish | normalize_standard | compute group summaries"
   ansible.builtin.set_fact:
-    # cycle-016 (2026-04-29): namespace pattern (Jinja2 loop scoping fix)
+    # cycle-016 Phase M: cpu.summary.groups 강화 — manufacturer / max_speed_mhz / architecture 추가
     _rf_summary_cpu: >-
       {%- set ns = namespace(groups=[], seen={}) -%}
       {%- for p in (_rf_d_procs | default([])) -%}
@@ -147,7 +147,15 @@
           {%- set _ = ns.groups[idx].update({'sockets': ns.groups[idx].sockets + 1, 'total_cores': ns.groups[idx].total_cores + (p.total_cores | default(0) | int)}) -%}
         {%- else -%}
           {%- set _ = ns.seen.update({m: ns.groups | length}) -%}
-          {%- set _ = ns.groups.append({'model': m, 'sockets': 1, 'cores_per_socket': p.total_cores | default(0) | int, 'total_cores': p.total_cores | default(0) | int}) -%}
+          {%- set _ = ns.groups.append({
+            'model': m,
+            'manufacturer': p.manufacturer | default(none),
+            'max_speed_mhz': p.speed_mhz | default(none),
+            'architecture': p.architecture | default(p.instruction_set | default(none)),
+            'sockets': 1,
+            'cores_per_socket': p.total_cores | default(0) | int,
+            'total_cores': p.total_cores | default(0) | int
+          }) -%}
         {%- endif -%}
       {%- endfor -%}
       {{ {'groups': ns.groups} }}
@@ -197,16 +205,18 @@
         {%- endif -%}
       {%- endfor -%}
       {{ {'groups': ns.groups, 'grand_total_gb': ns.total} }}
-    # cycle-016 Phase L: network groups 에 adapter model + manufacturer 추가
-    # ports[] → adapter_id → adapters[] 매핑으로 model/manufacturer 조회
+    # cycle-016 Phase M: network.summary 강화 — adapter_count / port_count / primary_speed_mbps 추가
     _rf_summary_network: >-
-      {%- set ns = namespace(groups=[], seen={}, adp_map={}) -%}
+      {%- set ns = namespace(groups=[], seen={}, adp_map={}, primary_sp=none) -%}
       {%- for a in (_rf_d_netad.adapters | default([])) -%}
         {%- set _ = ns.adp_map.update({a.id: a}) -%}
       {%- endfor -%}
       {%- for n in (_rf_norm_interfaces | default([])) -%}
         {%- set sp = n.speed_mbps | default(none) -%}
         {%- set link_up = (n.link_status | default('') | lower) in ['linkup','up'] -%}
+        {%- if link_up and ns.primary_sp is none and sp -%}
+          {%- set ns.primary_sp = sp -%}
+        {%- endif -%}
         {%- set adp_id = (n.id | default('') | regex_replace('-[0-9]+-[0-9]+$','') | regex_replace('-[0-9]+$','')) -%}
         {%- set adp = ns.adp_map[adp_id] | default({}) -%}
         {%- set md = adp.model | default(none) -%}
@@ -220,7 +230,55 @@
           {%- set _ = ns.groups.append({'speed_mbps': sp, 'model': md, 'manufacturer': mfr, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
         {%- endif -%}
       {%- endfor -%}
-      {{ {'groups': ns.groups} }}
+      {{ {
+        'groups': ns.groups,
+        'adapter_count': (_rf_d_netad.adapters | default([])) | length,
+        'port_count': (_rf_norm_interfaces | default([])) | length,
+        'primary_speed_mbps': ns.primary_sp
+      } }}
+    # cycle-016 Phase M: firmware 의 category 분류 (id/name 기반 inference)
+    _rf_firmware_categorized: >-
+      {%- set out = [] -%}
+      {%- for fw in (_rf_d_firmware | default([])) -%}
+        {%- set fid = fw.id | default('') | string -%}
+        {%- set fname = fw.name | default('') | string -%}
+        {%- set lid = (fid ~ '|' ~ fname) | lower -%}
+        {%- set cat = 'other' -%}
+        {%- if 'bios' in lid -%}{%- set cat = 'bios' -%}
+        {%- elif 'idrac' in lid or 'ilo' in lid or 'xcc' in lid or 'cimc' in lid or 'bmc' in lid -%}{%- set cat = 'bmc' -%}
+        {%- elif 'nic' in lid or 'ethernet' in lid or 'broadcom' in lid or 'mellanox' in lid -%}{%- set cat = 'nic' -%}
+        {%- elif 'raid' in lid or 'perc' in lid or 'megaraid' in lid -%}{%- set cat = 'storage_controller' -%}
+        {%- elif 'disk' in lid or 'drive' in lid or 'nvme' in lid or 'ssd' in lid or 'hdd' in lid or 'boss' in lid -%}{%- set cat = 'drive' -%}
+        {%- elif 'psu' in lid or 'power supply' in lid -%}{%- set cat = 'psu' -%}
+        {%- elif 'cpld' in lid -%}{%- set cat = 'cpld' -%}
+        {%- elif 'tpm' in lid -%}{%- set cat = 'tpm' -%}
+        {%- elif 'usc' in lid or 'lifecycle' in lid -%}{%- set cat = 'lifecycle' -%}
+        {%- elif 'driver' in lid -%}{%- set cat = 'driver_pack' -%}
+        {%- elif 'diagnostic' in lid -%}{%- set cat = 'diagnostic' -%}
+        {%- elif 'backplane' in lid -%}{%- set cat = 'backplane' -%}
+        {%- elif 'service' in lid -%}{%- set cat = 'service_module' -%}
+        {%- endif -%}
+        {%- set _ = out.append(fw | combine({'category': cat})) -%}
+      {%- endfor -%}
+      {{ out }}
+    # cycle-016 Phase M: power.summary — psu_count / total_capacity_w / redundancy
+    _rf_power_summary: >-
+      {%- set ns = namespace(psu_total=0, psu_active=0, cap_total=0) -%}
+      {%- for psu in (_rf_d_power.power_supplies | default([])) -%}
+        {%- set ns.psu_total = ns.psu_total + 1 -%}
+        {%- if (psu.state | default('')) == 'Enabled' -%}
+          {%- set ns.psu_active = ns.psu_active + 1 -%}
+        {%- endif -%}
+        {%- set ns.cap_total = ns.cap_total + ((psu.power_capacity_w | default(0)) | int) -%}
+      {%- endfor -%}
+      {{ {
+        'psu_count': ns.psu_total,
+        'psu_active': ns.psu_active,
+        'redundant': ns.psu_total >= 2,
+        'total_capacity_w': ns.cap_total,
+        'consumed_watts': ((_rf_d_power | default({})).power_control | default({})).power_consumed_watts | default(none),
+        'consumed_capacity_pct': ((((_rf_d_power | default({})).power_control | default({})).power_consumed_watts | default(0) | int) * 100 / ns.cap_total) | round(1) if ns.cap_total > 0 else 0
+      } }}
   no_log: true
 
 # ── sections from redfish_gather module result ────────────────────────────────
@@ -306,8 +364,13 @@
         # P4 (cycle 2026-04-28): NetworkAdapters / NetworkPorts
         adapters:    "{{ _rf_d_netad.adapters | default([]) }}"
         ports:       "{{ _rf_d_netad.ports    | default([]) }}"
-      firmware: "{{ _rf_d_firmware }}"
-      power:    "{{ _rf_d_power }}"
+      firmware: "{{ _rf_firmware_categorized | default(_rf_d_firmware) }}"
+      power: >-
+        {%- if _rf_d_power -%}
+          {{ _rf_d_power | combine({'summary': _rf_power_summary | default({})}) }}
+        {%- else -%}
+          {{ none }}
+        {%- endif -%}
     _sections_supported_fragment: >-
       {{ ['hardware','bmc','cpu','memory','storage','network','firmware','power'] }}
     _sections_collected_fragment: >-
