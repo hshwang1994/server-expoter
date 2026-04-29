@@ -20,8 +20,8 @@
   ansible.builtin.set_fact:
     _l_id_diagnostics: >-
       {%- set diags = [] -%}
-      {%- set serial_na = (_l_serial_val | default(none)) is none -%}  {# rule 95 R1 R5 ok: serial 최종 미수집 분기 #}
-      {%- set uuid_na   = (_l_uuid_val   | default(none)) is none -%}  {# rule 95 R1 R5 ok: uuid 최종 미수집 분기 #}
+      {%- set serial_na = (_l_serial_val | default(none)) is none -%}
+      {%- set uuid_na   = (_l_uuid_val   | default(none)) is none -%}
       {%- set dmi_block_failed = (_l_dmi_fallback_failed | default(false)) | bool -%}
       {%- set serial_dmi_tried  = _l_dmi_serial_direct is defined -%}
       {%- set serial_dmi_failed = serial_dmi_tried and (_l_dmi_serial_direct.rc | default(1)) != 0 -%}

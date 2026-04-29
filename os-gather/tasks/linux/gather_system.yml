@@ -186,7 +186,6 @@
       {%- set vrole = (ansible_virtualization_role | default('')) | lower -%}
       {%- set vendor = (ansible_system_vendor | default('')) -%}
       {%- set vm_signals = ['vmware', 'kvm', 'qemu', 'xen', 'hyperv', 'microsoft', 'oracle', 'parallels', 'bhyve', 'lxc', 'docker', 'podman', 'openvz', 'virtualbox', 'bochs', 'uml'] -%}
-      {#- nosec rule12-r1: hosting_type 판정용 OEM vendor 인식 list (vendor 분기 아님, set membership). vendor_aliases.yml의 5 vendor + Fujitsu / Inspur 포함 → vendor_aliases 변경 시 본 list 동기화 의무 -#}
       {%- set oem_vendors = ['Dell Inc.', 'HPE', 'Hewlett Packard Enterprise', 'Hewlett-Packard', 'Lenovo', 'Cisco Systems Inc', 'Supermicro', 'Fujitsu', 'Inspur'] -%}
       {%- if sdv in vm_signals -%}virtual
       {%- elif vtype in vm_signals and vrole == 'guest' -%}virtual
@@ -227,8 +226,8 @@
 - name: "linux | system | DMI direct-read fallback"
   when: >
     _l_python_mode == 'python_ok' and
-    ((_l_serial_from_setup | default(none)) is none or {# rule 95 R1 R5 ok: setup serial 미제공 #}
-     (_l_uuid_from_setup | default(none)) is none)    {# rule 95 R1 R5 ok: setup uuid 미제공 #}
+    ((_l_serial_from_setup | default(none)) is none or
+     (_l_uuid_from_setup | default(none)) is none)
   block:
     - name: "linux | system | DMI direct-read serial"
       when: (_l_serial_from_setup | default(none)) is none  # rule 95 R1 R5 ok: serial raw fallback 진입

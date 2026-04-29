@@ -52,17 +52,15 @@
       {%- set base = _merged_data | default({}) -%}
       {%- set frag = _data_fragment | default({}) -%}
       {%- set out  = {} -%}
-      {#  최상위 키를 순회하며 병합 #}
       {%- set all_keys = (base.keys() | list) | union(frag.keys() | list) -%}
       {%- for k in all_keys -%}
         {%- set bv = base.get(k, none) -%}
         {%- set fv = frag.get(k, none) -%}
-        {%- if fv is none -%}  {# rule 95 R1 R5 ok: fragment 에 없으면 base 값 유지 #}
+        {%- if fv is none -%}
           {%- set _ = out.update({k: bv}) -%}
-        {%- elif bv is none -%}  {# rule 95 R1 R5 ok: base 가 null 이면 fragment 값으로 교체 #}
+        {%- elif bv is none -%}
           {%- set _ = out.update({k: fv}) -%}
         {%- elif bv is mapping and fv is mapping -%}
-          {#  둘 다 dict 면 얕은 병합 (fragment 우선) #}
           {%- set merged = {} -%}
           {%- for mk in (bv.keys() | list) | union(fv.keys() | list) -%}
             {%- if fv.get(mk) is not none -%}
@@ -74,10 +72,8 @@
           {%- set _ = out.update({k: merged}) -%}
         {%- elif bv is iterable and bv is not string
              and fv is iterable and fv is not string -%}
-          {#  둘 다 list 면 합산 #}
           {%- set _ = out.update({k: bv + fv}) -%}
         {%- else -%}
-          {#  그 외: fragment 값 우선 #}
           {%- set _ = out.update({k: fv}) -%}
         {%- endif -%}
       {%- endfor -%}
