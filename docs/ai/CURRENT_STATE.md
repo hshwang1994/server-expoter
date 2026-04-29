@@ -1,6 +1,41 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-29 (production-audit 후속 — ESXi BUG #1 / #2 / #4 fix, Round 12 검증)
+## 일자: 2026-04-29 (Dell Redfish 비판적 검증 — envelope 값 미채움 7건 fix)
+
+## 요약 (Dell Redfish bug-fix — 2026-04-29 18시)
+
+사용자 명시 보고: "Dell Redfish 실제 데이터 수집 안 되는 게 많고 값도 이상함. envelope 키는 있는데 값이 비는 경우. 키 늘리지 말고 버그 모두 fix."
+
+Round 11 실측 reference (`tests/reference/redfish/dell/10_100_15_27`, R760, iDRAC 7.10.70.00, 1624 endpoints) ↔ 코드 비교 → 26건 발견 중 envelope 키 미채움/명확 코드 버그 **7건 fix**:
+
+- **BUG-1 (CRIT)**: `_extract_oem_dell` 의 `EstimatedExhaustTemperatureCel` 키 오타 — raw 키는 `EstimatedExhaustTemperatureCelsius`. `data.hardware.oem.estimated_exhaust_temp` 모든 Dell 호스트에서 항상 None 사고. Celsius 우선 + Cel fallback. (`redfish_gather.py:_extract_oem_dell`)
+- **BUG-12**: `data.hardware.bios_date` `null` 하드코딩. vendor OEM 의 `bios_release_date` (Dell `Oem.Dell.DellSystem.BIOSReleaseDate`) fallback 적용. (`normalize_standard.yml`)
+- **BUG-13**: `data.cpu.cores_physical / logical_threads` per-processor sum 결과 0 시 fallback 없음 → `System.ProcessorSummary.CoreCount / LogicalProcessorCount` fallback 추가. 라이브러리 `cpu_summary` 에 `core_count / logical_processor_count` 추출 추가. (`redfish_gather.py:gather_system` + `normalize_standard.yml`)
+- **BUG-14**: `data.memory.total_mb / installed_mb` per-DIMM sum 0 시 fallback 없음 → `System.MemorySummary.TotalSystemMemoryGiB * 1024` fallback. (`normalize_standard.yml`)
+- **BUG-15**: `data.storage.logical_volumes[].boot_volume` Dell-only 처리 → Dell 외 vendor 항상 None. 표준 `Volume.BootVolume` 우선, Dell Oem fallback. (`redfish_gather.py:_extract_storage_volumes`)
+- **BUG-16**: `data.storage.logical_volumes[].name` raw `'VD_0   '` (trailing whitespace) 미정리. strip() 적용. (`redfish_gather.py:_extract_storage_volumes`)
+- **BUG-19**: `data.storage.logical_volumes[].health` Status.Health 없을 때 HealthRollup fallback 누락 (drive 는 이미 fallback 있음). 동일 패턴 적용. (`redfish_gather.py:_extract_storage_volumes`)
+
+**검증** (정적):
+- pytest 158/158 PASS
+- `python -m py_compile redfish_gather.py` PASS
+- `yaml.safe_load` normalize_standard.yml PASS
+- `verify_harness_consistency.py` PASS (rules 28 / skills 43 / agents 49 / policies 9)
+- `verify_vendor_boundary.py` PASS (3-channel vendor 하드코딩 0건)
+
+**envelope 키 추가 0건** — 사용자 정의 ("키 늘릴 이유 없음") 준수. 모든 fix 는 기존 envelope 키 채움/위생/fallback 만 영향.
+
+**미수행 (envelope 키 추가 필요 → 사용자 정의로 skip)**: BUG-2 (controller metadata 4 필드), BUG-3~10 (PSU/Firmware/Drive/Volume/Memory/NIC raw 풍부 필드), BUG-11 (BIOS Attributes 571 entries)
+
+**잔류 미세 이슈 (별도 cycle)**:
+- baseline_v1/dell_baseline.json 의 `hardware.bios_date: null` → 실 BMC 재수집 시 Dell 환경에서는 OEM bios_release_date 채워질 것 (Round 12 검증 시 갱신)
+- `oem.estimated_exhaust_temp` 의 baseline 값 `29` → R760 raw 에는 키 없음 (`null`). 다른 Dell 모델/펌웨어 검증 후 baseline 갱신 필요
+
+---
+
+## 이전 cycle: production-audit 후속 — ESXi BUG #1 / #2 / #4 fix, Round 12 검증
+
+## 요약 (Round 12 — 2026-04-29 14시)
 
 ## 요약 (Round 12 — 2026-04-29 14시)
 

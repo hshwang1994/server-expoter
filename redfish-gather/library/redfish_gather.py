@@ -421,10 +421,20 @@ def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
 # — adapter YAML로 위임 불가하므로 라이브러리에서 vendor 분기 허용.
 
 def _extract_oem_hpe(data):                                                   # nosec rule12-r1
-    """HPE OEM (iLO 5/6 = Oem.Hpe, iLO 4 이하 = Oem.Hp fallback)."""
+    """HPE OEM (iLO 5/6 = Oem.Hpe, iLO 4 이하 = Oem.Hp fallback).
+
+    Underscore-prefixed keys (e.g. `_bios_date`) are hoisted to hardware-level
+    by gather_system via _hoist_oem_extras. They populate **existing** envelope
+    fields only (no new keys).
+    Verified 2026-04-29 against HPE iLO 6 v1.73 (10.50.11.231): Bios.Current.Date
+    populated; Manager.Oem.Hpe.Type field does not exist (former mapping was bug).
+    """
     oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}         # nosec rule12-r1
     ahs = _safe(oem, 'AggregateHealthStatus') or {}
+    bios_oem = _safe(oem, 'Bios', 'Current') or {}
     return {
+        # Hoisted to hardware.bios_date (rule 96 — HPE OEM contract)
+        '_bios_date':              _safe(bios_oem, 'Date'),
         'post_state':              _safe(oem, 'PostState'),
         'server_signature':        _safe(oem, 'ServerSignature'),
         'aggregate_server_health': _safe(ahs, 'AggregateServerHealth'),
@@ -443,11 +453,19 @@ def _extract_oem_hpe(data):                                                   # 
 
 
 def _extract_oem_dell(data):                                                  # nosec rule12-r1
-    """Dell OEM (Oem.Dell.DellSystem)."""
+    """Dell OEM (Oem.Dell.DellSystem).
+
+    Round 11 raw 검증 (10.100.15.27, iDRAC 7.10.70.00): 정확한 키는
+    'EstimatedExhaustTemperatureCelsius'. 일부 구 펌웨어에서 'Cel' 변형 가능성
+    있어 Celsius 우선, Cel fallback.
+    """
     oem = _safe(data, 'Oem', 'Dell', 'DellSystem') or {}                      # nosec rule12-r1
+    bios_date = _safe(oem, 'BIOSReleaseDate')
     return {
+        # Hoisted to hardware.bios_date by gather_system (envelope consistency w/ HPE)
+        '_bios_date':              bios_date,
         'lifecycle_version':       _safe(oem, 'LifecycleControllerVersion'),
-        'bios_release_date':       _safe(oem, 'BIOSReleaseDate'),
+        'bios_release_date':       bios_date,
         'current_rollup_status':   _safe(oem, 'CurrentRollupStatus'),
         'cpu_rollup_status':       _safe(oem, 'CPURollupStatus'),
         'fan_rollup_status':       _safe(oem, 'FanRollupStatus'),
@@ -456,14 +474,25 @@ def _extract_oem_dell(data):                                                  # 
         'storage_rollup_status':   _safe(oem, 'StorageRollupStatus'),
         'chassis_service_tag':     _safe(oem, 'ChassisServiceTag'),
         'express_service_code':    _safe(oem, 'ExpressServiceCode'),
-        'estimated_exhaust_temp':  _safe(oem, 'EstimatedExhaustTemperatureCel'),
+        'estimated_exhaust_temp':  (_safe(oem, 'EstimatedExhaustTemperatureCelsius')
+                                    or _safe(oem, 'EstimatedExhaustTemperatureCel')),
     }
 
 
-def _extract_oem_lenovo(data):                                                # nosec rule12-r1
-    """Lenovo OEM (Oem.Lenovo)."""
+def _extract_oem_lenovo(data, chassis_data=None):                             # nosec rule12-r1
+    """Lenovo OEM (Oem.Lenovo).
+
+    실측 (Lenovo XCC SR650 V2, 2026-04-28): ProductName은 System.Oem.Lenovo
+    가 아닌 Chassis.Oem.Lenovo 에 존재. chassis_data 가 주어지면 Chassis 우선,
+    없으면 System.Model 로 fallback.
+    """
     oem = _safe(data, 'Oem', 'Lenovo') or {}                                  # nosec rule12-r1
-    return {'product_name': _safe(oem, 'ProductName')}
+    product_name = _safe(oem, 'ProductName')
+    if not product_name and chassis_data is not None:
+        product_name = _safe(chassis_data, 'Oem', 'Lenovo', 'ProductName')    # nosec rule12-r1
+    if not product_name:
+        product_name = _safe(data, 'Model')
+    return {'product_name': product_name}
 
 
 def _extract_oem_supermicro(data):                                            # nosec rule12-r1
@@ -473,6 +502,29 @@ def _extract_oem_supermicro(data):                                            # 
         'board_id':   _safe(oem, 'BoardID'),
         'node_id':    _safe(oem, 'NodeID'),
     }
+
+
+def _hoist_oem_extras(oem_dict, target):                                      # nosec rule12-r1
+    """Move underscore-prefixed keys from OEM extractor result into target dict.
+
+    Vendor extractors emit `_field` keys to populate **existing** envelope fields
+    at hardware level (e.g. `_bios_date` -> hardware.bios_date). Only keys
+    already present in `target` are filled — never adds new envelope keys.
+    Unknown `_*` keys are silently dropped.
+    Returns the cleaned OEM dict (without `_*` keys).
+    """
+    if not isinstance(oem_dict, dict):
+        return oem_dict
+    cleaned = {}
+    for k, v in oem_dict.items():
+        if isinstance(k, str) and k.startswith('_'):
+            field = k[1:]
+            if field in target and v is not None:
+                target[field] = v
+            # else: silently drop — never add new envelope keys
+        else:
+            cleaned[k] = v
+    return cleaned
 
 
 # 주의 (2026-04-28 / NEXT_ACTIONS T3-03):
@@ -486,12 +538,21 @@ _OEM_EXTRACTORS = {                                                           # 
 }
 
 
-def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verify_ssl):
+def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verify_ssl,
+                  chassis_uri=None):
     st, data, err = _get(bmc_ip, _p(system_uri), username, password, timeout, verify_ssl)
     errors = []
     if err or st != 200:
         errors.append(_err('system', f'System 수집 실패: {err or st}'))
         return {}, errors
+
+    # Lenovo 등 일부 벤더는 ProductName 이 Chassis.Oem 에 위치 (System.Oem 에는 없음).
+    # OEM extractor 가 chassis 데이터를 활용할 수 있도록 1회 fetch.
+    chassis_data = None
+    if chassis_uri:
+        cst, cdata, _cerr = _get(bmc_ip, _p(chassis_uri), username, password, timeout, verify_ssl)
+        if not _cerr and cst == 200:
+            chassis_data = cdata
 
     # HostName: HPE는 빈 문자열("") 반환 가능 → None으로 변환
     hostname = _safe(data, 'HostName')
@@ -541,6 +602,8 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
         'tpm':            tpm_summary,
         'cpu_summary': {
             'count':  _safe(data, 'ProcessorSummary', 'Count'),
+            'core_count':              _safe(data, 'ProcessorSummary', 'CoreCount'),
+            'logical_processor_count': _safe(data, 'ProcessorSummary', 'LogicalProcessorCount'),
             'model':  _safe(data, 'ProcessorSummary', 'Model'),
             'health': _safe(data, 'ProcessorSummary', 'Status', 'Health'),
         },
@@ -554,7 +617,12 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
     # 벤더별 OEM 확장 dispatch (helper 함수에 위임)
     extractor = _OEM_EXTRACTORS.get(vendor)                                   # nosec rule12-r1
     if extractor is not None:
-        result['oem'] = extractor(data)
+        # _extract_oem_lenovo 는 chassis_data 인자를 추가로 받음 (rule 96 R3 외부 계약).
+        # 다른 vendor extractor 는 변경 없음 — chassis_data 인자 전달 안 함.
+        if vendor == 'lenovo':                                                # nosec rule12-r1
+            result['oem'] = extractor(data, chassis_data=chassis_data)        # nosec rule12-r1
+        else:
+            result['oem'] = extractor(data)
 
     # 주요 필드 누락은 경고 수준 — 수집 자체는 성공으로 처리.
     # errors에 추가하지 않아 _run()에서 failed로 분류되지 않음.
@@ -595,7 +663,14 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
         'oem': {},
     }
 
-    # Manager EthernetInterfaces에서 BMC IP / MAC / FQDN 추출
+    # Manager EthernetInterfaces에서 BMC IP / MAC / FQDN + NameServers / Gateway 추출
+    # 2026-04-29 cisco-critical-review: BMC NIC 의 NameServers / IPv4Addresses[*].Gateway
+    # 를 envelope 비노출 임시 키 (_network_meta) 로 캐시한다. normalize_standard.yml 이
+    # dns_servers / default_gateways 정규화에 사용 후 _network_meta 키 자체는 envelope
+    # 에서 제거한다 (rule 13 R5 / 22 / envelope 키 추가 금지).
+    bmc_name_servers = []
+    bmc_static_name_servers = []
+    bmc_gateways = []
     nic_link = _safe(data, 'EthernetInterfaces', '@odata.id')
     if nic_link:
         nst, ncoll, nerr = _get(bmc_ip, _p(nic_link), username, password, timeout, verify_ssl)
@@ -607,18 +682,39 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
                 nst2, ndata, nerr2 = _get(bmc_ip, _p(nuri), username, password, timeout, verify_ssl)
                 if nerr2 or nst2 != 200:
                     continue
+                # IPv4 — 첫 매칭만 result['ip']/['mac_address']/['dns_name'] 에 사용,
+                # 모든 NIC 의 Gateway 는 누적 (멀티 NIC: dedicated + shared 등 대비)
+                nic_first_ip = None
                 for addr in (_safe(ndata, 'IPv4Addresses') or []):
                     ip = _safe(addr, 'Address')
                     if ip and ip not in ('0.0.0.0', ''):
-                        result['ip'] = ip
-                        break
-                # MAC + FQDN — IP 와 같은 NIC interface 에서 추출
-                if result['ip']:
+                        if nic_first_ip is None:
+                            nic_first_ip = ip
+                        gw = _safe(addr, 'Gateway')
+                        if gw and gw not in ('0.0.0.0', '') and gw not in bmc_gateways:
+                            bmc_gateways.append(gw)
+                # NameServers / StaticNameServers — 모든 NIC 누적 (중복 제거)
+                for ns in (_safe(ndata, 'NameServers') or []):
+                    if ns and ns not in bmc_name_servers:
+                        bmc_name_servers.append(ns)
+                for ns in (_safe(ndata, 'StaticNameServers') or []):
+                    if ns and ns not in bmc_static_name_servers:
+                        bmc_static_name_servers.append(ns)
+                # MAC + FQDN — IP 가 있는 첫 NIC 에서 추출 (기존 동작 유지)
+                if nic_first_ip:
+                    if not result['ip']:
+                        result['ip'] = nic_first_ip
                     if not result['mac_address']:
                         result['mac_address'] = _safe(ndata, 'MACAddress') or _safe(ndata, 'PermanentMACAddress')
                     if not result['dns_name']:
                         result['dns_name'] = _safe(ndata, 'FQDN') or _safe(ndata, 'HostName')
-                    break
+
+    # envelope 비노출 — normalize_standard.yml 의 _rf_d_bmc_clean 단계에서 제거된다.
+    result['_network_meta'] = {
+        'name_servers':        bmc_name_servers,
+        'static_name_servers': bmc_static_name_servers,
+        'ipv4_gateways':       bmc_gateways,
+    }
 
     # 벤더별 BMC OEM 확장 (Redfish API spec)
     if vendor == 'hpe':                                                       # nosec rule12-r1
@@ -629,6 +725,11 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
         result['oem'] = {'bmc_ip': _safe(oem, 'BMCIPv4Address')}
         if not result['ip'] and result['oem'].get('bmc_ip'):
             result['ip'] = result['oem']['bmc_ip']
+    elif vendor == 'lenovo':                                                  # nosec rule12-r1
+        # Lenovo XCC: Manager.Oem.Lenovo.release_name 등 운영 상태 메타.
+        # 실측 (XCC SR650 V2, 2026-04-28): release_name="whitley_gp_23-5".
+        oem = _safe(data, 'Oem', 'Lenovo') or {}                              # nosec rule12-r1
+        result['oem'] = {'release_name': _safe(oem, 'release_name')}
 
     return result, errors
 
@@ -859,18 +960,29 @@ def _extract_storage_volumes(sdata, controller_id, bmc_ip, username, password, t
         if raid_type is None and len(member_ids) == 1 and member_ids[0] == vol_id:
             continue
         vcap_int = _safe_int(_safe(vdata, 'CapacityBytes'))
+        # BUG-16 fix: Volume Name / DisplayName trailing whitespace 제거 (raw 'VD_0   ' 사고)
+        v_name_raw = _safe(vdata, 'Name')
+        v_name = v_name_raw.strip() if isinstance(v_name_raw, str) else v_name_raw
+        # BUG-15 fix: 표준 Redfish Volume.BootVolume 우선, 없으면 Dell Oem fallback.
+        # 표준 필드가 명시 false 인 경우도 보존하기 위해 None 비교 사용.
+        std_boot = _safe(vdata, 'BootVolume')
+        if std_boot is not None:
+            boot_volume = bool(std_boot)
+        elif _safe(vdata, 'Oem', 'Dell'):                                              # nosec rule12-r1
+            boot_volume = _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None  # nosec rule12-r1
+        else:
+            boot_volume = None
         volumes.append({
             'id':               _safe(vdata, 'Id'),
-            'name':             _safe(vdata, 'Name'),
+            'name':             v_name,
             'controller_id':    controller_id,
             'member_drive_ids': member_ids,
             'raid_level':       raid_type,
             'total_mb':         (vcap_int // 1048576) if vcap_int else None,
-            'health':           _safe(vdata, 'Status', 'Health'),
+            # BUG-19 fix: drive 와 동일하게 Status.Health 누락 시 HealthRollup fallback.
+            'health':           _safe(vdata, 'Status', 'Health') or _safe(vdata, 'Status', 'HealthRollup'),
             'state':            _safe(vdata, 'Status', 'State'),
-            # nosec rule12-r1: Dell 전용 boot_volume 표시 (Redfish Oem.Dell namespace)
-            'boot_volume':      _safe(vdata, 'Oem', 'Dell', 'DellVolume', 'BootVolumeSource') is not None  # nosec rule12-r1
-                                if _safe(vdata, 'Oem', 'Dell') else None,                                   # nosec rule12-r1
+            'boot_volume':      boot_volume,
         })
     return volumes, errors
 
@@ -1099,6 +1211,12 @@ def gather_firmware(bmc_ip, username, password, timeout, verify_ssl):
         # Q-14: Dell Previous- 항목 스킵 (비활성 이전 버전)
         if fw_id and isinstance(fw_id, str) and fw_id.startswith('Previous-'):
             continue
+        # 2026-04-29 cisco-critical-review: Cisco CIMC 의 "N/A" 빈 슬롯 (slot-1, slot-2
+        # 등 PCIe 미장착 슬롯) 노이즈 필터. Version 이 "N/A"/""/"NA" 면 firmware 컴포넌트가
+        # 부재 — 호출자에게 노이즈로 전달되지 않도록 skip (기존 키 유지, list 길이만 정확).
+        ver = _safe(member, 'Version')
+        if isinstance(ver, str) and ver.strip().upper() in ('N/A', 'NA', ''):
+            continue
         # Q-13: SoftwareId가 문자열 "null"이면 Python None으로 변환
         component = _safe(member, 'SoftwareId')
         if isinstance(component, str) and component.lower() == 'null':
@@ -1106,7 +1224,7 @@ def gather_firmware(bmc_ip, username, password, timeout, verify_ssl):
         fw_list.append({
             'id':         fw_id,
             'name':       _safe(member, 'Name'),
-            'version':    _safe(member, 'Version'),
+            'version':    ver,
             'updateable': _safe(member, 'Updateable'),
             'component':  component or fw_id,
         })
@@ -1126,28 +1244,44 @@ def gather_power(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
         errors.append(_err('power', f'Power 정보 실패: {perr or st}'))
         return {}, errors
 
-    psus = [
-        {
+    # 2026-04-29 cisco-critical-review: PSU 정격 (power_capacity_w) fallback —
+    # Cisco CIMC / 일부 vendor 는 PowerSupplies[*].PowerCapacityWatts 를 응답하지 않고
+    # InputRanges[0].OutputWattage 에 PSU 정격을 둔다. envelope 키는 그대로,
+    # null 이던 값을 채운다.
+    psus = []
+    for psu in (_safe(pdata, 'PowerSupplies') or []):
+        psu_capacity = _safe(psu, 'PowerCapacityWatts')
+        if psu_capacity is None:
+            ranges = _safe(psu, 'InputRanges') or []
+            if isinstance(ranges, list) and ranges and isinstance(ranges[0], dict):
+                psu_capacity = _safe_int(ranges[0].get('OutputWattage'))
+        psus.append({
             'name':             _safe(psu, 'Name'),
             'model':            _safe(psu, 'Model'),
             'serial':           _safe(psu, 'SerialNumber'),
             'manufacturer':     _safe(psu, 'Manufacturer'),
-            'power_capacity_w': _safe(psu, 'PowerCapacityWatts'),
+            'power_capacity_w': psu_capacity,
             'firmware_version': _safe(psu, 'FirmwareVersion'),
             'health':           _safe(psu, 'Status', 'Health'),
             'state':            _safe(psu, 'Status', 'State'),
-        }
-        for psu in (_safe(pdata, 'PowerSupplies') or [])
-    ]
+        })
 
     # PowerControl — system-level power consumption (Safe Common: 3 vendors verified)
     # production-audit (2026-04-29): pdata가 dict가 아닌 list/None일 가능성 방어 (Cisco/Supermicro edge)
     pc_list = (pdata.get('PowerControl') if isinstance(pdata, dict) else None) or []
     pc0 = pc_list[0] if pc_list else {}
     pm = pc0.get('PowerMetrics') or {}
+    # 2026-04-29 cisco-critical-review: chassis level power_capacity_watts fallback —
+    # Cisco 는 PowerControl[0].PowerCapacityWatts 를 null 응답. PSU power_capacity_w
+    # 합산으로 fallback (PSU 770W × 2 = 1540W 형태).
+    pc_capacity = _safe(pc0, 'PowerCapacityWatts')
+    if pc_capacity is None:
+        psu_caps = [p['power_capacity_w'] for p in psus if p['power_capacity_w'] is not None]
+        if psu_caps:
+            pc_capacity = sum(psu_caps)
     power_control = {
         'power_consumed_watts':  _safe(pc0, 'PowerConsumedWatts'),
-        'power_capacity_watts':  _safe(pc0, 'PowerCapacityWatts'),
+        'power_capacity_watts':  pc_capacity,
         'interval_in_min':       _safe(pm, 'IntervalInMin'),
         'min_consumed_watts':    _safe(pm, 'MinConsumedWatts'),
         'avg_consumed_watts':    _safe(pm, 'AverageConsumedWatts'),
@@ -1195,7 +1329,7 @@ def _collect_all_sections(bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
     _run = _make_section_runner(all_errors, collected, failed)
     creds = (username, password, timeout, verify_ssl)
     return {
-        'system':            _run('system',     gather_system,     bmc_ip, system_uri, vendor, *creds),
+        'system':            _run('system',     gather_system,     bmc_ip, system_uri, vendor, *creds, chassis_uri),
         'bmc':               _run('bmc',        gather_bmc,        bmc_ip, manager_uri, vendor, *creds),
         'processors':        _run('processors', gather_processors, bmc_ip, system_uri,          *creds),
         'memory':            _run('memory',     gather_memory,     bmc_ip, system_uri,          *creds),

@@ -16,6 +16,32 @@
 
 ---
 
+## 2026-04-29 — Dell Redfish 비판적 검증 + envelope 값 미채움 7건 fix
+
+- 환경: Windows 11 호스트 (Bash on Windows / pytest 9.0.2 / Python 3.11.9)
+- 입력: 사용자 명시 "Dell Redfish 수집 안되는게 많고 값도 이상함. 키 늘리지 말고 버그 모두 fix"
+- 분석: Round 11 reference (`tests/reference/redfish/dell/10_100_15_27`, R760, iDRAC 7.10.70.00) ↔ 코드 정적 비교
+- 발견: 26건 (CRIT 2 / HIGH 11 / MED 5 / LOW 2 / 의도 6) → envelope 키 미채움/명확 버그 7건만 fix
+- 변경 파일:
+  - `redfish-gather/library/redfish_gather.py` (BUG-1, BUG-13, BUG-15, BUG-16, BUG-19 — 5건)
+  - `redfish-gather/tasks/normalize_standard.yml` (BUG-12, BUG-13 fallback, BUG-14 fallback — 3건)
+- 명령:
+  - `python -m py_compile redfish-gather/library/redfish_gather.py` → PASS
+  - `python -c "import yaml; yaml.safe_load(open('redfish-gather/tasks/normalize_standard.yml'))"` → PASS
+  - `python -m pytest tests/ --tb=short` → **158 passed in 17.20s**
+  - `python scripts/ai/verify_harness_consistency.py` → PASS (rules 28 / skills 43 / agents 49 / policies 9)
+  - `python scripts/ai/verify_vendor_boundary.py` → PASS
+- Baseline 갱신: **아니오** (rule 13 R4 — 실 BMC 재수집 후 Round 12 에서 갱신 예정. 영향 vendor: Dell 단독 — `hardware.bios_date` / `oem.estimated_exhaust_temp` 두 필드)
+- Evidence: `tests/evidence/2026-04-29-dell-redfish-critical-review.md` (예정)
+- 미수행 (envelope 키 추가 필요): BUG-2 controller metadata, BUG-3~10 PSU/Firmware/Drive/Volume/Memory/NIC 풍부 raw, BUG-11 BIOS Attributes 571
+- 회귀 영향:
+  - HPE/Lenovo/Supermicro/Cisco volumes — `boot_volume` 표준 우선화로 표준 BootVolume 응답 vendor 에서 명시 false/true 정확 반영 (이전 항상 None)
+  - Dell volumes — boot_volume 동일 (표준 BootVolume None → Dell Oem fallback)
+  - Dell hardware.bios_date — null → "MM/DD/YYYY" (실 환경 검증 시)
+  - 모든 vendor cpu.logical_threads — per-processor TotalThreads 누락 펌웨어에서 fallback 활성
+
+---
+
 ## 2026-04-29 — production-audit (4 agent 전수조사 + HIGH 30+건 일괄 fix)
 
 - 환경: Windows 11 호스트 (Bash on Windows / pytest 9.0.2 / Python 3.11.9)
