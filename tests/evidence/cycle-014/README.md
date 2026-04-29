@@ -59,7 +59,21 @@ _precheck_ok: >-
 **Fix** (commit `bf247266`):
 - 주석을 expression 밖으로 이동 (YAML 주석 `#` 또는 task 위 별도 주석)
 
-**도입 시점**: cycle-012 P0~P5 commit 중 일부 (정확한 commit hash는 향후 git bisect 가능).
+**도입 시점 (확정)**: commit `87624231` (cycle-004 silence 작업, 2026-04-27)
+```
+$ git log --oneline -- common/tasks/precheck/run_precheck.yml
+bf247266 fix: Jinja2 expression 안 {# #} 주석 syntax error 정정 (cycle-014)
+87624231 fix: redfish_gather _safe_int + 변수 분기 의도 silence  ← 도입
+2f998c90 feat: initial commit
+```
+`87624231` diff: 본 라인에 `{# rule 95 R1 #5 ok: 진단 통과 = failure_stage 부재 #}` 주석 추가.
+
+**Jenkins 빌드 마스킹 영향 (cycle-014에서 검증)**:
+- 18 빌드 분석 (`hshwang-gather` #34~#38 + `extended-fields-test` × 4 + `multi-stage-single-playbook` × 5 + `single-stage-single-playbook` × 5)
+- Jenkins SUCCESS + envelope=failed + Jinja2 error 발견 = **0 빌드**
+- 빌드 #38 envelope status=success 였음 (cycle-012 PR 머지 직후 시점)
+- → cycle-014 시점 ansible 환경 (agent 154 ansible-core 2.20.3 + Jinja2 3.1.6)에서 strict해진 듯
+- → 본 cycle-014 fix는 모든 환경에서 안전 (Jinja2 expression 안 statement 주석은 표준 비호환)
 
 **영향**: cycle-013 main commit 시점 모든 redfish gather가 precheck 단계 후 envelope `_output 미생성` (block/rescue 모두 실패) 또는 fatal로 빌드 실패. 실 BMC 빌드 시범 (OPS-1)이 어떤 빌드든 모두 affected.
 
