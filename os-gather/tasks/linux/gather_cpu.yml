@@ -9,21 +9,73 @@
 # Python Path
 # =============================================================================
 - block:
-    - name: "linux | cpu | cores per socket"
-      ansible.builtin.shell: >
-        grep -m1 'cpu cores' /proc/cpuinfo 2>/dev/null | awk '{print $4}' || echo ""
-      register: _l_cpu_cores_raw
+    - name: "linux | cpu | cores per socket + model + manufacturer + max speed"
+      ansible.builtin.shell: |
+        echo "CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ *//')"
+        echo "CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ *//')"
+        echo "CPU_CPS=$(grep -m1 'cpu cores' /proc/cpuinfo 2>/dev/null | awk '{print $4}')"
+        # max_speed_mhz: lscpu 의 'CPU max MHz' (실제 boost 가능 클럭)
+        if command -v lscpu >/dev/null 2>&1; then
+          echo "CPU_MAX_MHZ=$(lscpu 2>/dev/null | awk -F: '/CPU max MHz/{gsub(/^ +| +$|,.*/,"",$2); print $2; exit}')"
+        else
+          echo "CPU_MAX_MHZ="
+        fi
+        # /sys/devices/system/cpu/cpu0/cpufreq 보조
+        if [ -r /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq ]; then
+          echo "CPU_MAX_KHZ=$(cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq)"
+        else
+          echo "CPU_MAX_KHZ="
+        fi
+        # L2/L3 cache
+        if command -v lscpu >/dev/null 2>&1; then
+          echo "L2_CACHE=$(lscpu 2>/dev/null | awk -F: '/L2 cache/{gsub(/^ +| +$/,"",$2); print $2; exit}')"
+          echo "L3_CACHE=$(lscpu 2>/dev/null | awk -F: '/L3 cache/{gsub(/^ +| +$/,"",$2); print $2; exit}')"
+        fi
+      register: _l_cpu_meta_raw
       changed_when: false
       failed_when: false
       no_log: true
 
-    - name: "linux | cpu | model"
-      ansible.builtin.shell: >
-        grep -m1 'model name' /proc/cpuinfo 2>/dev/null
-        | cut -d: -f2 | sed 's/^ *//' || echo ""
-      register: _l_cpu_model_raw
-      changed_when: false
-      failed_when: false
+    - name: "linux | cpu | parse"
+      ansible.builtin.set_fact:
+        _l_cpu_parsed: >-
+          {{ dict(_l_cpu_meta_raw.stdout_lines | default([])
+                  | select('search', '=') | map('split', '=', 1) | list) }}
+      no_log: true
+
+    - name: "linux | cpu | compute summary groups"
+      ansible.builtin.set_fact:
+        _l_cpu_summary: >-
+          {%- set sockets = (ansible_processor_count | default(0) | int) -%}
+          {%- set cps = ((_l_cpu_parsed.CPU_CPS | default('0')) | trim | int) -%}
+          {%- set total_cores = cps * sockets if cps > 0 else 0 -%}
+          {%- set model = (_l_cpu_parsed.CPU_MODEL | default('')) | trim -%}
+          {%- set vendor = (_l_cpu_parsed.CPU_VENDOR | default('')) | trim -%}
+          {%- set max_mhz = (_l_cpu_parsed.CPU_MAX_MHZ | default('')) | trim -%}
+          {%- set max_mhz_int = max_mhz | float | int if max_mhz else none -%}
+          {%- if not max_mhz_int -%}
+            {%- set khz = (_l_cpu_parsed.CPU_MAX_KHZ | default('')) | trim -%}
+            {%- set max_mhz_int = (khz | int / 1000) | int if khz else none -%}
+          {%- endif -%}
+          {%- set mfr = none -%}
+          {%- if 'GenuineIntel' in vendor or 'Intel' in model -%}{%- set mfr = 'Intel' -%}
+          {%- elif 'AuthenticAMD' in vendor or 'AMD' in model -%}{%- set mfr = 'AMD' -%}
+          {%- elif vendor -%}{%- set mfr = vendor -%}
+          {%- endif -%}
+          {%- if model and sockets > 0 -%}
+            {{ {'groups': [{
+              'model': model,
+              'manufacturer': mfr,
+              'max_speed_mhz': max_mhz_int,
+              'l2_cache': (_l_cpu_parsed.L2_CACHE | default('')) | trim or none,
+              'l3_cache': (_l_cpu_parsed.L3_CACHE | default('')) | trim or none,
+              'sockets': sockets,
+              'cores_per_socket': cps,
+              'total_cores': total_cores
+            }]} }}
+          {%- else -%}
+            {{ {'groups': []} }}
+          {%- endif -%}
       no_log: true
 
     - name: "linux | cpu | build fragment"
@@ -32,13 +84,23 @@
           cpu:
             sockets:         "{{ ansible_processor_count   | default(none) }}"
             cores_physical:  >-
-              {{ (_l_cpu_cores_raw.stdout | trim | int)
-                 * (ansible_processor_count | default(1) | int)
-                 if _l_cpu_cores_raw.stdout | trim | length > 0
-                 else none }}
+              {%- set cps = ((_l_cpu_parsed.CPU_CPS | default('0')) | trim | int) -%}
+              {%- set sockets = ansible_processor_count | default(1) | int -%}
+              {{ (cps * sockets) if cps > 0 else none }}
             logical_threads: "{{ ansible_processor_vcpus   | default(none) }}"
-            model:           "{{ _l_cpu_model_raw.stdout   | trim | default(none) }}"
+            model:           "{{ (_l_cpu_parsed.CPU_MODEL | default('')) | trim or none }}"
+            manufacturer: >-
+              {%- set v = (_l_cpu_parsed.CPU_VENDOR | default('')) | trim -%}
+              {%- if 'GenuineIntel' in v -%}Intel
+              {%- elif 'AuthenticAMD' in v -%}AMD
+              {%- elif v -%}{{ v }}
+              {%- else -%}{{ none }}
+              {%- endif -%}
+            max_speed_mhz: >-
+              {%- set m = (_l_cpu_parsed.CPU_MAX_MHZ | default('')) | trim -%}
+              {{ m | float | int if m else none }}
             architecture:    "{{ ansible_architecture      | default(none) }}"
+            summary:         "{{ _l_cpu_summary | default({'groups': []}) }}"
         _sections_supported_fragment: ['cpu']
         _sections_collected_fragment: ['cpu']
         _sections_failed_fragment:    []

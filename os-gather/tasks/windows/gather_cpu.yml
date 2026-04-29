@@ -4,8 +4,8 @@
 
 - name: "windows | cpu | collect Win32_Processor 상세"
   ansible.windows.win_shell: |
-    $cpus = Get-CimInstance Win32_Processor
-    $procs = $cpus | ForEach-Object {
+    $cpus = @(Get-CimInstance Win32_Processor)
+    $procs = @($cpus | ForEach-Object {
       [PSCustomObject]@{
         socket_designation = $_.SocketDesignation
         name               = $_.Name
@@ -18,9 +18,9 @@
         processor_id       = $_.ProcessorId
         architecture_code  = [int]$_.Architecture
       }
-    }
+    })
     @{
-      sockets   = ($cpus | Measure-Object).Count
+      sockets   = $cpus.Count
       cores     = ($cpus | Measure-Object -Property NumberOfCores -Sum).Sum
       logical   = ($cpus | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
       model     = ($cpus | Select-Object -First 1 -ExpandProperty Name)
