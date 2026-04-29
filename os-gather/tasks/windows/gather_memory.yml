@@ -10,18 +10,21 @@
   failed_when: false
   no_log: true
 
-# cycle-016 (2026-04-29): slot 단위 emit
+# cycle-016 Phase L/N: slot 단위 emit + manufacturer/part_number/serial 추가
 - name: "windows | memory | Win32_PhysicalMemory slots"
   ansible.windows.win_shell: |
     Get-CimInstance Win32_PhysicalMemory | ForEach-Object {
       [PSCustomObject]@{
-        capacity_mb = [int]([math]::Round($_.Capacity / 1MB, 0))
-        type        = switch ($_.SMBIOSMemoryType) {
-                        24 {"DDR3"} 26 {"DDR4"} 34 {"DDR5"} 0 {$null}
-                        default { [string]$_.SMBIOSMemoryType }
-                      }
-        speed_mhz   = $_.Speed
-        slot        = $_.DeviceLocator
+        capacity_mb  = [int]([math]::Round($_.Capacity / 1MB, 0))
+        type         = switch ($_.SMBIOSMemoryType) {
+                         24 {"DDR3"} 26 {"DDR4"} 34 {"DDR5"} 0 {$null}
+                         default { [string]$_.SMBIOSMemoryType }
+                       }
+        speed_mhz    = $_.Speed
+        slot         = $_.DeviceLocator
+        manufacturer = $_.Manufacturer
+        part_number  = $_.PartNumber
+        serial       = $_.SerialNumber
       } | ConvertTo-Json -Compress
     }
   register: _w_mem_slots_raw
@@ -40,7 +43,10 @@
             'capacity_mb': s.capacity_mb | default(0) | int,
             'type': s.type | default(none),
             'speed_mhz': s.speed_mhz | default(none),
-            'slot': s.slot | default(none)
+            'slot': s.slot | default(none),
+            'manufacturer': (s.manufacturer | default(none) | trim) if s.manufacturer else none,
+            'part_number': (s.part_number | default(none) | trim) if s.part_number else none,
+            'serial': (s.serial | default(none) | trim) if s.serial else none
           }) -%}
         {%- endif -%}
       {%- endfor -%}
@@ -55,14 +61,16 @@
             {%- set cap_gb = (cap_mb / 1024) | round(0, 'floor') | int -%}
             {%- set t = s.type | default(none) -%}
             {%- set sp = s.speed_mhz | default(none) -%}
-            {%- set key = (cap_gb|string)~'|'~(t|string)~'|'~(sp|string) -%}
+            {%- set mfr = (s.manufacturer | default('') | trim) | default(none) -%}
+            {%- set pn = (s.part_number | default('') | trim) | default(none) -%}
+            {%- set key = (cap_gb|string)~'|'~(t|string)~'|'~(sp|string)~'|'~(mfr|string)~'|'~(pn|string) -%}
             {%- if key in ns.seen -%}
               {%- set idx = ns.seen[key] -%}
               {%- set q = ns.groups[idx].quantity + 1 -%}
               {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
             {%- else -%}
               {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-              {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'speed_mhz': sp, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+              {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'speed_mhz': sp, 'manufacturer': mfr if mfr else none, 'part_number': pn if pn else none, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
             {%- endif -%}
             {%- set ns.total = ns.total + cap_gb -%}
           {%- endif -%}

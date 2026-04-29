@@ -508,6 +508,17 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
     if mem_health is None:
         mem_health = _safe(data, 'MemorySummary', 'Status', 'HealthRollup')
 
+    # cycle-016 Phase N: System 의 raw API 풍부 필드 추가 (asset/lastreset/tpm)
+    tpm_modules = _safe(data, 'TrustedModules') or []
+    tpm_summary = None
+    if isinstance(tpm_modules, list) and tpm_modules:
+        first_tpm = tpm_modules[0] if isinstance(tpm_modules[0], dict) else {}
+        tpm_summary = {
+            'interface_type':   _safe(first_tpm, 'InterfaceType'),
+            'firmware_version': _safe(first_tpm, 'FirmwareVersion'),
+            'state':            _safe(first_tpm, 'Status', 'State'),
+        }
+
     result = {
         'manufacturer':   _safe(data, 'Manufacturer'),
         'model':          _safe(data, 'Model'),
@@ -520,6 +531,12 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
         'state':          _safe(data, 'Status', 'State'),
         'led_state':      led_state,
         'bios_version':   _safe(data, 'BiosVersion'),
+        'asset_tag':      _safe(data, 'AssetTag'),
+        'system_type':    _safe(data, 'SystemType'),
+        'part_number':    _safe(data, 'PartNumber'),
+        'last_reset_time': _safe(data, 'LastResetTime'),
+        'boot_progress':  _safe(data, 'BootProgress', 'LastState'),
+        'tpm':            tpm_summary,
         'cpu_summary': {
             'count':  _safe(data, 'ProcessorSummary', 'Count'),
             'model':  _safe(data, 'ProcessorSummary', 'Model'),
@@ -556,13 +573,18 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
     # nosec rule12-r1: vendor → BMC 표시명 매핑 (외부 spec 기반 표준 이름)
     bmc_names = {'dell': 'iDRAC', 'hpe': 'iLO', 'lenovo': 'XCC', 'supermicro': 'BMC',
                  'cisco': 'CIMC'}                                              # nosec rule12-r1
-    # cycle-016 Phase M: BMC 운영 정보 강화 — datetime / dns / mac
+    # cycle-016 Phase M/N: BMC 운영 정보 강화 — datetime / dns / mac / uuid / last_reset / timezone / power_state
     result = {
         'name':             bmc_names.get(vendor, 'BMC'),
         'firmware_version': _safe(data, 'FirmwareVersion'),
         'model':            _safe(data, 'Model'),
         'manager_type':     _safe(data, 'ManagerType'),
         'health':           _safe(data, 'Status', 'Health'),
+        'state':            _safe(data, 'Status', 'State'),
+        'power_state':      _safe(data, 'PowerState'),
+        'uuid':             _safe(data, 'UUID'),
+        'last_reset_time':  _safe(data, 'LastResetTime'),
+        'timezone':         _safe(data, 'TimeZoneName'),
         'ip':               None,
         'mac_address':      None,
         'dns_name':         None,
@@ -627,16 +649,22 @@ def gather_processors(bmc_ip, system_uri, username, password, timeout, verify_ss
             continue
         if _safe(pdata, 'Status', 'State') in ('Absent', 'Disabled'):
             continue
+        # cycle-016 Phase N: ProcessorType / Architecture / SerialNumber / PartNumber 추가 (raw API 에 있음)
         processors.append({
-            'id':            _safe(pdata, 'Id'),
-            'name':          _safe(pdata, 'Name'),
-            'model':         _safe(pdata, 'Model'),
-            'manufacturer':  _safe(pdata, 'Manufacturer'),
-            'socket':        _safe(pdata, 'Socket'),
-            'total_cores':   _safe(pdata, 'TotalCores'),
-            'total_threads': _safe(pdata, 'TotalThreads'),
-            'speed_mhz':     _safe(pdata, 'MaxSpeedMHz'),
-            'health':        _safe(pdata, 'Status', 'Health'),
+            'id':                _safe(pdata, 'Id'),
+            'name':              _safe(pdata, 'Name'),
+            'model':             _safe(pdata, 'Model'),
+            'manufacturer':      _safe(pdata, 'Manufacturer'),
+            'socket':            _safe(pdata, 'Socket'),
+            'total_cores':       _safe(pdata, 'TotalCores'),
+            'total_threads':     _safe(pdata, 'TotalThreads'),
+            'speed_mhz':         _safe(pdata, 'MaxSpeedMHz'),
+            'health':            _safe(pdata, 'Status', 'Health'),
+            'processor_type':    _safe(pdata, 'ProcessorType'),
+            'architecture':      _safe(pdata, 'ProcessorArchitecture'),
+            'instruction_set':   _safe(pdata, 'InstructionSet'),
+            'serial_number':     _safe(pdata, 'SerialNumber'),
+            'part_number':       _safe(pdata, 'PartNumber'),
         })
     return processors, errors
 
@@ -663,16 +691,22 @@ def gather_memory(bmc_ip, system_uri, username, password, timeout, verify_ssl):
         cap_int = _safe_int(cap)
         if cap_int:
             total_mib += cap_int
+        # cycle-016 Phase N: BaseModuleType / RankCount / ErrorCorrection / DataWidth 추가
         slots.append({
-            'id':           _safe(mdata, 'Id'),
-            'name':         _safe(mdata, 'Name'),
-            'capacity_mib': cap_int,
-            'type':         _safe(mdata, 'MemoryDeviceType'),
-            'speed_mhz':    _safe(mdata, 'OperatingSpeedMhz'),
-            'manufacturer': _safe(mdata, 'Manufacturer'),
-            'serial':       _safe(mdata, 'SerialNumber'),
-            'part_number':  _safe(mdata, 'PartNumber'),
-            'health':       _safe(mdata, 'Status', 'Health'),
+            'id':              _safe(mdata, 'Id'),
+            'name':            _safe(mdata, 'Name'),
+            'capacity_mib':    cap_int,
+            'type':            _safe(mdata, 'MemoryDeviceType'),
+            'base_module_type': _safe(mdata, 'BaseModuleType'),
+            'speed_mhz':       _safe(mdata, 'OperatingSpeedMhz'),
+            'manufacturer':    _safe(mdata, 'Manufacturer'),
+            'serial':          _safe(mdata, 'SerialNumber'),
+            'part_number':     _safe(mdata, 'PartNumber'),
+            'rank_count':      _safe(mdata, 'RankCount'),
+            'data_width_bits': _safe(mdata, 'DataWidthBits'),
+            'bus_width_bits':  _safe(mdata, 'BusWidthBits'),
+            'error_correction': _safe(mdata, 'ErrorCorrection'),
+            'health':          _safe(mdata, 'Status', 'Health'),
         })
     return {'total_mib': total_mib or None, 'slots': slots}, errors
 

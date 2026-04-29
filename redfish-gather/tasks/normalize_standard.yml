@@ -245,6 +245,7 @@
         {%- set lid = (fid ~ '|' ~ fname) | lower -%}
         {%- set cat = 'other' -%}
         {%- if 'bios' in lid -%}{%- set cat = 'bios' -%}
+        {# nosec rule12-r1: firmware id substring 매칭 (Redfish firmware naming, vendor 분기 아님) #}
         {%- elif 'idrac' in lid or 'ilo' in lid or 'xcc' in lid or 'cimc' in lid or 'bmc' in lid -%}{%- set cat = 'bmc' -%}
         {%- elif 'nic' in lid or 'ethernet' in lid or 'broadcom' in lid or 'mellanox' in lid -%}{%- set cat = 'nic' -%}
         {%- elif 'raid' in lid or 'perc' in lid or 'megaraid' in lid -%}{%- set cat = 'storage_controller' -%}
@@ -266,7 +267,7 @@
       {%- set ns = namespace(psu_total=0, psu_active=0, cap_total=0) -%}
       {%- for psu in (_rf_d_power.power_supplies | default([])) -%}
         {%- set ns.psu_total = ns.psu_total + 1 -%}
-        {%- if (psu.state | default('')) == 'Enabled' -%}
+        {%- if (psu.state | default('') | string | trim | lower) == 'enabled' -%}
           {%- set ns.psu_active = ns.psu_active + 1 -%}
         {%- endif -%}
         {%- set ns.cap_total = ns.cap_total + ((psu.power_capacity_w | default(0)) | int) -%}
@@ -314,6 +315,7 @@
         uptime_seconds: null
         selinux:        null
         fqdn:           "{{ _rf_d_system.hostname | default(none) }}"
+      # cycle-016 Phase N: hardware 의 raw API 풍부 필드 추가 (asset_tag/system_type/part_number/last_reset/tpm)
       hardware:
         vendor:       "{{ _rf_d_system.manufacturer | default(none) }}"
         model:        "{{ _rf_d_system.model        | default(none) }}"
@@ -324,6 +326,12 @@
         bios_date:    null
         power_state:  "{{ _rf_d_system.power_state  | default(none) }}"
         health:       "{{ _rf_d_system.health       | default(none) }}"
+        asset_tag:    "{{ _rf_d_system.asset_tag    | default(none) }}"
+        system_type:  "{{ _rf_d_system.system_type  | default(none) }}"
+        part_number:  "{{ _rf_d_system.part_number  | default(none) }}"
+        last_reset_time: "{{ _rf_d_system.last_reset_time | default(none) }}"
+        boot_progress: "{{ _rf_d_system.boot_progress | default(none) }}"
+        tpm:          "{{ _rf_d_system.tpm          | default(none) }}"
         oem:          "{{ _rf_d_system.oem          | default({}) }}"
       bmc: "{{ _rf_d_bmc }}"
       cpu:
@@ -336,7 +344,8 @@
           {{ _rf_d_procs | map(attribute='model') | select | list | first | default(none) }}
         max_speed_mhz: >-
           {{ _rf_d_procs | map(attribute='speed_mhz') | select | list | first | default(none) }}
-        architecture: null
+        architecture: >-
+          {{ _rf_d_procs | map(attribute='architecture') | select | list | first | default(_rf_d_procs | map(attribute='instruction_set') | select | list | first | default(none)) }}
         summary: "{{ _rf_summary_cpu | default({'groups': []}) }}"
       memory:
         total_mb:     "{{ _rf_d_memory.total_mib | default(none) }}"
