@@ -124,6 +124,16 @@
           {{ {'groups': ns.groups, 'grand_total_gb': ns.total if ns.total > 0 else fallback_total} }}
       no_log: true
 
+    # production-audit (2026-04-29 후속): free_mb 의 의미를 raw 경로와 통일.
+    # ansible_memfree_mb = MemFree (cache/buffer 미포함) 라 사용자 직관과 다름.
+    # raw 경로는 MemAvailable 사용 — Python 경로도 동일하게 MemAvailable 추출.
+    - name: "linux | memory | get MemAvailable"
+      ansible.builtin.shell: "awk '/^MemAvailable:/{print $2}' /proc/meminfo"
+      register: _l_mem_avail_kb
+      changed_when: false
+      failed_when: false
+      no_log: true
+
     - name: "linux | memory | build fragment"
       ansible.builtin.set_fact:
         _l_mem_phys_ok: >-
@@ -147,7 +157,9 @@
                      and _l_mem_phys_raw.stdout | trim | int > 0)
                  else none }}
             visible_mb:  "{{ ansible_memtotal_mb | default(none) }}"
-            free_mb:     "{{ ansible_memfree_mb  | default(none) }}"
+            free_mb: >-
+              {%- set avail = (_l_mem_avail_kb.stdout | default('') | trim) -%}
+              {{ ((avail | int) / 1024) | round(0,'floor') | int if avail else (ansible_memfree_mb | default(none)) }}
             slots:       "{{ _l_mem_slots | default([]) }}"
             # cycle-016 (2026-04-29): dmidecode slot 단위 group summary
             summary: "{{ _l_mem_summary | default({'groups': [], 'grand_total_gb': 0}) }}"
@@ -182,11 +194,11 @@
             | awk '{if($3=="GB")s+=$2*1024;else if($3=="MB")s+=$2;else if($3=="KB")s+=$2/1024} END{print int(s)}' 2>/dev/null)
         fi
         echo "MEM_PHYS_MB=${phys:-0}"
-        # cycle-016 (2026-04-29): slot 단위 emit (raw fallback)
+        # cycle-016 (2026-04-29) + production-audit 후속: slot 단위 emit (raw fallback) — Python 경로와 동일하게 manufacturer/part_number 포함
         if command -v dmidecode >/dev/null 2>&1; then
           dmidecode -t memory 2>/dev/null | awk '
-            BEGIN{ in_dev=0; size=""; type=""; speed=""; }
-            /^Memory Device/ { in_dev=1; size=""; type=""; speed=""; next }
+            BEGIN{ in_dev=0; size=""; type=""; speed=""; mfr=""; pn=""; }
+            /^Memory Device/ { in_dev=1; size=""; type=""; speed=""; mfr=""; pn=""; next }
             in_dev && /^[[:space:]]*Size:/ {
               if ($2 == "No" || $2 == "Volatile") next;
               if ($3=="GB") size_mb = $2 * 1024;
@@ -197,7 +209,18 @@
             }
             in_dev && /^[[:space:]]*Type:/ && !/Type Detail/ { type=$2; }
             in_dev && /^[[:space:]]*Speed:/ && !/Configured/ { speed=$2; }
-            in_dev && /^$/ { if (size != "" && size > 0) printf "SLOT|%s|%s|%s\n", size, type, speed; in_dev=0; size=""; type=""; speed=""; }
+            in_dev && /^[[:space:]]*Manufacturer:/ {
+              s=$0; sub(/^[[:space:]]*Manufacturer:[[:space:]]*/,"",s);
+              gsub(/[|]/,"_",s); mfr=s;
+            }
+            in_dev && /^[[:space:]]*Part Number:/ {
+              s=$0; sub(/^[[:space:]]*Part Number:[[:space:]]*/,"",s);
+              gsub(/[|]/,"_",s); pn=s;
+            }
+            in_dev && /^$/ {
+              if (size != "" && size > 0) printf "SLOT|%s|%s|%s|%s|%s\n", size, type, speed, mfr, pn;
+              in_dev=0; size=""; type=""; speed=""; mfr=""; pn="";
+            }
           '
         fi
       register: _l_mem_raw_result
@@ -221,10 +244,14 @@
                 {%- set cap = parts[1] | int -%}
                 {%- set t = parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none -%}
                 {%- set sp = parts[3] | regex_replace('[^0-9]', '') -%}
+                {%- set mfr = parts[4] if (parts | length >= 5 and parts[4] | length > 0 and parts[4] != 'Unknown' and parts[4] != 'Not Specified') else none -%}
+                {%- set pn = parts[5] if (parts | length >= 6 and parts[5] | length > 0 and parts[5] != 'Unknown' and parts[5] != 'Not Specified') else none -%}
                 {%- set _ = out.append({
                   'capacity_mb': cap,
                   'type': t,
-                  'speed_mhz': (sp | int) if sp else none
+                  'speed_mhz': (sp | int) if sp else none,
+                  'manufacturer': mfr,
+                  'part_number': pn | trim if pn else none
                 }) -%}
               {%- endif -%}
             {%- endif -%}
@@ -240,14 +267,17 @@
             {%- if s.capacity_mb > 0 -%}
               {%- set cap_gb = (s.capacity_mb / 1024) | round(0, 'floor') | int -%}
               {%- set t = s.type | default(none) -%}
-              {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
+              {%- set sp = s.speed_mhz | default(none) -%}
+              {%- set mfr = s.manufacturer | default(none) -%}
+              {%- set pn = s.part_number | default(none) -%}
+              {%- set key = (cap_gb|string)~'|'~(t|string)~'|'~(sp|string)~'|'~(mfr|string)~'|'~(pn|string) -%}
               {%- if key in ns.seen -%}
                 {%- set idx = ns.seen[key] -%}
                 {%- set q = ns.groups[idx].quantity + 1 -%}
                 {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
               {%- else -%}
                 {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'speed_mhz': sp, 'manufacturer': mfr, 'part_number': pn, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
               {%- endif -%}
               {%- set ns.total = ns.total + cap_gb -%}
             {%- endif -%}
