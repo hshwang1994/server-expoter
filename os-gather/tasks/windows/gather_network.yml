@@ -109,6 +109,43 @@
       {{ {'groups': ns.groups} }}
   no_log: true
 
+# cycle-016 Phase P: Linux 와 일관 — driver_map 추가 + adapters/ports 빈 list
+- name: "windows | network | NIC driver map (Get-NetAdapter)"
+  ansible.windows.win_shell: |
+    Get-NetAdapter | Where-Object { $_.Status -eq 'Up' -or $_.MediaConnectionState -eq 'Connected' } | ForEach-Object {
+      [PSCustomObject]@{
+        name           = $_.Name
+        driver         = $_.DriverDescription
+        driver_version = $_.DriverVersion
+        driver_date    = if ($_.DriverDate) { $_.DriverDate.ToString('yyyy-MM-dd') } else { $null }
+        vlan_id        = $_.VlanID
+        bond_master    = $null
+      } | ConvertTo-Json -Compress
+    }
+  register: _w_drvmap_raw
+  changed_when: false
+  failed_when: false
+  no_log: true
+
+- name: "windows | network | parse driver_map"
+  ansible.builtin.set_fact:
+    _w_driver_map: >-
+      {%- set out = [] -%}
+      {%- for line in (_w_drvmap_raw.stdout_lines | default([])) -%}
+        {%- if line | trim -%}
+          {%- set d = line | from_json -%}
+          {%- set _ = out.append({
+            'name': d.name | default(none),
+            'driver': d.driver | default(none),
+            'driver_version': d.driver_version | default(none),
+            'vlan_id': (d.vlan_id | int) if d.vlan_id else none,
+            'bond_master': none
+          }) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ out }}
+  no_log: true
+
 - name: "windows | network | build fragment"
   ansible.builtin.set_fact:
     _data_fragment:
@@ -120,6 +157,9 @@
           {%- if gw -%}{%- set _ = out.append({'family':'ipv4','address':gw}) -%}{%- endif -%}
           {{ out }}
         interfaces: "{{ _w_norm_interfaces }}"
+        adapters:    []
+        ports:       []
+        driver_map:  "{{ _w_driver_map | default([]) }}"
         summary: "{{ _w_net_summary | default({'groups': []}) }}"
     _sections_supported_fragment: ['network']
     _sections_collected_fragment: ['network']

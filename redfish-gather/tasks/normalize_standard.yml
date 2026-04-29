@@ -163,7 +163,7 @@
     _rf_summary_memory: >-
       {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for s in (_rf_d_memory.slots | default([])) -%}
-        {%- set cap_mb = s.capacity_mib | default(s.size_mib | default(s.capacity_mb | default(0))) | int -%}
+        {%- set cap_mb = s.capacity_mb | default(s.capacity_mib | default(s.size_mib | default(0))) | int -%}
         {%- if cap_mb > 0 -%}
           {%- set cap_gb = (cap_mb / 1024) | round(0, 'floor') | int -%}
           {%- set t = s.memory_type | default(s.type | default(none)) -%}

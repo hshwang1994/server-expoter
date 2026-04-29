@@ -5,6 +5,7 @@
 - name: "esxi | normalize system | build fragment"
   ansible.builtin.set_fact:
     _data_fragment:
+      # cycle-016 Phase P: 3 채널 일관성 — system.runtime 노출 (Linux/Windows 와 동일 키)
       system:
         os_family:      "VMware ESXi"
         distribution:   "VMware ESXi"
@@ -14,6 +15,18 @@
         uptime_seconds: "{{ (_e_raw_facts.ansible_uptime               | default(0)) | int }}"
         selinux:        null
         fqdn:           "{{ _e_ip }}"
+        hosting_type:   "hypervisor"
+        runtime:
+          # ESXi 는 vmware_host_facts 에서 제한적 — 기술적 가능 영역만
+          timezone:         null
+          ntp_active:       null
+          ntp_synchronized: null
+          firewall_tool:    "esxi_firewall"
+          firewall_state:   null
+          listening_ports:  []
+          swap_total_mb:    null
+          swap_used_mb:     null
+          swap_free_mb:     null
       hardware:
         vendor:       "{{ _e_raw_facts.ansible_system_vendor  | default(none) }}"
         model:        "{{ _e_raw_facts.ansible_product_name   | default(none) }}"

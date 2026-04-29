@@ -692,10 +692,11 @@ def gather_memory(bmc_ip, system_uri, username, password, timeout, verify_ssl):
         if cap_int:
             total_mib += cap_int
         # cycle-016 Phase N: BaseModuleType / RankCount / ErrorCorrection / DataWidth 추가
+        # Phase P: 3 채널 키 일관성 — capacity_mb (이전 capacity_mib) 로 통일
         slots.append({
             'id':              _safe(mdata, 'Id'),
             'name':            _safe(mdata, 'Name'),
-            'capacity_mib':    cap_int,
+            'capacity_mb':     cap_int,
             'type':            _safe(mdata, 'MemoryDeviceType'),
             'base_module_type': _safe(mdata, 'BaseModuleType'),
             'speed_mhz':       _safe(mdata, 'OperatingSpeedMhz'),

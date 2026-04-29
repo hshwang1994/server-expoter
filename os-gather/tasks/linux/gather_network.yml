@@ -90,6 +90,7 @@
           {{ {'groups': ns.groups} }}
       no_log: true
 
+    # cycle-016 Phase P: 3 채널 key 일관성 — adapters / ports 빈 list 키 노출 (Linux OS 한계)
     - name: "linux | network | build fragment"
       ansible.builtin.set_fact:
         _data_fragment:
@@ -102,6 +103,8 @@
               {%- endif -%}
               {{ out }}
             interfaces: "{{ _l_norm_interfaces }}"
+            adapters:    []
+            ports:       []
             summary: "{{ _l_net_summary | default({'groups': []}) }}"
         _sections_supported_fragment: ['network']
         _sections_collected_fragment: ['network']
@@ -278,6 +281,8 @@
               {%- endif -%}
               {{ out }}
             interfaces: "{{ _l_norm_interfaces_raw | default([]) }}"
+            adapters:    []
+            ports:       []
             summary: "{{ _l_net_summary_r | default({'groups': []}) }}"
         _sections_supported_fragment: ['network']
         _sections_collected_fragment: >-
