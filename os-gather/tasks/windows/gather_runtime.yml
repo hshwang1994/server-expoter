@@ -108,17 +108,51 @@
           {{ out }}
       no_log: true
 
+    # cycle-016 Phase P 후속: Linux 와 키 일관성 통일
     - name: "windows | runtime | merge fragment"
       ansible.builtin.set_fact:
         _data_fragment:
           system:
             runtime:
-              timezone:        "{{ _w_rt_ntp_obj.timezone | default(none) }}"
-              ntp_active:      "{{ (_w_rt_ntp_obj.w32time_state | default('')) | lower in ['running','active'] }}"
-              ntp_last_sync:   "{{ _w_rt_ntp_obj.last_sync | default(none) }}"
+              timezone:         "{{ _w_rt_ntp_obj.timezone | default(none) }}"
+              ntp_active:       "{{ (_w_rt_ntp_obj.w32time_state | default('')) | lower in ['running','active'] }}"
+              ntp_synchronized: "{{ (_w_rt_ntp_obj.last_sync | default('')) | length > 0 }}"
+              firewall_tool:    "windows_firewall"
+              firewall_state: >-
+                {%- set any_enabled = false -%}
+                {%- for fw in _w_rt_fw_list -%}
+                  {%- if fw.enabled | default(false) -%}{%- set any_enabled = true -%}{%- endif -%}
+                {%- endfor -%}
+                {{ 'enabled' if any_enabled else 'disabled' }}
+              listening_ports: >-
+                {%- set out = [] -%}
+                {%- for p in (_w_rt_ports_list | default([])) -%}
+                  {%- set _ = out.append(p | string) -%}
+                {%- endfor -%}
+                {{ out }}
+              swap_total_mb: >-
+                {%- set total = 0 -%}
+                {%- for pf in (_w_rt_pagefile_list | default([])) -%}
+                  {%- set total = total + (pf.size_mb | default(0) | int) -%}
+                {%- endfor -%}
+                {{ total }}
+              swap_used_mb: >-
+                {%- set used = 0 -%}
+                {%- for pf in (_w_rt_pagefile_list | default([])) -%}
+                  {%- set used = used + (pf.used_mb | default(0) | int) -%}
+                {%- endfor -%}
+                {{ used }}
+              swap_free_mb: >-
+                {%- set total = 0 -%}{%- set used = 0 -%}
+                {%- for pf in (_w_rt_pagefile_list | default([])) -%}
+                  {%- set total = total + (pf.size_mb | default(0) | int) -%}
+                  {%- set used = used + (pf.used_mb | default(0) | int) -%}
+                {%- endfor -%}
+                {{ total - used }}
+              # Windows-specific 부가 정보 (Linux 키 외 추가 — 일관성 유지하면서 풍부함 보존)
               firewall_profiles: "{{ _w_rt_fw_list }}"
-              listening_ports: "{{ _w_rt_ports_list }}"
-              pagefiles:       "{{ _w_rt_pagefile_list }}"
+              pagefiles:        "{{ _w_rt_pagefile_list }}"
+              ntp_last_sync:    "{{ _w_rt_ntp_obj.last_sync | default(none) }}"
         _sections_supported_fragment: ['system']
         _sections_collected_fragment: ['system']
         _sections_failed_fragment:    []
@@ -130,12 +164,18 @@
         _data_fragment:
           system:
             runtime:
-              timezone:          null
-              ntp_active:        null
-              ntp_last_sync:     null
+              timezone:         null
+              ntp_active:       null
+              ntp_synchronized: null
+              firewall_tool:    "windows_firewall"
+              firewall_state:   null
+              listening_ports:  []
+              swap_total_mb:    null
+              swap_used_mb:     null
+              swap_free_mb:     null
               firewall_profiles: []
-              listening_ports:   []
-              pagefiles:         []
+              pagefiles:        []
+              ntp_last_sync:    null
         _sections_supported_fragment: ['system']
         _sections_collected_fragment: []
         _sections_failed_fragment:    ['system_runtime']
