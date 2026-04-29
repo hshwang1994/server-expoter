@@ -25,12 +25,13 @@
         else
           echo ""
         fi
+      become: true
       register: _l_mem_phys_raw
       changed_when: false
       failed_when: false
       no_log: true
 
-    # cycle-016 (2026-04-29): slot 단위 dmidecode → summary.groups 산출
+    # cycle-016 (2026-04-29): slot 단위 dmidecode → summary.groups 산출 (sudo 필요)
     - name: "linux | memory | physical (dmidecode slots)"
       ansible.builtin.shell: |
         if command -v dmidecode >/dev/null 2>&1; then
@@ -50,6 +51,7 @@
             in_dev && /^$/ { if (size != "" && size > 0) printf "SLOT|%s|%s|%s\n", size, type, speed; in_dev=0; size=""; type=""; speed=""; }
           '
         fi
+      become: true
       register: _l_mem_slots_raw
       changed_when: false
       failed_when: false
