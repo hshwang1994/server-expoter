@@ -36,6 +36,7 @@
   register: _precheck_raw
   no_log: true
 
+# rule 95 R1 #5 ok: failure_stage 부재 = 진단 통과 (Jinja2 expression 안 주석은 syntax error 유발 — YAML 주석으로 분리)
 - name: "precheck | 진단 결과 저장"
   ansible.builtin.set_fact:
     _precheck_result: "{{ _precheck_raw }}"
@@ -44,7 +45,7 @@
         _precheck_raw.reachable | default(false) | bool
         and _precheck_raw.port_open | default(false) | bool
         and _precheck_raw.protocol_supported | default(false) | bool
-        and (_precheck_raw.failure_stage is none or _precheck_raw.failure_stage | default('') == '')  {# rule 95 R1 #5 ok: 진단 통과 = failure_stage 부재 #}
+        and (_precheck_raw.failure_stage is none or _precheck_raw.failure_stage | default('') == '')
       }}
 
 - name: "precheck | 공통 diagnosis 생성"
