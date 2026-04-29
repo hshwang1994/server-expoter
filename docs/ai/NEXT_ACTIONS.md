@@ -1,5 +1,34 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-04-30 (residual-sweep — squash merge 직후 잔여 7건 fix)
+
+## 잔여 (residual-sweep 후속)
+
+| 항목 | 분류 | 차단 사유 |
+|---|---|---|
+| **OPS-RESIDUAL-1** Win10 (10.100.64.120) WinRM HTTPS 활성화 후 라이브 검증 | 운영 작업 (lab) | WinRM HTTPS off / NTLM MD4 미지원 — 16건 코드 fix는 raw PowerShell 기반으로 적용됨, 실 검증 lab 한계 |
+| **OPS-RESIDUAL-2** Dell 10.50.11.162 BMC 응답 실패 재확인 | 외부 의존 (BMC) | residual-sweep 시 status=failed — 일시적 lab condition 추정. 다음 운영 검증 시 재확인 |
+| **OPS-RESIDUAL-3** ESXi vsphere config.network routeConfig path 펌웨어 검증 | LOW | 현재 config.network 단계로 fallback (consoleVnic/vnic.spec). 실측 시 routeConfig 직접 path 미동작 펌웨어 7.0.3에서 확인. 다른 펌웨어/모델 (8.0u3 등) 시 추가 path 등록 가능 |
+
+본 cycle 추가 검증 완료:
+- 18 hosts (3 ESXi + 6 Linux + 9 Redfish) status=success rate 17/18 (94.4%)
+- pytest 178/178 PASS / vendor boundary PASS / harness consistency PASS
+- evidence: `tests/evidence/2026-04-30-residual-sweep/FINAL_REPORT.md`
+
+---
+
+## 일자: 2026-04-29 (account-fallback-validation 종료 시점 — 사용자 명시 lab 권한 위임 8 채널 실 검증)
+
+## 잔여 (account-fallback-validation 후속)
+
+| 항목 | 분류 | 차단 사유 |
+|---|---|---|
+| **OPS-AS-DELL-1** Dell iDRAC9 AccountService `find_empty_slot` None 반환 진단 | HIGH (P2 흐름 핵심) | `redfish_gather.py` 1413-1448 `account_service_get` 의 errors 가시성 부족 — 빈 슬롯 14개 raw probe 확인됨에도 코드 검색 None. `_rf_account_service_meta` 에 `errors[]` 노출 + ansible -vv debug 진단 필요. evidence: `tests/evidence/2026-04-29-account-fallback-validation.md` G1 |
+| **OPS-AS-CISCO-1** Cisco CIMC 다른 펌웨어/모델 multi-slot 노출 검증 | LOW | lab CIMC 1대 (10.100.15.2) `Members@odata.count = 1` (admin 1슬롯만). 다른 Cisco 모델/펌웨어가 multi-slot 노출하면 코드 `not_supported` 분기 재검토. 외부 의존 — 추가 lab 부재. evidence: 위 G2 |
+| **OPS-AS-SMC-1** Supermicro 실 BMC lab 확보 + AccountService 검증 | MED | 외부 의존 — `.lab-credentials.yml` 에 Supermicro BMC 미정의. 본 검증에서 skip |
+| **OPS-AS-LAB-CLEANUP** lab Lenovo (slot 4) + HPE (slot 3) 의 infraops 정리 | LOW | lab BMC 에 영속 생성됨 (idempotent 검증 OK). production 배포 후 lab 회수 시 cleanup 필요 또는 운영 그대로 유지 — 사용자 결정 |
+| **DOC-DECISION-LOG** docs/19_decision-log.md 본 검증 결과 추가 | MED | evidence 1건 → decision-log Round XX 항목 |
+
 ## 일자: 2026-04-29 (production-audit 종료 시점 — 4 agent 전수조사 + HIGH 30+건 일괄 fix)
 
 ## 잔여 (production-audit 후속)

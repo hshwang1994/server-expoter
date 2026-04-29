@@ -47,6 +47,33 @@ HEX_PATTERN = re.compile(r"^[0-9A-Fa-f]{4,}$")
 PREFIX_HEX_PATTERN = re.compile(r"^0x([0-9A-Fa-f]{2,})$", re.IGNORECASE)
 
 
+# 2026-04-30 추가: vendor 이름 변형 → canonical name (cross-vendor consistency).
+# BMC마다 같은 제조사를 다른 표기로 노출 (Dell="Hynix Semiconductor", Linux="SK hynix").
+VENDOR_NAME_NORMALIZATION = {
+    # SK hynix variants
+    "hynix": "SK hynix",
+    "hynix semiconductor": "SK hynix",
+    "sk hynix": "SK hynix",
+    "skhynix": "SK hynix",
+    # Samsung
+    "samsung electronics": "Samsung",
+    "samsung electronic": "Samsung",
+    # Micron
+    "micron": "Micron Technology",
+    "micron technology": "Micron Technology",
+    # Kingston
+    "kingston technology": "Kingston",
+}
+
+
+def _canonicalize_vendor_name(name):
+    """Map vendor-name variants to a canonical form (e.g. 'Hynix Semiconductor' -> 'SK hynix')."""
+    if not name:
+        return name
+    key = name.strip().lower()
+    return VENDOR_NAME_NORMALIZATION.get(key, name)
+
+
 def jedec_to_vendor(value):
     """Normalize a JEDEC manufacturer ID hex string to vendor name.
 
@@ -54,7 +81,7 @@ def jedec_to_vendor(value):
       - "00AD063200AD" -> "SK hynix" (Linux dmidecode raw)
       - "0xCE00"       -> "Samsung"   (Cisco Redfish CIMC)
       - "Samsung"      -> "Samsung"   (already normalized — pass through)
-      - "Hynix Semiconductor" -> "Hynix Semiconductor" (Redfish other vendors)
+      - "Hynix Semiconductor" -> "SK hynix" (canonical normalization)
       - None / ""      -> None
     """
     if value is None:
@@ -79,7 +106,7 @@ def jedec_to_vendor(value):
     # Already a recognizable vendor name (contains non-hex alpha or whitespace)
     # e.g. "Samsung", "Hynix Semiconductor", "VMware Virtual RAM"
     if any(c.isalpha() and c not in "ABCDEFabcdef" for c in s) or " " in s:
-        return s
+        return _canonicalize_vendor_name(s)
 
     # Plain hex (Linux dmidecode: 00AD063200AD)
     if HEX_PATTERN.match(s):
@@ -93,7 +120,7 @@ def jedec_to_vendor(value):
             return JEDEC_MAP[s[:2].upper()]
         return s  # Unknown — return raw for traceability
 
-    return s
+    return _canonicalize_vendor_name(s)
 
 
 class FilterModule:

@@ -12,17 +12,17 @@
     # 2026-04-29 fix B76: hardware NIC (lspci -k) 수집 — Redfish/ESXi와 키 일관성.
     # 이전: network.adapters=[] 빈 list. 호출자가 PCI NIC 모델/driver 식별 불가.
     - name: "linux | network | hardware NIC (lspci)"
+      # 2026-04-30 fix: lspci -mm awk field 인덱스 정정.
+      # 형식: SLOT "class" "vendor" "device" -rRR -pPP "subvendor" "subdevice"
+      # awk -F'"' 분할 시 → $2=class / $4=vendor / $6=device / $8=subvendor
+      # 이전 코드: vendor=$6 (= device 잘못), device=$8 (= subvendor 잘못)
       ansible.builtin.shell: |
         export LANG=C LC_ALL=C
         if command -v lspci >/dev/null 2>&1; then
-          # -k: kernel driver, -d ::0200: Ethernet class, -mm: parseable
           lspci -k -mm -d ::0200 2>/dev/null | while IFS= read -r line; do
-            # Format: "01:00.0" "Ethernet controller" "Vendor" "Device" -r... -s... -p...
             slot=$(echo "$line" | awk -F'"' '{print $1}' | tr -d ' ')
-            class=$(echo "$line" | awk -F'"' '{print $4}')
-            vendor=$(echo "$line" | awk -F'"' '{print $6}')
-            device=$(echo "$line" | awk -F'"' '{print $8}')
-            # Driver from -k
+            vendor=$(echo "$line" | awk -F'"' '{print $4}')
+            device=$(echo "$line" | awk -F'"' '{print $6}')
             driver=$(lspci -k -s "$slot" 2>/dev/null | awk '/Kernel driver in use:/{print $5}')
             echo "ADAPTER|${slot}|${vendor}|${device}|${driver}"
           done
@@ -254,6 +254,17 @@
             echo "IF6=${dev}|${v6addr}|${v6prefix}|${scope}"
           done
         done
+        # 2026-04-30 fix B76 raw: hardware NIC (lspci) — Python 미동작 환경 보완.
+        # awk -F'"' field: $2=class / $4=vendor / $6=device.
+        if command -v lspci >/dev/null 2>&1; then
+          lspci -k -mm -d ::0200 2>/dev/null | while IFS= read -r line; do
+            slot=$(echo "$line" | awk -F'"' '{print $1}' | tr -d ' ')
+            vendor=$(echo "$line" | awk -F'"' '{print $4}')
+            device=$(echo "$line" | awk -F'"' '{print $6}')
+            driver=$(lspci -k -s "$slot" 2>/dev/null | awk '/Kernel driver in use:/{print $5}')
+            echo "ADAPTER|${slot}|${vendor}|${device}|${driver}"
+          done
+        fi
       register: _l_net_raw
       changed_when: false
       failed_when: false
@@ -286,6 +297,56 @@
           {%- for line in (_l_net_raw.stdout_lines | default([])) -%}
             {%- if line.startswith('GW_DEV=') -%}{{ line[7:] | trim }}{% endif -%}
           {%- endfor -%}
+        # 2026-04-30 fix B68 raw: IF6 (IPv6 addresses by device).
+        _l_raw_ipv6_by_dev: >-
+          {%- set m = {} -%}
+          {%- for line in (_l_net_raw.stdout_lines | default([])) -%}
+            {%- if line.startswith('IF6=') -%}
+              {%- set parts = line[4:].split('|') -%}
+              {%- if parts | length >= 4 -%}
+                {%- set dev = parts[0] | trim -%}
+                {%- set v6  = parts[1] | trim -%}
+                {%- set pfx = parts[2] | trim -%}
+                {%- set scope = parts[3] | trim -%}
+                {%- if dev not in m -%}{%- set _ = m.update({dev: []}) -%}{%- endif -%}
+                {%- set _ = m[dev].append({
+                  'family': 'ipv6',
+                  'address': v6,
+                  'prefix_length': (pfx | int) if pfx else none,
+                  'subnet_mask': none,
+                  'gateway': none,
+                  'scope': scope
+                }) -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ m }}
+        # 2026-04-30 fix B76 raw: ADAPTER (lspci PCI NIC).
+        # Python path와 동일한 schema: id, name, manufacturer, model, driver, pci.
+        _l_raw_adapters: >-
+          {%- set out = [] -%}
+          {%- for line in (_l_net_raw.stdout_lines | default([])) -%}
+            {%- if line.startswith('ADAPTER|') -%}
+              {%- set parts = line.split('|') -%}
+              {%- if parts | length >= 5 -%}
+                {%- set slot   = parts[1] | trim -%}
+                {%- set vendor = parts[2] | trim -%}
+                {%- set device = parts[3] | trim -%}
+                {%- set driver = parts[4] | trim -%}
+                {%- if slot -%}
+                  {%- set _ = out.append({
+                    'id':           slot,
+                    'name':         device or 'Unknown',
+                    'manufacturer': vendor or none,
+                    'model':        device or none,
+                    'driver':       driver or none,
+                    'pci':          slot,
+                  }) -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
         _l_raw_ifaces: >-
           {%- set out = [] -%}
           {%- for line in (_l_net_raw.stdout_lines | default([])) -%}
@@ -346,17 +407,22 @@
           {{ out }}
       no_log: true
 
-    - name: "linux | network | raw mark primary + inject gateway"
+    - name: "linux | network | raw mark primary + inject gateway + merge IPv6"
+      # 2026-04-30 fix B68 raw: IPv6 addresses (_l_raw_ipv6_by_dev)를 interface addresses에 병합.
       ansible.builtin.set_fact:
         _l_norm_interfaces_raw: >-
           {%- set gw     = (_l_raw_gw     | default('')) | trim -%}
           {%- set gw_dev = (_l_raw_gw_dev | default('')) | trim -%}
+          {%- set v6_map = (_l_raw_ipv6_by_dev | default({})) -%}
           {%- set out = [] -%}
           {%- for iface in (_l_raw_ifaces | default([])) -%}
             {%- set is_primary = (iface.id == gw_dev) -%}
             {%- set addrs = [] -%}
             {%- for a in (iface.addresses | default([])) -%}
               {%- set _ = addrs.append(a | combine({'gateway': gw if is_primary else none})) -%}
+            {%- endfor -%}
+            {%- for v6 in (v6_map[iface.id] | default([])) -%}
+              {%- set _ = addrs.append(v6) -%}
             {%- endfor -%}
             {%- set _ = out.append(iface | combine({
               'is_primary': is_primary,
@@ -400,7 +466,8 @@
               {%- endif -%}
               {{ out }}
             interfaces: "{{ _l_norm_interfaces_raw | default([]) }}"
-            adapters:    []
+            # 2026-04-30 fix B76 raw: lspci 기반 hardware NIC adapters.
+            adapters:    "{{ _l_raw_adapters | default([]) }}"
             ports:       []
             summary: "{{ _l_net_summary_r | default({'groups': []}) }}"
         _sections_supported_fragment: ['network']

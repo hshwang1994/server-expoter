@@ -186,13 +186,35 @@ _JEDEC_VENDORS = {
 }
 
 
+# 2026-04-30 추가: vendor 이름 변형 → canonical name (cross-vendor consistency).
+# BMC마다 같은 제조사를 다른 표기로 노출 (Dell="Hynix Semiconductor", Linux dmidecode="SK hynix").
+_VENDOR_NAME_NORMALIZATION = {
+    "hynix": "SK hynix",
+    "hynix semiconductor": "SK hynix",
+    "sk hynix": "SK hynix",
+    "skhynix": "SK hynix",
+    "samsung electronics": "Samsung",
+    "samsung electronic": "Samsung",
+    "micron": "Micron Technology",
+    "micron technology": "Micron Technology",
+    "kingston technology": "Kingston",
+}
+
+
+def _canonical_vendor_name(name):
+    """Map vendor-name variants to canonical form. Used for memory.manufacturer cross-vendor consistency."""
+    if not name or not isinstance(name, str):
+        return name
+    return _VENDOR_NAME_NORMALIZATION.get(name.strip().lower(), name)
+
+
 def _normalize_jedec(value):
     """Normalize a JEDEC manufacturer ID hex string to vendor name.
 
     Handles:
       - "0xCE00" / "0xCE" / "0xAD00" (Cisco CIMC)
       - "00CE" / "00AD063200AD" (raw JEDEC, dmidecode style)
-      - "Samsung" / "Hynix Semiconductor" — passthrough (Redfish other vendors)
+      - "Samsung" / "Hynix Semiconductor" — canonical normalization (cross-vendor)
       - None / "" / "Unknown" / "Not Specified" -> None
     """
     if value is None:
@@ -208,7 +230,7 @@ def _normalize_jedec(value):
         return s  # unknown — keep raw for traceability
     # Vendor name (contains non-hex alpha or whitespace)
     if " " in s or any(c.isalpha() and c not in "ABCDEFabcdef" for c in s):
-        return s
+        return _canonical_vendor_name(s)
     # Plain hex string
     if all(c in "0123456789ABCDEFabcdef" for c in s) and len(s) >= 2:
         # Try first byte (some BMCs) or 2nd byte (continuation+ID)
@@ -217,7 +239,22 @@ def _normalize_jedec(value):
             if byte and byte in _JEDEC_VENDORS:
                 return _JEDEC_VENDORS[byte]
         return s
-    return s
+    return _canonical_vendor_name(s)
+
+
+def _strip_or_none(value):
+    """Strip whitespace and convert empty/sentinel strings to None.
+
+    Cisco BMC가 일부 필드를 trailing space 포함하여 emit ('M386A8K40BM1-CRC    ').
+    Cross-vendor 정합성 위해 모든 string 값을 strip 후 빈 문자열은 None.
+    Non-string은 unchanged.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return value
+    s = value.strip()
+    return s or None
 
 
 # ── 벤더 정규화 ──────────────────────────────────────────────────────────────
@@ -737,10 +774,14 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
 
     # 빈 문자열 → None 정규화 helper. HPE: AssetTag/PartNumber 등이 "" 반환 케이스.
     # 호출자가 None 과 "" 두 가지 상태를 동일 처리하도록 강제하지 않기 위함.
+    # 2026-04-30 추가: Cisco 등 일부 BMC가 trailing whitespace 포함하는 PartNumber 반환 →
+    # cross-vendor consistency 위해 strip().
     def _ne(*keys):
         v = _safe(data, *keys)
-        if isinstance(v, str) and not v.strip():
-            return None
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return None
         return v
 
     result = {
@@ -929,10 +970,13 @@ def gather_processors(bmc_ip, system_uri, username, password, timeout, verify_ss
         # 2026-04-29 raw 검증 (HPE iLO 6): SerialNumber / PartNumber 가 빈 문자열 ""
         # 반환 (BMC 한계). "" 은 의미상 None — 호출자가 truthy 비교만으로 판정 가능하도록
         # None 으로 정규화. cycle-016 Phase N 풍부 필드는 그대로 유지.
+        # 2026-04-30: Cisco 등 trailing whitespace 정규화 추가.
         def _ne_p(*ks):
             v = _safe(pdata, *ks)
-            if isinstance(v, str) and not v.strip():
-                return None
+            if isinstance(v, str):
+                v = v.strip()
+                if not v:
+                    return None
             return v
 
         processors.append({
@@ -992,8 +1036,9 @@ def gather_memory(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             'base_module_type': _safe(mdata, 'BaseModuleType'),
             'speed_mhz':       _safe(mdata, 'OperatingSpeedMhz'),
             'manufacturer':    _normalize_jedec(_safe(mdata, 'Manufacturer')),
-            'serial':          _safe(mdata, 'SerialNumber'),
-            'part_number':     _safe(mdata, 'PartNumber'),
+            'serial':          _strip_or_none(_safe(mdata, 'SerialNumber')),
+            # 2026-04-30: Cisco 등 trailing whitespace 정규화.
+            'part_number':     _strip_or_none(_safe(mdata, 'PartNumber')),
             'rank_count':      _safe(mdata, 'RankCount'),
             'data_width_bits': _safe(mdata, 'DataWidthBits'),
             'bus_width_bits':  _safe(mdata, 'BusWidthBits'),

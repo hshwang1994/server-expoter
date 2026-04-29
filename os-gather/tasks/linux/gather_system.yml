@@ -61,6 +61,12 @@
     fi
     echo "SERIAL=${serial:-}"
     echo "UUID=${uuid:-}"
+    # 2026-04-30 fix B80 raw: vendor/model/bios sysfs (Python setup 미동작 환경 보완).
+    # raw fallback path는 ansible_system_vendor 미정의이므로 _l_fb.VENDOR로 채움.
+    [ -r /sys/class/dmi/id/sys_vendor ]   && echo "VENDOR=$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null)"   || echo "VENDOR="
+    [ -r /sys/class/dmi/id/product_name ] && echo "MODEL=$(cat /sys/class/dmi/id/product_name 2>/dev/null)" || echo "MODEL="
+    [ -r /sys/class/dmi/id/bios_version ] && echo "BIOS_VERSION=$(cat /sys/class/dmi/id/bios_version 2>/dev/null)" || echo "BIOS_VERSION="
+    [ -r /sys/class/dmi/id/bios_date ]    && echo "BIOS_DATE=$(cat /sys/class/dmi/id/bios_date 2>/dev/null)"    || echo "BIOS_DATE="
   register: _l_raw_sys_result
   changed_when: false
   failed_when: false
@@ -126,6 +132,17 @@
       {%- set u = (_l_raw_sys.UUID | default('')) | trim -%}
       {%- set sentinel = ['', 'NA', 'None', 'Not Specified'] -%}
       {{ u if u not in sentinel else none }}
+    # 2026-04-30 fix B80 raw: sys_vendor/product_name/bios sentinel filtering.
+    _l_raw_vendor: >-
+      {%- set v = (_l_raw_sys.VENDOR | default('')) | trim -%}
+      {%- set sentinel = ['', 'NA', 'None', 'Not Specified', 'To Be Filled By O.E.M.', 'System manufacturer', 'Default string'] -%}
+      {{ v if v not in sentinel else none }}
+    _l_raw_model: >-
+      {%- set m = (_l_raw_sys.MODEL | default('')) | trim -%}
+      {%- set sentinel = ['', 'NA', 'None', 'Not Specified', 'To Be Filled By O.E.M.', 'System Product Name', 'Default string'] -%}
+      {{ m if m not in sentinel else none }}
+    _l_raw_bios_version: "{{ ((_l_raw_sys.BIOS_VERSION | default('')) | trim) or none }}"
+    _l_raw_bios_date:    "{{ ((_l_raw_sys.BIOS_DATE | default('')) | trim) or none }}"
     _l_id_diagnostics: []
   no_log: true
 
@@ -308,7 +325,9 @@
         system_uuid:    "{{ _l_uuid_val | default(none) }}"
         # 2026-04-29 fix B80: ansible_system_vendor를 system fragment에도 emit해서
         # site.yml의 envelope.vendor가 build_output 시점에 _merged_data.system.vendor로 접근.
-        vendor:         "{{ ansible_system_vendor | default(none) }}"
+        # 2026-04-30 fix B80 raw fallback: Python 미동작 환경(Python 3.6/RHEL 8.10)에서
+        # ansible_system_vendor undefined → _l_raw_vendor (sys_vendor sysfs)로 fallback.
+        vendor:         "{{ ansible_system_vendor | default(_l_raw_vendor | default(none)) }}"
     _sections_supported_fragment: ['system']
     _sections_collected_fragment: >-
       {{ ['system'] if (ansible_distribution is defined

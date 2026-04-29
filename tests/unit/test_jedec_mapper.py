@@ -33,11 +33,24 @@ def test_cisco_cimc_prefix_hex_hynix():
 
 
 def test_already_normalized_passthrough():
-    """Redfish vendors normalize already (Hynix Semiconductor / Samsung) — pass through."""
+    """Redfish vendors normalize already (Samsung / Micron Technology) — pass through.
+
+    2026-04-30: Hynix variants now normalize to canonical 'SK hynix' (cross-vendor consistency).
+    """
     assert jedec_to_vendor("Samsung") == "Samsung"
-    assert jedec_to_vendor("Hynix Semiconductor") == "Hynix Semiconductor"
     assert jedec_to_vendor("Micron Technology") == "Micron Technology"
     assert jedec_to_vendor("VMware Virtual RAM") == "VMware Virtual RAM"
+
+
+def test_canonical_vendor_normalization():
+    """Cross-vendor consistency: Hynix variants → 'SK hynix'."""
+    assert jedec_to_vendor("Hynix Semiconductor") == "SK hynix"
+    assert jedec_to_vendor("Hynix") == "SK hynix"
+    assert jedec_to_vendor("SK Hynix") == "SK hynix"
+    # Samsung variants
+    assert jedec_to_vendor("Samsung Electronics") == "Samsung"
+    # Micron variants
+    assert jedec_to_vendor("Micron") == "Micron Technology"
 
 
 def test_none_or_empty():
