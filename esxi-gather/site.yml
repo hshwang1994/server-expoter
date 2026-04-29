@@ -88,9 +88,15 @@
         - name: "esxi | collect facts"
           ansible.builtin.include_tasks: tasks/collect_facts.yml
 
+        # 2026-04-30: 이 단계 도달은 precheck OK + 인증 OK 의미.
+        # 따라서 네트워크/포트/자격증명은 이미 정상으로 증명됨.
+        # 실제 원인은 vSphere API 호출 실패: 계정 권한 부족, 펌웨어 호환, 라이선스 등.
         - name: "esxi | abort if facts failed"
           ansible.builtin.fail:
-            msg: "vmware_host_facts 수집 실패 — ESXi 연결 또는 인증 문제. ESXi 호스트 접근성, vSphere API(443) 포트, 자격증명(vault)을 확인하세요."
+            msg: >-
+              vmware_host_facts 수집 실패 ({{ _e_ip }}) — 인증/네트워크 모두 정상이나 vSphere API 호출 실패.
+              사용 계정: {{ (_e_attempts_meta | default({})).used_label | default('?') }}.
+              가능한 원인: (1) 계정의 vSphere 권한 부족 (Read-Only / System.View 필요), (2) ESXi 펌웨어 호환성 (현재 검증: 7.0.x), (3) 라이선스 만료, (4) lockdown 모드.
           when: not (_e_facts_ok | bool)
 
         # BUG #1 fix (cycle production-audit 후속): vmware_host_vmnic_info / vmware_vswitch_info /
