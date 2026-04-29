@@ -13,6 +13,8 @@
 | **OPS-AUDIT-5** Cisco UCS C-series (cisco_bmc) 실장비 검증 | 외부 의존 | cisco_bmc.yml은 fallback adapter — TA-UNODE-G1 외 일반 CIMC 검증 필요 |
 | **OPS-AUDIT-6** RAID6/10/50/60 fixture 추가 | 외부 의존 (실장비) | 현재 RAID0/1/5만 baseline. 8+ drive RAID6 검증 필요 |
 | **OPS-AUDIT-7** HPE iLO4 / iLO6 / Dell iDRAC8 / Lenovo IMM2 baseline | 외부 의존 | adapter 정의는 있으나 baseline 없음 |
+| **OPS-HPE-REVIEW-1** HPE iLO 6 baseline 재수집 (10.50.11.231) | 운영 작업 (Jenkins job) | 2026-04-29 hpe-critical-review fix 5건 적용 후. 현재 baseline 은 cycle-016 Phase M/N 이전 stale — 재수집 시 본 fix 효과 (bios_date / ilo_version / cpu.architecture / hostname / is_primary / 빈 문자열 정규화) 모두 반영. evidence: `tests/evidence/2026-04-29-hpe-redfish-critical-review.md` |
+| **OPS-HPE-REVIEW-2** Dell baseline 재검토 | 운영 작업 (실 Dell 장비) | `_hoist_oem_extras` 적용으로 Dell `hardware.bios_date` 도 채워짐 (이전: null). 실 Dell 검증 후 baseline 갱신 |
 
 ## 일자: 2026-04-29 (cycle-016 종료 시점 — 사용자 11 항목 점검 + 실 Jenkins 빌드 5회 + summary grouping 완성)
 

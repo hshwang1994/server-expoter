@@ -1,6 +1,37 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-29 (Dell Redfish 비판적 검증 — envelope 값 미채움 7건 fix)
+## 일자: 2026-04-29 (HPE Redfish 비판적 검증 — envelope 값 미채움 5건 fix)
+
+## 요약 (HPE Redfish bug-fix — 2026-04-29 17시, 실 BMC 통합 검증)
+
+사용자 명시 보고: "HPE Redfish 실제 데이터 수집 안 되거나 값 이상한 것을 비판적 관점으로 raw 데이터와 비교해 검증. 키 늘리지 말고 버그 모두 fix."
+
+실 BMC `10.50.11.231` (HPE iLO 6 v1.73 / DL380 Gen11) raw API 6 endpoint 직접 dump → `redfish_gather.py` + `normalize_standard.yml` path 줄별 비교 → envelope 키 미채움/잘못된 매핑 **5건 fix**:
+
+- **B1 (CRIT)**: `gather_bmc` HPE 분기의 `bmc.oem.ilo_version` — `_safe(oem,'Type')` 잘못된 필드명. Manager.Oem.Hpe 에 `Type` 필드 부재. 이전 매핑은 모든 HPE 호스트에서 항상 null 반환. → `Oem.Hpe.Firmware.Current.VersionString` ("iLO 6 v1.73") + Manager.Model fallback 적용.
+- **B2**: `_rf_norm_dns` (cisco-review 신설) 의 placeholder 필터 부재. HPE iLO StaticNameServers default `['0.0.0.0','0.0.0.0','0.0.0.0','::','::','::']` 가 그대로 dns_servers 로 노출. → `0.0.0.0`/`::`/`''`/`none` 필터 적용.
+- **B3**: `hardware.bios_date` hardcoded null. 표준 Redfish 에 BIOS Date 키 부재 — vendor OEM 만 보유. → `_hoist_oem_extras` 헬퍼 신설 + `_extract_oem_hpe`/`_extract_oem_dell` 에 `_bios_date` underscore-prefix 키 추가. `gather_system` 이 result 의 **기존 envelope 키만** 채움 (새 키 추가 없음).
+- **D1**: `network.interfaces[].is_primary` hardcoded false (모든 NIC). → `_rf_norm_interfaces` namespace mutation 으로 첫 LinkUp+IPv4 NIC 1건 true. IPv4 부재 환경 (HPE host NIC 한계) fallback: 첫 LinkUp NIC.
+- **D2**: cpu/system 의 빈 문자열 응답 (HPE BMC 한계 — SerialNumber/PartNumber/AssetTag) `""` 그대로 emit. → `_ne()`/`_ne_p()` helper 로 `null` 정규화. 호출자가 `null ≠ ""` 분기 강제 안 받음.
+
+**검증** (정적 + 통합):
+- pytest 158/158 PASS
+- `python -m py_compile redfish_gather.py` PASS
+- `_hoist_oem_extras` unit smoke (HPE/Dell extractor + 알려지지 않은 `_*` key drop) PASS
+- `ansible-playbook --syntax-check redfish-gather/site.yml` (agent 10.100.64.154) OK
+- 실 HPE iLO 6 통합 테스트 7/7 PASS — bios_date='03/01/2024' / ilo_version='iLO 6 v1.73' / hostname='test0004.hynix.com' / cpu.architecture='x86' / cpu.serial_number=None / `_bios_date` envelope scrubbed
+
+**envelope 키 추가 0건** — 사용자 정의 ("키 늘릴 이유 없음") 준수. 모든 fix 는 기존 envelope 키 채움/위생/fallback 만 영향. TPM vendor / BootProgress.LastBootTimeSeconds / BMC NIC gateway/subnet_mask 같은 새 키 후보 BUG 들은 사용자 의도대로 모두 제외.
+
+**잔류 (운영 작업)**:
+- HPE baseline `schema/baseline_v1/hpe_baseline.json` 재수집 — rule 13 R4 실측 evidence 첨부. 현재 baseline 은 cycle-016 Phase M/N 이전 stale. 재수집 시 본 fix 효과 모두 반영
+- Dell baseline 재검토 — `_bios_date` hoist 로 `hardware.bios_date` 채워짐. 실 Dell 검증 후 갱신
+
+evidence: `tests/evidence/2026-04-29-hpe-redfish-critical-review.md`
+
+---
+
+## 이전 cycle: Dell Redfish 비판적 검증 — envelope 값 미채움 7건 fix
 
 ## 요약 (Dell Redfish bug-fix — 2026-04-29 18시)
 
