@@ -22,26 +22,52 @@
   ansible.windows.win_shell: |
     # production-audit (2026-04-29): Get-PhysicalDisk(modern) + Win32_DiskDrive(fallback)로
     # MediaType을 HDD/SSD enum으로 정규화. 기존 raw WMI string ("Fixed hard disk media") 누출 차단.
+    # windows-audit (2026-04-29): PS5.1=int / PS7+=enum string 양쪽 BusType 처리.
+    #   Win32_DiskDrive raw "Fixed hard disk media"는 SSD/HDD 정보 부재 → null (잘못된 추정 차단).
+    #   HealthStatus 매핑 (Healthy/Warning/Unhealthy) → health 필드.
     $physical_map = @{}
     if (Get-Command Get-PhysicalDisk -ErrorAction SilentlyContinue) {
       try {
         Get-PhysicalDisk | ForEach-Object {
-          # MSFT_PhysicalDisk.MediaType: 3=HDD, 4=SSD, 5=SCM, 0=Unspecified
-          $mt = switch ([int]$_.MediaType) {
-            3 { 'HDD' }
-            4 { 'SSD' }
-            5 { 'SCM' }
-            default { $null }
+          # MSFT_PhysicalDisk.MediaType: PS5.1=int (3=HDD, 4=SSD, 5=SCM, 0=Unspecified)
+          # PS7+=string ("HDD", "SSD", "SCM", "Unspecified")
+          $mtRaw = $_.MediaType
+          $mt = if ($mtRaw -is [int]) {
+                  switch ([int]$mtRaw) { 3{'HDD'} 4{'SSD'} 5{'SCM'} default{$null} }
+                } else {
+                  switch ([string]$mtRaw) { 'HDD'{'HDD'} 'SSD'{'SSD'} 'SCM'{'SCM'} default{$null} }
+                }
+          # BusType: PS5.1=int (6=SATA, 7=USB, 8=RAID, 10=SAS, 17=NVMe, 11=SCSI)
+          # PS7+=enum string ("SATA", "SAS", "NVMe", ...)
+          $btRaw = $_.BusType
+          $bus = if ($btRaw -is [int]) {
+                   switch ([int]$btRaw) {
+                     1{'SCSI'} 6{'SATA'} 7{'USB'} 8{'RAID'} 10{'SAS'}
+                     11{'SCSI'} 17{'NVMe'} 18{'SD'} 19{'MMC'} default{$null}
+                   }
+                 } else {
+                   $bts = [string]$btRaw
+                   switch -Wildcard ($bts) {
+                     'SATA'  { 'SATA' }
+                     'SAS'   { 'SAS' }
+                     'NVMe'  { 'NVMe' }
+                     'USB'   { 'USB' }
+                     'RAID'  { 'RAID' }
+                     'SCSI'  { 'SCSI' }
+                     'iSCSI' { 'iSCSI' }
+                     'FC'    { 'FibreChannel' }
+                     default { $null }
+                   }
+                 }
+          # HealthStatus: "Healthy", "Warning", "Unhealthy", "Unknown"
+          $hs = [string]$_.HealthStatus
+          $health = switch ($hs) {
+            'Healthy'   { 'healthy' }
+            'Warning'   { 'warning' }
+            'Unhealthy' { 'unhealthy' }
+            default     { $null }
           }
-          $bus = switch ([int]$_.BusType) {
-            6  { 'SATA' }
-            7  { 'USB' }
-            8  { 'RAID' }
-            10 { 'SAS' }
-            17 { 'NVMe' }
-            default { $null }
-          }
-          $physical_map[[string]$_.DeviceId] = @{ media_type = $mt; bus = $bus }
+          $physical_map[[string]$_.DeviceId] = @{ media_type = $mt; bus = $bus; health = $health }
         }
       } catch { }
     }
@@ -49,16 +75,30 @@
       $idx = [string]$_.Index
       $mt = $null
       $bus = $null
+      $health = $null
       if ($physical_map.ContainsKey($idx)) {
         $mt = $physical_map[$idx].media_type
         $bus = $physical_map[$idx].bus
+        $health = $physical_map[$idx].health
       }
-      # Win32_DiskDrive.MediaType fallback — raw 문자열을 enum으로 매핑
+      # Win32_DiskDrive.MediaType fallback — 진짜 SSD 정보만 매핑.
+      # "Fixed hard disk media"는 SSD/HDD 구분 안 함 → null (잘못된 HDD 추정 금지).
       if (-not $mt) {
-        $raw = [string]$_.MediaType
-        if ($raw -match '(?i)ssd|solid') { $mt = 'SSD' }
-        elseif ($raw -match '(?i)fixed|external|removable') { $mt = 'HDD' }
+        $rawMt = [string]$_.MediaType
+        if ($rawMt -match '(?i)solid state|ssd') { $mt = 'SSD' }
         else { $mt = $null }
+      }
+      # InterfaceType fallback (Win32_DiskDrive)
+      if (-not $bus) {
+        $iface = [string]$_.InterfaceType
+        $bus = switch -Wildcard ($iface) {
+          'SCSI' { 'SCSI' }
+          'IDE'  { 'IDE' }
+          'USB'  { 'USB' }
+          'HDC'  { 'HDC' }
+          '1394' { '1394' }
+          default { $null }
+        }
       }
       [PSCustomObject]@{
         device = $_.DeviceID
@@ -66,6 +106,7 @@
         total  = $_.Size
         media  = $mt
         protocol = $bus
+        health   = $health
       } | ConvertTo-Json -Compress
     }
   register: _w_disk_raw
@@ -151,7 +192,7 @@
               'total_mb':   total_mb,
               'media_type': d.media | default(none),
               'protocol':   d.protocol | default(none),
-              'health':     none
+              'health':     d.health | default(none)
             }) -%}
           {%- endif -%}
         {%- endif -%}

@@ -4,11 +4,30 @@
 
 - name: "windows | cpu | collect Win32_Processor 상세"
   ansible.windows.win_shell: |
+    # windows-audit (2026-04-29): VMware/일부 BIOS는 Name 필드를 ALL CAPS로 노출
+    # ("INTEL(R) XEON(R) SILVER 4510"). Linux 표기와 일관 위해 정규화.
+    function Normalize-CpuModel($n) {
+      if (-not $n) { return $null }
+      # 이미 소문자 포함이면 그대로 (사람 손으로 다듬어진 표기).
+      if ($n -cmatch '[a-z]') { return $n }
+      $tokens = @{
+        'INTEL'='Intel'; 'XEON'='Xeon'; 'CORE'='Core'; 'PENTIUM'='Pentium'; 'CELERON'='Celeron';
+        'SILVER'='Silver'; 'GOLD'='Gold'; 'PLATINUM'='Platinum'; 'BRONZE'='Bronze';
+        'EPYC'='EPYC'; 'RYZEN'='Ryzen'; 'THREADRIPPER'='Threadripper';
+        'GENUINE'='Genuine'; 'AUTHENTIC'='Authentic';
+        'PROCESSOR'='Processor'; 'GHZ'='GHz'; 'MHZ'='MHz'
+      }
+      $out = $n
+      foreach ($k in $tokens.Keys) {
+        $out = $out -creplace ('\b' + [Regex]::Escape($k) + '\b'), $tokens[$k]
+      }
+      return $out
+    }
     $cpus = @(Get-CimInstance Win32_Processor)
     $procs = @($cpus | ForEach-Object {
       [PSCustomObject]@{
         socket_designation = $_.SocketDesignation
-        name               = $_.Name
+        name               = (Normalize-CpuModel $_.Name)
         manufacturer       = $_.Manufacturer
         cores              = [int]$_.NumberOfCores
         logical            = [int]$_.NumberOfLogicalProcessors
@@ -23,7 +42,7 @@
       sockets   = $cpus.Count
       cores     = ($cpus | Measure-Object -Property NumberOfCores -Sum).Sum
       logical   = ($cpus | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
-      model     = ($cpus | Select-Object -First 1 -ExpandProperty Name)
+      model     = (Normalize-CpuModel ($cpus | Select-Object -First 1 -ExpandProperty Name))
       manufacturer  = ($cpus | Select-Object -First 1 -ExpandProperty Manufacturer)
       max_clock_mhz = ($cpus | Select-Object -First 1 -ExpandProperty MaxClockSpeed)
       processors = $procs

@@ -10,20 +10,78 @@
 - block:
     - name: "windows | runtime | timezone + NTP"
       ansible.windows.win_shell: |
-        $tz = (Get-TimeZone).Id
+        # windows-audit (2026-04-29):
+        #   1) timezone: Windows TZ ID → IANA 매핑 (Linux 표기와 일관). 매핑 없으면 raw 유지.
+        #   2) NTP last_sync: w32tm /query /status 출력은 OS locale 의존 (en/ko/ja/...).
+        #      → registry HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config (locale-free) 우선.
+        #      → fallback: w32tm /query /source 의 비어있지 않음 + Local CMOS Clock 아님 으로 sync 여부 추정.
+        $tzId = (Get-TimeZone).Id
+        $tzMap = @{
+          'Korea Standard Time' = 'Asia/Seoul'
+          'Tokyo Standard Time' = 'Asia/Tokyo'
+          'China Standard Time' = 'Asia/Shanghai'
+          'Singapore Standard Time' = 'Asia/Singapore'
+          'India Standard Time' = 'Asia/Kolkata'
+          'Pacific Standard Time' = 'America/Los_Angeles'
+          'Mountain Standard Time' = 'America/Denver'
+          'Central Standard Time' = 'America/Chicago'
+          'Eastern Standard Time' = 'America/New_York'
+          'Hawaiian Standard Time' = 'Pacific/Honolulu'
+          'Alaskan Standard Time' = 'America/Anchorage'
+          'GMT Standard Time' = 'Europe/London'
+          'W. Europe Standard Time' = 'Europe/Berlin'
+          'Romance Standard Time' = 'Europe/Paris'
+          'Central European Standard Time' = 'Europe/Warsaw'
+          'Russian Standard Time' = 'Europe/Moscow'
+          'AUS Eastern Standard Time' = 'Australia/Sydney'
+          'New Zealand Standard Time' = 'Pacific/Auckland'
+          'UTC' = 'UTC'
+        }
+        $tzIana = if ($tzMap.ContainsKey($tzId)) { $tzMap[$tzId] } else { $tzId }
+
         $svc = Get-Service -Name W32Time -ErrorAction SilentlyContinue
-        $svc_state = if ($svc) { $svc.Status.ToString() } else { "" }
-        $sync = ""
+        $svc_state = if ($svc) { $svc.Status.ToString() } else { '' }
+
+        # Locale-free sync detection
+        $source = ''
+        try {
+          $src = w32tm /query /source 2>$null
+          if ($src) { $source = ($src | Select-Object -First 1).ToString().Trim() }
+        } catch {}
+        $is_synced = ($source -and $source -ne 'Local CMOS Clock' -and $source -notmatch 'Free-running')
+
+        # last sync timestamp from w32tm (locale-aware best-effort, multiple language patterns)
+        $sync = ''
         try {
           $w32tm = w32tm /query /status 2>$null
           if ($w32tm) {
-            $sync = ($w32tm | Select-String "Last Successful Sync Time" | ForEach-Object { ($_ -split ":\s*", 2)[1] }) -join ""
+            $patterns = @(
+              'Last Successful Sync Time',
+              'Letzter erfolgreicher Synchronisierungszeitpunkt'
+            )
+            foreach ($p in $patterns) {
+              $line = ($w32tm | Select-String -SimpleMatch $p | Select-Object -First 1)
+              if ($line) {
+                $sync = ($line.ToString() -split ':\s*', 2)[1]
+                break
+              }
+            }
           }
         } catch {}
+
+        # ISO normalize: locale-aware string -> UTC ISO 8601
+        $sync_iso = $null
+        if ($sync) {
+          try { $sync_iso = ([datetime]::Parse($sync.Trim())).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') } catch {}
+        }
+
         @{
-          timezone     = $tz
+          timezone      = $tzIana
+          timezone_raw  = $tzId
           w32time_state = $svc_state
-          last_sync    = $sync
+          source        = $source
+          synced        = $is_synced
+          last_sync     = $sync_iso
         } | ConvertTo-Json -Compress
       register:    _w_rt_ntp
       changed_when: false
@@ -116,7 +174,8 @@
             runtime:
               timezone:         "{{ _w_rt_ntp_obj.timezone | default(none) }}"
               ntp_active:       "{{ (_w_rt_ntp_obj.w32time_state | default('')) | lower in ['running','active'] }}"
-              ntp_synchronized: "{{ (_w_rt_ntp_obj.last_sync | default('')) | length > 0 }}"
+              # windows-audit: locale-independent (w32tm /query /source) — Korean/Japanese 서버에서도 정확
+              ntp_synchronized: "{{ _w_rt_ntp_obj.synced | default(false) | bool }}"
               firewall_tool:    "windows_firewall"
               firewall_state: >-
                 {%- set any_enabled = false -%}

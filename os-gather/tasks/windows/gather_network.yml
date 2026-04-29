@@ -63,11 +63,18 @@
           {%- set n = line | from_json -%}
           {# production-audit: InterfaceIndex로 그룹핑 — 단일 NIC의 multi-IP가 분리되지 않도록 #}
           {%- set key = (n.interface_index | default(n.mac | default(n.name))) | string -%}
+          {# windows-audit (2026-04-29): prefix_length → subnet_mask 자동 계산 (Linux 일관) #}
+          {%- set p = n.prefix | default(0) | int -%}
+          {%- set mask = none -%}
+          {%- if p > 0 and p <= 32 -%}
+            {%- set bits = 4294967296 - (1 if p == 0 else 2 ** (32 - p)) -%}
+            {%- set mask = '%d.%d.%d.%d' % ((bits // 16777216) % 256, (bits // 65536) % 256, (bits // 256) % 256, bits % 256) -%}
+          {%- endif -%}
           {%- set addr = {
               'family':        'ipv4',
               'address':       n.address,
               'prefix_length': n.prefix | default(none),
-              'subnet_mask':   none,
+              'subnet_mask':   mask,
               'gateway':       n.gateway | default(none)
           } -%}
           {%- if key in grouped -%}
