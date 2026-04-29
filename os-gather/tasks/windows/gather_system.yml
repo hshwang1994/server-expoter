@@ -94,8 +94,8 @@
   ansible.builtin.set_fact:
     _w_id_diagnostics: >-
       {%- set diags = [] -%}
-      {%- set serial_na = (_w_serial_val | default(none)) is none -%}  {# rule 95 R1 #5 ok: serial 미수집 분기 #}
-      {%- set uuid_na   = (_w_uuid_val   | default(none)) is none -%}  {# rule 95 R1 #5 ok: uuid 미수집 분기 #}
+      {%- set serial_na = (_w_serial_val | default(none)) is none -%}  {# rule 95 R1 R5 ok: serial 미수집 분기 #}
+      {%- set uuid_na   = (_w_uuid_val   | default(none)) is none -%}  {# rule 95 R1 R5 ok: uuid 미수집 분기 #}
       {%- set serial_defined = ansible_product_serial is defined -%}
       {%- set uuid_defined   = ansible_product_uuid is defined -%}
       {%- if serial_na and not serial_defined -%}

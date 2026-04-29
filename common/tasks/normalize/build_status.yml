@@ -22,7 +22,7 @@
       {%- set supported_vals = sec_vals | reject('equalto','not_supported') | list -%}
       {%- set success_count  = supported_vals | select('equalto','success') | list | length -%}
       {%- set failed_count   = supported_vals | select('equalto','failed')  | list | length -%}
-      {%- if supported_vals | length == 0 -%}  {# rule 95 R1 #5 ok: 지원 섹션 0개 = 전체 실패 #}
+      {%- if supported_vals | length == 0 -%}  {# rule 95 R1 R5 ok: 지원 섹션 0개 = 전체 실패 #}
       failed
       {%- elif failed_count == 0 -%}
       success

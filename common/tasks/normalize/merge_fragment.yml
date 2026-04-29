@@ -57,9 +57,9 @@
       {%- for k in all_keys -%}
         {%- set bv = base.get(k, none) -%}
         {%- set fv = frag.get(k, none) -%}
-        {%- if fv is none -%}  {# rule 95 R1 #5 ok: fragment 에 없으면 base 값 유지 #}
+        {%- if fv is none -%}  {# rule 95 R1 R5 ok: fragment 에 없으면 base 값 유지 #}
           {%- set _ = out.update({k: bv}) -%}
-        {%- elif bv is none -%}  {# rule 95 R1 #5 ok: base 가 null 이면 fragment 값으로 교체 #}
+        {%- elif bv is none -%}  {# rule 95 R1 R5 ok: base 가 null 이면 fragment 값으로 교체 #}
           {%- set _ = out.update({k: fv}) -%}
         {%- elif bv is mapping and fv is mapping -%}
           {#  둘 다 dict 면 얕은 병합 (fragment 우선) #}

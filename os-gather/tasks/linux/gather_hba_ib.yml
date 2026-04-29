@@ -118,7 +118,7 @@
               {%- set _ = out.append({
                 'name':        parts[1],
                 'driver':      parts[2] if parts[2] | length > 0 else none,
-                'vlan_id':     (parts[3] | int) if (parts[3] | length > 0 and parts[3] | regex_search('^[0-9]+$')) else none,
+                'vlan_id':     (parts[3] | regex_replace('[^0-9]', '') | int) if (parts[3] | regex_replace('[^0-9]', '') | length > 0) else none,
                 'bond_master': parts[4] if parts[4] | length > 0 else none,
               }) -%}
             {%- endif -%}

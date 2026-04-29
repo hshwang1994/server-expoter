@@ -227,11 +227,11 @@
 - name: "linux | system | DMI direct-read fallback"
   when: >
     _l_python_mode == 'python_ok' and
-    ((_l_serial_from_setup | default(none)) is none or {# rule 95 R1 #5 ok: setup serial 미제공 #}
-     (_l_uuid_from_setup | default(none)) is none)    {# rule 95 R1 #5 ok: setup uuid 미제공 #}
+    ((_l_serial_from_setup | default(none)) is none or {# rule 95 R1 R5 ok: setup serial 미제공 #}
+     (_l_uuid_from_setup | default(none)) is none)    {# rule 95 R1 R5 ok: setup uuid 미제공 #}
   block:
     - name: "linux | system | DMI direct-read serial"
-      when: (_l_serial_from_setup | default(none)) is none  # rule 95 R1 #5 ok: serial raw fallback 진입
+      when: (_l_serial_from_setup | default(none)) is none  # rule 95 R1 R5 ok: serial raw fallback 진입
       ansible.builtin.command: cat /sys/class/dmi/id/product_serial
       become: true
       register: _l_dmi_serial_direct
@@ -240,7 +240,7 @@
       no_log: true
 
     - name: "linux | system | DMI direct-read uuid"
-      when: (_l_uuid_from_setup | default(none)) is none  # rule 95 R1 #5 ok: uuid raw fallback 진입
+      when: (_l_uuid_from_setup | default(none)) is none  # rule 95 R1 R5 ok: uuid raw fallback 진입
       ansible.builtin.command: cat /sys/class/dmi/id/product_uuid
       become: true
       register: _l_dmi_uuid_direct
