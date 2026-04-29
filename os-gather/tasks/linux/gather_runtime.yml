@@ -31,6 +31,7 @@
       no_log: true
 
     - name: "linux | runtime | firewall status"
+      become: true
       ansible.builtin.raw: |
         if command -v firewall-cmd >/dev/null 2>&1; then
           state=$(firewall-cmd --state 2>/dev/null)

@@ -11,7 +11,7 @@
 - block:
     - name: "linux | storage | lsblk (physical disks)"
       ansible.builtin.shell: >
-        lsblk -J -b -d -o NAME,SIZE,TYPE,ROTA,MODEL 2>/dev/null || echo "{}"
+        lsblk -J -b -d -o NAME,SIZE,TYPE,ROTA,MODEL,TRAN 2>/dev/null || echo "{}"
       register: _l_lsblk_raw
       changed_when: false
       failed_when: false
@@ -26,13 +26,19 @@
             {%- for dev in lsblk.blockdevices -%}
               {%- if dev.type in ['disk'] and dev.size | int > 0 -%}
                 {%- set _dev_path = '/dev/' ~ dev.name -%}
+                {%- set _tran = (dev.tran | default('') | string | lower) -%}
+                {%- set _proto = none -%}
+                {%- if _tran == 'sata' -%}{%- set _proto = 'SATA' -%}
+                {%- elif _tran == 'sas' -%}{%- set _proto = 'SAS' -%}
+                {%- elif _tran == 'nvme' -%}{%- set _proto = 'NVMe' -%}
+                {%- endif -%}
                 {%- set _ = out.append({
                   'id':         _dev_path,
                   'device':     _dev_path,
                   'model':      dev.model | default(none) | trim if dev.model is defined else none,
                   'total_mb':   (dev.size | int / 1048576) | round(0,'floor') | int,
                   'media_type': 'HDD' if (dev.rota | string) in ['1','true','True'] else 'SSD',
-                  'protocol':   none,
+                  'protocol':   _proto,
                   'health':     none
                 }) -%}
               {%- endif -%}
@@ -125,7 +131,7 @@
 - block:
     - name: "linux | storage | raw lsblk"
       ansible.builtin.raw: >
-        lsblk -J -b -d -o NAME,SIZE,TYPE,ROTA,MODEL 2>/dev/null || echo '{"blockdevices":[]}'
+        lsblk -J -b -d -o NAME,SIZE,TYPE,ROTA,MODEL,TRAN 2>/dev/null || echo '{"blockdevices":[]}'
       register: _l_stor_lsblk_raw
       changed_when: false
       failed_when: false
@@ -162,13 +168,19 @@
             {%- for dev in lsblk.blockdevices -%}
               {%- if dev.type | default('') in ['disk'] and (dev.size | default(0)) | int > 0 -%}
                 {%- set _dev_path = '/dev/' ~ dev.name -%}
+                {%- set _tran = (dev.tran | default('') | string | lower) -%}
+                {%- set _proto = none -%}
+                {%- if _tran == 'sata' -%}{%- set _proto = 'SATA' -%}
+                {%- elif _tran == 'sas' -%}{%- set _proto = 'SAS' -%}
+                {%- elif _tran == 'nvme' -%}{%- set _proto = 'NVMe' -%}
+                {%- endif -%}
                 {%- set _ = out.append({
                   'id':         _dev_path,
                   'device':     _dev_path,
                   'model':      dev.model | default(none) | trim if dev.model is defined else none,
                   'total_mb':   (dev.size | int / 1048576) | round(0,'floor') | int,
                   'media_type': 'HDD' if (dev.rota | default('1') | string) in ['1','true','True'] else 'SSD',
-                  'protocol':   none,
+                  'protocol':   _proto,
                   'health':     none
                 }) -%}
               {%- endif -%}

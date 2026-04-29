@@ -23,6 +23,7 @@
 # =============================================================================
 - name: "linux | system | raw-only gather (no python)"
   when: _l_python_mode != 'python_ok'
+  become: true
   ansible.builtin.raw: |
     export LANG=C
     . /etc/os-release 2>/dev/null || true
