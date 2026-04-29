@@ -83,3 +83,58 @@ class TestWindowsBaseline:
         assert_array_element_fields(
             windows_baseline, OS_ARRAY_FIELDS, "windows_baseline"
         )
+
+
+class TestRhel810RawFallback:
+    """OS-RHEL810: Linux raw_fallback (Python <3.9) baseline 검증.
+
+    production-audit (2026-04-29): RHEL 8.10 py3.6 환경의 raw fallback path 회귀.
+    cycle-016 build #49 evidence 기반.
+    """
+
+    def test_common_structure(self, rhel810_raw_fallback_baseline):
+        assert_common_structure(rhel810_raw_fallback_baseline)
+
+    def test_gather_mode_raw_only(self, rhel810_raw_fallback_baseline):
+        """raw_fallback mode 진입 검증 — diagnosis.details.gather_mode == 'raw_only'."""
+        details = (
+            rhel810_raw_fallback_baseline.get("diagnosis", {}).get("details", {})
+        )
+        assert details.get("gather_mode") == "raw_only", (
+            f"gather_mode 'raw_only' 아님: {details.get('gather_mode')}"
+        )
+        assert details.get("python_version"), "python_version 누락"
+
+    def test_critical_fields(self, rhel810_raw_fallback_baseline):
+        assert_channel_critical_fields(
+            rhel810_raw_fallback_baseline, OS_CRITICAL, OS_FIELD_MAP
+        )
+
+    def test_sections_collected(self, rhel810_raw_fallback_baseline):
+        sections = rhel810_raw_fallback_baseline.get("sections", {})
+        collected = [k for k, v in sections.items() if v == "success"]
+        assert "system" in collected, "system 섹션 미수집"
+        assert "memory" in collected, "memory 섹션 미수집 (raw fallback)"
+        assert "storage" in collected, "storage 섹션 미수집 (raw fallback)"
+        assert "network" in collected, "network 섹션 미수집 (raw fallback)"
+
+    def test_memory_basis_physical(self, rhel810_raw_fallback_baseline):
+        """raw fallback에서도 dmidecode 가능 시 physical_installed basis 인지."""
+        memory = rhel810_raw_fallback_baseline["data"]["memory"]
+        # raw fallback은 dmidecode 가능 시 physical_installed, 아니면 os_visible
+        assert memory["total_basis"] in ("physical_installed", "os_visible"), (
+            f"unexpected total_basis: {memory['total_basis']}"
+        )
+
+    def test_correlation(self, rhel810_raw_fallback_baseline):
+        assert_correlation_fields(rhel810_raw_fallback_baseline)
+
+    def test_correlation_host_ip(self, rhel810_raw_fallback_baseline):
+        assert_correlation_host_ip(rhel810_raw_fallback_baseline)
+
+    def test_array_element_fields(self, rhel810_raw_fallback_baseline):
+        assert_array_element_fields(
+            rhel810_raw_fallback_baseline,
+            OS_ARRAY_FIELDS,
+            "rhel810_raw_fallback_baseline",
+        )

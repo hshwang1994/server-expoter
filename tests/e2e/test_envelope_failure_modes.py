@@ -211,7 +211,8 @@ ENVELOPES: dict[str, dict[str, Any]] = {
         vendor="dell",
     ),
     "redfish__block_rescue_failed": {
-        # always 블록의 hard-coded fallback (site.yml:167-180)
+        # always 블록의 hard-coded fallback (redfish-gather/site.yml:182-201)
+        # production-audit (2026-04-29): details 가 dict shape 으로 통일됨 — 호출자 TypeError 차단
         "schema_version": "1",
         "target_type": "redfish",
         "collection_method": "redfish_api",
@@ -221,9 +222,16 @@ ENVELOPES: dict[str, dict[str, Any]] = {
         "status": "failed",
         "sections": {},
         "diagnosis": {
-            "precheck": None,
-            "gather_mode": "fallback",
-            "details": ["_output 미생성 — block/rescue 모두 실패"],
+            "reachable": None,
+            "port_open": None,
+            "protocol_supported": None,
+            "auth_success": None,
+            "failure_stage": "fallback",
+            "failure_reason": "_output 미생성 — block/rescue 모두 실패",
+            "details": {
+                "gather_mode": "fallback",
+                "reason": "_output 미생성 — block/rescue 모두 실패",
+            },
         },
         "meta": {},
         "correlation": {},
@@ -257,6 +265,7 @@ ENVELOPES: dict[str, dict[str, Any]] = {
         failed=("storage", "network"),
     ),
     "os__block_rescue_failed": {
+        # production-audit (2026-04-29): details dict shape (os-gather/site.yml:308-326,475-493)
         "schema_version": "1",
         "target_type": "os",
         "collection_method": "ansible",
@@ -266,9 +275,16 @@ ENVELOPES: dict[str, dict[str, Any]] = {
         "status": "failed",
         "sections": {},
         "diagnosis": {
-            "precheck": None,
-            "gather_mode": "fallback",
-            "details": ["_output 미생성 — block/rescue 모두 실패"],
+            "reachable": None,
+            "port_open": None,
+            "protocol_supported": None,
+            "auth_success": None,
+            "failure_stage": "fallback",
+            "failure_reason": "_output 미생성 — block/rescue 모두 실패",
+            "details": {
+                "gather_mode": "fallback",
+                "reason": "_output 미생성 — block/rescue 모두 실패",
+            },
         },
         "meta": {},
         "correlation": {},
@@ -302,6 +318,7 @@ ENVELOPES: dict[str, dict[str, Any]] = {
         failed=("storage", "network"),
     ),
     "esxi__block_rescue_failed": {
+        # production-audit (2026-04-29): details dict shape (esxi-gather/site.yml:183-201)
         "schema_version": "1",
         "target_type": "esxi",
         "collection_method": "vmware",
@@ -311,9 +328,16 @@ ENVELOPES: dict[str, dict[str, Any]] = {
         "status": "failed",
         "sections": {},
         "diagnosis": {
-            "precheck": None,
-            "gather_mode": "fallback",
-            "details": ["_output 미생성 — block/rescue 모두 실패"],
+            "reachable": None,
+            "port_open": None,
+            "protocol_supported": None,
+            "auth_success": None,
+            "failure_stage": "fallback",
+            "failure_reason": "_output 미생성 — block/rescue 모두 실패",
+            "details": {
+                "gather_mode": "fallback",
+                "reason": "_output 미생성 — block/rescue 모두 실패",
+            },
         },
         "meta": {},
         "correlation": {},

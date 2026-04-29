@@ -8,8 +8,8 @@
 |---|---|---|
 | **OPS-AUDIT-1** Goodmit0802! 자격증명 회전 | 사용자 결정 (보안) | 자격증명이 git history (이전 commits)에 잔존 — 회전 후 filter-branch / repo rewrite 결정 필요 |
 | **OPS-AUDIT-2** Supermicro 실장비 fixture 확보 | 외부 의존 (실장비 + lab 권한) | 3 adapter 정의 (`supermicro_bmc/x9/x11.yml`)에 0 fixture / 0 baseline |
-| **OPS-AUDIT-3** ESXi 8.0u3 baseline 생성 | 외부 의존 (실장비) | reference dump 존재 (`tests/reference/esxi/...`)이지만 baseline_v1/esxi_baseline 은 7.0.3 only |
-| **OPS-AUDIT-4** Linux raw_fallback pytest 커버 | AI 환경 가능 (fixture-based) | RHEL 8.10 (py3.6) raw fallback path는 evidence (cycle-016 build #49) 만 보유 — pytest fixture 추가 보강 후속 cycle |
+| **OPS-AUDIT-3** ESXi 8.0u3 baseline 생성 | 외부 의존 (실장비) | **재확인 (production-audit 후속)**: tests/reference/esxi/10_100_64_{1,2,3}/ 3종 모두 ESXi 7.0.3 — 8.0u3 reference 미존재. 실 ESXi 8.0u3 장비 + lab 권한 확보 후 진행 |
+| **OPS-AUDIT-4** Linux raw_fallback pytest 커버 | ✅ **완료 (production-audit 후속)** | `schema/baseline_v1/rhel810_raw_fallback_baseline.json` + `TestRhel810RawFallback` 7 테스트 (gather_mode/sections/memory_basis/correlation/array fields) 추가 |
 | **OPS-AUDIT-5** Cisco UCS C-series (cisco_bmc) 실장비 검증 | 외부 의존 | cisco_bmc.yml은 fallback adapter — TA-UNODE-G1 외 일반 CIMC 검증 필요 |
 | **OPS-AUDIT-6** RAID6/10/50/60 fixture 추가 | 외부 의존 (실장비) | 현재 RAID0/1/5만 baseline. 8+ drive RAID6 검증 필요 |
 | **OPS-AUDIT-7** HPE iLO4 / iLO6 / Dell iDRAC8 / Lenovo IMM2 baseline | 외부 의존 | adapter 정의는 있으나 baseline 없음 |

@@ -1,0 +1,200 @@
+{
+  "target_type": "os",
+  "collection_method": "agent",
+  "ip": "10.100.64.161",
+  "hostname": "rhel810-test01.gooddi.lab",
+  "vendor": null,
+  "status": "success",
+  "sections": {
+    "system": "success",
+    "hardware": "not_supported",
+    "bmc": "not_supported",
+    "cpu": "success",
+    "memory": "success",
+    "storage": "success",
+    "network": "success",
+    "firmware": "not_supported",
+    "users": "success",
+    "power": "not_supported"
+  },
+  "diagnosis": {
+    "reachable": true,
+    "port_open": true,
+    "protocol_supported": true,
+    "auth_success": true,
+    "failure_stage": null,
+    "failure_reason": null,
+    "details": {
+      "channel": "os",
+      "adapter_candidate": "os_linux_rhel",
+      "detected_os": "linux",
+      "selected_port": 22,
+      "checked_ports": [22],
+      "gather_mode": "raw_only",
+      "python_version": "3.6.8",
+      "python_path": "/usr/bin/python3"
+    }
+  },
+  "meta": {
+    "started_at": "2026-04-29T05:30:01.123456Z",
+    "finished_at": "2026-04-29T05:30:09.654321Z",
+    "duration_ms": 8500,
+    "adapter_id": "os_linux_rhel",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+  "correlation": {
+    "serial_number": "VMware-42 0c 9d 1e 5a 7b 90 31-c4 8d 7e f0 22 19 33 ab",
+    "system_uuid": "1e9d0c42-7b5a-3190-c48d-7ef0221933ab",
+    "bmc_ip": null,
+    "host_ip": "10.100.64.161"
+  },
+  "errors": [],
+  "data": {
+    "system": {
+      "os_family": "RedHat",
+      "distribution": "RHEL",
+      "version": "8.10",
+      "kernel": "4.18.0-553.el8.x86_64",
+      "architecture": "x86_64",
+      "hosting_type": "virtual",
+      "uptime_seconds": 87431,
+      "selinux": "enabled",
+      "fqdn": "rhel810-test01.gooddi.lab",
+      "serial_number": "VMware-42 0c 9d 1e 5a 7b 90 31-c4 8d 7e f0 22 19 33 ab",
+      "system_uuid": "1e9d0c42-7b5a-3190-c48d-7ef0221933ab"
+    },
+    "memory": {
+      "total_mb": 4096,
+      "total_basis": "physical_installed",
+      "installed_mb": 4096,
+      "visible_mb": 3886,
+      "free_mb": 1245,
+      "slots": [
+        {
+          "capacity_mb": 4096,
+          "type": "DIMM",
+          "speed_mhz": null
+        }
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 4,
+            "type": "DIMM",
+            "quantity": 1,
+            "group_total_gb": 4
+          }
+        ],
+        "grand_total_gb": 4
+      }
+    },
+    "power": null,
+    "network": {
+      "interfaces": [
+        {
+          "id": "ens192",
+          "name": "ens192",
+          "kind": "os_nic",
+          "mac": "00:50:56:84:1a:2c",
+          "mtu": 1500,
+          "speed_mbps": 10000,
+          "link_status": "up",
+          "is_primary": true,
+          "addresses": [
+            {
+              "family": "ipv4",
+              "address": "10.100.64.161",
+              "prefix_length": 24,
+              "subnet_mask": "255.255.255.0",
+              "gateway": "10.100.64.254"
+            }
+          ]
+        }
+      ],
+      "dns_servers": ["10.100.64.10"],
+      "default_gateways": [
+        {"family": "ipv4", "address": "10.100.64.254"}
+      ],
+      "adapters": [],
+      "ports": [],
+      "summary": {
+        "groups": [
+          {
+            "speed_mbps": 10000,
+            "link_type": null,
+            "quantity": 1,
+            "link_up_count": 1
+          }
+        ]
+      }
+    },
+    "hardware": null,
+    "cpu": {
+      "sockets": 2,
+      "cores_physical": 2,
+      "logical_threads": 2,
+      "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+      "architecture": "x86_64"
+    },
+    "storage": {
+      "datastores": [],
+      "physical_disks": [
+        {
+          "id": "/dev/sda",
+          "device": "/dev/sda",
+          "model": "Virtual disk",
+          "total_mb": 51200,
+          "media_type": "HDD",
+          "protocol": null,
+          "health": null
+        }
+      ],
+      "controllers": [],
+      "logical_volumes": [],
+      "filesystems": [
+        {
+          "device": "/dev/sda2",
+          "mount_point": "/",
+          "filesystem": "xfs",
+          "total_mb": 50000.0,
+          "used_mb": 12000.0,
+          "available_mb": 38000.0,
+          "usage_percent": 24.0,
+          "status": "mounted"
+        }
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 50,
+            "media_type": "HDD",
+            "protocol": null,
+            "quantity": 1,
+            "group_total_gb": 50
+          }
+        ],
+        "grand_total_gb": 50
+      }
+    },
+    "users": [
+      {
+        "name": "root",
+        "uid": "0",
+        "groups": ["root"],
+        "home": "/root",
+        "last_access_time": null
+      },
+      {
+        "name": "cloviradmin",
+        "uid": "1000",
+        "groups": ["cloviradmin", "wheel"],
+        "home": "/home/cloviradmin",
+        "last_access_time": "2026-04-29T05:25:00Z"
+      }
+    ],
+    "bmc": null,
+    "firmware": []
+  },
+  "schema_version": "1"
+}

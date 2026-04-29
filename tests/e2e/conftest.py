@@ -331,5 +331,11 @@ def cisco_baseline():
 
 
 @pytest.fixture
+def rhel810_raw_fallback_baseline():
+    # production-audit (2026-04-29): Linux raw_fallback (RHEL 8.10 py3.6) baseline
+    return load_json(BASELINE_DIR / "rhel810_raw_fallback_baseline.json")
+
+
+@pytest.fixture
 def dell_r760_output():
     return load_json(OUTPUT_DIR / "dell_r760_output.json")
