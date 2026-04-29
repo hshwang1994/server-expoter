@@ -582,21 +582,32 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
             'state':            _safe(first_tpm, 'Status', 'State'),
         }
 
+    # 빈 문자열 → None 정규화 helper. HPE: AssetTag/PartNumber 등이 "" 반환 케이스.
+    # 호출자가 None 과 "" 두 가지 상태를 동일 처리하도록 강제하지 않기 위함.
+    def _ne(*keys):
+        v = _safe(data, *keys)
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
+
     result = {
-        'manufacturer':   _safe(data, 'Manufacturer'),
-        'model':          _safe(data, 'Model'),
-        'serial':         _safe(data, 'SerialNumber'),
-        'sku':            _safe(data, 'SKU'),
-        'uuid':           _safe(data, 'UUID'),
+        'manufacturer':   _ne('Manufacturer'),
+        'model':          _ne('Model'),
+        'serial':         _ne('SerialNumber'),
+        'sku':            _ne('SKU'),
+        'uuid':           _ne('UUID'),
         'hostname':       hostname,
         'power_state':    _safe(data, 'PowerState'),
         'health':         _safe(data, 'Status', 'Health'),
         'state':          _safe(data, 'Status', 'State'),
         'led_state':      led_state,
-        'bios_version':   _safe(data, 'BiosVersion'),
-        'asset_tag':      _safe(data, 'AssetTag'),
+        'bios_version':   _ne('BiosVersion'),
+        # bios_date: 표준 Redfish 에는 키가 없음 — 벤더 OEM extractor 의 `_bios_date`
+        # underscore-prefix 키를 _hoist_oem_extras 가 여기로 끌어올림.
+        'bios_date':      None,
+        'asset_tag':      _ne('AssetTag'),
         'system_type':    _safe(data, 'SystemType'),
-        'part_number':    _safe(data, 'PartNumber'),
+        'part_number':    _ne('PartNumber'),
         'last_reset_time': _safe(data, 'LastResetTime'),
         'boot_progress':  _safe(data, 'BootProgress', 'LastState'),
         'tpm':            tpm_summary,
@@ -618,11 +629,13 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
     extractor = _OEM_EXTRACTORS.get(vendor)                                   # nosec rule12-r1
     if extractor is not None:
         # _extract_oem_lenovo 는 chassis_data 인자를 추가로 받음 (rule 96 R3 외부 계약).
-        # 다른 vendor extractor 는 변경 없음 — chassis_data 인자 전달 안 함.
         if vendor == 'lenovo':                                                # nosec rule12-r1
-            result['oem'] = extractor(data, chassis_data=chassis_data)        # nosec rule12-r1
+            raw_oem = extractor(data, chassis_data=chassis_data)              # nosec rule12-r1
         else:
-            result['oem'] = extractor(data)
+            raw_oem = extractor(data)
+        # `_*` prefix 키 (예: `_bios_date`) 를 result hardware-level 로 끌어올린 뒤
+        # OEM dict 에서는 제거. 기존 envelope 키만 채움 — 새 키 추가 없음.
+        result['oem'] = _hoist_oem_extras(raw_oem, result)
 
     # 주요 필드 누락은 경고 수준 — 수집 자체는 성공으로 처리.
     # errors에 추가하지 않아 _run()에서 failed로 분류되지 않음.
@@ -693,12 +706,15 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
                         gw = _safe(addr, 'Gateway')
                         if gw and gw not in ('0.0.0.0', '') and gw not in bmc_gateways:
                             bmc_gateways.append(gw)
-                # NameServers / StaticNameServers — 모든 NIC 누적 (중복 제거)
+                # NameServers / StaticNameServers — 모든 NIC 누적 (중복 제거 + placeholder skip).
+                # 실측 (Lenovo XCC SR650 V2): NameServers=["","","","::","::","::"] 처럼
+                # 미설정 슬롯이 빈 문자열 / "::" / "0.0.0.0" 같은 placeholder 로 채워지므로 필터.
+                _ns_placeholders = ('', '0.0.0.0', '::', '::0', '::1')
                 for ns in (_safe(ndata, 'NameServers') or []):
-                    if ns and ns not in bmc_name_servers:
+                    if ns and ns not in _ns_placeholders and ns not in bmc_name_servers:
                         bmc_name_servers.append(ns)
                 for ns in (_safe(ndata, 'StaticNameServers') or []):
-                    if ns and ns not in bmc_static_name_servers:
+                    if ns and ns not in _ns_placeholders and ns not in bmc_static_name_servers:
                         bmc_static_name_servers.append(ns)
                 # MAC + FQDN — IP 가 있는 첫 NIC 에서 추출 (기존 동작 유지)
                 if nic_first_ip:
@@ -719,7 +735,12 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
     # 벤더별 BMC OEM 확장 (Redfish API spec)
     if vendor == 'hpe':                                                       # nosec rule12-r1
         oem = _safe(data, 'Oem', 'Hpe') or _safe(data, 'Oem', 'Hp') or {}     # nosec rule12-r1
-        result['oem'] = {'ilo_version': _safe(oem, 'Type')}
+        # 2026-04-29 raw 검증 (10.50.11.231 iLO 6 v1.73): Manager.Oem.Hpe 에 `Type`
+        # 필드 부재 — 이전 매핑은 항상 null. 의미 있는 값은 Firmware.Current.VersionString.
+        result['oem'] = {
+            'ilo_version': (_safe(oem, 'Firmware', 'Current', 'VersionString')
+                            or _safe(data, 'Model')),
+        }
     elif vendor == 'supermicro':                                              # nosec rule12-r1
         oem = _safe(data, 'Oem', 'Supermicro') or {}                          # nosec rule12-r1
         result['oem'] = {'bmc_ip': _safe(oem, 'BMCIPv4Address')}
@@ -752,12 +773,20 @@ def gather_processors(bmc_ip, system_uri, username, password, timeout, verify_ss
             continue
         if _safe(pdata, 'Status', 'State') in ('Absent', 'Disabled'):
             continue
-        # cycle-016 Phase N: ProcessorType / Architecture / SerialNumber / PartNumber 추가 (raw API 에 있음)
+        # 2026-04-29 raw 검증 (HPE iLO 6): SerialNumber / PartNumber 가 빈 문자열 ""
+        # 반환 (BMC 한계). "" 은 의미상 None — 호출자가 truthy 비교만으로 판정 가능하도록
+        # None 으로 정규화. cycle-016 Phase N 풍부 필드는 그대로 유지.
+        def _ne_p(*ks):
+            v = _safe(pdata, *ks)
+            if isinstance(v, str) and not v.strip():
+                return None
+            return v
+
         processors.append({
             'id':                _safe(pdata, 'Id'),
-            'name':              _safe(pdata, 'Name'),
-            'model':             _safe(pdata, 'Model'),
-            'manufacturer':      _safe(pdata, 'Manufacturer'),
+            'name':              _ne_p('Name'),
+            'model':             _ne_p('Model'),
+            'manufacturer':      _ne_p('Manufacturer'),
             'socket':            _safe(pdata, 'Socket'),
             'total_cores':       _safe(pdata, 'TotalCores'),
             'total_threads':     _safe(pdata, 'TotalThreads'),
@@ -766,8 +795,8 @@ def gather_processors(bmc_ip, system_uri, username, password, timeout, verify_ss
             'processor_type':    _safe(pdata, 'ProcessorType'),
             'architecture':      _safe(pdata, 'ProcessorArchitecture'),
             'instruction_set':   _safe(pdata, 'InstructionSet'),
-            'serial_number':     _safe(pdata, 'SerialNumber'),
-            'part_number':       _safe(pdata, 'PartNumber'),
+            'serial_number':     _ne_p('SerialNumber'),
+            'part_number':       _ne_p('PartNumber'),
         })
     return processors, errors
 
@@ -850,11 +879,16 @@ def _gather_simple_storage(bmc_ip, members, username, password, timeout, verify_
 
 
 def _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout, verify_ssl):
-    """컨트롤러 메타 추출 — StorageControllers 인라인 우선, Controllers 서브링크 fallback."""
+    """컨트롤러 메타 추출 — StorageControllers 인라인 우선, Controllers 서브링크 fallback.
+
+    controller_name 은 실제 하드웨어 모델명 (예: "ThinkSystem RAID 930-8i 2GB Flash PCIe").
+    Storage 객체의 Name 은 "RAID Storage" 같은 컨테이너 라벨이라 별개로 보존.
+    """
     inline_ctrls = _safe(sdata, 'StorageControllers') or []
     if inline_ctrls:
         c = inline_ctrls[0]
         return {
+            'controller_name':         _safe(c, 'Name'),
             'controller_model':        _safe(c, 'Model'),
             'controller_firmware':     _safe(c, 'FirmwareVersion'),
             'controller_manufacturer': _safe(c, 'Manufacturer'),
@@ -876,6 +910,7 @@ def _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout,
     if cerr2 or cst2 != 200:
         return {}
     return {
+        'controller_name':         _safe(cdata, 'Name'),
         'controller_model':        _safe(cdata, 'Model'),
         'controller_firmware':     _safe(cdata, 'FirmwareVersion'),
         'controller_manufacturer': _safe(cdata, 'Manufacturer'),
@@ -1003,9 +1038,12 @@ def _gather_standard_storage(bmc_ip, members, username, password, timeout, verif
         ctrl_info = _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout, verify_ssl)
         drives, d_errs = _extract_storage_drives(sdata, bmc_ip, username, password, timeout, verify_ssl)
         errors.extend(d_errs)
+        # name 우선순위: controller_name (실제 하드웨어 모델) → Storage 객체 Name fallback.
+        # 실측 (Lenovo XCC SR650 V2): 컨트롤러 식별 정보 손실 차단.
+        ctrl_name = ctrl_info.get('controller_name') or _safe(sdata, 'Name')
         ctrl_entry = {
             'id':     _safe(sdata, 'Id'),
-            'name':   _safe(sdata, 'Name'),
+            'name':   ctrl_name,
             'health': _safe(sdata, 'Status', 'Health') or _safe(sdata, 'Status', 'HealthRollup'),
             'drives': drives,
         }
@@ -1116,14 +1154,26 @@ def gather_network_adapters_chassis(bmc_ip, chassis_uri, username, password, tim
         ctrls = _safe(adata, 'Controllers', default=[]) or []
         if ctrls and isinstance(ctrls, list):
             fw_ver = _safe(ctrls[0], 'FirmwarePackageVersion')
+        # 빈 placeholder NetworkAdapter 필터:
+        # 일부 BMC (실측 Lenovo XCC SR650 V2)는 PCIe slot 자체를 NetworkAdapters 컬렉션에
+        # 빈 entry 로 노출. Controllers[0].ControllerCapabilities.NetworkPortCount=0 또는
+        # manufacturer/model 모두 빈 문자열이면 실제 NIC 가 아니므로 skip.
+        port_count = 0
+        if ctrls and isinstance(ctrls, list):
+            caps = _safe(ctrls[0], 'ControllerCapabilities') or {}
+            port_count = _safe_int(_safe(caps, 'NetworkPortCount'), default=0) or 0
+        mfr = (_safe(adata, 'Manufacturer') or '').strip()
+        model = (_safe(adata, 'Model') or '').strip()
+        if port_count == 0 and not mfr and not model:
+            continue
         adapter_info = {
             'id':               adapter_id,
             'name':             _safe(adata, 'Name'),
-            'manufacturer':     _safe(adata, 'Manufacturer'),
-            'model':            _safe(adata, 'Model'),
-            'part_number':      _safe(adata, 'PartNumber'),
-            'serial_number':    _safe(adata, 'SerialNumber'),
-            'firmware_version': fw_ver,
+            'manufacturer':     mfr or None,
+            'model':            model or None,
+            'part_number':      _safe(adata, 'PartNumber') or None,
+            'serial_number':    _safe(adata, 'SerialNumber') or None,
+            'firmware_version': fw_ver or None,
         }
         out['adapters'].append(adapter_info)
 

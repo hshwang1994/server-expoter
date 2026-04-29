@@ -39,8 +39,12 @@
 # ── network ──────────────────────────────────────────────────────────────────
 - name: "redfish | normalize_standard | interfaces"
   ansible.builtin.set_fact:
+    # 2026-04-29 hpe-critical-review: is_primary 가 항상 false (이전: hardcoded false).
+    # 첫 LinkUp + IPv4 가 있는 NIC 1건을 primary 로 표시. IPv4 가 모두 비어 있는
+    # 환경 (HPE iLO host NIC 한계) 에서는 첫 LinkUp NIC 만으로 fallback.
+    # ns.primary_marked: 한 번만 true 부여 보장.
     _rf_norm_interfaces: >-
-      {%- set out = [] -%}
+      {%- set ns = namespace(out=[], primary_marked=false) -%}
       {%- for nic in (_rf_d_network | default([])) -%}
         {%- set addrs = [] -%}
         {%- for a in (nic.ipv4 | default([])) -%}
@@ -52,19 +56,34 @@
               'origin':a.address_origin|default(none)}) -%}
           {%- endif -%}
         {%- endfor -%}
-        {%- set _ = out.append({
+        {%- set link = (nic.link_status|lower) if nic.link_status is defined and nic.link_status is not none else 'unknown' -%}
+        {%- set is_pri = false -%}
+        {%- if not ns.primary_marked and link in ['linkup','up'] and addrs|length > 0 -%}
+          {%- set is_pri = true -%}
+          {%- set ns.primary_marked = true -%}
+        {%- endif -%}
+        {%- set _ = ns.out.append({
           'id':          nic.id|default(nic.name|default(none)),
           'name':        nic.name|default(none),
           'kind':        'server_nic',
           'mac':         nic.mac|default(none),
           'mtu':         nic.mtu|default(none),
           'speed_mbps':  nic.speed_mbps|default(none),
-          'link_status': (nic.link_status|lower) if nic.link_status is defined else 'unknown',
-          'is_primary':  false,
+          'link_status': link,
+          'is_primary':  is_pri,
           'addresses':   addrs
         }) -%}
       {%- endfor -%}
-      {{ out }}
+      {#- IPv4 가 전혀 없는 환경 (HPE host NIC 한계) fallback: 첫 LinkUp NIC 1건 -#}
+      {%- if not ns.primary_marked -%}
+        {%- for nic in ns.out -%}
+          {%- if not ns.primary_marked and nic.link_status in ['linkup','up'] -%}
+            {%- set _ = nic.update({'is_primary': true}) -%}
+            {%- set ns.primary_marked = true -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+      {{ ns.out }}
   no_log: true
 
 - name: "redfish | normalize_standard | aggregate gateways + dns_servers"
@@ -89,14 +108,22 @@
       {%- endfor -%}
       {{ gws }}
     # 2026-04-29 cisco-critical-review: dns_servers 신설 — BMC NIC NameServers /
-    # StaticNameServers union (이전: normalize_standard.yml 에서 [] 하드코딩).
+    # StaticNameServers union (이전: [] 하드코딩).
+    # 2026-04-29 hpe-critical-review: HPE iLO 6 실측 StaticNameServers 가
+    # ['0.0.0.0','0.0.0.0','0.0.0.0','::','::','::'] 형태 (placeholder) 로 응답 →
+    # IPv4 unset(0.0.0.0) / IPv6 unset(::) 필터링 추가.
     _rf_norm_dns: >-
       {%- set out = [] -%}
+      {%- set placeholders = ['0.0.0.0', '::', '', none] -%}
       {%- for ns in (_rf_d_bmc_network.name_servers | default([])) -%}
-        {%- if ns and ns not in out -%}{%- set _ = out.append(ns) -%}{%- endif -%}
+        {%- if ns and ns not in placeholders and ns not in out -%}
+          {%- set _ = out.append(ns) -%}
+        {%- endif -%}
       {%- endfor -%}
       {%- for ns in (_rf_d_bmc_network.static_name_servers | default([])) -%}
-        {%- if ns and ns not in out -%}{%- set _ = out.append(ns) -%}{%- endif -%}
+        {%- if ns and ns not in placeholders and ns not in out -%}
+          {%- set _ = out.append(ns) -%}
+        {%- endif -%}
       {%- endfor -%}
       {{ out }}
   no_log: true
@@ -120,10 +147,14 @@
           }) -%}
         {%- endfor -%}
         {%- set _ = out.append({
-          'id':     ctrl.id|default(none),
-          'name':   ctrl.name|default(none),
-          'health': ctrl.health|default(none),
-          'drives': drives
+          'id':                      ctrl.id|default(none),
+          'name':                    ctrl.name|default(none),
+          'health':                  ctrl.health|default(none),
+          'controller_model':        ctrl.controller_model|default(none),
+          'controller_firmware':     ctrl.controller_firmware|default(none),
+          'controller_manufacturer': ctrl.controller_manufacturer|default(none),
+          'controller_health':       ctrl.controller_health|default(none),
+          'drives':                  drives
         }) -%}
       {%- endfor -%}
       {{ out }}
@@ -245,10 +276,22 @@
       {%- endfor -%}
       {{ {'groups': ns.groups, 'grand_total_gb': ns.total} }}
     # cycle-016 Phase M: network.summary 강화 — adapter_count / port_count / primary_speed_mbps 추가
+    # 2026-04-29 lenovo-critical-review: link_type 정규화 — NetworkAdapter ports 의 PortType
+    # (Ethernet/FibreChannel/InfiniBand) 을 mac 기반 매칭. 미매칭/PortType 빈값 시 'ethernet'
+    # 기본값 (host EthernetInterface 는 Ethernet). 이전 코드는 항상 None 하드코딩.
     _rf_summary_network: >-
-      {%- set ns = namespace(groups=[], seen={}, adp_map={}, primary_sp=none) -%}
+      {%- set ns = namespace(groups=[], seen={}, adp_map={}, port_lt={}, primary_sp=none) -%}
       {%- for a in (_rf_d_netad.adapters | default([])) -%}
         {%- set _ = ns.adp_map.update({a.id: a}) -%}
+      {%- endfor -%}
+      {%- for p in (_rf_d_netad.ports | default([])) -%}
+        {%- set pt = (p.port_type | default('') | string | trim | lower) -%}
+        {%- set lt = 'ethernet' -%}
+        {%- if 'fibre' in pt or pt == 'fc' -%}{%- set lt = 'fibrechannel' -%}
+        {%- elif 'infin' in pt or pt == 'ib' -%}{%- set lt = 'infiniband' -%}
+        {%- elif 'ether' in pt -%}{%- set lt = 'ethernet' -%}{%- endif -%}
+        {%- set addr = (p.associated_address | default('') | string | upper | replace(':','') | replace('-','')) -%}
+        {%- if addr -%}{%- set _ = ns.port_lt.update({addr: lt}) -%}{%- endif -%}
       {%- endfor -%}
       {%- for n in (_rf_norm_interfaces | default([])) -%}
         {%- set sp = n.speed_mbps | default(none) -%}
@@ -260,13 +303,15 @@
         {%- set adp = ns.adp_map[adp_id] | default({}) -%}
         {%- set md = adp.model | default(none) -%}
         {%- set mfr = adp.manufacturer | default(none) -%}
-        {%- set key = (sp|string)~'|'~(md|string)~'|'~(mfr|string) -%}
+        {%- set nic_mac = (n.mac | default('') | string | upper | replace(':','') | replace('-','')) -%}
+        {%- set lt = ns.port_lt.get(nic_mac, 'ethernet') -%}
+        {%- set key = (sp|string)~'|'~(md|string)~'|'~(mfr|string)~'|'~(lt|string) -%}
         {%- if key in ns.seen -%}
           {%- set idx = ns.seen[key] -%}
           {%- set _ = ns.groups[idx].update({'quantity': ns.groups[idx].quantity + 1, 'link_up_count': ns.groups[idx].link_up_count + (1 if link_up else 0)}) -%}
         {%- else -%}
           {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-          {%- set _ = ns.groups.append({'speed_mbps': sp, 'model': md, 'manufacturer': mfr, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
+          {%- set _ = ns.groups.append({'speed_mbps': sp, 'model': md, 'manufacturer': mfr, 'link_type': lt, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
         {%- endif -%}
       {%- endfor -%}
       {{ {
@@ -362,10 +407,12 @@
         uuid:         "{{ _rf_d_system.uuid         | default(none) }}"
         sku:          "{{ _rf_d_system.sku           | default(none) }}"
         bios_version: "{{ _rf_d_system.bios_version | default(none) }}"
-        # BUG-12 fix: 표준 Redfish System schema는 BIOS ReleaseDate 미제공.
-        # vendor OEM 에서 제공하는 경우 채움 (Dell: Oem.Dell.DellSystem.BIOSReleaseDate).
-        # 타 vendor OEM 에 동등 키가 추가되면 _extract_oem_<vendor> 에서 'bios_release_date' 키로 노출.
-        bios_date:    "{{ (_rf_d_system.oem | default({})).bios_release_date | default(none) }}"
+        # BUG-12 fix: 표준 Redfish System schema 는 BIOS ReleaseDate 미제공.
+        # 2026-04-29 hpe-critical-review: redfish_gather.py _hoist_oem_extras 가 vendor
+        # extractor 의 `_bios_date` 키를 result.bios_date 로 끌어올림 (HPE: Oem.Hpe.Bios.
+        # Current.Date / Dell: Oem.Dell.DellSystem.BIOSReleaseDate). 우선순위:
+        # 1) hoisted system.bios_date  2) Dell-only legacy oem.bios_release_date.
+        bios_date:    "{{ _rf_d_system.bios_date | default((_rf_d_system.oem | default({})).bios_release_date | default(none)) }}"
         power_state:  "{{ _rf_d_system.power_state  | default(none) }}"
         health:       "{{ _rf_d_system.health       | default(none) }}"
         asset_tag:    "{{ _rf_d_system.asset_tag    | default(none) }}"
