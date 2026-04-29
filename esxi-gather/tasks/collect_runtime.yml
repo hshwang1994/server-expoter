@@ -1,0 +1,146 @@
+---
+# esxi-gather/tasks/collect_runtime.yml
+#
+# 2026-04-29 fix B31: ESXi runtime 정보 수집 (timezone / NTP / firewall).
+# vmware_host_facts (default summary)는 이 정보 미반환 → 별도 모듈 호출.
+#
+# 입력:
+#   _e_ip / _e_user / _e_pass : ESXi 인증 정보
+# 출력 (envelope.system.runtime 보강):
+#   _e_runtime_timezone        : str|null
+#   _e_runtime_ntp_active      : bool|null
+#   _e_runtime_ntp_synced      : bool|null
+#   _e_runtime_firewall_state  : str (enabled/disabled/null)
+#   _e_runtime_default_gw      : str|null  (B32)
+#   _e_physical_disks          : list      (B34)
+#
+# 모든 task는 read-only이며 failed_when:false 로 graceful degradation.
+
+- name: "esxi | runtime | NTP info"
+  community.vmware.vmware_host_ntp_info:
+    hostname:       "{{ _e_ip }}"
+    username:       "{{ _e_user }}"
+    password:       "{{ _e_pass }}"
+    validate_certs: false
+  register:    _e_ntp_result
+  delegate_to: localhost
+  failed_when: false
+  no_log: true
+
+- name: "esxi | runtime | parse NTP"
+  ansible.builtin.set_fact:
+    _e_runtime_ntp_active: >-
+      {%- set hosts = _e_ntp_result.hosts_ntp_info | default({}) -%}
+      {%- if hosts -%}
+        {%- set first_h = (hosts.values() | list | first) -%}
+        {{ first_h | length > 0 }}
+      {%- else -%}{{ none }}{%- endif -%}
+    _e_runtime_ntp_synced: >-
+      {%- set hosts = _e_ntp_result.hosts_ntp_info | default({}) -%}
+      {%- if hosts -%}
+        {%- set first_h = (hosts.values() | list | first) -%}
+        {{ (first_h | length > 0) and (first_h[0].running | default(false)) }}
+      {%- else -%}{{ none }}{%- endif -%}
+  no_log: true
+
+- name: "esxi | runtime | service info (NTP daemon + firewall)"
+  community.vmware.vmware_host_service_info:
+    hostname:       "{{ _e_ip }}"
+    username:       "{{ _e_user }}"
+    password:       "{{ _e_pass }}"
+    validate_certs: false
+  register:    _e_service_result
+  delegate_to: localhost
+  failed_when: false
+  no_log: true
+
+- name: "esxi | runtime | firewall info"
+  community.vmware.vmware_host_firewall_info:
+    hostname:       "{{ _e_ip }}"
+    username:       "{{ _e_user }}"
+    password:       "{{ _e_pass }}"
+    validate_certs: false
+  register:    _e_firewall_result
+  delegate_to: localhost
+  failed_when: false
+  no_log: true
+
+- name: "esxi | runtime | parse firewall + service"
+  ansible.builtin.set_fact:
+    # ESXi 방화벽은 host 단위 always-on (esxcli network firewall get | grep Enabled),
+    # vmware_host_firewall_info는 rule list만 반환 → rule 개수 > 0 이면 enabled.
+    _e_runtime_firewall_state: >-
+      {%- set fws = _e_firewall_result.hosts_firewall_info | default({}) -%}
+      {%- if fws -%}
+        {%- set first_h = (fws.values() | list | first) | default([]) -%}
+        {{ 'enabled' if (first_h | length > 0) else 'disabled' }}
+      {%- else -%}{{ none }}{%- endif -%}
+    # NTP daemon 활성 여부 (running 여부 = ntp_active 보강).
+    _e_runtime_ntpd_running: >-
+      {%- set svcs = _e_service_result.host_service_info | default({}) -%}
+      {%- if svcs -%}
+        {%- set first_h = (svcs.values() | list | first) | default([]) -%}
+        {%- set ntp_svc = (first_h | selectattr('key','equalto','ntpd') | list | first | default({})) -%}
+        {{ ntp_svc.running | default(none) }}
+      {%- else -%}{{ none }}{%- endif -%}
+  no_log: true
+
+- name: "esxi | runtime | host config (timezone + default gateway)"
+  community.vmware.vmware_host_config_info:
+    hostname:       "{{ _e_ip }}"
+    username:       "{{ _e_user }}"
+    password:       "{{ _e_pass }}"
+    validate_certs: false
+  register:    _e_config_result
+  delegate_to: localhost
+  failed_when: false
+  no_log: true
+
+- name: "esxi | runtime | parse host config"
+  ansible.builtin.set_fact:
+    _e_runtime_timezone: >-
+      {%- set cfg = _e_config_result.hosts_info | default({}) -%}
+      {%- if cfg -%}
+        {%- set first_h = (cfg.values() | list | first) | default({}) -%}
+        {{ first_h.dateTimeInfo.timeZone.name | default(none) }}
+      {%- else -%}{{ none }}{%- endif -%}
+    # B32: vSphere host_config의 networkInfo.consoleVnic[0].spec.routeConfig.defaultGateway
+    _e_default_gateway: >-
+      {%- set cfg = _e_config_result.hosts_info | default({}) -%}
+      {%- if cfg -%}
+        {%- set first_h = (cfg.values() | list | first) | default({}) -%}
+        {{ first_h.network.routeConfig.defaultGateway | default(none) }}
+      {%- else -%}{{ none }}{%- endif -%}
+  no_log: true
+
+- name: "esxi | runtime | merge into system fragment"
+  ansible.builtin.set_fact:
+    _data_fragment:
+      system:
+        runtime:
+          timezone:         "{{ _e_runtime_timezone | default(none) }}"
+          ntp_active:       "{{ _e_runtime_ntpd_running | default(_e_runtime_ntp_active | default(none)) }}"
+          ntp_synchronized: "{{ _e_runtime_ntp_synced | default(none) }}"
+          firewall_tool:    "esxi_firewall"
+          firewall_state:   "{{ _e_runtime_firewall_state | default(none) }}"
+          listening_ports:  []
+          swap_total_mb:    null
+          swap_used_mb:     null
+          swap_free_mb:     null
+      network:
+        # B32: default gateway 추가 (이전: 빈 list 였음)
+        default_gateways: >-
+          {%- if _e_default_gateway is not none and _e_default_gateway -%}
+            [{'family': 'ipv4', 'address': '{{ _e_default_gateway }}'}]
+          {%- else -%}
+            []
+          {%- endif -%}
+    _sections_supported_fragment: ['system', 'network']
+    _sections_collected_fragment: ['system', 'network']
+    _sections_failed_fragment: []
+    _errors_fragment: []
+  no_log: true
+
+- name: "esxi | runtime | merge fragment"
+  ansible.builtin.include_tasks:
+    file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/merge_fragment.yml"

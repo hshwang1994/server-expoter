@@ -119,8 +119,15 @@
               {%- else -%}{{ none }}
               {%- endif -%}
             max_speed_mhz: >-
+              {# 2026-04-29 fix B22: VM 환경에서 ansible_processor_mhz 미노출 + lscpu 'CPU max MHz' 도 비어있을 수 있음 →
+                 /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq fallback (kHz → MHz). #}
               {%- set m = (_l_cpu_parsed.CPU_MAX_MHZ | default('')) | trim -%}
-              {{ m | float | int if m else none }}
+              {%- set mhz = (m | float | int) if m else none -%}
+              {%- if not mhz -%}
+                {%- set khz = (_l_cpu_parsed.CPU_MAX_KHZ | default('')) | trim -%}
+                {%- set mhz = (khz | int / 1000) | int if khz else none -%}
+              {%- endif -%}
+              {{ mhz }}
             architecture:    "{{ ansible_architecture      | default(none) }}"
             summary:         "{{ _l_cpu_summary | default({'groups': []}) }}"
         _sections_supported_fragment: ['cpu']

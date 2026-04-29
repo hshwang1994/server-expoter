@@ -63,8 +63,11 @@
               {%- set avail_b = m.size_available | default(0) -%}
               {%- if total_b is none -%}{%- set total_b = 0 -%}{%- endif -%}
               {%- if avail_b is none -%}{%- set avail_b = 0 -%}{%- endif -%}
-              {%- set total_mb = ((total_b | int) / 1048576) | round(1) -%}
-              {%- set avail_mb = ((avail_b | int) / 1048576) | round(1) -%}
+              {# 2026-04-29 fix B64: used_mb / available_mb / total_mb 부동소수점 오차 방지 — int() cast.
+                 이전: round(1) → 33965.5, 246.29999... 같은 부정확 float가 envelope에 그대로 노출됨.
+                 호출자가 정수로 기대하므로 int 변환 (소수점 미만 절삭). usage_percent 만 1자리 round 유지. #}
+              {%- set total_mb = ((total_b | int) / 1048576) | int -%}
+              {%- set avail_mb = ((avail_b | int) / 1048576) | int -%}
               {%- set used_mb  = total_mb - avail_mb -%}
               {%- set pct = (used_mb / total_mb * 100) | round(1) if total_mb > 0 else 0 -%}
               {%- set _ = out.append({
@@ -201,13 +204,14 @@
                 {%- set used  = parts[4] | int -%}
                 {%- set avail = parts[5] | int -%}
                 {%- set pct   = parts[6] | float -%}
+                {# 2026-04-29 fix B64: total_mb / used_mb / available_mb 정수 일관성 (raw fallback path) #}
                 {%- set _ = out.append({
                   'device':        parts[0],
                   'mount_point':   parts[1],
                   'filesystem':    parts[2],
-                  'total_mb':      total | float,
-                  'used_mb':       used | float,
-                  'available_mb':  avail | float,
+                  'total_mb':      total,
+                  'used_mb':       used,
+                  'available_mb':  avail,
                   'usage_percent': pct,
                   'status':        'mounted'
                 }) -%}

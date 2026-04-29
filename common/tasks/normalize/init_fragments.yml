@@ -28,7 +28,9 @@
 - name: "normalize | init_fragments | timestamp"
   ansible.builtin.set_fact:
     _started_at:    "{{ now(utc=true).isoformat() + 'Z' }}"
-    _started_epoch: "{{ now(fmt='%s') }}"
+    # 2026-04-29 fix B50: duration_ms 1초 단위 절삭 — now(fmt='%s')는 정수 초만 반환.
+    # microsecond 까지 보존하기 위해 ISO 타임스탬프 (timestamp() float) 로 저장.
+    _started_epoch: "{{ '%.6f' | format(now(utc=true).timestamp()) }}"
   no_log: true
 
 - name: "normalize | init_fragments"

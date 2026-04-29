@@ -125,6 +125,10 @@
         - name: "esxi | collect network extended (P4)"
           ansible.builtin.include_tasks: tasks/collect_network_extended.yml
 
+        # 2026-04-29 fix B31/B32: ESXi runtime (NTP/timezone/firewall) + default_gateway
+        - name: "esxi | collect runtime (B31/B32)"
+          ansible.builtin.include_tasks: tasks/collect_runtime.yml
+
         - name: "esxi | build_sections"
           ansible.builtin.include_tasks:
             file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/build_sections.yml"
@@ -173,12 +177,17 @@
           ansible.builtin.set_fact:
             # P1: meta.auth — 사용자 결정 #3 (fallback_used 노출)
             # production-audit: ESXi 성공 path에서 auth_success=true 명시 (cross-channel consistency)
+            # 2026-04-29 fix B62: esxi_version 추가 — Redfish/OS 채널과 trace 일관성
+            #  (Redfish: redfish_version / OS: detected_os+python_version / ESXi: esxi_version)
             _diagnosis: >-
               {{ _diagnosis | default({}) | combine({
                    'auth_success': true,
                    'details': ((_diagnosis | default({})).details if ((_diagnosis | default({})).details is mapping) else {}) | combine({
                      'adapter_candidate': (_selected_adapter | default({})).adapter_id | default(none),
-                     'auth': _e_attempts_meta | default({})
+                     'auth': _e_attempts_meta | default({}),
+                     'esxi_version': _e_raw_facts.ansible_distribution_version | default(none),
+                     'esxi_build':   _e_raw_facts.ansible_distribution_build   | default(none),
+                     'product':      _e_raw_facts.ansible_distribution         | default('VMware ESXi')
                    })
                  }) }}
 

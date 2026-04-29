@@ -262,12 +262,27 @@
                 auth:              "{{ _os_attempts_meta | default({}) }}"
 
         # ── meta & correlation ───────────────────────────────────────────
+        # 2026-04-29 fix B80 (final): vendor 정규화는 _merged_data.system.vendor (gather_system 의 emit) 기반.
+        # 이 set_fact 결과는 build_output.yml의 'os | normalize | set output meta (defaults preserve)' 에서 보존됨.
         - name: "linux | set output meta vars"
           ansible.builtin.set_fact:
             _out_target_type:       "os"
             _out_collection_method: "agent"
             _out_ip:                "{{ _ip }}"
-            _out_vendor:            null
+            _out_vendor: >-
+              {%- set v = ((_merged_data | default({})).system | default({})).vendor | default('') | string | lower | trim -%}
+              {%- if 'dell' in v -%}dell
+              {%- elif 'hpe' in v or 'hewlett' in v -%}hpe
+              {%- elif 'lenovo' in v or v == 'ibm' -%}lenovo
+              {%- elif 'cisco' in v -%}cisco
+              {%- elif 'supermicro' in v or 'smci' in v -%}supermicro
+              {%- elif 'vmware' in v -%}vmware
+              {%- elif 'qemu' in v or 'kvm' in v or 'red hat' in v -%}qemu
+              {%- elif 'microsoft' in v -%}microsoft
+              {%- elif 'xen' in v -%}xen
+              {%- elif 'fujitsu' in v -%}fujitsu
+              {%- elif 'inspur' in v -%}inspur
+              {%- endif -%}
 
         - name: "linux | build_meta"
           ansible.builtin.include_tasks:

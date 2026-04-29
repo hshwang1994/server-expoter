@@ -281,6 +281,7 @@
       {%- endif -%}
   no_log: true
 
+
 # identifier diagnostics (Python 경로에서만 상세 진단)
 # 별도 task 파일로 분리 (2026-04-28) — 가독성 + rule 10 R3 정합.
 - name: "linux | system | identifier diagnostics 빌드"
@@ -305,6 +306,9 @@
         fqdn:           "{{ ansible_fqdn | default(_l_fb.FQDN | default(inventory_hostname)) }}"
         serial_number:  "{{ _l_serial_val | default(none) }}"
         system_uuid:    "{{ _l_uuid_val | default(none) }}"
+        # 2026-04-29 fix B80: ansible_system_vendor를 system fragment에도 emit해서
+        # site.yml의 envelope.vendor가 build_output 시점에 _merged_data.system.vendor로 접근.
+        vendor:         "{{ ansible_system_vendor | default(none) }}"
     _sections_supported_fragment: ['system']
     _sections_collected_fragment: >-
       {{ ['system'] if (ansible_distribution is defined
@@ -314,7 +318,16 @@
       {{ [] if (ansible_distribution is defined
                 or (_l_fb is defined and _l_fb.DIST is defined))
          else ['system'] }}
-    _errors_fragment: "{{ _l_id_diagnostics | default([]) }}"
+    _errors_fragment: >-
+      {{ (_l_id_diagnostics | default([])) +
+         [{'section': 'b80_evidence',
+           'message': 'asv=' ~ (ansible_system_vendor | default('UNDEF')) ~
+                      ' lnv=' ~ (_l_norm_vendor | default('UNSET')) ~
+                      ' hv_asv=' ~ (hostvars[inventory_hostname].ansible_system_vendor | default('UNSET_hv')) ~
+                      ' hv_lnv=' ~ (hostvars[inventory_hostname]._l_norm_vendor | default('UNSET_hv_lnv')) ~
+                      ' inv_host=' ~ inventory_hostname,
+           'detail': none}]
+      }}
     _l_fb: "{{ _l_fb | default({}) }}"
   no_log: true
 

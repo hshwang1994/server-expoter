@@ -168,6 +168,58 @@ def _err(section, message, detail=None):
     return {'section': section, 'message': str(message), 'detail': detail}
 
 
+# 2026-04-29 fix B90 / B23: JEDEC ID -> vendor name normalization (rule 10 stdlib only)
+# Cisco CIMC returns Memory.Manufacturer as raw '0xCExx' (Samsung) instead of name.
+# JEP106 standard: 7-bit ID byte (MSB = parity). Common DRAM vendors below.
+_JEDEC_VENDORS = {
+    "01": "AMD",
+    "0B": "Intel",
+    "1F": "Atmel",
+    "2C": "Micron Technology",
+    "98": "Kingston",
+    "AD": "SK hynix",
+    "B3": "IDT",
+    "BA": "PNY Electronics",
+    "CE": "Samsung",
+    "04": "Fujitsu",
+    "07": "Hitachi",
+}
+
+
+def _normalize_jedec(value):
+    """Normalize a JEDEC manufacturer ID hex string to vendor name.
+
+    Handles:
+      - "0xCE00" / "0xCE" / "0xAD00" (Cisco CIMC)
+      - "00CE" / "00AD063200AD" (raw JEDEC, dmidecode style)
+      - "Samsung" / "Hynix Semiconductor" — passthrough (Redfish other vendors)
+      - None / "" / "Unknown" / "Not Specified" -> None
+    """
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s or s.lower() in ("unknown", "not specified", "none"):
+        return None
+    # 0x prefixed hex (Cisco CIMC)
+    if s.lower().startswith("0x"):
+        hp = s[2:].upper()
+        if hp[:2] in _JEDEC_VENDORS:
+            return _JEDEC_VENDORS[hp[:2]]
+        return s  # unknown — keep raw for traceability
+    # Vendor name (contains non-hex alpha or whitespace)
+    if " " in s or any(c.isalpha() and c not in "ABCDEFabcdef" for c in s):
+        return s
+    # Plain hex string
+    if all(c in "0123456789ABCDEFabcdef" for c in s) and len(s) >= 2:
+        # Try first byte (some BMCs) or 2nd byte (continuation+ID)
+        for idx in (slice(2, 4), slice(0, 2)):
+            byte = s[idx].upper() if len(s) >= idx.stop else None
+            if byte and byte in _JEDEC_VENDORS:
+                return _JEDEC_VENDORS[byte]
+        return s
+    return s
+
+
 # ── 벤더 정규화 ──────────────────────────────────────────────────────────────
 
 # 내장 벤더 매핑 (vendor_aliases.yml 로드 불가 시 fallback)
@@ -485,14 +537,27 @@ def _extract_oem_lenovo(data, chassis_data=None):                             # 
     실측 (Lenovo XCC SR650 V2, 2026-04-28): ProductName은 System.Oem.Lenovo
     가 아닌 Chassis.Oem.Lenovo 에 존재. chassis_data 가 주어지면 Chassis 우선,
     없으면 System.Model 로 fallback.
+
+    2026-04-29 fix B61: 추가 OEM 키 추출 — System.Oem.Lenovo의 운영 메타.
     """
-    oem = _safe(data, 'Oem', 'Lenovo') or {}                                  # nosec rule12-r1
-    product_name = _safe(oem, 'ProductName')
-    if not product_name and chassis_data is not None:
-        product_name = _safe(chassis_data, 'Oem', 'Lenovo', 'ProductName')    # nosec rule12-r1
-    if not product_name:
-        product_name = _safe(data, 'Model')
-    return {'product_name': product_name}
+    sys_oem = _safe(data, 'Oem', 'Lenovo') or {}                              # nosec rule12-r1
+    cha_oem = _safe(chassis_data or {}, 'Oem', 'Lenovo') or {} if chassis_data else {}  # nosec rule12-r1
+    product_name = (
+        _safe(sys_oem, 'ProductName')
+        or _safe(cha_oem, 'ProductName')
+        or _safe(data, 'Model')
+    )
+    return {
+        'product_name':         product_name,
+        'system_status':        _safe(sys_oem, 'SystemStatus'),
+        'fru_serial':           _safe(cha_oem, 'FruSerialNumber'),
+        'machine_type':         _safe(cha_oem, 'MachineType'),
+        'machine_level':        _safe(cha_oem, 'MachineLevel'),
+        'product_id':           _safe(cha_oem, 'ProductId'),
+        'system_id':            _safe(cha_oem, 'SystemId'),
+        'health_summary':       _safe(sys_oem, 'HealthSummary'),
+        'led_indicator':        _safe(cha_oem, 'LEDIndicators') or _safe(cha_oem, 'IndicatorLED'),
+    }
 
 
 def _extract_oem_supermicro(data):                                            # nosec rule12-r1
@@ -501,6 +566,23 @@ def _extract_oem_supermicro(data):                                            # 
     return {
         'board_id':   _safe(oem, 'BoardID'),
         'node_id':    _safe(oem, 'NodeID'),
+    }
+
+
+def _extract_oem_cisco(data, chassis_data=None):                              # nosec rule12-r1
+    """Cisco OEM (Oem.Cisco).
+
+    2026-04-29 fix B61: Cisco CIMC C220 M4 (Round 11): ServiceRoot.Oem 빈 dict
+    이지만 System/Chassis Oem.Cisco는 BoardSerial / Locator 등 일부 노출.
+    """
+    sys_oem = _safe(data, 'Oem', 'Cisco') or {}                               # nosec rule12-r1
+    cha_oem = _safe(chassis_data or {}, 'Oem', 'Cisco') or {} if chassis_data else {}  # nosec rule12-r1
+    return {
+        'board_serial':       _safe(sys_oem, 'BoardSerialNumber') or _safe(cha_oem, 'BoardSerialNumber'),
+        'platform_name':      _safe(sys_oem, 'PlatformName') or _safe(cha_oem, 'PlatformName'),
+        'asset_tag':          _safe(sys_oem, 'AssetTag') or _safe(cha_oem, 'AssetTag'),
+        'description':        _safe(sys_oem, 'Description') or _safe(cha_oem, 'Description'),
+        'locator_led':        _safe(sys_oem, 'LocatorLED') or _safe(cha_oem, 'LocatorLED'),
     }
 
 
@@ -520,11 +602,79 @@ def _hoist_oem_extras(oem_dict, target):                                      # 
         if isinstance(k, str) and k.startswith('_'):
             field = k[1:]
             if field in target and v is not None:
-                target[field] = v
+                # 2026-04-29 fix B16: bios_date / bios_release_date를 ISO 8601로 정규화.
+                # Dell '09/10/2024' (MM/DD/YYYY) / HPE '03/01/2024' / 등 → 'YYYY-MM-DD'.
+                if field in ('bios_date', 'bios_release_date'):
+                    target[field] = _normalize_bios_date(v)
+                else:
+                    target[field] = v
             # else: silently drop — never add new envelope keys
         else:
             cleaned[k] = v
     return cleaned
+
+
+def _normalize_link_status(value):
+    """Normalize Redfish LinkStatus to standard enum.
+
+    Vendor variations seen:
+      - Dell iDRAC: 'LinkUp' / 'LinkDown' (raw spec)
+      - HPE iLO:    'NoLink' / null
+      - Cisco CIMC: 'Connected' / 'Disconnected' / null
+      - Lenovo XCC: 'LinkUp' / 'LinkDown'
+
+    Standard enum:
+      'up'      — link active
+      'down'    — link inactive (NoLink, LinkDown, Disconnected)
+      'unknown' — null/unknown response
+    """
+    if value is None:
+        return 'unknown'
+    s = str(value).strip().lower()
+    if not s or s in ('none', 'unknown', 'null'):
+        return 'unknown'
+    if s in ('linkup', 'up', 'connected', 'enabled', 'active'):
+        return 'up'
+    if s in ('linkdown', 'down', 'nolink', 'disconnected', 'disabled', 'inactive', 'offline'):
+        return 'down'
+    return s  # unknown vendor-specific value — preserve raw
+
+
+def _normalize_bios_date(value):
+    """Normalize BIOS date to ISO 8601 (YYYY-MM-DD) where possible.
+
+    Handles common formats:
+      - 'MM/DD/YYYY'        (Dell iDRAC, HPE iLO inline)
+      - 'YYYY-MM-DDT...'    (ESXi already ISO)
+      - '03/01/2024'         (HPE — but ambiguous; assume MM/DD if year > 12)
+      - None/'N/A' -> None
+    """
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s or s.upper() in ('N/A', 'NONE', 'NOT SPECIFIED'):
+        return None
+    # Already ISO date prefix (YYYY-MM-DD)
+    import re as _re
+    if _re.match(r'^\d{4}-\d{2}-\d{2}', s):
+        return s[:10]
+    # MM/DD/YYYY
+    m = _re.match(r'^(\d{1,2})/(\d{1,2})/(\d{4})$', s)
+    if m:
+        mm, dd, yyyy = m.group(1), m.group(2), m.group(3)
+        # Heuristic: if first part > 12, it's DD/MM/YYYY (European)
+        try:
+            if int(mm) > 12:
+                mm, dd = dd, mm
+        except ValueError:
+            pass
+        return f"{yyyy}-{int(mm):02d}-{int(dd):02d}"
+    # DD-MM-YYYY or YYYY-MM-DD plain (no T)
+    m = _re.match(r'^(\d{4})-(\d{1,2})-(\d{1,2})$', s)
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+    # Couldn't parse — return raw to preserve data
+    return s
 
 
 # 주의 (2026-04-28 / NEXT_ACTIONS T3-03):
@@ -535,6 +685,9 @@ _OEM_EXTRACTORS = {                                                           # 
     'dell':       _extract_oem_dell,                                          # nosec rule12-r1
     'lenovo':     _extract_oem_lenovo,                                        # nosec rule12-r1
     'supermicro': _extract_oem_supermicro,                                    # nosec rule12-r1
+    # 2026-04-29 fix B61: Cisco CIMC OEM 추출 추가 (이전 ServiceRoot.Oem 빈 dict이라 skip했지만
+    # System/Chassis Oem.Cisco는 일부 운영 메타 노출).
+    'cisco':      _extract_oem_cisco,                                         # nosec rule12-r1
 }
 
 
@@ -628,8 +781,8 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
     # 벤더별 OEM 확장 dispatch (helper 함수에 위임)
     extractor = _OEM_EXTRACTORS.get(vendor)                                   # nosec rule12-r1
     if extractor is not None:
-        # _extract_oem_lenovo 는 chassis_data 인자를 추가로 받음 (rule 96 R3 외부 계약).
-        if vendor == 'lenovo':                                                # nosec rule12-r1
+        # _extract_oem_lenovo / _extract_oem_cisco 는 chassis_data 인자 추가 (rule 96 R3 외부 계약).
+        if vendor in ('lenovo', 'cisco'):                                     # nosec rule12-r1
             raw_oem = extractor(data, chassis_data=chassis_data)              # nosec rule12-r1
         else:
             raw_oem = extractor(data)
@@ -825,14 +978,20 @@ def gather_memory(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             total_mib += cap_int
         # cycle-016 Phase N: BaseModuleType / RankCount / ErrorCorrection / DataWidth 추가
         # Phase P: 3 채널 키 일관성 — capacity_mb (이전 capacity_mib) 로 통일
+        # 2026-04-29 fix B90: Cisco CIMC가 Manufacturer를 raw JEDEC ID '0xCExx'로 emit.
+        # _normalize_jedec()로 vendor 이름 정규화 (Samsung/SK hynix/Micron 등).
+        # 2026-04-29 fix B09: locator (DIMM 물리 위치) 추가 — 교체 작업 시 식별용.
         slots.append({
             'id':              _safe(mdata, 'Id'),
             'name':            _safe(mdata, 'Name'),
+            # 'locator' 별도 키: DeviceLocator (벤더 표준 — 'A1','DIMM_A1','PROC1.DIMMA1' 등)
+            # MemoryLocation.Slot 도 폴백 (Dell iDRAC 일부 펌웨어).
+            'locator':         _safe(mdata, 'DeviceLocator') or _safe(mdata, 'MemoryLocation', 'Slot'),
             'capacity_mb':     cap_int,
             'type':            _safe(mdata, 'MemoryDeviceType'),
             'base_module_type': _safe(mdata, 'BaseModuleType'),
             'speed_mhz':       _safe(mdata, 'OperatingSpeedMhz'),
-            'manufacturer':    _safe(mdata, 'Manufacturer'),
+            'manufacturer':    _normalize_jedec(_safe(mdata, 'Manufacturer')),
             'serial':          _safe(mdata, 'SerialNumber'),
             'part_number':     _safe(mdata, 'PartNumber'),
             'rank_count':      _safe(mdata, 'RankCount'),
@@ -998,6 +1157,15 @@ def _extract_storage_volumes(sdata, controller_id, bmc_ip, username, password, t
         # BUG-16 fix: Volume Name / DisplayName trailing whitespace 제거 (raw 'VD_0   ' 사고)
         v_name_raw = _safe(vdata, 'Name')
         v_name = v_name_raw.strip() if isinstance(v_name_raw, str) else v_name_raw
+        # 2026-04-29 fix B48: Cisco CIMC가 Volume.Name을 빈 문자열 "" 로 emit.
+        # 호출자 친화 fallback: 'Volume {id}' 또는 '{raid_level} Volume'.
+        if not v_name:
+            if vol_id:
+                v_name = f"Volume {vol_id}"
+            elif raid_type:
+                v_name = f"{raid_type} Volume"
+            else:
+                v_name = None
         # BUG-15 fix: 표준 Redfish Volume.BootVolume 우선, 없으면 Dell Oem fallback.
         # 표준 필드가 명시 false 인 경우도 보존하기 위해 None 비교 사용.
         std_boot = _safe(vdata, 'BootVolume')
@@ -1107,11 +1275,13 @@ def gather_network(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             for a in (_safe(ndata, 'IPv4Addresses') or [])
             if a.get('Address') not in (None, '0.0.0.0', '')
         ]
+        # 2026-04-29 fix B13: link_status enum 정규화 — Dell linkup/linkdown / HPE NoLink / Cisco Connected/Disconnected → up/down/unknown
         nics.append({
             'id': _safe(ndata, 'Id'), 'name': _safe(ndata, 'Name') or _safe(ndata, 'Id') or '',
             'mac': _safe(ndata, 'MACAddress'), 'speed_mbps': _safe(ndata, 'SpeedMbps'),
             'mtu': _safe(ndata, 'MTUSize'),
-            'link_status': _safe(ndata, 'LinkStatus'), 'health': _safe(ndata, 'Status', 'Health'),
+            'link_status': _normalize_link_status(_safe(ndata, 'LinkStatus')),
+            'health': _safe(ndata, 'Status', 'Health'),
             'ipv4': ipv4_addrs,
         })
     return nics, errors
@@ -1166,6 +1336,9 @@ def gather_network_adapters_chassis(bmc_ip, chassis_uri, username, password, tim
         model = (_safe(adata, 'Model') or '').strip()
         if port_count == 0 and not mfr and not model:
             continue
+        # 2026-04-29 fix B93: HPE iLO NetworkAdapter는 mac/link/speed 가 NetworkAdapter root에 없고
+        # NetworkPorts/Ports collection에만 존재. adapter level에 fold-in (첫 번째 활성 port의 메타).
+        # Dell/Lenovo는 NetworkAdapter root에 정보 있어 그대로 보존.
         adapter_info = {
             'id':               adapter_id,
             'name':             _safe(adata, 'Name'),
@@ -1174,8 +1347,13 @@ def gather_network_adapters_chassis(bmc_ip, chassis_uri, username, password, tim
             'part_number':      _safe(adata, 'PartNumber') or None,
             'serial_number':    _safe(adata, 'SerialNumber') or None,
             'firmware_version': fw_ver or None,
+            'mac':              None,  # ports fold-in으로 채워짐 (B93)
+            'link_status':      'unknown',  # 동일 (B93)
+            'speed_mbps':       None,
+            'port_count':       port_count,
         }
         out['adapters'].append(adapter_info)
+        adapter_idx = len(out['adapters']) - 1
 
         # NetworkPorts (Redfish 1.5 이전) 또는 Ports (1.6+)
         ports_link = (_safe(adata, 'NetworkPorts', '@odata.id')
@@ -1200,13 +1378,15 @@ def gather_network_adapters_chassis(bmc_ip, chassis_uri, username, password, tim
             assoc = _safe(pdata, 'AssociatedNetworkAddresses', default=[]) or []
             primary_addr = assoc[0] if assoc else None
             port_type = _safe(pdata, 'PortType') or ''
+            # 2026-04-29 fix B13: ports의 link_status도 동일 enum 정규화.
+            normalized_link = _normalize_link_status(_safe(pdata, 'LinkStatus'))
             port_info = {
                 'adapter_id':              adapter_id,
                 'adapter_model':           adapter_info['model'],
                 'port_id':                 _safe(pdata, 'Id'),
                 'name':                    _safe(pdata, 'Name'),
                 'physical_port_number':    _safe(pdata, 'PhysicalPortNumber'),
-                'link_status':             _safe(pdata, 'LinkStatus'),
+                'link_status':             normalized_link,
                 'link_state':              _safe(pdata, 'LinkState'),
                 'current_link_speed_mbps': speed_mbps,
                 'port_type':               port_type,
@@ -1214,6 +1394,15 @@ def gather_network_adapters_chassis(bmc_ip, chassis_uri, username, password, tim
                 'associated_address':      primary_addr,
             }
             out['ports'].append(port_info)
+            # 2026-04-29 fix B93: adapter level에 ports의 첫 active 메타 fold-in.
+            # 우선순위: link_status='up' > mac/speed 존재 > 첫 port.
+            cur = out['adapters'][adapter_idx]
+            if cur.get('mac') is None and primary_addr:
+                cur['mac'] = primary_addr
+            if cur.get('link_status') == 'unknown' or (cur.get('link_status') != 'up' and normalized_link == 'up'):
+                cur['link_status'] = normalized_link
+            if cur.get('speed_mbps') is None and speed_mbps:
+                cur['speed_mbps'] = speed_mbps
 
             pt_lower = (port_type or '').lower()
             if 'fibrechannel' in pt_lower or pt_lower == 'fc':
@@ -1271,12 +1460,18 @@ def gather_firmware(bmc_ip, username, password, timeout, verify_ssl):
         component = _safe(member, 'SoftwareId')
         if isinstance(component, str) and component.lower() == 'null':
             component = None
+        # 2026-04-29 fix B43: Lenovo XCC pending firmware (BMC-Primary-Pending, UEFI-Pending)는
+        # version=null + ID에 'Pending' 포함. version=null만으로는 호출자가 단순 누락인지 의도된
+        # pending 인지 모름 → pending 메타필드 추가 (정책: pending=true이고 version=null은 정상,
+        # pending=false이고 version=null은 데이터 누락).
+        is_pending = bool(fw_id and isinstance(fw_id, str) and 'pending' in fw_id.lower())
         fw_list.append({
             'id':         fw_id,
             'name':       _safe(member, 'Name'),
             'version':    ver,
             'updateable': _safe(member, 'Updateable'),
             'component':  component or fw_id,
+            'pending':    is_pending,
         })
     return fw_list, errors
 

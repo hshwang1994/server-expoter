@@ -25,12 +25,16 @@
   ansible.builtin.include_tasks:
     file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/build_errors.yml"
 
-- name: "os | normalize | set output meta"
+- name: "os | normalize | set output meta (defaults preserve)"
+  # 2026-04-29 fix B80 (REAL ROOT CAUSE): site.yml의 _out_vendor 매핑이 동작했어도 이 task가
+  # `_out_vendor: null`로 무조건 덮어써서 envelope.vendor가 항상 None이 됐음.
+  # 6번의 v1~v11 시도가 site.yml에서 정상 작동했지만 이 단계에서 모두 null로 reset됨.
+  # 해결: 이미 site.yml에서 set 됐으면 보존 (default 적용).
   ansible.builtin.set_fact:
-    _out_target_type:       "os"
-    _out_collection_method: "agent"
-    _out_ip:                "{{ _ip }}"
-    _out_vendor:            null
+    _out_target_type:       "{{ _out_target_type | default('os') }}"
+    _out_collection_method: "{{ _out_collection_method | default('agent') }}"
+    _out_ip:                "{{ _out_ip | default(_ip) }}"
+    _out_vendor:            "{{ _out_vendor | default(none) }}"
   no_log: true
 
 - name: "os | normalize | build_output"

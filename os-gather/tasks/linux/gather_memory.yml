@@ -71,6 +71,8 @@
 
     - name: "linux | memory | parse slots + grouping"
       ansible.builtin.set_fact:
+        # 2026-04-29 fix B23: dmidecode Manufacturer는 raw JEDEC ID hex (예: '00AD063200AD').
+        # jedec_to_vendor 필터로 정규화 (00AD -> 'SK hynix', 00CE -> 'Samsung').
         _l_mem_slots: >-
           {%- set out = [] -%}
           {%- for line in (_l_mem_slots_raw.stdout_lines | default([])) -%}
@@ -80,13 +82,13 @@
                 {%- set cap = parts[1] | int -%}
                 {%- set t = parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none -%}
                 {%- set sp = parts[3] | regex_replace('[^0-9]', '') -%}
-                {%- set mfr = parts[4] if (parts | length >= 5 and parts[4] | length > 0 and parts[4] != 'Unknown' and parts[4] != 'Not Specified') else none -%}
+                {%- set mfr_raw = parts[4] if (parts | length >= 5 and parts[4] | length > 0 and parts[4] != 'Unknown' and parts[4] != 'Not Specified') else none -%}
                 {%- set pn = parts[5] if (parts | length >= 6 and parts[5] | length > 0 and parts[5] != 'Unknown' and parts[5] != 'Not Specified') else none -%}
                 {%- set _ = out.append({
                   'capacity_mb': cap,
                   'type': t,
                   'speed_mhz': (sp | int) if sp else none,
-                  'manufacturer': mfr,
+                  'manufacturer': mfr_raw | jedec_to_vendor,
                   'part_number': pn | trim if pn else none
                 }) -%}
               {%- endif -%}
@@ -236,6 +238,8 @@
                   | map('split', '=', 1)
                   | list) }}
         _l_mem_slots_r: >-
+          {# 2026-04-29 fix B91: raw fallback path도 jedec_to_vendor 적용 (Python path와 동일).
+             RHEL 8.10/Python 3.6 환경에서 dmidecode raw '00AD063200AD' → 'SK hynix' 정규화. #}
           {%- set out = [] -%}
           {%- for line in (_l_mem_raw_result.stdout_lines | default([])) -%}
             {%- if line.startswith('SLOT|') -%}
@@ -244,13 +248,13 @@
                 {%- set cap = parts[1] | int -%}
                 {%- set t = parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none -%}
                 {%- set sp = parts[3] | regex_replace('[^0-9]', '') -%}
-                {%- set mfr = parts[4] if (parts | length >= 5 and parts[4] | length > 0 and parts[4] != 'Unknown' and parts[4] != 'Not Specified') else none -%}
+                {%- set mfr_raw = parts[4] if (parts | length >= 5 and parts[4] | length > 0 and parts[4] != 'Unknown' and parts[4] != 'Not Specified') else none -%}
                 {%- set pn = parts[5] if (parts | length >= 6 and parts[5] | length > 0 and parts[5] != 'Unknown' and parts[5] != 'Not Specified') else none -%}
                 {%- set _ = out.append({
                   'capacity_mb': cap,
                   'type': t,
                   'speed_mhz': (sp | int) if sp else none,
-                  'manufacturer': mfr,
+                  'manufacturer': mfr_raw | jedec_to_vendor,
                   'part_number': pn | trim if pn else none
                 }) -%}
               {%- endif -%}

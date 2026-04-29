@@ -16,6 +16,22 @@
     _rf_d_netad:   "{{ _rf_raw_collect.data.network_adapters | default({'adapters':[],'ports':[],'fc_hbas':[],'infiniband':[]}) }}"
   no_log: true
 
+# 2026-04-29 fix B01: ProcessorType=='CPU' 필터링 — Dell r760 Tesla T4 같은 GPU/Accelerator/FPGA/DSP가
+# /Systems/.../Processors/ 컬렉션에 함께 노출되는 경우 cpu.summary.groups + cpu.sockets/cores 가 잘못
+# 합산되는 문제 방어. ProcessorType이 None/빈 값이면 legacy BMC 호환성을 위해 CPU 로 간주.
+- name: "redfish | normalize_standard | filter procs to CPU only (B01)"
+  ansible.builtin.set_fact:
+    _rf_d_cpus: >-
+      {%- set out = [] -%}
+      {%- for p in (_rf_d_procs | default([])) -%}
+        {%- set ptype = (p.processor_type | default('') | string | trim | upper) -%}
+        {%- if ptype == 'CPU' or ptype == '' or ptype is none -%}
+          {%- set _ = out.append(p) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ out }}
+  no_log: true
+
 # 2026-04-29 cisco-critical-review: BMC NIC NameServers / IPv4 Gateway 추출
 # (envelope 비노출 — dns_servers / default_gateways 정규화 전용 임시 변수).
 # redfish_gather.py gather_bmc 가 result['_network_meta'] 로 emit. _rf_d_bmc_clean 은
@@ -208,9 +224,10 @@
 - name: "redfish | normalize_standard | compute group summaries"
   ansible.builtin.set_fact:
     # cycle-016 Phase M: cpu.summary.groups 강화 — manufacturer / max_speed_mhz / architecture 추가
+    # 2026-04-29 fix B01: _rf_d_cpus 사용 (위 단계에서 ProcessorType=='CPU'만 필터링됨).
     _rf_summary_cpu: >-
       {%- set ns = namespace(groups=[], seen={}) -%}
-      {%- for p in (_rf_d_procs | default([])) -%}
+      {%- for p in (_rf_d_cpus | default([])) -%}
         {%- set m = p.model | default('unknown') -%}
         {%- if m in ns.seen -%}
           {%- set idx = ns.seen[m] -%}
@@ -347,20 +364,41 @@
       {%- endfor -%}
       {{ out }}
     # cycle-016 Phase M: power.summary — psu_count / total_capacity_w / redundancy
+    # 2026-04-29 fix B58 + B59:
+    #   - critical_count / unhealthy_count / health_rollup 추가 (운영 PSU Critical 알람 노출)
+    #   - capacity_unknown_count: PSU.PowerCapacityWatts=null인 슬롯 수 분리 (None 무시 합산)
     _rf_power_summary: >-
-      {%- set ns = namespace(psu_total=0, psu_active=0, cap_total=0) -%}
+      {%- set ns = namespace(psu_total=0, psu_active=0, cap_total=0,
+                              critical=0, warning=0, ok=0, unknown_health=0,
+                              cap_unknown=0) -%}
       {%- for psu in (_rf_d_power.power_supplies | default([])) -%}
         {%- set ns.psu_total = ns.psu_total + 1 -%}
         {%- if (psu.state | default('') | string | trim | lower) == 'enabled' -%}
           {%- set ns.psu_active = ns.psu_active + 1 -%}
         {%- endif -%}
-        {%- set ns.cap_total = ns.cap_total + ((psu.power_capacity_w | default(0)) | int) -%}
+        {%- set _hl = (psu.health | default(none) | string | trim | lower) -%}
+        {%- if _hl == 'critical' -%}{%- set ns.critical = ns.critical + 1 -%}
+        {%- elif _hl == 'warning' -%}{%- set ns.warning = ns.warning + 1 -%}
+        {%- elif _hl == 'ok' -%}{%- set ns.ok = ns.ok + 1 -%}
+        {%- else -%}{%- set ns.unknown_health = ns.unknown_health + 1 -%}
+        {%- endif -%}
+        {%- if psu.power_capacity_w is none -%}
+          {%- set ns.cap_unknown = ns.cap_unknown + 1 -%}
+        {%- else -%}
+          {%- set ns.cap_total = ns.cap_total + ((psu.power_capacity_w | default(0)) | int) -%}
+        {%- endif -%}
       {%- endfor -%}
       {{ {
         'psu_count': ns.psu_total,
         'psu_active': ns.psu_active,
         'redundant': ns.psu_total >= 2,
         'total_capacity_w': ns.cap_total,
+        'capacity_unknown_count': ns.cap_unknown,
+        'critical_count': ns.critical,
+        'warning_count': ns.warning,
+        'ok_count': ns.ok,
+        'unknown_health_count': ns.unknown_health,
+        'health_rollup': ('Critical' if ns.critical > 0 else ('Warning' if ns.warning > 0 else ('OK' if ns.ok > 0 else 'Unknown'))),
         'consumed_watts': ((_rf_d_power | default({})).power_control | default({})).power_consumed_watts | default(none),
         'consumed_capacity_pct': ((((_rf_d_power | default({})).power_control | default({})).power_consumed_watts | default(0) | int) * 100 / ns.cap_total) | round(1) if ns.cap_total > 0 else 0
       } }}
@@ -424,22 +462,24 @@
         oem:          "{{ _rf_d_system.oem          | default({}) }}"
       bmc: "{{ _rf_d_bmc_clean }}"
       cpu:
-        sockets:         "{{ _rf_d_procs | length if _rf_d_procs else (_rf_d_system.cpu_summary | default({})).count | default(none) }}"
+        # 2026-04-29 fix B01: cpu top-level 도 ProcessorType=='CPU' 만 사용 (GPU 합산 차단).
+        # _rf_d_cpus 는 위 selectattr로 GPU/Accelerator 배제한 결과.
+        sockets:         "{{ _rf_d_cpus | length if _rf_d_cpus else (_rf_d_system.cpu_summary | default({})).count | default(none) }}"
         # BUG-13 fix: per-processor TotalCores/TotalThreads sum 이 0/None 이면
         # System.ProcessorSummary.CoreCount / LogicalProcessorCount fallback.
         # 일부 펌웨어/세대에서 per-processor 응답에 TotalThreads 가 누락되는 케이스 방어.
         cores_physical: >-
-          {%- set s = (_rf_d_procs | map(attribute='total_cores') | select | list | sum) if _rf_d_procs else 0 -%}
+          {%- set s = (_rf_d_cpus | map(attribute='total_cores') | select | list | sum) if _rf_d_cpus else 0 -%}
           {{ s if s else (_rf_d_system.cpu_summary | default({})).core_count | default(none) }}
         logical_threads: >-
-          {%- set s = (_rf_d_procs | map(attribute='total_threads') | select | list | sum) if _rf_d_procs else 0 -%}
+          {%- set s = (_rf_d_cpus | map(attribute='total_threads') | select | list | sum) if _rf_d_cpus else 0 -%}
           {{ s if s else (_rf_d_system.cpu_summary | default({})).logical_processor_count | default(none) }}
         model: >-
-          {{ _rf_d_procs | map(attribute='model') | select | list | first | default(none) }}
+          {{ _rf_d_cpus | map(attribute='model') | select | list | first | default(none) }}
         max_speed_mhz: >-
-          {{ _rf_d_procs | map(attribute='speed_mhz') | select | list | first | default(none) }}
+          {{ _rf_d_cpus | map(attribute='speed_mhz') | select | list | first | default(none) }}
         architecture: >-
-          {{ _rf_d_procs | map(attribute='architecture') | select | list | first | default(_rf_d_procs | map(attribute='instruction_set') | select | list | first | default(none)) }}
+          {{ _rf_d_cpus | map(attribute='architecture') | select | list | first | default(_rf_d_cpus | map(attribute='instruction_set') | select | list | first | default(none)) }}
         summary: "{{ _rf_summary_cpu | default({'groups': []}) }}"
       memory:
         # BUG-14 fix: per-DIMM CapacityMiB sum 이 0/None 이면

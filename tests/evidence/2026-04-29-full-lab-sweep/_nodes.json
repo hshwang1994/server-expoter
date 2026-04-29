@@ -1,0 +1,22 @@
+{
+  "nodes": [
+    {
+      "name": "Built-In Node",
+      "offline": false,
+      "labels": [
+        "built-in"
+      ]
+    },
+    {
+      "name": "jenkins-agent-ops",
+      "offline": false,
+      "labels": [
+        "yi",
+        "git",
+        "chj",
+        "jenkins-agent-ops",
+        "ich"
+      ]
+    }
+  ]
+}
