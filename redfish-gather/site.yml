@@ -132,7 +132,7 @@
             _diagnosis: >-
               {{ _diagnosis | combine({
                    'auth_success': true,
-                   'details': _diagnosis.details | combine({
+                   'details': (_diagnosis.details if (_diagnosis.details is mapping) else {}) | combine({
                      'adapter_candidate': _selected_adapter.adapter_id | default(none),
                      'auth': _rf_attempts_meta | default({}),
                      'account_service': _rf_account_service_meta | default({})
@@ -191,7 +191,7 @@
                        'vendor': _rf_detected_vendor | default(none),
                        'status': 'failed',
                        'sections': {},
-                       'diagnosis': {'precheck': none, 'gather_mode': 'fallback', 'details': ['_output 미생성 — block/rescue 모두 실패']},
+                       'diagnosis': {'reachable': none, 'port_open': none, 'protocol_supported': none, 'auth_success': none, 'failure_stage': 'fallback', 'failure_reason': '_output 미생성 — block/rescue 모두 실패', 'details': {'gather_mode': 'fallback', 'reason': '_output 미생성 — block/rescue 모두 실패'}},
                        'meta': {},
                        'correlation': {},
                        'errors': [{'section':'gather','message':'_output 미생성 — block/rescue 모두 실패'}],

@@ -65,7 +65,9 @@ pipeline {
     stages {
 
         // ── 1. 파라미터 검증 ──────────────────────────────────────────────────
+        // production-audit (2026-04-29): per-stage timeout 추가 — 한 stage가 30분 글로벌 타임아웃을 독차지하는 사고 방지
         stage('Validate') {
+            options { timeout(time: 2, unit: 'MINUTES') }
             steps {
                 script {
 
@@ -123,6 +125,7 @@ pipeline {
         //     credentialsId='server-gather-vault-password' (사용자 결정 cycle-012)
         //     등록 절차는 docs/01_jenkins-setup.md 참고.
         stage('Gather') {
+            options { timeout(time: 20, unit: 'MINUTES') }
             steps {
                 script {
                     // target_type 별 playbook 경로 결정
@@ -168,6 +171,7 @@ pipeline {
         // field_dictionary.yml 정합성 검증
         // Build #7-9 연속 PASS 확인 → FAIL 게이트 상향
         stage('Validate Schema') {
+            options { timeout(time: 2, unit: 'MINUTES') }
             steps {
                 sh '''#!/bin/bash
                     set +x
@@ -179,14 +183,18 @@ pipeline {
         }
 
         // ── 4. E2E Regression ─────────────────────────────────────────────────
+        // production-audit (2026-04-29): tests/e2e 가 없으면 환경 구성 오류로 간주, when fileExists 제거 → 디렉터리 부재 시 stage 강제 실패
         // baseline/fixture 기반 필드 회귀 검증
-        // TODO: 실제 E2E 테스트 구현 후 활성화
         stage('E2E Regression') {
-            when { expression { fileExists('tests/e2e/') } }
+            options { timeout(time: 5, unit: 'MINUTES') }
             steps {
                 sh '''#!/bin/bash
                     set +x
                     cd "${WORKSPACE}"
+                    if [ ! -d tests/e2e ]; then
+                        echo "[E2E] tests/e2e 디렉터리 부재 — 환경 구성 오류"
+                        exit 1
+                    fi
                     . /opt/ansible-env/bin/activate
                     python3 -m pytest tests/e2e/ -v --tb=short
                 '''
@@ -202,8 +210,13 @@ pipeline {
                 echo "[Post] 빌드 결과: ${result}"
                 // json_only callback 이 stdout 에 JSON 을 출력하므로
                 // 호출자는 Jenkins console log 에서 JSON 라인을 파싱한다.
-                // 또는 archiveArtifacts 로 결과 파일 보존 가능.
             }
+            // production-audit (2026-04-29): 결과 보존 — console log 외 fallback artifact
+            archiveArtifacts(
+                artifacts: 'gather_output*.log,results*.json',
+                allowEmptyArchive: true,
+                fingerprint: false
+            )
         }
         success {
             echo "[Post] gather 완료 — 결과 반환"

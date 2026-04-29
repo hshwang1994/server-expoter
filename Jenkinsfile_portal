@@ -84,8 +84,10 @@ pipeline {
     stages {
 
         // -- 1. Validate [Agent] -----------------------------------------------
+        // production-audit (2026-04-29): per-stage timeout 명시 — 글로벌 120m을 단일 stage가 독차지하지 않도록
         stage('Validate') {
             agent { label "${params.loc}" }
+            options { timeout(time: 2, unit: 'MINUTES') }
             steps {
                 script {
                     if (!params.loc?.trim()) {
@@ -137,6 +139,7 @@ pipeline {
         // -- 2. Gather [Agent] -------------------------------------------------
         stage('Gather') {
             agent { label "${params.loc}" }
+            options { timeout(time: 60, unit: 'MINUTES') }
             environment {
                 REPO_ROOT      = "${WORKSPACE}"
                 ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
@@ -194,15 +197,16 @@ pipeline {
         }
 
         // -- 3. Validate Schema [Agent] ----------------------------------------
+        // production-audit (2026-04-29): catchError 제거 — Stage 3는 hard FAIL 게이트 (rule 80 R1).
+        // schema-invalid JSON이 portal로 POST되어 호출자 시스템 파싱이 깨지는 사고 차단.
         stage('Validate Schema') {
             agent { label "${params.loc}" }
+            options { timeout(time: 2, unit: 'MINUTES') }
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    sh '''set +x
-                        cd "${WORKSPACE}"
-                        python3 tests/validate_field_dictionary.py
-                    '''
-                }
+                sh '''set +x
+                    cd "${WORKSPACE}"
+                    python3 tests/validate_field_dictionary.py
+                '''
             }
         }
 
@@ -210,7 +214,10 @@ pipeline {
         // 에이전트는 포털 망에 접근 불가. 마스터 노드에서 포털로 POST.
         stage('Callback') {
             agent { label 'built-in' }
-            options { skipDefaultCheckout(true) }
+            options {
+                skipDefaultCheckout(true)
+                timeout(time: 15, unit: 'MINUTES')
+            }
             steps {
                 script {
                     // 에이전트에서 stash 한 결과 파일을 마스터 workspace 에 복원
@@ -280,8 +287,10 @@ pipeline {
                         }
                     }
 
+                    // production-audit (2026-04-29): rule 31 R2 — callback POST 실패가 빌드 fail 유발 금지.
+                    // 수집은 이미 성공했으므로 통보 실패는 UNSTABLE로 마킹 (호출자가 재취득 가능).
                     if (!success) {
-                        error "[Callback] ${maxRetries}회 재시도 실패 -- ${lastError}"
+                        unstable "[Callback] ${maxRetries}회 재시도 실패 -- ${lastError} (수집 결과는 console log/artifact 확인)"
                     }
                 }
             }

@@ -8,6 +8,16 @@
 #   bash tests/scripts/identifier_verify.sh
 set -euo pipefail
 
+# production-audit (2026-04-29): 자격증명 환경변수 강제 — 하드코딩된 password를
+# git history에 남기지 않고, 자격증명 누락 시 silent fail-open 차단.
+: "${SE_LINUX_USER:?SE_LINUX_USER 환경변수 누락 (예: cloviradmin)}"
+: "${SE_LINUX_PASSWORD:?SE_LINUX_PASSWORD 환경변수 누락}"
+: "${SE_LINUX_BECOME_PASSWORD:=$SE_LINUX_PASSWORD}"
+: "${SE_WINDOWS_USER:?SE_WINDOWS_USER 환경변수 누락 (예: gooddit)}"
+: "${SE_WINDOWS_PASSWORD:?SE_WINDOWS_PASSWORD 환경변수 누락}"
+: "${SE_ESXI_USER:?SE_ESXI_USER 환경변수 누락 (예: root)}"
+: "${SE_ESXI_PASSWORD:?SE_ESXI_PASSWORD 환경변수 누락}"
+
 PROJECT_DIR="${PROJECT_DIR:-$(pwd)}"
 OUTPUT_DIR="/tmp/round13_identifier"
 rm -rf "$OUTPUT_DIR"
@@ -88,8 +98,8 @@ echo "--- [1/7] Ubuntu 10.100.64.166 (no become) ---"
 REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.166," \
-  -e ansible_user=cloviradmin \
-  -e ansible_password='Goodmit0802!' \
+  -e ansible_user="$SE_LINUX_USER" \
+  -e ansible_password="$SE_LINUX_PASSWORD" \
   2>&1 | tee "$OUTPUT_DIR/ubuntu_no_become.log" || true
 extract_ids "$OUTPUT_DIR/ubuntu_no_become.log" "Ubuntu-no-become"
 
@@ -100,9 +110,9 @@ echo "--- [2/7] Ubuntu 10.100.64.166 (with become) ---"
 REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.166," \
-  -e ansible_user=cloviradmin \
-  -e ansible_password='Goodmit0802!' \
-  -e ansible_become_password='Goodmit0802!' \
+  -e ansible_user="$SE_LINUX_USER" \
+  -e ansible_password="$SE_LINUX_PASSWORD" \
+  -e ansible_become_password="$SE_LINUX_BECOME_PASSWORD" \
   2>&1 | tee "$OUTPUT_DIR/ubuntu_with_become.log" || true
 extract_ids "$OUTPUT_DIR/ubuntu_with_become.log" "Ubuntu-with-become"
 
@@ -113,8 +123,8 @@ echo "--- [3/7] RHEL 10.100.64.197 (no become) ---"
 REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.197," \
-  -e ansible_user=cloviradmin \
-  -e ansible_password='Goodmit0802!' \
+  -e ansible_user="$SE_LINUX_USER" \
+  -e ansible_password="$SE_LINUX_PASSWORD" \
   2>&1 | tee "$OUTPUT_DIR/rhel_no_become.log" || true
 extract_ids "$OUTPUT_DIR/rhel_no_become.log" "RHEL-no-become"
 
@@ -125,8 +135,8 @@ echo "--- [4/7] Baremetal 10.100.64.96 (no become) ---"
 REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.96," \
-  -e ansible_user=cloviradmin \
-  -e ansible_password='Goodmit0802!' \
+  -e ansible_user="$SE_LINUX_USER" \
+  -e ansible_password="$SE_LINUX_PASSWORD" \
   2>&1 | tee "$OUTPUT_DIR/baremetal_no_become.log" || true
 extract_ids "$OUTPUT_DIR/baremetal_no_become.log" "Baremetal-no-become"
 
@@ -137,9 +147,9 @@ echo "--- [5/7] Baremetal 10.100.64.96 (with become) ---"
 REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.96," \
-  -e ansible_user=cloviradmin \
-  -e ansible_password='Goodmit0802!' \
-  -e ansible_become_password='Goodmit0802!' \
+  -e ansible_user="$SE_LINUX_USER" \
+  -e ansible_password="$SE_LINUX_PASSWORD" \
+  -e ansible_become_password="$SE_LINUX_BECOME_PASSWORD" \
   2>&1 | tee "$OUTPUT_DIR/baremetal_with_become.log" || true
 extract_ids "$OUTPUT_DIR/baremetal_with_become.log" "Baremetal-with-become"
 
@@ -150,8 +160,8 @@ echo "--- [6/7] Windows 10.100.64.120 ---"
 REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook os-gather/site.yml \
   -i "10.100.64.120," \
-  -e ansible_user=gooddit \
-  -e ansible_password='Goodmit0802!' \
+  -e ansible_user="$SE_WINDOWS_USER" \
+  -e ansible_password="$SE_WINDOWS_PASSWORD" \
   2>&1 | tee "$OUTPUT_DIR/windows.log" || true
 extract_ids "$OUTPUT_DIR/windows.log" "Windows"
 
@@ -162,8 +172,8 @@ echo "--- [7a/7] ESXi 10.100.64.2 ---"
 REPO_ROOT="$PROJECT_DIR" \
   ansible-playbook esxi-gather/site.yml \
   -i "10.100.64.2," \
-  -e ansible_user=root \
-  -e ansible_password='Goodmit0802!' \
+  -e ansible_user="$SE_ESXI_USER" \
+  -e ansible_password="$SE_ESXI_PASSWORD" \
   2>&1 | tee "$OUTPUT_DIR/esxi.log" || true
 extract_ids "$OUTPUT_DIR/esxi.log" "ESXi"
 

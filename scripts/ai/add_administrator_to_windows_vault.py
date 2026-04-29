@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """cycle-016 AI-22 fix — vault/windows.yml accounts 에 administrator 추가.
 
-Win Server 2022 (10.100.64.135) 의 NTLM 자격은 administrator/Goodmit0802!.
+Win Server 2022 (10.100.64.135) 의 NTLM 자격은 administrator/__REDACTED__.
 현재 vault/windows.yml accounts 는 cloviradmin/infraops 만 있어 NTLM 거절.
 agent 154 SSH 로 ansible-vault decrypt + entry 추가 + encrypt + 다운로드.
 """
@@ -12,12 +12,12 @@ import base64
 
 AGENT_HOST = '10.100.64.154'
 AGENT_USER = 'cloviradmin'
-AGENT_PASS = 'Goodmit0802!'
+AGENT_PASS = '__REDACTED__'
 WS = '/home/cloviradmin/jenkins-agent/workspace/hshwang-gather'
 
 NEW_ACCOUNT = {
     'username': 'administrator',
-    'password': 'Goodmit0802!',
+    'password': '__REDACTED__',
     'label': 'lab_win_administrator',
     'role': 'recovery',
 }
@@ -38,7 +38,7 @@ def main() -> int:
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(AGENT_HOST, username=AGENT_USER, password=AGENT_PASS, timeout=30, allow_agent=False, look_for_keys=False)
     try:
-        run(ssh, "echo 'Goodmit0802!' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
+        run(ssh, "echo '__REDACTED__' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
         decrypted = run(ssh, f'cd {WS} && /opt/ansible-env/bin/ansible-vault view --vault-password-file=/tmp/.vault_pass vault/windows.yml')
         print('=== current vault/windows.yml ===')
         print(decrypted)

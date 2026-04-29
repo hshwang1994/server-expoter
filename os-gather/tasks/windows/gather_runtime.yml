@@ -130,25 +130,27 @@
                   {%- set _ = out.append(p | string) -%}
                 {%- endfor -%}
                 {{ out }}
+              # production-audit (2026-04-29): Jinja2 loop scoping 버그 수정 — namespace pattern (cycle-016 memory/storage와 일치)
+              # 기존: `{% set total = total + ... %}` 는 loop 종료 시 마지막 iteration 값만 보존 → 합계가 아닌 마지막 pagefile 크기만 emit
               swap_total_mb: >-
-                {%- set total = 0 -%}
+                {%- set ns = namespace(t=0) -%}
                 {%- for pf in (_w_rt_pagefile_list | default([])) -%}
-                  {%- set total = total + (pf.size_mb | default(0) | int) -%}
+                  {%- set ns.t = ns.t + (pf.size_mb | default(0) | int) -%}
                 {%- endfor -%}
-                {{ total }}
+                {{ ns.t }}
               swap_used_mb: >-
-                {%- set used = 0 -%}
+                {%- set ns = namespace(u=0) -%}
                 {%- for pf in (_w_rt_pagefile_list | default([])) -%}
-                  {%- set used = used + (pf.used_mb | default(0) | int) -%}
+                  {%- set ns.u = ns.u + (pf.used_mb | default(0) | int) -%}
                 {%- endfor -%}
-                {{ used }}
+                {{ ns.u }}
               swap_free_mb: >-
-                {%- set total = 0 -%}{%- set used = 0 -%}
+                {%- set ns = namespace(t=0, u=0) -%}
                 {%- for pf in (_w_rt_pagefile_list | default([])) -%}
-                  {%- set total = total + (pf.size_mb | default(0) | int) -%}
-                  {%- set used = used + (pf.used_mb | default(0) | int) -%}
+                  {%- set ns.t = ns.t + (pf.size_mb | default(0) | int) -%}
+                  {%- set ns.u = ns.u + (pf.used_mb | default(0) | int) -%}
                 {%- endfor -%}
-                {{ total - used }}
+                {{ ns.t - ns.u }}
               # Windows-specific 부가 정보 (Linux 키 외 추가 — 일관성 유지하면서 풍부함 보존)
               firewall_profiles: "{{ _w_rt_fw_list }}"
               pagefiles:        "{{ _w_rt_pagefile_list }}"

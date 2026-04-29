@@ -64,13 +64,14 @@
   no_log: true
 
 # 운영 가시성 — meta.auth 에 합쳐질 정보 (build_meta.yml 시 활용)
+# production-audit (2026-04-29): cross-channel typing — attempted_count int / fallback_used bool 명시 cast
 - name: "redfish | collect_standard | record attempts meta"
   ansible.builtin.set_fact:
     _rf_attempts_meta:
-      attempted_count: "{{ _rf_accounts | default([]) | length }}"
+      attempted_count: "{{ _rf_accounts | default([]) | length | int }}"
       used_label:      "{{ (_rf_used_account | default({})).label | default(none) }}"
       used_role:       "{{ (_rf_used_account | default({})).role  | default(none) }}"
       fallback_used: >-
-        {{ ((_rf_used_account | default({})).role | default('primary')) != 'primary'
-           and _rf_collect_ok | bool }}
+        {{ (((_rf_used_account | default({})).role | default('primary')) != 'primary'
+            and _rf_collect_ok | bool) | bool }}
   no_log: true

@@ -41,14 +41,24 @@
           {{ out }}
       no_log: true
 
+    # production-audit (2026-04-29): FS allow-list 확장 — ZFS/tmpfs/overlay/btrfs subvolume 등 포함.
+    # NFS lazy-mount의 size_total=None 방어. 기존 m.device.startswith('/dev/')만 검사하면 ZFS pool, btrfs subvolume,
+    # overlayfs(컨테이너), tmpfs(영구 마운트) 모두 누락. fstype allow-list로 정상 FS만 채택.
     - name: "linux | storage | normalize filesystems"
       ansible.builtin.set_fact:
         _l_norm_filesystems: >-
+          {%- set fs_allow = ['ext2','ext3','ext4','xfs','btrfs','zfs','ZFS','reiserfs','jfs','f2fs','nfs','nfs4','cifs','smbfs','vfat','ntfs','exfat','overlay','tmpfs','squashfs'] -%}
           {%- set out = [] -%}
           {%- for m in (ansible_mounts | default([])) -%}
-            {%- if m.device.startswith('/dev/') or m.mount == '/' -%}
-              {%- set total_mb = (m.size_total | int / 1048576) | round(1) -%}
-              {%- set avail_mb = (m.size_available | int / 1048576) | round(1) -%}
+            {%- set ok_dev = m.device | default('') | string -%}
+            {%- set ok_fs = m.fstype | default('') | string -%}
+            {%- if (ok_dev.startswith('/dev/')) or (m.mount == '/') or (ok_fs in fs_allow) -%}
+              {%- set total_b = m.size_total | default(0) -%}
+              {%- set avail_b = m.size_available | default(0) -%}
+              {%- if total_b is none -%}{%- set total_b = 0 -%}{%- endif -%}
+              {%- if avail_b is none -%}{%- set avail_b = 0 -%}{%- endif -%}
+              {%- set total_mb = ((total_b | int) / 1048576) | round(1) -%}
+              {%- set avail_mb = ((avail_b | int) / 1048576) | round(1) -%}
               {%- set used_mb  = total_mb - avail_mb -%}
               {%- set pct = (used_mb / total_mb * 100) | round(1) if total_mb > 0 else 0 -%}
               {%- set _ = out.append({
@@ -121,11 +131,16 @@
       failed_when: false
       no_log: true
 
+    # production-audit: NFS/cifs idle mount은 df가 '-'/'n/a' 출력. awk로 numeric strip 처리.
     - name: "linux | storage | raw df"
       ansible.builtin.raw: |
+        export LANG=C LC_ALL=C
         df -P -T -k 2>/dev/null | tail -n +2 | awk '{
+          # 비숫자 문자 제거 (df가 NFS lazy-mount 시 "-" 출력)
+          gsub(/[^0-9]/,"",$3); gsub(/[^0-9]/,"",$4); gsub(/[^0-9]/,"",$5);
           total=int($3/1024); used=int($4/1024); avail=int($5/1024);
-          pct=$6; gsub(/%/,"",pct);
+          pct=$6; gsub(/%/,"",pct); gsub(/[^0-9]/,"",pct);
+          if (pct == "") pct = "0";
           printf "FS=%s|%s|%s|%d|%d|%d|%s\n", $1, $7, $2, total, used, avail, pct
         }'
       register: _l_stor_df_raw

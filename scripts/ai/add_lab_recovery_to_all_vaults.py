@@ -14,7 +14,7 @@ import paramiko
 
 AGENT_HOST = '10.100.64.154'
 AGENT_USER = 'cloviradmin'
-AGENT_PASS = 'Goodmit0802!'
+AGENT_PASS = '__REDACTED__'
 WS = '/home/cloviradmin/jenkins-agent/workspace/hshwang-gather'
 
 # 각 vault 에 추가할 lab recovery 자격
@@ -106,7 +106,7 @@ def main() -> int:
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(AGENT_HOST, username=AGENT_USER, password=AGENT_PASS, timeout=30, allow_agent=False, look_for_keys=False)
     try:
-        run(ssh, "echo 'Goodmit0802!' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
+        run(ssh, "echo '__REDACTED__' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
         changed: list[str] = []
         for vault_path, recoveries in TARGETS:
             if add_recovery(ssh, vault_path, recoveries):

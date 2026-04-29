@@ -5,14 +5,34 @@
 - name: "esxi | normalize network | extract dns and gw"
   ansible.builtin.set_fact:
     _e_default_gw:  "{{ _e_raw_facts.ansible_default_ipv4.gateway | default(none) }}"
+    # production-audit (2026-04-29): vmware_host_config_info는 hosts_config_info[hostname]={config dict} 구조.
+    # 기존: top-level (hostname keys) iterate → 'dns' 키 절대 매칭 안 됨 → DNS 항상 빈 list.
+    # 수정: 호스트별 inner dict로 drill-in 후 dns 관련 필드 추출.
     _e_dns_servers: >-
-      {%- set dns = [] -%}
-      {%- for k, v in (_e_raw_config | default({})).items() -%}
-        {%- if 'dns' in (k|lower) and v and (v|string|length) > 0 -%}
-          {%- set _ = dns.append(v|string) -%}
+      {%- set dns_out = [] -%}
+      {%- set host_cfgs = (_e_raw_config | default({})).values() | list -%}
+      {%- for host_cfg in host_cfgs -%}
+        {%- set net_info = host_cfg.get('network_system_info', host_cfg) if host_cfg is mapping else {} -%}
+        {%- set dns_cfg = (net_info.get('dns_config') if net_info is mapping else {}) | default({}) -%}
+        {%- for srv in (dns_cfg.address | default([])) -%}
+          {%- if srv -%}{%- set _ = dns_out.append(srv | string) -%}{%- endif -%}
+        {%- endfor -%}
+        {# fallback: scan flat keys containing 'dns' on inner dict #}
+        {%- if not dns_out and host_cfg is mapping -%}
+          {%- for k, v in host_cfg.items() -%}
+            {%- if 'dns' in (k|lower) and v -%}
+              {%- if v is iterable and v is not string -%}
+                {%- for entry in v -%}
+                  {%- if entry -%}{%- set _ = dns_out.append(entry | string) -%}{%- endif -%}
+                {%- endfor -%}
+              {%- else -%}
+                {%- set _ = dns_out.append(v | string) -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
         {%- endif -%}
       {%- endfor -%}
-      {{ dns }}
+      {{ dns_out | unique | list }}
   no_log: true
 
 - name: "esxi | normalize network | build interfaces"
@@ -27,11 +47,20 @@
                ipv4.address != '127.0.0.1' and
                not ipv4.address.startswith('169.254.') -%}
           {%- set nm = ipv4.netmask | default('') -%}
-          {%- if   nm=='255.255.255.255' -%}{%- set pfx=32 -%}
-          {%- elif nm=='255.255.255.0'   -%}{%- set pfx=24 -%}
-          {%- elif nm=='255.255.0.0'     -%}{%- set pfx=16 -%}
-          {%- elif nm=='255.0.0.0'       -%}{%- set pfx=8  -%}
-          {%- else                        -%}{%- set pfx=none -%}
+          {# production-audit (2026-04-29): bit-counting (Linux 와 일관) — /22, /26, /28 등 비표준 prefix 지원 #}
+          {%- set pfx = none -%}
+          {%- if nm -%}
+            {%- set pns = namespace(bits=0) -%}
+            {%- for octet in nm.split('.') -%}
+              {%- set val = octet | int -%}
+              {%- for bit in [128,64,32,16,8,4,2,1] -%}
+                {%- if val >= bit -%}
+                  {%- set pns.bits = pns.bits + 1 -%}
+                  {%- set val = val - bit -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endfor -%}
+            {%- set pfx = pns.bits -%}
           {%- endif -%}
           {%- set is_p = (iface == primary) -%}
           {%- set _ = out.append({

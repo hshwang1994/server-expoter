@@ -145,7 +145,7 @@
           "device": "\\\\.\\PHYSICALDRIVE0",
           "model": "VMware Virtual disk SCSI Disk Device",
           "total_mb": 61436,
-          "media_type": "Fixed hard disk media",
+          "media_type": "HDD",
           "protocol": null,
           "health": null
         }
@@ -168,7 +168,7 @@
         "groups": [
           {
             "unit_capacity_gb": 59,
-            "media_type": "Fixed hard disk media",
+            "media_type": "HDD",
             "protocol": null,
             "quantity": 1,
             "group_total_gb": 59

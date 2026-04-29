@@ -16,6 +16,34 @@
 
 ---
 
+## 2026-04-29 — production-audit (4 agent 전수조사 + HIGH 30+건 일괄 fix)
+
+- 환경: Windows 11 호스트 (Bash on Windows / pytest 9.0.2 / Python 3.11.9)
+- 명령: `python -m pytest tests/ --tb=short`
+- 결과: **148 passed in 17.53s** (이전 147 + remote_identifier_test guard 1)
+- 추가 검증:
+  - `verify_harness_consistency.py` PASS — rules 28 / skills 43 / agents 49 / policies 9
+  - `verify_vendor_boundary.py` PASS — common/3-channel vendor 하드코딩 0건 (rule 12 R1)
+  - `tests/validate_field_dictionary.py` PASS — 65 entries (Must 39 / Nice 20 / Skip 6)
+  - `check_project_map_drift.py` — 4 drift 해소 후 PASS
+- 변경 영역 (Phase 2):
+  - common/tasks/normalize/ (skeleton 동기화)
+  - 3 채널 site.yml (always block diagnosis dict)
+  - schema/field_dictionary.yml (envelope top-level 8 entries)
+  - esxi-gather/{site.yml,tasks/normalize_network.yml} (vendor normalize / DNS / netmask)
+  - schema/baseline_v1/{cisco,windows}_baseline.json
+  - os-gather/tasks/linux/{gather_cpu,gather_memory,gather_storage,gather_network}.yml
+  - os-gather/tasks/windows/{gather_storage,gather_network,gather_runtime}.yml
+  - redfish-gather/{library,tasks}/* (account_service / cross-channel typing / vendor merge)
+  - common/library/precheck_bundle.py (IPv6 듀얼스택)
+  - filter_plugins/diagnosis_mapper.py (None 가드)
+  - Jenkinsfile + Jenkinsfile_portal (timeout / artifact / hard gate)
+  - tests/scripts/* + scripts/ai/*.py (자격증명 환경변수화)
+- Baseline 갱신: cisco_baseline.json (users null→[]) / windows_baseline.json (media_type 정규화)
+- Evidence: 본 CURRENT_STATE.md + NEXT_ACTIONS.md 갱신
+
+---
+
 ## 2026-04-29 — cycle-016 (사용자 11 항목 일괄 점검 + 실 Jenkins 빌드 5회 + summary grouping 완성)
 
 - 환경: Windows 11 호스트 (PowerShell + Bash) + Jenkins master 10.100.64.152 (cloviradmin) + agent jenkins-agent

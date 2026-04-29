@@ -24,26 +24,29 @@
 
 - name: "windows | network | interfaces"
   ansible.windows.win_shell: |
+    # production-audit (2026-04-29): primary InterfaceIndex 1회 조회 (기존: IP마다 Get-NetRoute 재호출 — O(N))
+    # + interface_index 출력 → 그룹핑 키로 사용 (MAC null/이름 변동 시 NIC가 분리되는 버그 차단)
     $gw = '{{ _w_norm_net_meta.gw | default("") }}'
+    $primary_idx = (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue |
+                    Sort-Object RouteMetric | Select-Object -First 1).InterfaceIndex
     Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
     Where-Object { $_.IPAddress -notlike '169.*' -and $_.IPAddress -ne '127.0.0.1' } |
     ForEach-Object {
       $addr    = $_
       $adapter = Get-NetAdapter -InterfaceIndex $addr.InterfaceIndex -ErrorAction SilentlyContinue
-      $isGw    = $adapter -and ($adapter.InterfaceIndex -eq
-                  (Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue |
-                   Sort-Object RouteMetric | Select-Object -First 1).InterfaceIndex)
+      $isGw    = $adapter -and ($adapter.InterfaceIndex -eq $primary_idx)
       [PSCustomObject]@{
-        id         = $adapter.InterfaceDescription
-        name       = $addr.InterfaceAlias
-        mac        = $adapter.MacAddress
-        mtu        = $adapter.MtuSize
-        speed_mbps = $(if ($adapter.Speed) { [math]::Round($adapter.Speed / 1000000, 0) } else { $null })
-        status     = $adapter.Status
-        is_primary = $isGw
-        address    = $addr.IPAddress
-        prefix     = $addr.PrefixLength
-        gateway    = $(if ($isGw) { $gw } else { $null })
+        id              = $adapter.InterfaceDescription
+        name            = $addr.InterfaceAlias
+        interface_index = [int]$addr.InterfaceIndex
+        mac             = $adapter.MacAddress
+        mtu             = $adapter.MtuSize
+        speed_mbps      = $(if ($adapter.Speed) { [math]::Round($adapter.Speed / 1000000, 0) } else { $null })
+        status          = $adapter.Status
+        is_primary      = $isGw
+        address         = $addr.IPAddress
+        prefix          = $addr.PrefixLength
+        gateway         = $(if ($isGw) { $gw } else { $null })
       } | ConvertTo-Json -Compress
     }
   register: _w_iface_raw
@@ -58,7 +61,8 @@
       {%- for line in (_w_iface_raw.stdout_lines | default([])) -%}
         {%- if line | trim -%}
           {%- set n = line | from_json -%}
-          {%- set key = n.mac | default(n.name) -%}
+          {# production-audit: InterfaceIndex로 그룹핑 — 단일 NIC의 multi-IP가 분리되지 않도록 #}
+          {%- set key = (n.interface_index | default(n.mac | default(n.name))) | string -%}
           {%- set addr = {
               'family':        'ipv4',
               'address':       n.address,

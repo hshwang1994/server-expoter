@@ -2,10 +2,10 @@
 """cycle-016 AI-20: Dell vault 의 recovery accounts list 에 lab BMC 자격 추가.
 
 flow:
-1. agent 154 (cloviradmin/Goodmit0802!) SSH
+1. agent 154 (cloviradmin/__REDACTED__) SSH
 2. /home/cloviradmin/jenkins-agent/workspace/hshwang-gather/vault/redfish/dell.yml 위치 결정
 3. agent 의 .vault_pass 사용해 decrypt
-4. accounts[] 에 {username:'root', password:'Goodmit0802!', label:'lab_root', role:'recovery'} 추가
+4. accounts[] 에 {username:'root', password:'__REDACTED__', label:'lab_root', role:'recovery'} 추가
    (이미 있으면 skip)
 5. /opt/ansible-env/bin/ansible-vault encrypt 후 GitHub push (없이 직접 commit 도 가능 — Job 이 main pull 하므로)
 
@@ -18,12 +18,12 @@ import paramiko
 
 AGENT_HOST = '10.100.64.154'
 AGENT_USER = 'cloviradmin'
-AGENT_PASS = 'Goodmit0802!'
+AGENT_PASS = '__REDACTED__'
 
 # 추가할 lab recovery 후보
 LAB_RECOVERY = {
     'username': 'root',
-    'password': 'Goodmit0802!',
+    'password': '__REDACTED__',
     'label': 'lab_root',
     'role': 'recovery',
 }
@@ -54,7 +54,7 @@ def main() -> int:
 
         # 2. vault password 파일 — agent 에는 .vault_pass 가 없을 수 있음. Jenkins credential 파일을 사용
         # 현재 빌드 중이 아니므로 user .vault_pass 만들기 (1회용)
-        out = run(ssh, "echo 'Goodmit0802!' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass && echo OK")
+        out = run(ssh, "echo '__REDACTED__' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass && echo OK")
         print(f'vault pass: {out.strip()}')
 
         # 3. dell.yml decrypt
@@ -136,7 +136,7 @@ def main() -> int:
         # commit + push (Jenkins agent의 git config 사용)
         # git config 없으면 임시 user 설정
         run(ssh, f'cd {ws} && git config user.email "ai@server-exporter.local" && git config user.name "cycle-016 AI"')
-        commit_out = run(ssh, f'cd {ws} && git add vault/redfish/dell.yml && git commit -m "fix: AI-20 cycle-016 lab recovery account 추가 (Dell vault)\n\nlab BMC root/Goodmit0802! 자격을 vault/redfish/dell.yml accounts[] 에 추가.\nAccountService 자동 공통계정 생성 흐름 검증용."', expect_exit=None)
+        commit_out = run(ssh, f'cd {ws} && git add vault/redfish/dell.yml && git commit -m "fix: AI-20 cycle-016 lab recovery account 추가 (Dell vault)\n\nlab BMC root/__REDACTED__ 자격을 vault/redfish/dell.yml accounts[] 에 추가.\nAccountService 자동 공통계정 생성 흐름 검증용."', expect_exit=None)
         print(commit_out)
         push_out = run(ssh, f'cd {ws} && git push origin main', expect_exit=None)
         print(push_out)

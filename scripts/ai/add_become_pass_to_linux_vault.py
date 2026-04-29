@@ -10,9 +10,10 @@ from __future__ import annotations
 import sys
 import paramiko
 
-AGENT_HOST = '10.100.64.154'
-AGENT_USER = 'cloviradmin'
-AGENT_PASS = 'Goodmit0802!'
+import os
+AGENT_HOST = os.environ.get('SE_AGENT_HOST', '10.100.64.154')
+AGENT_USER = os.environ.get('SE_AGENT_USER', 'cloviradmin')
+AGENT_PASS = os.environ['SE_AGENT_PASSWORD']  # 필수 — production-audit (2026-04-29) 하드코딩 제거
 WS = '/home/cloviradmin/jenkins-agent/workspace/hshwang-gather'
 
 
@@ -31,7 +32,8 @@ def main() -> int:
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(AGENT_HOST, username=AGENT_USER, password=AGENT_PASS, timeout=30, allow_agent=False, look_for_keys=False)
     try:
-        run(ssh, "echo 'Goodmit0802!' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
+        vault_pass = os.environ['SE_VAULT_PASSWORD']  # 필수
+        run(ssh, f"echo '{vault_pass}' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
         decrypted = run(ssh, f'cd {WS} && /opt/ansible-env/bin/ansible-vault view --vault-password-file=/tmp/.vault_pass vault/linux.yml')
         print('=== current vault/linux.yml ===')
         print(decrypted)
@@ -42,7 +44,8 @@ def main() -> int:
 
         # 단순화: 파일 끝에 top-level vars 추가 (per-host fallback)
         # ansible_become_pass 는 ansible_password 와 동일 — site.yml 에서 fallback chain 사용
-        addition = '\n# cycle-016 AI-19: dmidecode 등 sudo 명령용 become_pass (top-level fallback)\nansible_become_password: "Goodmit0802!"\n'
+        become_pass = os.environ.get('SE_BECOME_PASSWORD', vault_pass)
+        addition = f'\n# cycle-016 AI-19: dmidecode 등 sudo 명령용 become_pass (top-level fallback)\nansible_become_password: "{become_pass}"\n'
         new_yaml = decrypted + addition
 
         import base64

@@ -12,6 +12,7 @@
 - block:
     - name: "linux | memory | physical (dmidecode total)"
       ansible.builtin.shell: |
+        export LANG=C LC_ALL=C
         if command -v dmidecode >/dev/null 2>&1; then
           dmidecode -t memory 2>/dev/null \
           | grep -E "^[[:space:]]*Size:" \

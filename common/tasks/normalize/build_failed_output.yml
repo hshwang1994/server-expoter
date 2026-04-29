@@ -84,8 +84,13 @@
         'system':   none, 'hardware': none, 'bmc': none,
         'cpu':      none, 'memory':   none,
         'storage':  {'filesystems':[], 'physical_disks':[],
-                     'datastores':[], 'controllers':[], 'logical_volumes':[]},
-        'network':  {'dns_servers':[], 'default_gateways':[], 'interfaces':[]},
+                     'datastores':[], 'controllers':[], 'logical_volumes':[],
+                     'hbas':[], 'infiniband':[],
+                     'summary': {'groups': [], 'grand_total_gb': 0}},
+        'network':  {'dns_servers':[], 'default_gateways':[], 'interfaces':[],
+                     'adapters':[], 'ports':[], 'virtual_switches':[],
+                     'portgroups':[], 'driver_map':[],
+                     'summary': {'groups': []}},
         'users':    [], 'firmware': [], 'power': none
       })
     } }}"

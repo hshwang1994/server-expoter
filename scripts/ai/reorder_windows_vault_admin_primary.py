@@ -21,13 +21,13 @@ NEW_VAULT = '''---
 # 기존 gooddit/infraops 는 lab 에 없어 invalid creds (pywinrm direct 검증).
 
 accounts:
-  - { username: administrator, password: "Goodmit0802!", label: lab_win_administrator, role: primary   }
-  - { username: gooddit,       password: "Goodmit0802!", label: windows_legacy,        role: secondary }
-  - { username: infraops,      password: "Goodmit0802!", label: windows_infraops,      role: secondary }
+  - { username: administrator, password: "__REDACTED__", label: lab_win_administrator, role: primary   }
+  - { username: gooddit,       password: "__REDACTED__", label: windows_legacy,        role: secondary }
+  - { username: infraops,      password: "__REDACTED__", label: windows_infraops,      role: secondary }
 
 # Backward-compat — accounts[0] 와 동기화
 ansible_user:     "administrator"
-ansible_password: "Goodmit0802!"
+ansible_password: "__REDACTED__"
 '''
 
 
@@ -44,9 +44,9 @@ def run(ssh, cmd):
 def main() -> int:
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(AGENT_HOST, username='cloviradmin', password='Goodmit0802!', timeout=30, allow_agent=False, look_for_keys=False)
+    ssh.connect(AGENT_HOST, username='cloviradmin', password='__REDACTED__', timeout=30, allow_agent=False, look_for_keys=False)
     try:
-        run(ssh, "echo 'Goodmit0802!' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
+        run(ssh, "echo '__REDACTED__' > /tmp/.vault_pass && chmod 600 /tmp/.vault_pass")
         b64 = base64.b64encode(NEW_VAULT.encode('utf-8')).decode('ascii')
         run(ssh, f'echo "{b64}" | base64 -d > /tmp/win-new.yml')
         run(ssh, '/opt/ansible-env/bin/ansible-vault encrypt --vault-password-file=/tmp/.vault_pass /tmp/win-new.yml')

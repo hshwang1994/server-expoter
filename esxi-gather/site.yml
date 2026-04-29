@@ -124,19 +124,42 @@
           ansible.builtin.include_tasks:
             file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/build_errors.yml"
 
+        # cycle production-audit (2026-04-29): vendor_aliases.yml로 정규화 (lowercase) + auth_success=true
+        - name: "esxi | load vendor_aliases for normalization"
+          ansible.builtin.include_vars:
+            file: "{{ lookup('env','REPO_ROOT') }}/common/vars/vendor_aliases.yml"
+            name: _e_vendor_aliases_map
+
+        - name: "esxi | normalize vendor via aliases"
+          ansible.builtin.set_fact:
+            _e_vendor_normalized: >-
+              {%- set raw = (_e_raw_facts.ansible_system_vendor | default('')) | trim -%}
+              {%- set raw_lower = raw | lower -%}
+              {%- set canonical = none -%}
+              {%- for canon, aliases in (_e_vendor_aliases_map.vendor_aliases | default({})).items() -%}
+                {%- for a in aliases -%}
+                  {%- if a | lower == raw_lower -%}
+                    {%- set canonical = canon -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endfor -%}
+              {{ canonical if canonical else (raw if raw else none) }}
+
         - name: "esxi | set output meta"
           ansible.builtin.set_fact:
             _out_target_type:       "esxi"
             _out_collection_method: "vsphere_api"
             _out_ip:                "{{ _e_ip }}"
-            _out_vendor:            "{{ _e_raw_facts.ansible_system_vendor | default(none) }}"
+            _out_vendor:            "{{ _e_vendor_normalized | default(none) }}"
 
         - name: "esxi | enrich diagnosis with adapter"
           ansible.builtin.set_fact:
             # P1: meta.auth — 사용자 결정 #3 (fallback_used 노출)
+            # production-audit: ESXi 성공 path에서 auth_success=true 명시 (cross-channel consistency)
             _diagnosis: >-
               {{ _diagnosis | default({}) | combine({
-                   'details': (_diagnosis | default({})).get('details', {}) | combine({
+                   'auth_success': true,
+                   'details': ((_diagnosis | default({})).details if ((_diagnosis | default({})).details is mapping) else {}) | combine({
                      'adapter_candidate': (_selected_adapter | default({})).adapter_id | default(none),
                      'auth': _e_attempts_meta | default({})
                    })
@@ -193,7 +216,7 @@
                        'vendor': none,
                        'status': 'failed',
                        'sections': {},
-                       'diagnosis': {'precheck': none, 'gather_mode': 'fallback', 'details': ['_output 미생성 — block/rescue 모두 실패']},
+                       'diagnosis': {'reachable': none, 'port_open': none, 'protocol_supported': none, 'auth_success': none, 'failure_stage': 'fallback', 'failure_reason': '_output 미생성 — block/rescue 모두 실패', 'details': {'gather_mode': 'fallback', 'reason': '_output 미생성 — block/rescue 모두 실패'}},
                        'meta': {},
                        'correlation': {},
                        'errors': [{'section':'gather','message':'_output 미생성 — block/rescue 모두 실패'}],

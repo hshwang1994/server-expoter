@@ -11,6 +11,8 @@
 - block:
     - name: "linux | cpu | cores per socket + model + manufacturer + max speed"
       ansible.builtin.shell: |
+        # production-audit (2026-04-29): LANG=C 강제 — non-C 로케일에서 lscpu 한국어/일본어 출력 시 regex 불일치 차단
+        export LANG=C LC_ALL=C
         echo "CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ *//')"
         echo "CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ *//')"
         echo "CPU_CPS=$(grep -m1 'cpu cores' /proc/cpuinfo 2>/dev/null | awk '{print $4}')"

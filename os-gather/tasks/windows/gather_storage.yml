@@ -20,12 +20,52 @@
 
 - name: "windows | storage | physical disks"
   ansible.windows.win_shell: |
+    # production-audit (2026-04-29): Get-PhysicalDisk(modern) + Win32_DiskDrive(fallback)로
+    # MediaType을 HDD/SSD enum으로 정규화. 기존 raw WMI string ("Fixed hard disk media") 누출 차단.
+    $physical_map = @{}
+    if (Get-Command Get-PhysicalDisk -ErrorAction SilentlyContinue) {
+      try {
+        Get-PhysicalDisk | ForEach-Object {
+          # MSFT_PhysicalDisk.MediaType: 3=HDD, 4=SSD, 5=SCM, 0=Unspecified
+          $mt = switch ([int]$_.MediaType) {
+            3 { 'HDD' }
+            4 { 'SSD' }
+            5 { 'SCM' }
+            default { $null }
+          }
+          $bus = switch ([int]$_.BusType) {
+            6  { 'SATA' }
+            7  { 'USB' }
+            8  { 'RAID' }
+            10 { 'SAS' }
+            17 { 'NVMe' }
+            default { $null }
+          }
+          $physical_map[[string]$_.DeviceId] = @{ media_type = $mt; bus = $bus }
+        }
+      } catch { }
+    }
     Get-CimInstance Win32_DiskDrive | ForEach-Object {
+      $idx = [string]$_.Index
+      $mt = $null
+      $bus = $null
+      if ($physical_map.ContainsKey($idx)) {
+        $mt = $physical_map[$idx].media_type
+        $bus = $physical_map[$idx].bus
+      }
+      # Win32_DiskDrive.MediaType fallback — raw 문자열을 enum으로 매핑
+      if (-not $mt) {
+        $raw = [string]$_.MediaType
+        if ($raw -match '(?i)ssd|solid') { $mt = 'SSD' }
+        elseif ($raw -match '(?i)fixed|external|removable') { $mt = 'HDD' }
+        else { $mt = $null }
+      }
       [PSCustomObject]@{
         device = $_.DeviceID
         model  = $_.Model
         total  = $_.Size
-        media  = $_.MediaType
+        media  = $mt
+        protocol = $bus
       } | ConvertTo-Json -Compress
     }
   register: _w_disk_raw
@@ -110,7 +150,7 @@
               'model':      d.model | default(none),
               'total_mb':   total_mb,
               'media_type': d.media | default(none),
-              'protocol':   none,
+              'protocol':   d.protocol | default(none),
               'health':     none
             }) -%}
           {%- endif -%}

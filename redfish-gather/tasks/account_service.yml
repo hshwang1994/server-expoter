@@ -22,6 +22,12 @@
   ansible.builtin.set_fact:
     _rf_target_account: >-
       {{ (_rf_accounts | default([]) | selectattr('role', 'eq', 'primary') | list | first) | default({}) }}
+    # production-audit (2026-04-29): recovery 계정의 password를 _rf_accounts에서 lookup —
+    # 기존: ansible_user/_password 참조 (실제로 set되지 않음, 빈 creds로 401 받음)
+    _rf_recovery_account_resolved: >-
+      {{ (_rf_accounts | default([])
+            | selectattr('username','eq', (_rf_used_account | default({})).username | default(''))
+            | list | first) | default({}) }}
     _rf_account_service_dryrun: "{{ _rf_account_service_dryrun | default(true) }}"
   no_log: true
 
@@ -45,11 +51,13 @@
           dryrun={{ _rf_account_service_dryrun }}
 
     # ── recovery 자격으로 AccountService 호출 ────────────────────────────
+    # production-audit: recovery 계정의 username/password를 _rf_recovery_account_resolved에서 직접 사용.
+    # 기존 ansible_user/_password는 set되지 않은 변수라 빈 string으로 evaluate되어 401 발생.
     - name: "redfish | account_service | invoke"
       redfish_gather:
         bmc_ip:          "{{ _rf_ip }}"
-        username:        "{{ ansible_user | default('') }}"
-        password:        "{{ ansible_password | default('') }}"
+        username:        "{{ _rf_recovery_account_resolved.username | default('') }}"
+        password:        "{{ _rf_recovery_account_resolved.password | default('') }}"
         timeout:         "{{ _rf_timeout }}"
         verify_ssl:      false
         mode:            "account_provision"
@@ -61,12 +69,13 @@
       failed_when: false
       no_log: true
 
+    # production-audit (2026-04-29): bool typing 명시 cast (string "true"/"false" emit 차단)
     - name: "redfish | account_service | record meta"
       ansible.builtin.set_fact:
         _rf_account_service_meta:
-          recovered: "{{ (_rf_acct_result.account_service | default({})).recovered | default(false) }}"
+          recovered: "{{ ((_rf_acct_result.account_service | default({})).recovered | default(false)) | bool }}"
           method:    "{{ (_rf_acct_result.account_service | default({})).method    | default('noop') }}"
-          dryrun:    "{{ (_rf_acct_result.account_service | default({})).dryrun    | default(true) }}"
+          dryrun:    "{{ ((_rf_acct_result.account_service | default({})).dryrun    | default(true)) | bool }}"
           slot_uri:  "{{ (_rf_acct_result.account_service | default({})).slot_uri  | default(none) }}"
       no_log: true
 

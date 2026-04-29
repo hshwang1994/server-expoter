@@ -297,10 +297,12 @@ def _detect_vendor_from_service_root(root):
       4. Name 필드에 벤더명 포함 확인
       5. 모두 해당 없으면 None 반환
 
-    Returns: vendor 문자열 ('dell', 'hpe', 'lenovo', 'supermicro') 또는 None
+    Returns: vendor 문자열 ('dell', 'hpe', 'lenovo', 'supermicro', 'cisco') 또는 None
     """
-    # _BUILTIN_VENDOR_MAP 기반 통합 감지 — 하드코딩 분기 대신 map 사용
-    vm = _BUILTIN_VENDOR_MAP
+    # production-audit (2026-04-29): vendor_aliases.yml + fallback merge.
+    # 기존 _BUILTIN_VENDOR_MAP만 사용 시 YAML에 추가된 alias가 detect에 반영 안 되는 drift 차단.
+    aliases_yaml = _load_vendor_aliases_file()
+    vm = {**_FALLBACK_VENDOR_MAP, **aliases_yaml}
 
     # 1. Oem 객체의 키 이름 확인
     oem = _safe(root, 'Oem')
@@ -1139,7 +1141,8 @@ def gather_power(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
     ]
 
     # PowerControl — system-level power consumption (Safe Common: 3 vendors verified)
-    pc_list = pdata.get('PowerControl') or []
+    # production-audit (2026-04-29): pdata가 dict가 아닌 list/None일 가능성 방어 (Cisco/Supermicro edge)
+    pc_list = (pdata.get('PowerControl') if isinstance(pdata, dict) else None) or []
     pc0 = pc_list[0] if pc_list else {}
     pm = pc0.get('PowerMetrics') or {}
     power_control = {

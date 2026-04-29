@@ -1,5 +1,51 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-04-29 (production-audit — 4 agent 전수조사 + HIGH 30+건 일괄 수정)
+
+## 요약 (production-audit)
+
+사용자 명시 요청:
+> "실제 모든 서버에서 개더링 데이터가 정상인지 값이맞는지 모두 검증 ... json 형태가 일관된지 확인 ... 모든 정보가 수집되는지 확인. 우리가 실측한 장비는 한정된 환경임을 감안해라. 여러가지 상황을 에상하고 예측해야한다. ... 실제 product 제품으로 출시될수있도록해라."
+
+**Phase 1 — 4 agent 병렬 전수조사** (read-only):
+1. Redfish-gather audit — 1504-line library + 16 adapter + vendor tasks
+2. OS-gather + ESXi + common audit — 3-channel + precheck + builders
+3. Schema + callback + JSON envelope cross-channel consistency
+4. Tests + baselines + Jenkins pipelines
+
+**Phase 2 — HIGH 발견 30+건 일괄 수정** (이번 세션):
+- **공통 정합 (T1-T3)**:
+  - Skeleton drift 동기화 (`init_fragments.yml` + `build_empty_data.yml` + `build_failed_output.yml` 3종 — sections.yml의 storage.{hbas,infiniband,summary}/network.{adapters,ports,virtual_switches,portgroups,driver_map,summary} 복제)
+  - `diagnosis.details` shape 통일 (3 채널 always block fallback dict 형태로 통일 — 호출자 TypeError 차단)
+  - `field_dictionary.yml` top-level envelope 8 entries 추가 (target_type/collection_method/ip/hostname/vendor/schema_version/meta/correlation) → Must 39 / Nice 20 / Skip 6 = 65 entries
+- **Cross-channel JSON 일관성 (T4-T5)**:
+  - ESXi vendor 정규화 (vendor_aliases.yml lookup 추가 — 'Cisco Systems Inc' → 'cisco' lowercase canonical)
+  - ESXi 성공 path `auth_success: true` set (Must 필드 — null 누출 차단)
+  - cisco_baseline.json `users: null → []` (cross-channel type 통일)
+  - Windows storage `media_type` 정규화 (Get-PhysicalDisk MSFT_PhysicalDisk + raw WMI fallback → SSD/HDD enum)
+- **Linux gather (T6)**: LANG=C 강제 (lscpu/dmidecode 한국어/일본어 로케일 차단), VLAN/bond 이름 underscore 정규화 (`bond0.4094` 매칭), FS allow-list 확장 (ZFS/btrfs/overlay/tmpfs), df '-' parse defense
+- **Windows gather (T7)**: gather_runtime swap_total_mb namespace 패턴 적용 (Jinja2 loop scoping 버그), gather_network InterfaceIndex 그룹핑 (multi-IP NIC 분리 차단)
+- **Redfish (T8)**: account_service.yml 복구 creds 버그 (unset ansible_user/_password → _rf_recovery_account_resolved), `_rf_attempts_meta` int/bool cast (cross-channel type drift), `_detect_vendor_from_service_root` vendor_aliases.yml + fallback merge (drift 차단), Power.PowerControl 비-dict 방어, `_diagnosis.details combine` mapping type-guard
+- **ESXi (T9)**: DNS 추출 dict level 버그 (production에서 항상 빈 list 였음 — `hosts_config_info[hostname]` drill-in), netmask→prefix 비트 카운팅 알고리즘 (/22, /26, /28 등)
+- **Common (T10)**: precheck IPv6 듀얼스택 (getaddrinfo — IPv6-only 관리망 지원), diagnosis_mapper None 입력 가드 (rescue path AttributeError)
+- **Jenkins (T11)**:
+  - `Jenkinsfile`: per-stage timeout (Validate 2m / Gather 20m / Schema 2m / E2E 5m), Stage 4 `fileExists` when 제거 (mandatory), archiveArtifacts 활성
+  - `Jenkinsfile_portal`: Stage 3 catchError 제거 (rule 80 R1 hard gate), Callback `error` → `unstable` (rule 31 R2)
+- **Secrets (T12)**: tests/scripts/{os_esxi_verify,identifier_verify}.sh + scripts/ai/*.py 5종 — 'Goodmit0802!' 하드코딩 13곳 제거 → 환경변수 강제 (자격증명 회전 권고)
+
+**검증**:
+- pytest **148/148 PASS** (이전 147/147 + remote_identifier_test.py main() guard)
+- harness consistency PASS (rules 28 / skills 43 / agents 49 / policies 9)
+- vendor boundary PASS (rule 12 R1)
+- field_dictionary validate PASS (65 entries)
+- PROJECT_MAP fingerprint 갱신 (4 drift 해소)
+
+**보존된 알려진 한계**:
+- Supermicro vendor: 0 fixture / 0 baseline / 0 pytest 커버 — 실장비 검증 후 보강 (NEXT_ACTIONS)
+- ESXi 8.0u3: reference dump만 존재, baseline 미생성 — 실장비 검증 후 보강 (NEXT_ACTIONS)
+- Linux raw_fallback: 1 mode (RHEL 8.10 py3.6) 검증, pytest 커버 0 — fixture 추가 보강 (NEXT_ACTIONS)
+- 자격증명 git history 잔존: 사용자 회전 + filter-branch 결정 사안 (NEXT_ACTIONS)
+
 ## 일자: 2026-04-29 (cycle-016 — 사용자 11항목 점검 + 실 Jenkins 빌드 5회 검증 + summary grouping 완성)
 
 ## 요약 (cycle-016)

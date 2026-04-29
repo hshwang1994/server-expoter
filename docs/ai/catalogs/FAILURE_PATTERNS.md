@@ -20,6 +20,28 @@
 
 ---
 
+## 2026-04-29 — production-audit-bundle (4 agent 전수조사로 일괄 발굴)
+
+- 카테고리: scope-miss + cross-channel-drift + jinja2-loop-scoping
+- 발견 위치: 4 agent audit 결과 (Redfish + OS-ESXi-common + Schema + Tests)
+- 증상 (대표 6건):
+  1. **Skeleton drift** — `init_fragments.yml` + `build_empty_data.yml` + `build_failed_output.yml` 3종이 sections.yml과 sync 안 됨 (storage.{hbas,infiniband,summary} / network.{adapters,...} 누락) — rescue path가 success path와 다른 envelope shape 출력
+  2. **ESXi vendor 미정규화** — esxi_baseline.json `vendor: "Cisco Systems Inc"` (Redfish는 'cisco' lowercase canonical) — 호출자 라우팅 불가
+  3. **diagnosis.details 형변환** — 성공 path는 dict, fallback은 list of strings — 호출자 파싱 시 TypeError
+  4. **Windows runtime swap_total_mb 합계 버그** — Jinja2 loop scoping (cycle-016 namespace fix가 memory/storage만 적용, runtime 누락) → 마지막 pagefile 크기만 emit
+  5. **ESXi DNS 항상 빈 list** — `vmware_host_config_info`의 `hosts_config_info[hostname]` 구조를 top-level iterate (production에서 DNS 정보 0건)
+  6. **account_service.yml 복구 creds 미설정** — `ansible_user`/`ansible_password` Ansible connection var 사용했지만 set_fact 안 됨, 빈 string으로 401
+- 원인: 점진적 cycle 누적 + cross-channel 일관성 검증 hook 부재 + Jinja2 scoping 패턴 유사 코드 일괄 적용 누락
+- 영향: 모든 5 vendor + 모든 OS + ESXi (cross-channel JSON 호환성)
+- 수정: 본 production-audit cycle 일괄 fix (Edit tool 직접 적용 / pytest 148/148 PASS / verify_* 4종 PASS)
+- 재발 방지:
+  - JSON envelope cross-channel consistency hook 추가 검토 (rule 13 R5 자동 검증)
+  - cycle 종료 시 4 agent audit 패턴 정기화 (rule 28 R1 추가 측정 대상 검토)
+  - Jinja2 loop scoping linter 검토
+- 관련 rule: rule 13 R5 / rule 22 R1 / rule 80 R1
+
+---
+
 ## 2026-04-29 — user-label-vs-redfish-manufacturer-drift (cycle-015)
 
 - 카테고리: external-contract-drift

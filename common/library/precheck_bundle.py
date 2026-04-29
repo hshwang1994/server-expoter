@@ -99,23 +99,34 @@ CHANNEL_PROTOCOL_MESSAGES = {
 
 
 def tcp_check(host, port, timeout):
-    """TCP 포트 연결 가능 여부 확인"""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(timeout)
+    """TCP 포트 연결 가능 여부 확인.
+
+    production-audit (2026-04-29): IPv4/IPv6 듀얼 스택 — 기존 AF_INET only는
+    IPv6-only 관리망 대상에 도달 불가. socket.getaddrinfo로 family를 자동 선택.
+    """
+    last_err = "주소 해석 실패"
     try:
-        sock.connect((host, port))
-        return True, None
-    except socket.timeout:
-        return False, "연결 시간 초과 (timeout={0}s)".format(timeout)
-    except ConnectionRefusedError:
-        return False, "연결 거부됨 (port={0})".format(port)
-    except OSError as e:
-        return False, str(e)
-    finally:
+        addr_infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    except socket.gaierror as e:
+        return False, "DNS 해석 실패: {0}".format(e)
+    for family, socktype, proto, _canon, sockaddr in addr_infos:
+        sock = socket.socket(family, socktype, proto)
+        sock.settimeout(timeout)
         try:
-            sock.close()
-        except Exception:
-            pass
+            sock.connect(sockaddr)
+            return True, None
+        except socket.timeout:
+            last_err = "연결 시간 초과 (timeout={0}s)".format(timeout)
+        except ConnectionRefusedError:
+            last_err = "연결 거부됨 (port={0})".format(port)
+        except OSError as e:
+            last_err = str(e)
+        finally:
+            try:
+                sock.close()
+            except Exception:
+                pass
+    return False, last_err
 
 
 def _build_ssl_context(verify):
@@ -170,22 +181,29 @@ def http_get(url, timeout, verify=False, auth=None):
 
 
 def ssh_banner_check(host, port, timeout):
-    """SSH 배너 확인으로 SSH 서비스 동작 여부 검증"""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(timeout)
+    """SSH 배너 확인으로 SSH 서비스 동작 여부 검증 (IPv4/IPv6 듀얼 스택)."""
+    last_err = "주소 해석 실패"
     try:
-        sock.connect((host, port))
-        banner = sock.recv(256).decode("utf-8", errors="replace").strip()
-        if banner.startswith("SSH-"):
-            return True, None, {"ssh_banner": banner}
-        return False, "SSH 배너가 아닙니다: {0}".format(banner[:50]), None
-    except Exception as e:
-        return False, str(e), None
-    finally:
+        addr_infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    except socket.gaierror as e:
+        return False, "DNS 해석 실패: {0}".format(e), None
+    for family, socktype, proto, _canon, sockaddr in addr_infos:
+        sock = socket.socket(family, socktype, proto)
+        sock.settimeout(timeout)
         try:
-            sock.close()
-        except Exception:
-            pass
+            sock.connect(sockaddr)
+            banner = sock.recv(256).decode("utf-8", errors="replace").strip()
+            if banner.startswith("SSH-"):
+                return True, None, {"ssh_banner": banner}
+            return False, "SSH 배너가 아닙니다: {0}".format(banner[:50]), None
+        except Exception as e:
+            last_err = str(e)
+        finally:
+            try:
+                sock.close()
+            except Exception:
+                pass
+    return False, last_err, None
 
 
 def probe_redfish(host, port, timeout, verify=False):

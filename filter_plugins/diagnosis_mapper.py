@@ -27,6 +27,11 @@ def build_diagnosis(precheck_result, channel, adapter_id=None):
     Returns:
         diagnosis dict — output JSON의 diagnosis 필드에 들어감
     """
+    # production-audit (2026-04-29): precheck_result가 None / non-dict 일 때 AttributeError 방어.
+    # rescue path 또는 precheck 모듈이 raise한 경우 호출됨.
+    if not isinstance(precheck_result, dict):
+        precheck_result = {}
+
     details = {
         "channel": channel,
         "adapter_candidate": adapter_id,
@@ -69,6 +74,9 @@ def build_errors_from_diagnosis(precheck_result):
     Returns:
         errors list — 실패 시 [{section, message, detail}], 성공 시 []
     """
+    # production-audit: None / non-dict 입력 방어 (build_diagnosis와 동일 정책)
+    if not isinstance(precheck_result, dict):
+        return []
     failure_reason = precheck_result.get("failure_reason")
     if not failure_reason:
         return []

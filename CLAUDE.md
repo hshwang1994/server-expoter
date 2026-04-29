@@ -555,7 +555,11 @@ scripts/ai/       # 자동화 스크립트 (Python 27, OS 중립)
 - **Adapter 점수**: `priority × 1000 + specificity × 10 + match_score`
 - **Vault 2단계 로딩** (Redfish): 무인증 detect → vendor vault 로드 → 인증 수집
 - **Linux 2-tier**: Python 3.9+ ok / raw fallback 자동 분기
-- **JSON envelope**: status / sections / data / errors / meta / diagnosis (6 필드 고정)
+- **JSON envelope**: 13 필드 고정 (정본 = `common/tasks/normalize/build_output.yml` / rule 13 R5)
+  - 분석 6 카테고리: status / sections / data / errors / meta / diagnosis
+  - 라우팅·식별 5: target_type / collection_method / ip / hostname / vendor
+  - 추적 2: correlation / schema_version
+  - 실패 fallback (always block) 도 13 필드 모두 emit + diagnosis.details는 dict 형태 유지
 - **4단계 Precheck**: ping → port → protocol → auth
 - **Jenkins 4-Stage**: Validate → Gather → Validate Schema → **(pipeline별)** Stage 4 (`Jenkinsfile`=E2E Regression / `Jenkinsfile_portal`=Callback). cycle-015에서 `Jenkinsfile_grafana` 제거
 - **벤더 추가 3단계**: vendor_aliases.yml + adapter YAML + (선택) OEM tasks (site.yml 수정 불필요)
@@ -569,11 +573,22 @@ scripts/ai/       # 자동화 스크립트 (Python 27, OS 중립)
 
 ---
 
-**프로젝트 상태: 사용자 요구사항 11/11 검증 + 실 Jenkins 빌드 5회 (#39 ~ #45) + summary grouping 완성 (cycle-016)**
+**프로젝트 상태: production-audit (2026-04-29) — 4 agent 전수조사 + HIGH 30+건 일괄 fix 완료**
 
-cycle-016 (2026-04-29) 처리 결과:
-- JSON 항상 출력 / Redfish 공통계정 + recovery + AccountService / OS-ESXi 다중계정 / Memory-Disk-NIC summary.groups + grand_total_gb / 운영 정보 (NTP / firewall / runtime) — 모두 검증
-- 실 Jenkins 빌드 5회 — RHEL 9.6 OS gather status=success / storage.summary.grand_total_gb=100 정상
-- 9 파일 grouping 로직 + namespace pattern (Jinja2 loop scoping fix)
-- 9 inline `{# ... #}` Jinja2 코멘트 제거 (한국어/특수문자 + 파싱 오류 방지)
-- pytest 147/147 PASS / harness consistency / vendor boundary / schema drift 모두 PASS
+production-audit 결과 (2026-04-29):
+- **4 agent 병렬 전수조사** — Redfish (1504-line library + 16 adapter) / OS-ESXi-common / Schema-callback-cross-channel JSON / Tests-baselines-pipelines
+- **공통 정합 정합성 fix**: skeleton drift 동기화 (3 normalize 파일) / diagnosis.details shape 통일 (dict) / field_dictionary top-level 8 entries 추가
+- **Cross-channel JSON 일관성**: ESXi vendor `vendor_aliases.yml` 정규화 + `auth_success: true` set / cisco_baseline `users: []` / Windows storage `media_type` SSD/HDD enum 정규화
+- **Linux gather 보강**: LANG=C / VLAN underscore / FS allow-list / df '-' parse defense
+- **Windows gather 보강**: runtime swap namespace pattern / network InterfaceIndex grouping
+- **Redfish 보강**: account_service 복구 creds 버그 / cross-channel typing (int/bool cast) / vendor map merge / Power.PowerControl 비-dict 방어
+- **ESXi 보강**: DNS 추출 dict-level drill-in / netmask 비트 카운팅 (/22, /26, /28)
+- **Common 보강**: precheck IPv6 듀얼스택 / diagnosis_mapper None 가드
+- **Jenkins 보강**: per-stage timeout / E2E mandatory / archive / Jenkinsfile_portal Stage 3 hard gate / Callback unstable not error (rule 31 R2)
+- **Secrets 정리**: tests/scripts + scripts/ai 13곳 'Goodmit0802!' 환경변수화
+- 검증: **pytest 148/148 PASS** + harness consistency + vendor boundary + field_dictionary (65 entries) + PROJECT_MAP fingerprint 갱신
+
+이전 cycle-016 (2026-04-29):
+- 사용자 요구사항 11/11 검증 + 실 Jenkins 빌드 5회 (#39 ~ #45) + summary grouping 완성
+- 9 파일 namespace pattern (Jinja2 loop scoping fix)
+- 9 inline `{# ... #}` Jinja2 코멘트 제거

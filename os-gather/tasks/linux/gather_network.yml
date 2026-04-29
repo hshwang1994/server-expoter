@@ -27,7 +27,9 @@
               {%- if iface.startswith(p) -%}{%- set _ = skip.append(1) -%}{%- endif -%}
             {%- endfor -%}
             {%- if skip | length == 0 -%}
-              {%- set d   = hostvars[inventory_hostname]['ansible_' ~ iface] | default({}) -%}
+              {# production-audit (2026-04-29): VLAN/bond/bridge 이름의 점/대시는 Ansible facts에서 underscore로 정규화됨 (예: bond0.4094 → ansible_bond0_4094) #}
+              {%- set iface_key = iface | replace('.', '_') | replace('-', '_') | replace(':', '_') -%}
+              {%- set d   = hostvars[inventory_hostname]['ansible_' ~ iface_key] | default(hostvars[inventory_hostname]['ansible_' ~ iface] | default({})) -%}
               {%- set ipv4 = d.ipv4.address | default(none) if d.ipv4 is defined else none -%}
               {%- if ipv4 and ipv4 != '127.0.0.1' and d.macaddress is defined -%}
                 {%- set nm = d.ipv4.netmask | default('') if d.ipv4 is defined else '' -%}
