@@ -68,10 +68,14 @@
                 {%- set cap = parts[1] | int -%}
                 {%- set t = parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none -%}
                 {%- set sp = parts[3] | regex_replace('[^0-9]', '') -%}
+                {%- set mfr = parts[4] if (parts | length >= 5 and parts[4] | length > 0 and parts[4] != 'Unknown' and parts[4] != 'Not Specified') else none -%}
+                {%- set pn = parts[5] if (parts | length >= 6 and parts[5] | length > 0 and parts[5] != 'Unknown' and parts[5] != 'Not Specified') else none -%}
                 {%- set _ = out.append({
                   'capacity_mb': cap,
                   'type': t,
-                  'speed_mhz': (sp | int) if sp else none
+                  'speed_mhz': (sp | int) if sp else none,
+                  'manufacturer': mfr,
+                  'part_number': pn | trim if pn else none
                 }) -%}
               {%- endif -%}
             {%- endif -%}
@@ -79,7 +83,7 @@
           {{ out }}
       no_log: true
 
-    # cycle-016 Phase L: groups 에 speed_mhz 추가 (Linux dmidecode 에 manufacturer/part_number 도 가능 — 후속)
+    # cycle-016 Phase L: groups 에 manufacturer + part_number 추가 (사용자 "부실" 피드백)
     - name: "linux | memory | compute summary groups"
       ansible.builtin.set_fact:
         _l_mem_summary: >-
@@ -89,14 +93,16 @@
               {%- set cap_gb = (s.capacity_mb / 1024) | round(0, 'floor') | int -%}
               {%- set t = s.type | default(none) -%}
               {%- set sp = s.speed_mhz | default(none) -%}
-              {%- set key = (cap_gb|string)~'|'~(t|string)~'|'~(sp|string) -%}
+              {%- set mfr = s.manufacturer | default(none) -%}
+              {%- set pn = s.part_number | default(none) -%}
+              {%- set key = (cap_gb|string)~'|'~(t|string)~'|'~(sp|string)~'|'~(mfr|string)~'|'~(pn|string) -%}
               {%- if key in ns.seen -%}
                 {%- set idx = ns.seen[key] -%}
                 {%- set q = ns.groups[idx].quantity + 1 -%}
                 {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
               {%- else -%}
                 {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'speed_mhz': sp, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'speed_mhz': sp, 'manufacturer': mfr, 'part_number': pn, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
               {%- endif -%}
               {%- set ns.total = ns.total + cap_gb -%}
             {%- endif -%}
