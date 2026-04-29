@@ -132,21 +132,19 @@
 
 cycle-015 첫 연결성 검증에서 사용자 라벨 vs 실 Manufacturer drift 2건 (DRIFT-011):
 
-### AMI Redfish Server 1.11.0 (10.100.15.32)
+### ~~AMI Redfish Server 1.11.0 (10.100.15.32)~~ — RESOLVED
 
-- 사용자 라벨: dell (GPU 카드 설치)
-- 실 응답: `Vendor='AMI', Product='AMI Redfish Server', RedfishVersion=1.11.0`
-- 분류: AMI MegaRAC (Supermicro / Asrock / whitebox 가능)
-- 현재 adapter 매칭: `redfish_generic.yml` 또는 `supermicro_bmc.yml` 후보 — Dell adapter 매칭 안 됨
-- 후속: 물리 호스트 식별 필요 (OPS-12)
+- ~~사용자 라벨: dell (GPU 카드 설치)~~
+- ~~실 응답: `Vendor='AMI', Product='AMI Redfish Server', RedfishVersion=1.11.0`~~
+- **resolved (cycle-015)**: 사내 lab 부재 확인 → `inventory/lab/redfish.json` + `vault/.lab-credentials.yml`에서 제거. OPS-12 closed.
+- 보존 이유: AMI Redfish 1.11.0 응답 형식은 향후 AMI MegaRAC BMC (Supermicro 등) 추가 시 reference로 활용
 
-### TA-UNODE-G1 RedfishVersion 1.2.0 (10.100.15.2)
+### ~~TA-UNODE-G1 RedfishVersion 1.2.0 (10.100.15.2)~~ — RESOLVED
 
-- 사용자 라벨: cisco
-- 실 응답: `Product='TA-UNODE-G1', RedfishVersion=1.2.0`
-- 분류: 표준 Cisco UCS Product 형식 아님 (UCS C-series는 보통 `Product='UCS C220 M5'`)
-- 가능성: Cisco TelePresence / Tetration / 3rd party
-- 후속: 제품 시리즈 식별 필요 (OPS-13)
+- ~~사용자 라벨: cisco~~
+- ~~실 응답: `Product='TA-UNODE-G1', RedfishVersion=1.2.0`~~
+- **resolved (cycle-015)**: 사내 lab 부재 확인 → 제거. OPS-13 closed.
+- 보존 이유: 표준 Cisco UCS 응답과 다른 형식 reference
 
 ### Cisco BMC 일시 장애
 

@@ -14,7 +14,7 @@
 - `ADR-2026-04-28-security-policy-removal.md` — 보안 정책 자체 해제
 - `ADR-2026-04-29-lab-access-grant.md` — 실장비 접근 권한 확장 (cycle-015, 본 작업)
 
-## 2. 호스트 카운트 (총 28대)
+## 2. 호스트 카운트 (총 23대 — cycle-015 정정 후)
 
 | 그룹 | 카운트 | 채널 | 검증 가치 |
 |---|---|---|---|
@@ -22,12 +22,17 @@
 | Jenkins agent (Ansible) | 2 | (관리) | 본 수집 실행 환경 (Python 3.12 / ansible-core 2.20) |
 | Linux VM | 5 | os-gather | RHEL 8.10 / 9.2 / 9.6 / Rocky 9.6 / Ubuntu 24.04 |
 | Linux baremetal | 1 | os-gather | OS↔BMC correlation 검증용 (Dell BMC와 매칭) |
-| Windows VM | 2 | os-gather | Win10 + Win Server 2022 |
-| Dell BMC (iDRAC) | 6 | redfish-gather | 1대는 GPU 설치, 1대는 baremetal OS 매칭 |
-| HPE BMC (iLO) | 1 | redfish-gather | — |
-| Lenovo BMC (XCC) | 1 | redfish-gather | — |
-| Cisco BMC (CIMC) | 3 | redfish-gather | UCS 시리즈 검증 |
+| Windows VM | 1 | os-gather | Win Server 2022 (10.100.64.135 — cycle-015 IP 정정 + Win10 제거) |
+| Dell BMC (iDRAC) | 5 | redfish-gather | 1대는 baremetal OS 매칭 (10.100.15.32 제거 — cycle-015) |
+| HPE BMC (iLO) | 1 | redfish-gather | ProLiant DL380 Gen11 / iLO6 |
+| Lenovo BMC (XCC) | 1 | redfish-gather | XCC 1.15 |
+| Cisco BMC (CIMC) | 2 | redfish-gather | 10.100.15.2 제거 — cycle-015 (사내 부재) |
 | ESXi host | 3 | esxi-gather | community.vmware 6.2.0 검증 |
+
+> **cycle-015 변경**: 사용자 명시 결정으로 다음 정정
+> - 제거 (사내 부재): 10.100.15.32 (Dell GPU — AMI Redfish), 10.100.15.2 (Cisco — TA-UNODE-G1), 10.100.64.120 (Windows 10)
+> - IP 정정: Windows Server 2022 = 10.100.64.132 → **10.100.64.135**
+> - firewall 해제: 10.100.64.135 (cycle-015 후 사용자 직접 작업)
 
 ## 3. 네트워크 zone
 
@@ -44,22 +49,22 @@
 | 호스트 그룹 | 특이사항 | 검증 가치 |
 |---|---|---|
 | Linux RHEL 8.10 | Python 3.6 환경 | rule 10 R4 (raw fallback) 실증 |
-| Linux baremetal | Dell BMC와 같은 머신 | OS data ↔ BMC data correlation envelope 검증 |
-| Dell BMC (GPU 설치) | NVIDIA GPU 카드 | Redfish PCIeDevices / Storage 섹션 GPU 필드 검증 |
-| Win Server 2022 | administrator account | WinRM 5985 / domain-less |
-| Cisco BMC × 3 | UCS 시리즈 | 동일 vendor 다수 — adapter score tie-break 검증 |
+| Linux baremetal | Dell BMC와 같은 머신 (10.100.64.96 ↔ 10.100.15.33) | OS data ↔ BMC data correlation envelope 검증 |
+| Win Server 2022 | administrator account, firewall 해제됨 (cycle-015) | WinRM 5985 / domain-less |
+| Cisco BMC × 2 | UCS 시리즈 | 동일 vendor 다수 — adapter score tie-break 검증 |
 
 ## 5. 검증 라운드 매핑
 
 | Round | 영역 | 우선순위 | 비고 |
 |---|---|---|---|
-| Round 11 (예정) | Dell × 6 baseline 갱신 | HIGH | GPU 호스트 + correlation 호스트 우선 |
-| Round 12 (예정) | HPE / Lenovo 단일 호스트 | MED | 1대씩이라 fallback 검증 한계 |
-| Round 13 (예정) | Cisco × 3 baseline | MED | 신규 vendor (cycle-008 도입) |
-| Round 14 (예정) | Linux raw fallback | HIGH | RHEL 8.10 (Py 3.6) 1대로 rule 10 R4 실증 |
-| Round 15 (예정) | Win 2-tier | MED | Win10 + Server 2022 |
+| Round 11 (cycle-015 endpoint 검증 PASS) | Dell × 5 baseline 갱신 | HIGH | 모두 PowerEdge R760 BIOS 2.3.5 / Xeon Silver 4510. 256GB×4 + 128GB×1 |
+| Round 12 (예정) | HPE 231 / Lenovo 232 baseline | MED | cycle-015 auth PASS. ProLiant DL380 Gen11 + XCC |
+| Round 13 (예정) | Cisco × 2 baseline (1, 3) | MED | OPS-11 가용성 회복 후 |
+| Round 14 (cycle-015 raw 실증 PASS) | Linux raw fallback | DONE | RHEL 8.10 Py 3.6.8 = python_incompatible 분기 검증됨 |
+| Round 15 (cycle-015 WinRM PASS) | Win Server 2022 | DONE (auth) | OS Build 20348, PS 5.1, Xeon Silver 4510 |
 | Round 16 (예정) | ESXi 회귀 | LOW | 3대로 community.vmware 안정성 |
-| Browser E2E (예정) | Jenkins UI / Grafana | LOW | Playwright |
+| Browser E2E (cycle-015 활성) | Jenkins UI login | DONE | cloviradmin 인증 PASS (test_master_login_then_dashboard) |
+| Browser E2E (예정) | BMC Web UI (iDRAC/iLO/XCC/CIMC) | LOW | 후속 cycle |
 
 ## 6. 자격증명 정책
 

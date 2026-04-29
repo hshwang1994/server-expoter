@@ -160,5 +160,5 @@
   2. `deep_probe_redfish.py`로 Manufacturer / Model / Oem namespace 상세 추출
   3. `inventory/lab/redfish.json` `_vendor` 라벨 정정
   4. `EXTERNAL_CONTRACTS.md`에 AMI Redfish 1.11.0 / TA-UNODE-G1 entry 추가
-- **상태**: open (cycle-014 evidence 기록, 후속 OPS-12/13으로 추적)
+- **상태**: **resolved (cycle-015 사용자 명시 결정)** — 두 호스트 모두 사내 lab 부재 확인. `inventory/lab/redfish.json` + `vault/.lab-credentials.yml`에서 제거. OPS-12 / OPS-13 closed.
 - **관련**: rule 96 R1 (외부 계약 origin 주석), rule 27 R3 (Vault 2단계 — 1단계가 본 drift 검출), rule 50 R1 (vendor 정규화 정본 vendor_aliases.yml), `tests/evidence/cycle-015/connectivity-2026-04-29.md`

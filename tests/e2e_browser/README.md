@@ -26,8 +26,8 @@ pytest tests/e2e_browser/ -v
 # Jenkins UI만
 pytest tests/e2e_browser/ -v -m jenkins
 
-# Grafana만
-pytest tests/e2e_browser/ -v -m grafana
+# BMC UI만
+pytest tests/e2e_browser/ -v -m bmc
 
 # 헤드 모드 (브라우저 창 보기)
 pytest tests/e2e_browser/ -v --headed
@@ -41,8 +41,7 @@ pytest tests/e2e_browser/ -v --tracing on
 | 파일 | 시나리오 | 상태 |
 |---|---|---|
 | `test_jenkins_master.py` | 마스터 dashboard 도달 | [PASS] 활성 |
-| `test_jenkins_master.py` | 로그인 후 jobs list | [SKIP] 사용자 계정 정책 결정 후 |
-| `test_grafana_ingest.py` | Grafana 적재 패널 | [SKIP] Grafana endpoint 합의 후 |
+| `test_jenkins_master.py` | 로그인 + jobs list | [PASS] 활성 (cycle-015 cloviradmin/Goodmit0802!) |
 
 ## Marker 정의
 
@@ -50,7 +49,7 @@ pytest tests/e2e_browser/ -v --tracing on
 |---|---|
 | `lab` | `vault/.lab-credentials.yml` 필요 (auto-skip 미존재 시) |
 | `jenkins` | Jenkins master Web UI |
-| `grafana` | Grafana 대시보드 |
+| `bmc` | BMC Web UI (iDRAC / iLO / XCC / CIMC) |
 | `slow` | 30초 이상 |
 
 ## CI 통합 (예정)
@@ -62,4 +61,4 @@ Jenkins agent (10.100.64.154/155)에서 실행 시:
 ## 비고
 
 - 본 디렉터리는 기존 `tests/e2e/` (pytest baseline E2E)와 별개. 기존은 backend JSON 검증 / 본 디렉터리는 Browser UI.
-- Jenkins 사용자 인증 정책 (SSH 사용자 = Jenkins 사용자?)은 사용자 결정 사항.
+- 사용자 권한 부여 (cycle-015): SSH 사용자 (cloviradmin) = Jenkins UI 사용자. Browser E2E login 활성.

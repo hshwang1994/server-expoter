@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """pre-commit hook — Jenkinsfile* cron 변경 시 가드 (← pre_commit_scheduler_guard 대체).
 
-server-exporter는 Jenkins multi-pipeline (Jenkinsfile / _grafana / _portal) 구조.
+server-exporter는 Jenkins multi-pipeline (Jenkinsfile / _portal) 구조 (cycle-015에서 _grafana 제거).
 cron 트리거 변경은 운영 영향 큼 → 변경 시 사용자 확인 권고 (advisory).
 
 Usage:

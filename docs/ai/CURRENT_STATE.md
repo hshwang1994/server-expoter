@@ -4,7 +4,7 @@
 
 ## 요약 (cycle-015)
 
-cycle-014 (4 vendor BMC code path + HIGH Jinja2 fix `bf247266`) 직후, 사용자가 lab 전체 (28 호스트) 권한 + Browser E2E 인프라 명시 결정. cycle-015 5 Phase 자율 처리 완료.
+cycle-014 (4 vendor BMC code path + HIGH Jinja2 fix `bf247266`) 직후, 사용자가 lab 권한 + Browser E2E 명시 결정 + 후속 cleanup ("Grafana 파일 제거 / Dell 32 + Cisco 2 + Win10 제거 / Win 2022 IP 정정 + firewall 해제"). cycle-015 Phase A~F 일괄 자율 처리 완료. 호스트 카운트 28→23 정정. **BMC 7/9 primary auth 성공 (OPS-3 vault sync 가능 확인)**.
 
 cycle-015 변경 (이번 세션, 2026-04-29):
 
@@ -34,6 +34,17 @@ cycle-015 변경 (이번 세션, 2026-04-29):
   - `tests/evidence/cycle-015/connectivity-2026-04-29.md` 신규
 - **표면 카운트**: catalogs 8→9 (+LAB_INVENTORY), decisions 4→5 (+lab-access-grant), 신규 디렉터리 2 (`inventory/lab/` gitignored, `tests/e2e_browser/`)
 - **검증**: Browser E2E smoke 1/1 PASS. harness consistency / vendor boundary / project_map_drift는 본 cycle 종료 직전 실행.
+
+cycle-015 Phase F (자율 매트릭스 일괄 — 사용자 "남아있는 작업 모두수행해라" + cleanup 결정 후):
+
+- **F-1 Cleanup**: Jenkinsfile_grafana 삭제 + 모든 참조 정리 (rule 80/13/31/00 + JENKINS_PIPELINES + CLAUDE.md + LAB_INVENTORY + ai-context + policy + hooks). 호스트 정정 (10.100.15.32 / 10.100.15.2 / 10.100.64.120 제거 + Win Server 2022 IP 132→**10.100.64.135** 정정). 호스트 카운트 26→23.
+- **F-2 OPS-3 partial**: lab credentials BMC password가 7/9 BMC와 sync — Dell × 5 + HPE + Lenovo 모두 200 OK ServiceRoot+Systems+Managers (`bmc-auth-probe-2026-04-29.json`). Cisco 1, 3은 503/timeout (OPS-11 잔여).
+- **F-2 AI-13 Linux raw fallback**: 6/6 SSH PASS. **RHEL 8.10 Python 3.6.8 → python_incompatible** = rule 10 R4 분기 실증 (`linux-probe-2026-04-29.json`).
+- **F-2 AI-14 Browser E2E login 활성**: cloviradmin/Goodmit0802!로 Jenkins master login PASS — `test_master_login_then_dashboard[chromium]`.
+- **F-2 AI-12 Dell × 5 Round 11 endpoint coverage**: 5/5 PowerEdge R760 BIOS 2.3.5 / Xeon Silver 4510 / Systems+Storage+NIC+FW+Accounts 모두 응답 (`dell-round11-endpoint-coverage.json`).
+- **F-2 WinRM Win 2022**: 정정된 IP (10.100.64.135) administrator/NTLM PASS. OS Build 20348 / PS 5.1 / Xeon Silver 4510 / 8GB.
+- **closed (cycle-015)**: OPS-10 (firewall) / OPS-12 (Dell 32) / OPS-13 (Cisco 2) / OPS-15 (Grafana) / AI-13 / AI-14 / AI-15 (obviated)
+- **잔여**: OPS-9 (private 전환), OPS-3 (운영팀 vault encrypt), OPS-11 (Cisco 1,3 일시 장애), AI-16 (BMC Web UI E2E), AI-17 (baseline 정식 갱신), AI-18 (raw fallback ansible-playbook 실 실행)
 
 ## 일자: 2026-04-29 (cycle-014 — 4 vendor BMC 실 검증 + HIGH Jinja2 fix + vault sync 발견)
 

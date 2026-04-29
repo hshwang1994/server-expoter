@@ -557,7 +557,7 @@ scripts/ai/       # 자동화 스크립트 (Python 27, OS 중립)
 - **Linux 2-tier**: Python 3.9+ ok / raw fallback 자동 분기
 - **JSON envelope**: status / sections / data / errors / meta / diagnosis (6 필드 고정)
 - **4단계 Precheck**: ping → port → protocol → auth
-- **Jenkins 4-Stage**: Validate → Gather → Validate Schema → **(pipeline별)** Stage 4 (`Jenkinsfile`=E2E Regression / `Jenkinsfile_grafana`=Ingest / `Jenkinsfile_portal`=Callback)
+- **Jenkins 4-Stage**: Validate → Gather → Validate Schema → **(pipeline별)** Stage 4 (`Jenkinsfile`=E2E Regression / `Jenkinsfile_portal`=Callback). cycle-015에서 `Jenkinsfile_grafana` 제거
 - **벤더 추가 3단계**: vendor_aliases.yml + adapter YAML + (선택) OEM tasks (site.yml 수정 불필요)
 
 ### 갭 리포트 해석 주의

@@ -11,7 +11,7 @@
 - field_dictionary.yml: **31 Must + 9 Nice + 6 Skip = 46 entries** (실측 2026-04-28 cycle-006, users 섹션 +6 추가로 DRIFT-004 resolved)
 - baseline_v1: vendor별 회귀 기준선
 - Jenkins Stage 3 (Validate Schema) + Stage 4가 FAIL 게이트
-  (Stage 4는 pipeline별 다름 — `Jenkinsfile`=E2E Regression / `Jenkinsfile_grafana`=Ingest / `Jenkinsfile_portal`=Callback, 정본은 rule 80 R1-A)
+  (Stage 4는 pipeline별 다름 — `Jenkinsfile`=E2E Regression / `Jenkinsfile_portal`=Callback, 정본은 rule 80 R1-A. cycle-015에서 `Jenkinsfile_grafana` 제거)
 - DB schema 없음 — 본 출력 schema가 동등 역할
 
 ## 목표 규칙

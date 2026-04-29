@@ -1,39 +1,39 @@
 # JENKINS_PIPELINES — server-exporter
 
-> Jenkins multi-pipeline 3종 카탈로그. rule 28 #4-5 측정 대상 (TTL 7-14일).
-> 실측 (`grep stage Jenkinsfile*`) — 2026-04-29 (cycle-012 vault binding 반영).
+> Jenkins multi-pipeline 2종 카탈로그. rule 28 #4-5 측정 대상 (TTL 7-14일).
+> 실측 (`grep stage Jenkinsfile*`) — 2026-04-29 (cycle-015 — `Jenkinsfile_grafana` 제거됨).
 
-## 3종 Pipeline 4-Stage 매트릭스 (실측)
+## 2종 Pipeline 4-Stage 매트릭스 (실측)
 
 | Pipeline | Stage 1 | Stage 2 | Stage 3 | Stage 4 |
 |---|---|---|---|---|
 | `Jenkinsfile` | Validate | Gather | Validate Schema | **E2E Regression** |
-| `Jenkinsfile_grafana` | Validate | Gather | Validate Schema | **Ingest** (Grafana 데이터 적재) |
 | `Jenkinsfile_portal` | Validate | Gather | Validate Schema | **Callback** (호출자 통보) |
+
+> **cycle-015 변경**: `Jenkinsfile_grafana` 삭제 (사용자 명시 결정 — Grafana 적재 미사용).
 
 **[INFO]** Plan/design 문서에서 "4-Stage = Validate/Gather/Validate Schema/**E2E Regression**" 으로 일반화 표기했으나, 실측 결과 **Stage 4가 Jenkinsfile별로 다름**.
 
 ## Stage별 책임
 
-| Stage | 공통 (모든 3종) | Stage 4 차이 |
+| Stage | 공통 (모든 2종) | Stage 4 차이 |
 |---|---|---|
 | 1. Validate | 입력 형식 (target_type / loc / inventory_json) | — |
 | 2. Gather | ansible-playbook 실행 (해당 채널) | — |
 | 3. Validate Schema | field_dictionary 정합 | — |
 | 4. (pipeline별) | — | Jenkinsfile: pytest baseline 회귀 |
-| | — | Jenkinsfile_grafana: Grafana 데이터 적재 (Ingest) |
 | | — | Jenkinsfile_portal: 호출자 callback (Callback) |
 
 ## agent-master 망 분리 (이전 commit 8bd80c1 / 8b2f128 참조)
 
-| Stage | Jenkinsfile | Jenkinsfile_grafana | Jenkinsfile_portal |
-|---|---|---|---|
-| Validate | master | master | master |
-| Gather | agent (loc) | agent | agent |
-| Validate Schema | master | master | master |
-| Stage 4 | master (pytest) | **master (Ingest)** | **master (Callback)** |
+| Stage | Jenkinsfile | Jenkinsfile_portal |
+|---|---|---|
+| Validate | master | master |
+| Gather | agent (loc) | agent |
+| Validate Schema | master | master |
+| Stage 4 | master (pytest) | **master (Callback)** |
 
-`Ingest`(Grafana)와 `Callback`(Portal)은 망 분리 정책에 따라 **master에서 실행**.
+`Callback`(Portal)은 망 분리 정책에 따라 **master에서 실행**.
 
 ## vault binding (cycle-012 추가)
 
@@ -45,11 +45,10 @@ Jenkins credential `server-gather-vault-password` (type: **Secret File**) 사용
 | credential type | Secret File |
 | Jenkinsfile 패턴 | `withCredentials([file(credentialsId: 'server-gather-vault-password', variable: 'VAULT_PASSWORD_FILE')]) { ... }` |
 | ansible-playbook 인자 | `--vault-password-file=${VAULT_PASSWORD_FILE}` |
-| 적용 stage | Stage 2 (Gather) — 3종 Jenkinsfile 모두 |
+| 적용 stage | Stage 2 (Gather) — 2종 Jenkinsfile 모두 |
 
-**위치 실측 (2026-04-29)**:
+**위치 실측 (2026-04-29 cycle-012)**:
 - `Jenkinsfile:148-161` (Stage 2 Gather, ansiblePlaybook extras 인자)
-- `Jenkinsfile_grafana:153-165` (Stage 2 Gather, sh ansible-playbook)
 - `Jenkinsfile_portal:164-176` (Stage 2 Gather, sh ansible-playbook)
 
 **vault encrypt 상태 (cycle-012)**: 8 vault 파일 (linux/windows/esxi + redfish/{dell,hpe,lenovo,supermicro,cisco}) 모두 ansible-vault AES256 encrypt 완료. 평문 password 더 이상 commit 안 됨.
@@ -78,20 +77,21 @@ Jenkinsfile_portal의 Stage 4 Callback이 호출자에게 결과 통지:
 ## 측정 명령
 
 ```bash
-grep -E "stage\s*\(" Jenkinsfile Jenkinsfile_grafana Jenkinsfile_portal
+grep -E "stage\s*\(" Jenkinsfile Jenkinsfile_portal
 grep -E "callback_url|triggers|cron" Jenkinsfile*
 ```
 
 ## 정본 reference
 
-- `Jenkinsfile`, `Jenkinsfile_grafana`, `Jenkinsfile_portal` (정본)
+- `Jenkinsfile`, `Jenkinsfile_portal` (정본)
 - `docs/01_jenkins-setup.md`, `docs/04_job-registration.md`, `docs/17_jenkins-pipeline.md`
 - `.claude/ai-context/infra/convention.md`
 - `docs/ai/references/jenkins/pipeline-syntax.md`
 
 ## 후속 작업 (사용자 결정)
 
-- [x] rule 80 R1-A에 pipeline별 Stage 4 차이 명시 (cycle-006, 2026-04-27 commit `211a0c7`) — closed 2026-04-28 full-sweep
-- [x] vault encrypt + credential `server-gather-vault-password` 등록 (cycle-012, commit `29fee49a`)
+- [x] rule 80 R1-A에 pipeline별 Stage 4 차이 명시 (cycle-006) — closed 2026-04-28 full-sweep
+- [x] vault encrypt + credential `server-gather-vault-password` 등록 (cycle-012)
+- [x] **Jenkinsfile_grafana 제거** (cycle-015, 사용자 명시 결정)
 - [ ] Jenkins console에서 cron 표현식 실측 + 본 catalog 갱신
 - [ ] OPS-1 빌드 시범 1회 후 envelope `meta.auth.fallback_used` 값 추가 검증

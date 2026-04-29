@@ -35,22 +35,35 @@ def test_master_dashboard_reachable(page: Page, lab_creds) -> None:
     )
 
 
-@pytest.mark.skip(
-    reason=(
-        "Jenkins master 인증 시나리오는 사용자 계정 / API token 정책 결정 후 활성화."
-        " cycle-014 후속 작업 (NEXT_ACTIONS)"
-    )
-)
-def test_master_login_then_jobs_listed(page: Page, lab_creds) -> None:
-    """SSH 자격증명 (cloviradmin/Goodmit0802!)이 Jenkins 로컬 사용자와 동일한지
-    cycle-014 시점 미확인. Jenkins 사용자 / API token 정책 정해진 후 활성화."""
+def test_master_login_then_dashboard(page: Page, lab_creds) -> None:
+    """Jenkins master 로그인 + dashboard 진입 검증.
+
+    cycle-015 사용자 권한 부여로 cloviradmin/Goodmit0802! 사용 활성.
+    """
     master = _first_master(lab_creds)
     url = master["web_url"]
 
-    page.goto(f"{url}/login", wait_until="domcontentloaded")
-    page.fill("input[name='j_username']", master["ssh_user"])
-    page.fill("input[name='j_password']", master["ssh_password"])
-    page.click("button[name='Submit']")
+    page.goto(f"{url}/login", wait_until="domcontentloaded", timeout=15000)
 
-    expect(page).to_have_url(lambda u: "login" not in u, timeout=10000)
-    expect(page.locator("#tasks")).to_be_visible(timeout=10000)
+    # Jenkins login form (input id varies by Jenkins version)
+    user_input = page.locator(
+        "input[name='j_username'], input#j_username"
+    ).first
+    pwd_input = page.locator(
+        "input[name='j_password'], input#j_password"
+    ).first
+    user_input.fill(master["ssh_user"])
+    pwd_input.fill(master["ssh_password"])
+
+    submit = page.locator(
+        "button[name='Submit'], input[name='Submit'], button[type='submit']"
+    ).first
+    submit.click()
+
+    # 인증 성공이면 login URL 벗어남 + 페이지가 200
+    page.wait_for_load_state("domcontentloaded", timeout=15000)
+    assert "/login" not in page.url, f"Still on login page: {page.url}"
+
+    # dashboard / "Jenkins" 텍스트 존재 (header 또는 title)
+    title = page.title()
+    assert "Jenkins" in title, f"Title doesn't contain 'Jenkins': {title}"

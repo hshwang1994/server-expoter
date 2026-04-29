@@ -15,7 +15,7 @@
 - Adapter 25개 (Redfish 14 + OS 7 + ESXi 4)
 - Schema 10 sections + Field Dictionary 31 Must + 9 Nice + 6 Skip = 46 entries (cycle-006 실측)
 - 145+ Test fixtures + 7+ baseline JSON
-- Jenkins multi-pipeline (Jenkinsfile / _grafana / _portal) — Bitbucket 미사용
+- Jenkins multi-pipeline 2종 (Jenkinsfile / _portal) — Bitbucket 미사용 (cycle-015에서 _grafana 제거)
 - 운영: 단일 main + feature/* 브랜치
 - 정본: REQUIREMENTS.md / GUIDE_FOR_AI.md / README.md / docs/01~19
 

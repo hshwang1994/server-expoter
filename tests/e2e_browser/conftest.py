@@ -3,7 +3,7 @@
 Markers:
   - lab: requires `vault/.lab-credentials.yml` (gitignored)
   - jenkins: targets Jenkins master Web UI
-  - grafana: targets Grafana dashboard (Jenkinsfile_grafana ingest)
+  - bmc: targets BMC Web UI (iDRAC / iLO / XCC / CIMC)
   - slow: longer than 30s
 """
 from __future__ import annotations
@@ -16,7 +16,7 @@ from .lab_loader import LabCreds, load_lab_creds
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "lab: requires lab credentials file")
     config.addinivalue_line("markers", "jenkins: Jenkins UI test")
-    config.addinivalue_line("markers", "grafana: Grafana UI test")
+    config.addinivalue_line("markers", "bmc: BMC Web UI test")
     config.addinivalue_line("markers", "slow: takes >30s")
 
 

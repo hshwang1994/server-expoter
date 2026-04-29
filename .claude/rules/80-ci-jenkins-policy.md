@@ -1,14 +1,14 @@
 # CI / Jenkins 정책
 
 ## 적용 대상
-- `Jenkinsfile`, `Jenkinsfile_grafana`, `Jenkinsfile_portal`
+- `Jenkinsfile`, `Jenkinsfile_portal`
 - `ansible.cfg`
 - Jenkins Job 등록 (docs/04)
 - callback URL endpoint 구성
 
 ## 현재 관찰된 현실
 
-- Jenkins multi-pipeline 3종 (`Jenkinsfile` / `Jenkinsfile_grafana` / `Jenkinsfile_portal`)
+- Jenkins multi-pipeline 2종 (`Jenkinsfile` / `Jenkinsfile_portal`) — cycle-015에서 `Jenkinsfile_grafana` 제거 (사용자 명시 결정 — Grafana 적재 미사용)
 - 외부 CI 시스템 미사용 (Jenkins 단독)
 - 4-Stage: Validate / Gather / Validate Schema / **(pipeline별 Stage 4)** — 아래 R1-A 참조
 - agent-master 망 분리: Ingest / Callback은 master, gather는 agent
@@ -32,8 +32,9 @@
 | Pipeline | Stage 4 | 책임 |
 |---|---|---|
 | `Jenkinsfile` | E2E Regression | pytest baseline 회귀 (영향 vendor) |
-| `Jenkinsfile_grafana` | Ingest | Grafana 데이터 적재 (master 실행) |
 | `Jenkinsfile_portal` | Callback | 호출자 통보 (master 실행, rule 31 무결성) |
+
+> **cycle-015**: `Jenkinsfile_grafana` 제거됨 (사용자 명시 결정).
 
 상세: `docs/ai/catalogs/JENKINS_PIPELINES.md`.
 
@@ -46,7 +47,6 @@
 
 ### R3. agent-master 망 분리
 
-- Ingest 단계 (Grafana 데이터 등) → master 실행 (`Jenkinsfile_grafana`)
 - Callback 단계 → master (`Jenkinsfile_portal`)
 - gather (ansible-playbook) → agent 실행
 
