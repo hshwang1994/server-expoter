@@ -26,11 +26,21 @@
         cores_physical:  "{{ _e_raw_facts.ansible_processor_cores | default(none) }}"
         logical_threads: "{{ _e_raw_facts.ansible_processor_vcpus | default(none) }}"
         model:           "{{ _e_raw_facts.ansible_processor       | default(none) }}"
+        max_speed_mhz:   "{{ _e_raw_facts.ansible_processor_mhz   | default(none) }}"
         architecture:    "{{ _e_raw_facts.ansible_machine         | default(none) }}"
-        # cycle-016 (2026-04-29): ESXi 는 vSphere API 가 model 1개만 노출 — sockets 단순 카운트
+        # cycle-016 Phase O: ESXi cpu.summary.groups 에 max_speed_mhz / manufacturer / architecture 추가
         summary:
           groups:
             - model:            "{{ _e_raw_facts.ansible_processor | default('unknown') }}"
+              manufacturer: >-
+                {%- set p = _e_raw_facts.ansible_processor | default('') | lower -%}
+                {%- if 'intel' in p -%}Intel
+                {%- elif 'amd' in p -%}AMD
+                {%- elif p -%}{{ _e_raw_facts.ansible_processor.split()[0] | default('unknown') }}
+                {%- else -%}{{ none }}
+                {%- endif -%}
+              max_speed_mhz:    "{{ _e_raw_facts.ansible_processor_mhz | default(none) }}"
+              architecture:     "{{ _e_raw_facts.ansible_machine | default(none) }}"
               sockets:          "{{ _e_raw_facts.ansible_processor_count | default(0) | int }}"
               cores_per_socket: >-
                 {%- set s = (_e_raw_facts.ansible_processor_count | default(0) | int) -%}

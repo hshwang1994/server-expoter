@@ -387,6 +387,10 @@
         - name: "windows | gather system"
           ansible.builtin.include_tasks: tasks/windows/gather_system.yml
 
+        # cycle-016 Phase O: Windows hardware section 활성화
+        - name: "windows | gather hardware"
+          ansible.builtin.include_tasks: tasks/windows/gather_hardware.yml
+
         - name: "windows | gather cpu"
           ansible.builtin.include_tasks: tasks/windows/gather_cpu.yml
 

@@ -1,23 +1,68 @@
 ---
 # os-gather/tasks/windows/gather_cpu.yml → data.cpu fragment
+# cycle-016 Phase O: Win32_Processor 풍부 필드 (manufacturer/max_clock/L2/L3/architecture) 추가
 
-- name: "windows | cpu | collect"
+- name: "windows | cpu | collect Win32_Processor 상세"
   ansible.windows.win_shell: |
-    $cpu = Get-CimInstance Win32_Processor
-    [PSCustomObject]@{
-      sockets  = ($cpu | Measure-Object).Count
-      cores    = ($cpu | Measure-Object -Property NumberOfCores -Sum).Sum
-      logical  = ($cpu | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
-      model    = ($cpu | Select-Object -First 1 -ExpandProperty Name)
-    } | ConvertTo-Json -Compress
+    $cpus = Get-CimInstance Win32_Processor
+    $procs = $cpus | ForEach-Object {
+      [PSCustomObject]@{
+        socket_designation = $_.SocketDesignation
+        name               = $_.Name
+        manufacturer       = $_.Manufacturer
+        cores              = [int]$_.NumberOfCores
+        logical            = [int]$_.NumberOfLogicalProcessors
+        max_clock_mhz      = [int]$_.MaxClockSpeed
+        l2_cache_kb        = [int]$_.L2CacheSize
+        l3_cache_kb        = [int]$_.L3CacheSize
+        processor_id       = $_.ProcessorId
+        architecture_code  = [int]$_.Architecture
+      }
+    }
+    @{
+      sockets   = ($cpus | Measure-Object).Count
+      cores     = ($cpus | Measure-Object -Property NumberOfCores -Sum).Sum
+      logical   = ($cpus | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
+      model     = ($cpus | Select-Object -First 1 -ExpandProperty Name)
+      manufacturer  = ($cpus | Select-Object -First 1 -ExpandProperty Manufacturer)
+      max_clock_mhz = ($cpus | Select-Object -First 1 -ExpandProperty MaxClockSpeed)
+      processors = $procs
+    } | ConvertTo-Json -Depth 4 -Compress
   register: _w_cpu_raw
   changed_when: false
   failed_when: false
   no_log: true
 
-- name: "windows | cpu | build fragment"
+- name: "windows | cpu | parse"
   ansible.builtin.set_fact:
     _w_cpu_data: "{{ _w_cpu_raw.stdout | default('{}') | from_json }}"
+  no_log: true
+
+- name: "windows | cpu | compute summary groups"
+  ansible.builtin.set_fact:
+    _w_cpu_summary: >-
+      {%- set ns = namespace(groups=[], seen={}) -%}
+      {%- for p in (_w_cpu_data.processors | default([])) -%}
+        {%- set m = p.name | default('unknown') -%}
+        {%- if m in ns.seen -%}
+          {%- set idx = ns.seen[m] -%}
+          {%- set _ = ns.groups[idx].update({'sockets': ns.groups[idx].sockets + 1, 'total_cores': ns.groups[idx].total_cores + (p.cores | default(0) | int)}) -%}
+        {%- else -%}
+          {%- set _ = ns.seen.update({m: ns.groups | length}) -%}
+          {%- set _ = ns.groups.append({
+            'model': m,
+            'manufacturer': p.manufacturer | default(none),
+            'max_speed_mhz': p.max_clock_mhz | default(none),
+            'l2_cache_kb': p.l2_cache_kb | default(none),
+            'l3_cache_kb': p.l3_cache_kb | default(none),
+            'sockets': 1,
+            'cores_per_socket': p.cores | default(0) | int,
+            'total_cores': p.cores | default(0) | int
+          }) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ {'groups': ns.groups} }}
+  no_log: true
 
 - name: "windows | cpu | set fragment"
   ansible.builtin.set_fact:
@@ -27,6 +72,8 @@
         cores_physical:  "{{ _w_cpu_data.cores    | default(none) }}"
         logical_threads: "{{ _w_cpu_data.logical  | default(ansible_processor_vcpus | default(none)) }}"
         model:           "{{ _w_cpu_data.model    | default(none) }}"
+        manufacturer:    "{{ _w_cpu_data.manufacturer | default(none) }}"
+        max_speed_mhz:   "{{ _w_cpu_data.max_clock_mhz | default(none) }}"
         architecture: >-
           {%- set _arch = ansible_architecture | default('') -%}
           {%- if _arch in ['x86_64', 'AMD64', 'amd64'] -%}x86_64
@@ -36,6 +83,7 @@
           {%- elif _arch -%}{{ _arch }}
           {%- else -%}{{ none }}
           {%- endif -%}
+        summary:         "{{ _w_cpu_summary | default({'groups': []}) }}"
     _sections_supported_fragment: ['cpu']
     _sections_collected_fragment: ['cpu']
     _sections_failed_fragment:    []
