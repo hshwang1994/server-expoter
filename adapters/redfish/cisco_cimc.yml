@@ -3,9 +3,9 @@
 # Vendor: Cisco
 # Firmware: 4.x / 5.x
 # Origin: Cisco UCS Manager / CIMC Redfish API documentation
-# Last sync: 2026-04-28 (Round 11 reference 수집)
+# Last sync: 2026-04-29 (cisco-critical-review 실측 재확인)
 # Notes: UCS C-Series. strategy: standard_only (OEM 디렉터리 미생성).
-# Tested against (실측 2026-04-28, Round 11):
+# Tested against (실측 2026-04-29, cisco-critical-review):
 #   - TA-UNODE-G1 (Cisco Systems Inc) × 1대 (10.100.15.2)
 #   - CIMC FirmwareVersion: "4.1(2g)"
 #   - BIOS: C220M4.4.1.2c.0.0202211901 (UCS C220 M4 계열)
@@ -13,16 +13,34 @@
 #   - CPU: Intel Xeon E5-2699 v4 (Broadwell-EP)
 #   - System ID: FCH2116V1V0 (URI: /redfish/v1/Systems/FCH2116V1V0)
 #   - Manager URI: /redfish/v1/Managers/CIMC
-#   - 데이터 경로: tests/reference/redfish/cisco/10_100_15_2/
+#   - PSU: 770W × 2 (InputRanges[0].OutputWattage)
+#   - DIMM: 16 × 64 GiB DDR4-2400
+#   - 데이터 경로: tests/fixtures/redfish/cisco/, tests/evidence/2026-04-29-cisco-redfish-critical-review.md
 #   - 주의: ServiceRoot.Oem 키 비어있음
 # Untested (Round 11 환경 이슈):
 #   - 10.100.15.1: HTTP 503 (CIMC 서비스 다운)
 #   - 10.100.15.3: connect timeout (BMC 도달 불가)
-# 세대 차등 검토 (NEXT_ACTIONS T3-03 / 2026-04-28):
-#   - 현재 검증: M4 1대 (FCH2116V1V0)
-#   - M5/M6 실장비 검증 데이터 부족 — rule 13 R4에 따라 차등 분리 보류
-#   - 향후 M5/M6 검증 후 cisco_cimc5.yml / cisco_cimc6.yml 차등 분리 검토
-#   - 현재는 cisco_bmc.yml (priority=10) generic fallback만 신설 (일관성)
+#
+# Quirks (실측 확정 2026-04-29 — gather 코드의 fallback 경로가 처리):
+#   Q1. ServiceRoot.Vendor = "Cisco Systems Inc."(마침표) vs
+#       System.Manufacturer = "Cisco Systems Inc"(마침표 없음). 두 표기 모두
+#       _FALLBACK_VENDOR_MAP / adapter match list에 등록 — 매치 OK.
+#   Q2. PowerSupplies[*].PowerCapacityWatts = null. PSU 정격은 InputRanges[0].
+#       OutputWattage 에 위치. → gather_power 의 fallback 으로 채움 (770W).
+#   Q3. PowerControl[0].PowerCapacityWatts = null. → PSU power_capacity_w 합산
+#       으로 fallback (770×2 = 1540W).
+#   Q4. Manager.Manufacturer = null, Manager.Model = chassis Model("TA-UNODE-G1")
+#       — Cisco Manager 자체 모델 정보 부재. data.bmc.model 과 data.hardware.model
+#       이 동일하게 보임 (호출자에게 영향 없음 — envelope 그대로).
+#   Q5. UpdateService/FirmwareInventory 에 빈 슬롯도 Version="N/A" 로 emit
+#       (slot-1, slot-2 등 PCIe 미장착). → gather_firmware 가 N/A/""/NA skip.
+#   Q6. Processor: TotalCores = TotalEnabledCores = TotalThreads (HT 미보고).
+#       E5-2699 v4 실 사양은 22C/44T 이지만 Cisco CIMC 4.x 펌웨어가 thread 수를
+#       cores 와 동일하게 응답. 호출자 capacity planning 시 logical_threads 가
+#       cores 와 같다는 점 인지 필요 (코드 fix 불가 — RAW 응답 반영).
+#   Q7. Manager NIC NameServers + IPv4Addresses[*].Gateway 응답함 — gather_bmc
+#       의 _network_meta 임시 키로 추출 후 normalize_standard.yml 의 dns_servers
+#       / default_gateways 에 union (이전: dns_servers 하드코딩 [], 손실).
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_cisco_cimc
 channel: redfish

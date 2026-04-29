@@ -3,10 +3,11 @@
 # Vendor: Cisco
 # Firmware: 모든 세대 (CIMC 미매치 시 fallback)
 # Origin: Cisco UCS / CIMC Redfish API documentation
-# Last sync: 2026-04-28 (T3-03 / 일관성 보강)
+# Last sync: 2026-04-29 (cisco-critical-review)
 # Notes: generic Cisco fallback (priority=10). Lenovo/Dell/HPE/Supermicro와 동일 패턴.
 #   cisco_cimc.yml (priority=100)이 vendor 매치되면 우선. 본 adapter는 vendor만
 #   "Cisco"로 시작하면서 세대별 미매치인 보완 경로.
+# Quirks: cisco_cimc.yml 의 Q1~Q7 참조 (fallback 처리 동일 적용).
 # Tested against: schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_cisco_bmc

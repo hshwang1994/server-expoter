@@ -109,3 +109,46 @@ envelope 13 필드 정합 OK
 - Python py_compile PASS (redfish_gather.py)
 - YAML parse PASS (normalize_standard.yml 9 task)
 - ansible-playbook 실 BMC 실행 RC=0
+
+## 4 vendor 회귀 검증 (2026-04-29 17:50)
+
+ansible-playbook 4 host 동시 실행 (`-f 4`) — INVENTORY_JSON에 cisco/dell/hpe/lenovo 4대 BMC.
+
+| Vendor | IP | status | dns_servers | default_gateways | PSU cap_w | pc.capacity_w | firmware # | _network_meta 누설 |
+|---|---|---|---|---|---|---|---|---|
+| cisco | 10.100.15.2 | success | `["10.100.13.9"]` | `[10.100.15.254]` | `[770, 770]` | 1540 | 5 | False |
+| dell  | 10.50.11.162 | **failed** | `[]` | `[]` | `[]` | None | 0 | False |
+| hpe   | 10.50.11.231 | success | `[]` | `[10.50.11.254]` | `[800, 800]` | 800 | 28 | False |
+| lenovo | 10.50.11.232 | success | `[]` | `[10.50.11.254]` | `[None, 750]` | 750 | 17 | False |
+
+### Dell status=failed (코드 fix 회귀 아님)
+
+- ServiceRoot 무인증 GET OK (Vendor=Dell 응답)
+- `/redfish/v1/Systems/System.Embedded.1` 인증 시 `HTTP 401`
+- vault `dell.yml`의 `root / GoodskInfra1!` 자격증명 만료/잠금/변경 추정
+- **운영 issue** — 우리 fix와 무관. 별도 vault 회전 필요 (`rotate-vault` skill)
+- 후속: Dell BMC 비밀번호 확인 + vault 갱신 후 재검증
+
+### HPE — dns_servers 빈 배열 (정상)
+
+- HPE iLO 6의 NameServers 응답이 placeholder (`['0.0.0.0','::']`) — `_rf_norm_dns`의 placeholder 필터로 빈 배열. 정상 동작
+- default_gateways 정상 채워짐
+
+### Lenovo — PSU1 power_capacity_w=None (실 hardware 결함)
+
+- PSU1 raw: `Health=Critical`, `InputRanges[0]={OutputWattage:None,...}` — 모두 None
+- 실제 PSU 고장 또는 커넥터 분리 상태 (Health=Critical 표시)
+- 코드 fallback이 InputRanges도 응답이 None이면 그대로 None — 정상 동작
+- 후속: Lenovo PSU1 hardware 점검 (운영 issue, 우리 작업 외)
+
+### 4 vendor 공통 검증
+
+- envelope **13 필드 정합** (4 vendor 모두)
+- `bmc._network_meta` 키 **누설 없음** (4 vendor 모두 — `_rf_d_bmc_clean` 정상 동작)
+- `gather_firmware` N/A 필터 — Cisco에서 7→5 감소, 다른 vendor는 N/A 응답 거의 없어 변화 미미
+- `power_capacity_w` fallback — Cisco PSU 770 채움, Lenovo PSU1은 InputRanges도 None이라 fallback도 미동작 (정상)
+
+## rule 96 R1 origin 주석 추가
+
+- `adapters/redfish/cisco_cimc.yml`에 Quirk Q1~Q7 명시
+- `adapters/redfish/cisco_bmc.yml`에 Q1~Q7 reference 표시

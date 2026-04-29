@@ -15,6 +15,10 @@
 | **OPS-AUDIT-7** HPE iLO4 / iLO6 / Dell iDRAC8 / Lenovo IMM2 baseline | 외부 의존 | adapter 정의는 있으나 baseline 없음 |
 | **OPS-HPE-REVIEW-1** HPE iLO 6 baseline 재수집 (10.50.11.231) | 운영 작업 (Jenkins job) | 2026-04-29 hpe-critical-review fix 5건 적용 후. 현재 baseline 은 cycle-016 Phase M/N 이전 stale — 재수집 시 본 fix 효과 (bios_date / ilo_version / cpu.architecture / hostname / is_primary / 빈 문자열 정규화) 모두 반영. evidence: `tests/evidence/2026-04-29-hpe-redfish-critical-review.md` |
 | **OPS-HPE-REVIEW-2** Dell baseline 재검토 | 운영 작업 (실 Dell 장비) | `_hoist_oem_extras` 적용으로 Dell `hardware.bios_date` 도 채워짐 (이전: null). 실 Dell 검증 후 baseline 갱신 |
+| **OPS-CISCO-REVIEW-1** Cisco baseline 재수집 (10.100.15.2) | 운영 작업 (사용자 결정) | 2026-04-29 cisco-critical-review fix 5건 (H1 dns_servers / H2 default_gateways / H3 PSU power_capacity_w / H4 power_control.power_capacity_watts / L1 firmware N/A 필터) 적용 후. dynamic 필드 (`power_consumed_watts/avg/max`, `bmc.datetime`) 정책 결정 (nullify vs realtime) 후 재캡처. evidence: `tests/evidence/2026-04-29-cisco-redfish-critical-review.md` |
+| **OPS-CISCO-REVIEW-2** Cisco baseline `data.bmc` Phase M/N 신규 8 필드 보강 | 운영 작업 | `cisco_baseline.json` `data.bmc` 가 cycle-016 Phase M/N 이전 stale (datetime / datetime_offset / mac_address / dns_name / uuid / last_reset_time / timezone / power_state 부재). 코드 fix 후 baseline 재수집 시 자연 반영 — OPS-CISCO-REVIEW-1 와 묶어 진행 |
+| **OPS-DELL-VAULT-1** Dell BMC vault 자격증명 회전 (10.50.11.162) | 운영 작업 (보안) | 2026-04-29 cisco-critical-review 4 vendor 회귀 검사 결과 — vault `dell.yml` (root/GoodskInfra1!) 로 BMC 인증 시 `HTTP 401`. ServiceRoot 무인증 GET 은 정상 (Vendor=Dell 응답) → BMC 자격증명 만료/잠금/변경 추정. `rotate-vault` skill 사용. evidence: `tests/evidence/2026-04-29-cisco-redfish-critical-review.md` 4 vendor 회귀 검증 표 |
+| **OPS-LENOVO-PSU1** Lenovo 10.50.11.232 PSU1 hardware 점검 | 운영 작업 (실 hardware) | 2026-04-29 회귀 검사에서 발견 — PSU1 `Health=Critical`, `InputRanges[0].OutputWattage=null` (정격 미응답). 실 PSU 고장 또는 커넥터 분리. PSU 교체 또는 커넥터 점검 필요. envelope 정상 (코드 fix 동작 OK — PSU2 `power_capacity_w=750` 정상 채움) |
 
 ## 일자: 2026-04-29 (cycle-016 종료 시점 — 사용자 11 항목 점검 + 실 Jenkins 빌드 5회 + summary grouping 완성)
 

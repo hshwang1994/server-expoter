@@ -1,5 +1,48 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-04-29 (Cisco Redfish 비판적 검증 — envelope 값 미채움 5건 fix + 4 vendor 회귀)
+
+## 요약 (Cisco Redfish bug-fix — 2026-04-29 17:50, 4 vendor 통합 검증)
+
+사용자 명시 보고: "Cisco Redfish 실 데이터 수집 안 되거나 값 이상한 것을 비판적 관점으로 raw 와 비교 검증. 키 늘릴 이유 없음. 버그 있으면 묻지 말고 모두 fix."
+
+실 BMC `10.100.15.2` (Cisco UCS C220 M4 / CIMC 4.1(2g)) raw API 7 endpoint 직접 dump → `redfish_gather.py` + `normalize_standard.yml` path 비교 → envelope 키 미채움/잘못된 매핑 **5건 fix**:
+
+- **H1**: `network.dns_servers` `[]` 하드코딩. → `gather_bmc` 가 BMC NIC NameServers/StaticNameServers 추출 (`_network_meta` 임시 키), `normalize_standard.yml` 의 신설 `_rf_norm_dns` 가 union (placeholder `0.0.0.0`/`::` 필터 — hpe-review 보강 누적). 실측: `["10.100.13.9"]` 채워짐
+- **H2**: `network.default_gateways` server NIC만 (Cisco server NIC IPv4 미응답). → `_rf_norm_gateways` 가 BMC NIC `IPv4Addresses[*].Gateway` 도 union. 실측: `[{family:ipv4, address:10.100.15.254}]` 채워짐
+- **H3**: `power.power_supplies[*].power_capacity_w` null (Cisco는 PowerCapacityWatts 미응답). → `gather_power` PSU 정규화 시 `InputRanges[0].OutputWattage` fallback. 실측: PSU1=770 / PSU2=770 채워짐
+- **H4**: `power.power_control.power_capacity_watts` null (chassis level 미응답). → PSU `power_capacity_w` 합산 fallback. 실측: 1540W (=770×2) 채워짐
+- **L1**: firmware list 에 `Version="N/A"` 빈 슬롯 노이즈 (Cisco slot-1, slot-2 PCIe 미장착 슬롯). → `gather_firmware` 가 `N/A`/`""`/`NA` skip. 실측: 7→5 (slot-1, slot-2 제거)
+
+**envelope 비노출 보호**: BMC NIC raw 정보를 `result['_network_meta']` 임시 키로 캐시 → `normalize_standard.yml`의 `_rf_d_bmc_clean`이 envelope `data.bmc` 매핑 시 `_network_meta` 키 제거 (`dict2items | rejectattr | items2dict`). 4 vendor 모두 누설 검증 PASS (`False`).
+
+**검증** (정적 + 통합 + 4 vendor 회귀):
+- pytest 158/158 PASS
+- `python -m py_compile redfish_gather.py` PASS
+- YAML parse `normalize_standard.yml` 9 task PASS
+- `verify_harness_consistency.py` PASS (rules:28, skills:43, agents:49, policies:9)
+- `verify_vendor_boundary.py` PASS (vendor 하드코딩 0건)
+- `ansible-playbook --syntax-check` (Agent 10.100.64.154) OK
+- **4 vendor BMC 회귀** (`-f 4` 동시 실행):
+  - cisco (10.100.15.2) status=success — 모든 fix 적용 확인
+  - hpe (10.50.11.231) status=success — default_gateways=[10.50.11.254] 채워짐, dns_servers=[] (HPE iLO placeholder 필터 동작)
+  - lenovo (10.50.11.232) status=success — PSU2 cap=750 채움 (PSU1 InputRanges도 None — 실 hardware Critical 결함, 후속)
+  - dell (10.50.11.162) status=failed — BMC HTTP 401 (vault `dell.yml` 자격증명 만료, 우리 fix 회귀 아님 — 후속)
+- envelope 13 필드 정합 (4 vendor 모두), `bmc._network_meta` 누설 X (4 vendor 모두)
+
+**rule 96 R1 origin 주석**: `cisco_cimc.yml` Q1~Q7 quirk 명시 (Vendor 표기 / PowerCapacityWatts null / Manager.Manufacturer null / FirmwareInventory N/A 슬롯 / TotalThreads=TotalCores HT 미보고 / Manager NIC NameServers·Gateway 응답). `cisco_bmc.yml` reference.
+
+**envelope 키 추가 0건** — 사용자 정책 준수. 모든 fix 는 기존 envelope 키 채움 또는 fallback 추가만.
+
+**잔류 (운영 작업, NEXT_ACTIONS 등재)**:
+- OPS-CISCO-REVIEW-1/2: cisco baseline 재수집 (코드 fix 후 dynamic 필드 정책 결정)
+- OPS-DELL-VAULT-1: Dell BMC vault 자격증명 회전 (rotate-vault skill)
+- OPS-LENOVO-PSU1: Lenovo PSU1 hardware 점검 (Health=Critical, OutputWattage null)
+
+evidence: `tests/evidence/2026-04-29-cisco-redfish-critical-review.md`
+
+---
+
 ## 일자: 2026-04-29 (HPE Redfish 비판적 검증 — envelope 값 미채움 5건 fix)
 
 ## 요약 (HPE Redfish bug-fix — 2026-04-29 17시, 실 BMC 통합 검증)
