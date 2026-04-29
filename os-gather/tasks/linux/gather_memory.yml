@@ -79,6 +79,7 @@
           {{ out }}
       no_log: true
 
+    # cycle-016 Phase L: groups 에 speed_mhz 추가 (Linux dmidecode 에 manufacturer/part_number 도 가능 — 후속)
     - name: "linux | memory | compute summary groups"
       ansible.builtin.set_fact:
         _l_mem_summary: >-
@@ -87,14 +88,15 @@
             {%- if s.capacity_mb > 0 -%}
               {%- set cap_gb = (s.capacity_mb / 1024) | round(0, 'floor') | int -%}
               {%- set t = s.type | default(none) -%}
-              {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
+              {%- set sp = s.speed_mhz | default(none) -%}
+              {%- set key = (cap_gb|string)~'|'~(t|string)~'|'~(sp|string) -%}
               {%- if key in ns.seen -%}
                 {%- set idx = ns.seen[key] -%}
                 {%- set q = ns.groups[idx].quantity + 1 -%}
                 {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
               {%- else -%}
                 {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'speed_mhz': sp, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
               {%- endif -%}
               {%- set ns.total = ns.total + cap_gb -%}
             {%- endif -%}

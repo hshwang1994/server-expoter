@@ -151,6 +151,7 @@
         {%- endif -%}
       {%- endfor -%}
       {{ {'groups': ns.groups} }}
+    # cycle-016 Phase L: groups 에 speed_mhz / manufacturer / part_number 추가 (사용자 "부실" 피드백)
     _rf_summary_memory: >-
       {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for s in (_rf_d_memory.slots | default([])) -%}
@@ -158,19 +159,23 @@
         {%- if cap_mb > 0 -%}
           {%- set cap_gb = (cap_mb / 1024) | round(0, 'floor') | int -%}
           {%- set t = s.memory_type | default(s.type | default(none)) -%}
-          {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
+          {%- set sp = s.speed_mhz | default(none) -%}
+          {%- set mfr = s.manufacturer | default(none) -%}
+          {%- set pn = s.part_number | default(none) -%}
+          {%- set key = (cap_gb|string)~'|'~(t|string)~'|'~(sp|string)~'|'~(mfr|string)~'|'~(pn|string) -%}
           {%- if key in ns.seen -%}
             {%- set idx = ns.seen[key] -%}
             {%- set q = ns.groups[idx].quantity + 1 -%}
             {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
           {%- else -%}
             {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'speed_mhz': sp, 'manufacturer': mfr, 'part_number': pn, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
           {%- endif -%}
           {%- set ns.total = ns.total + cap_gb -%}
         {%- endif -%}
       {%- endfor -%}
       {{ {'groups': ns.groups, 'grand_total_gb': ns.total} }}
+    # cycle-016 Phase L: storage groups 에 model 추가 (디스크 모델 분류)
     _rf_summary_storage: >-
       {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for d in (_rf_norm_physical_disks | default([])) -%}
@@ -178,31 +183,41 @@
         {%- if cap_gb > 0 -%}
           {%- set mt = d.media_type | default(none) -%}
           {%- set pr = d.protocol | default(none) -%}
-          {%- set key = (cap_gb | string) ~ '|' ~ (mt | string) ~ '|' ~ (pr | string) -%}
+          {%- set md = d.model | default(none) -%}
+          {%- set key = (cap_gb|string)~'|'~(mt|string)~'|'~(pr|string)~'|'~(md|string) -%}
           {%- if key in ns.seen -%}
             {%- set idx = ns.seen[key] -%}
             {%- set q = ns.groups[idx].quantity + 1 -%}
             {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
           {%- else -%}
             {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'model': md, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
           {%- endif -%}
           {%- set ns.total = ns.total + cap_gb -%}
         {%- endif -%}
       {%- endfor -%}
       {{ {'groups': ns.groups, 'grand_total_gb': ns.total} }}
+    # cycle-016 Phase L: network groups 에 adapter model + manufacturer 추가
+    # ports[] → adapter_id → adapters[] 매핑으로 model/manufacturer 조회
     _rf_summary_network: >-
-      {%- set ns = namespace(groups=[], seen={}) -%}
+      {%- set ns = namespace(groups=[], seen={}, adp_map={}) -%}
+      {%- for a in (_rf_d_netad.adapters | default([])) -%}
+        {%- set _ = ns.adp_map.update({a.id: a}) -%}
+      {%- endfor -%}
       {%- for n in (_rf_norm_interfaces | default([])) -%}
         {%- set sp = n.speed_mbps | default(none) -%}
         {%- set link_up = (n.link_status | default('') | lower) in ['linkup','up'] -%}
-        {%- set key = sp | string -%}
+        {%- set adp_id = (n.id | default('') | regex_replace('-[0-9]+-[0-9]+$','') | regex_replace('-[0-9]+$','')) -%}
+        {%- set adp = ns.adp_map[adp_id] | default({}) -%}
+        {%- set md = adp.model | default(none) -%}
+        {%- set mfr = adp.manufacturer | default(none) -%}
+        {%- set key = (sp|string)~'|'~(md|string)~'|'~(mfr|string) -%}
         {%- if key in ns.seen -%}
           {%- set idx = ns.seen[key] -%}
           {%- set _ = ns.groups[idx].update({'quantity': ns.groups[idx].quantity + 1, 'link_up_count': ns.groups[idx].link_up_count + (1 if link_up else 0)}) -%}
         {%- else -%}
           {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-          {%- set _ = ns.groups.append({'speed_mbps': sp, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
+          {%- set _ = ns.groups.append({'speed_mbps': sp, 'model': md, 'manufacturer': mfr, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
         {%- endif -%}
       {%- endfor -%}
       {{ {'groups': ns.groups} }}

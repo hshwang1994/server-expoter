@@ -129,14 +129,15 @@
         {%- if cap_gb > 0 -%}
           {%- set mt = d.media_type | default(none) -%}
           {%- set pr = d.protocol | default(none) -%}
-          {%- set key = (cap_gb | string) ~ '|' ~ (mt | string) ~ '|' ~ (pr | string) -%}
+          {%- set md = d.model | default(none) -%}
+          {%- set key = (cap_gb|string)~'|'~(mt|string)~'|'~(pr|string)~'|'~(md|string) -%}
           {%- if key in ns.seen -%}
             {%- set idx = ns.seen[key] -%}
             {%- set q = ns.groups[idx].quantity + 1 -%}
             {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
           {%- else -%}
             {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
-            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'model': md, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
           {%- endif -%}
           {%- set ns.total = ns.total + cap_gb -%}
         {%- endif -%}

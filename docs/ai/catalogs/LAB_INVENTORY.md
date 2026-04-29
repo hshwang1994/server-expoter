@@ -23,7 +23,7 @@
 | Linux VM | 5 | os-gather | RHEL 8.10 / 9.2 / 9.6 / Rocky 9.6 / Ubuntu 24.04 |
 | Linux baremetal | 1 | os-gather | OS↔BMC correlation 검증용 (Dell BMC와 매칭) |
 | Windows VM | 1 | os-gather | Win Server 2022 (10.100.64.135 — cycle-015 IP 정정 + Win10 제거) |
-| Dell BMC (iDRAC) | 5 | redfish-gather | 1대는 baremetal OS 매칭 (10.100.15.32 제거 — cycle-015) |
+| Dell BMC (iDRAC) | 5 | redfish-gather | 10.100.15.34 = OS 10.100.64.96 baremetal 매칭 (cycle-016 Phase L 정정) |
 | HPE BMC (iLO) | 1 | redfish-gather | ProLiant DL380 Gen11 / iLO6 |
 | Lenovo BMC (XCC) | 1 | redfish-gather | XCC 1.15 |
 | Cisco BMC (CIMC) | 2 | redfish-gather | 10.100.15.2 제거 — cycle-015 (사내 부재) |
