@@ -46,9 +46,7 @@
       {%- endfor -%}
       {{ out }}
     _w_mem_summary: >-
-      {%- set groups = [] -%}
-      {%- set seen = {} -%}
-      {%- set total = 0 -%}
+      {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for line in (_w_mem_slots_raw.stdout_lines | default([])) -%}
         {%- if line | trim -%}
           {%- set s = line | from_json -%}
@@ -57,21 +55,21 @@
             {%- set cap_gb = (cap_mb / 1024) | round(0, 'floor') | int -%}
             {%- set t = s.type | default(none) -%}
             {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
-            {%- if key in seen -%}
-              {%- set idx = seen[key] -%}
-              {%- set q = groups[idx].quantity + 1 -%}
-              {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+            {%- if key in ns.seen -%}
+              {%- set idx = ns.seen[key] -%}
+              {%- set q = ns.groups[idx].quantity + 1 -%}
+              {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
             {%- else -%}
-              {%- set _ = seen.update({key: groups | length}) -%}
-              {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+              {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+              {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
             {%- endif -%}
-            {%- set total = total + cap_gb -%}
+            {%- set ns.total = ns.total + cap_gb -%}
           {%- endif -%}
         {%- endif -%}
       {%- endfor -%}
       {%- set fallback_mb = (_w_mem_raw.stdout | trim | int) if (_w_mem_raw.stdout | trim | length > 0) else (ansible_memtotal_mb | default(0) | int) -%}
       {%- set fallback_total = (fallback_mb / 1024) | round(0, 'floor') | int -%}
-      {{ {'groups': groups, 'grand_total_gb': total if total > 0 else fallback_total} }}
+      {{ {'groups': ns.groups, 'grand_total_gb': ns.total if ns.total > 0 else fallback_total} }}
   no_log: true
 
 - name: "windows | memory | build fragment"

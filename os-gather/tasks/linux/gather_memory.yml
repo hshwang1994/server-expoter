@@ -80,28 +80,26 @@
     - name: "linux | memory | compute summary groups"
       ansible.builtin.set_fact:
         _l_mem_summary: >-
-          {%- set groups = [] -%}
-          {%- set seen = {} -%}
-          {%- set total = 0 -%}
+          {%- set ns = namespace(groups=[], seen={}, total=0) -%}
           {%- for s in (_l_mem_slots | default([])) -%}
             {%- if s.capacity_mb > 0 -%}
               {%- set cap_gb = (s.capacity_mb / 1024) | round(0, 'floor') | int -%}
               {%- set t = s.type | default(none) -%}
               {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
-              {%- if key in seen -%}
-                {%- set idx = seen[key] -%}
-                {%- set q = groups[idx].quantity + 1 -%}
-                {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+              {%- if key in ns.seen -%}
+                {%- set idx = ns.seen[key] -%}
+                {%- set q = ns.groups[idx].quantity + 1 -%}
+                {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
               {%- else -%}
-                {%- set _ = seen.update({key: groups | length}) -%}
-                {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+                {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
               {%- endif -%}
-              {%- set total = total + cap_gb -%}
+              {%- set ns.total = ns.total + cap_gb -%}
             {%- endif -%}
           {%- endfor -%}
           {%- set fallback_mb = (_l_mem_phys_raw.stdout | trim | int) if (_l_mem_phys_raw.stdout | trim | length > 0) else (ansible_memtotal_mb | default(0) | int) -%}
           {%- set fallback_total = (fallback_mb / 1024) | round(0, 'floor') | int -%}
-          {{ {'groups': groups, 'grand_total_gb': total if total > 0 else fallback_total} }}
+          {{ {'groups': ns.groups, 'grand_total_gb': ns.total if ns.total > 0 else fallback_total} }}
       no_log: true
 
     - name: "linux | memory | build fragment"
@@ -213,30 +211,28 @@
     - name: "linux | memory | compute summary groups (raw)"
       ansible.builtin.set_fact:
         _l_mem_summary_r: >-
-          {%- set groups = [] -%}
-          {%- set seen = {} -%}
-          {%- set total = 0 -%}
+          {%- set ns = namespace(groups=[], seen={}, total=0) -%}
           {%- for s in (_l_mem_slots_r | default([])) -%}
             {%- if s.capacity_mb > 0 -%}
               {%- set cap_gb = (s.capacity_mb / 1024) | round(0, 'floor') | int -%}
               {%- set t = s.type | default(none) -%}
               {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
-              {%- if key in seen -%}
-                {%- set idx = seen[key] -%}
-                {%- set q = groups[idx].quantity + 1 -%}
-                {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+              {%- if key in ns.seen -%}
+                {%- set idx = ns.seen[key] -%}
+                {%- set q = ns.groups[idx].quantity + 1 -%}
+                {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
               {%- else -%}
-                {%- set _ = seen.update({key: groups | length}) -%}
-                {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+                {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+                {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
               {%- endif -%}
-              {%- set total = total + cap_gb -%}
+              {%- set ns.total = ns.total + cap_gb -%}
             {%- endif -%}
           {%- endfor -%}
           {%- set phys = (_l_mem_rp.MEM_PHYS_MB | default('0')) | trim | int -%}
           {%- set vis_kb = (_l_mem_rp.MEM_TOTAL_KB | default('0')) | trim | int -%}
           {%- set fallback_v = phys if phys > 0 else (vis_kb / 1024) | round(0, 'floor') | int -%}
           {%- set fallback_total = (fallback_v / 1024) | round(0, 'floor') | int -%}
-          {{ {'groups': groups, 'grand_total_gb': total if total > 0 else fallback_total} }}
+          {{ {'groups': ns.groups, 'grand_total_gb': ns.total if ns.total > 0 else fallback_total} }}
       no_log: true
 
     - name: "linux | memory | build fragment (raw)"

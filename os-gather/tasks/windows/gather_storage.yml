@@ -123,27 +123,25 @@
 - name: "windows | storage | compute summary groups"
   ansible.builtin.set_fact:
     _w_stor_summary: >-
-      {%- set groups = [] -%}
-      {%- set seen = {} -%}
-      {%- set total = 0 -%}
+      {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for d in (_w_physical_disks | default([])) -%}
         {%- if d.total_mb -%}
           {%- set cap_gb = (d.total_mb | int / 1024) | round(0, 'floor') | int -%}
           {%- set mt = d.media_type | default(none) -%}
           {%- set pr = d.protocol | default(none) -%}
           {%- set key = (cap_gb | string) ~ '|' ~ (mt | string) ~ '|' ~ (pr | string) -%}
-          {%- if key in seen -%}
-            {%- set idx = seen[key] -%}
-            {%- set q = groups[idx].quantity + 1 -%}
-            {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+          {%- if key in ns.seen -%}
+            {%- set idx = ns.seen[key] -%}
+            {%- set q = ns.groups[idx].quantity + 1 -%}
+            {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
           {%- else -%}
-            {%- set _ = seen.update({key: groups | length}) -%}
-            {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+            {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
           {%- endif -%}
-          {%- set total = total + cap_gb -%}
+          {%- set ns.total = ns.total + cap_gb -%}
         {%- endif -%}
       {%- endfor -%}
-      {{ {'groups': groups, 'grand_total_gb': total} }}
+      {{ {'groups': ns.groups, 'grand_total_gb': ns.total} }}
   no_log: true
 
 - name: "windows | storage | build fragment"

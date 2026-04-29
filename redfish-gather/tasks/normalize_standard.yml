@@ -137,109 +137,75 @@
 
 - name: "redfish | normalize_standard | compute group summaries"
   ansible.builtin.set_fact:
-    # ── CPU group summary (model 기준) ──────────────────────────────────
+    # cycle-016 (2026-04-29): namespace pattern (Jinja2 loop scoping fix)
     _rf_summary_cpu: >-
-      {%- set groups = [] -%}
-      {%- set seen = {} -%}
+      {%- set ns = namespace(groups=[], seen={}) -%}
       {%- for p in (_rf_d_procs | default([])) -%}
         {%- set m = p.model | default('unknown') -%}
-        {%- if m in seen -%}
-          {%- set idx = seen[m] -%}
-          {%- set _ = groups[idx].update({'sockets': groups[idx].sockets + 1,
-                                          'total_cores': groups[idx].total_cores + (p.total_cores | default(0) | int)}) -%}
+        {%- if m in ns.seen -%}
+          {%- set idx = ns.seen[m] -%}
+          {%- set _ = ns.groups[idx].update({'sockets': ns.groups[idx].sockets + 1, 'total_cores': ns.groups[idx].total_cores + (p.total_cores | default(0) | int)}) -%}
         {%- else -%}
-          {%- set _ = seen.update({m: groups | length}) -%}
-          {%- set _ = groups.append({
-            'model': m,
-            'sockets': 1,
-            'cores_per_socket': p.total_cores | default(0) | int,
-            'total_cores':     p.total_cores | default(0) | int,
-          }) -%}
+          {%- set _ = ns.seen.update({m: ns.groups | length}) -%}
+          {%- set _ = ns.groups.append({'model': m, 'sockets': 1, 'cores_per_socket': p.total_cores | default(0) | int, 'total_cores': p.total_cores | default(0) | int}) -%}
         {%- endif -%}
       {%- endfor -%}
-      {{ {'groups': groups} }}
-    # ── Memory group summary (DIMM 단위 용량 기준) ───────────────────────
+      {{ {'groups': ns.groups} }}
     _rf_summary_memory: >-
-      {%- set groups = [] -%}
-      {%- set seen = {} -%}
-      {%- set total = 0 -%}
+      {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for s in (_rf_d_memory.slots | default([])) -%}
         {%- set cap_mb = s.capacity_mib | default(s.size_mib | default(s.capacity_mb | default(0))) | int -%}
         {%- if cap_mb > 0 -%}
           {%- set cap_gb = (cap_mb / 1024) | round(0, 'floor') | int -%}
           {%- set t = s.memory_type | default(s.type | default(none)) -%}
           {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
-          {%- if key in seen -%}
-            {%- set idx = seen[key] -%}
-            {%- set q = groups[idx].quantity + 1 -%}
-            {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+          {%- if key in ns.seen -%}
+            {%- set idx = ns.seen[key] -%}
+            {%- set q = ns.groups[idx].quantity + 1 -%}
+            {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
           {%- else -%}
-            {%- set _ = seen.update({key: groups | length}) -%}
-            {%- set _ = groups.append({
-              'unit_capacity_gb': cap_gb,
-              'type': t,
-              'quantity': 1,
-              'group_total_gb': cap_gb,
-            }) -%}
+            {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
           {%- endif -%}
-          {%- set total = total + cap_gb -%}
+          {%- set ns.total = ns.total + cap_gb -%}
         {%- endif -%}
       {%- endfor -%}
-      {{ {'groups': groups, 'grand_total_gb': total} }}
-    # ── Storage group summary (디스크 용량 + media_type 기준) ────────────
+      {{ {'groups': ns.groups, 'grand_total_gb': ns.total} }}
     _rf_summary_storage: >-
-      {%- set groups = [] -%}
-      {%- set seen = {} -%}
-      {%- set total = 0 -%}
+      {%- set ns = namespace(groups=[], seen={}, total=0) -%}
       {%- for d in (_rf_norm_physical_disks | default([])) -%}
         {%- if d.total_mb -%}
           {%- set cap_gb = (d.total_mb | int / 1024) | round(0, 'floor') | int -%}
           {%- set mt = d.media_type | default(none) -%}
           {%- set pr = d.protocol | default(none) -%}
           {%- set key = (cap_gb | string) ~ '|' ~ (mt | string) ~ '|' ~ (pr | string) -%}
-          {%- if key in seen -%}
-            {%- set idx = seen[key] -%}
-            {%- set q = groups[idx].quantity + 1 -%}
-            {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+          {%- if key in ns.seen -%}
+            {%- set idx = ns.seen[key] -%}
+            {%- set q = ns.groups[idx].quantity + 1 -%}
+            {%- set _ = ns.groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
           {%- else -%}
-            {%- set _ = seen.update({key: groups | length}) -%}
-            {%- set _ = groups.append({
-              'unit_capacity_gb': cap_gb,
-              'media_type': mt,
-              'protocol': pr,
-              'quantity': 1,
-              'group_total_gb': cap_gb,
-            }) -%}
+            {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+            {%- set _ = ns.groups.append({'unit_capacity_gb': cap_gb, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
           {%- endif -%}
-          {%- set total = total + cap_gb -%}
+          {%- set ns.total = ns.total + cap_gb -%}
         {%- endif -%}
       {%- endfor -%}
-      {{ {'groups': groups, 'grand_total_gb': total} }}
-    # ── Network group summary (speed_mbps 기준) ──────────────────────────
+      {{ {'groups': ns.groups, 'grand_total_gb': ns.total} }}
     _rf_summary_network: >-
-      {%- set groups = [] -%}
-      {%- set seen = {} -%}
+      {%- set ns = namespace(groups=[], seen={}) -%}
       {%- for n in (_rf_norm_interfaces | default([])) -%}
         {%- set sp = n.speed_mbps | default(none) -%}
         {%- set link_up = (n.link_status | default('') | lower) in ['linkup','up'] -%}
         {%- set key = sp | string -%}
-        {%- if key in seen -%}
-          {%- set idx = seen[key] -%}
-          {%- set _ = groups[idx].update({
-            'quantity': groups[idx].quantity + 1,
-            'link_up_count': groups[idx].link_up_count + (1 if link_up else 0)
-          }) -%}
+        {%- if key in ns.seen -%}
+          {%- set idx = ns.seen[key] -%}
+          {%- set _ = ns.groups[idx].update({'quantity': ns.groups[idx].quantity + 1, 'link_up_count': ns.groups[idx].link_up_count + (1 if link_up else 0)}) -%}
         {%- else -%}
-          {%- set _ = seen.update({key: groups | length}) -%}
-          {%- set _ = groups.append({
-            'speed_mbps': sp,
-            'link_type': none,
-            'quantity': 1,
-            'link_up_count': 1 if link_up else 0,
-          }) -%}
+          {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+          {%- set _ = ns.groups.append({'speed_mbps': sp, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
         {%- endif -%}
       {%- endfor -%}
-      {{ {'groups': groups} }}
+      {{ {'groups': ns.groups} }}
   no_log: true
 
 # ── sections from redfish_gather module result ────────────────────────────────

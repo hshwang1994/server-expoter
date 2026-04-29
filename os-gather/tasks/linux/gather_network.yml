@@ -70,25 +70,24 @@
           {{ out }}
       no_log: true
 
-    # cycle-016 (2026-04-29): network.summary group 산출 (speed_mbps 기준)
+    # cycle-016 (2026-04-29): network.summary group 산출 (speed_mbps 기준, namespace pattern)
     - name: "linux | network | compute summary groups"
       ansible.builtin.set_fact:
         _l_net_summary: >-
-          {%- set groups = [] -%}
-          {%- set seen = {} -%}
+          {%- set ns = namespace(groups=[], seen={}) -%}
           {%- for n in (_l_norm_interfaces | default([])) -%}
             {%- set sp = n.speed_mbps | default(none) -%}
             {%- set link_up = (n.link_status | default('') | lower) in ['up','linkup'] -%}
             {%- set key = sp | string -%}
-            {%- if key in seen -%}
-              {%- set idx = seen[key] -%}
-              {%- set _ = groups[idx].update({'quantity': groups[idx].quantity + 1, 'link_up_count': groups[idx].link_up_count + (1 if link_up else 0)}) -%}
+            {%- if key in ns.seen -%}
+              {%- set idx = ns.seen[key] -%}
+              {%- set _ = ns.groups[idx].update({'quantity': ns.groups[idx].quantity + 1, 'link_up_count': ns.groups[idx].link_up_count + (1 if link_up else 0)}) -%}
             {%- else -%}
-              {%- set _ = seen.update({key: groups | length}) -%}
-              {%- set _ = groups.append({'speed_mbps': sp, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
+              {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+              {%- set _ = ns.groups.append({'speed_mbps': sp, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
             {%- endif -%}
           {%- endfor -%}
-          {{ {'groups': groups} }}
+          {{ {'groups': ns.groups} }}
       no_log: true
 
     - name: "linux | network | build fragment"
@@ -250,21 +249,20 @@
     - name: "linux | network | compute summary groups (raw)"
       ansible.builtin.set_fact:
         _l_net_summary_r: >-
-          {%- set groups = [] -%}
-          {%- set seen = {} -%}
+          {%- set ns = namespace(groups=[], seen={}) -%}
           {%- for n in (_l_norm_interfaces_raw | default([])) -%}
             {%- set sp = n.speed_mbps | default(none) -%}
             {%- set link_up = (n.link_status | default('') | lower) in ['up','linkup'] -%}
             {%- set key = sp | string -%}
-            {%- if key in seen -%}
-              {%- set idx = seen[key] -%}
-              {%- set _ = groups[idx].update({'quantity': groups[idx].quantity + 1, 'link_up_count': groups[idx].link_up_count + (1 if link_up else 0)}) -%}
+            {%- if key in ns.seen -%}
+              {%- set idx = ns.seen[key] -%}
+              {%- set _ = ns.groups[idx].update({'quantity': ns.groups[idx].quantity + 1, 'link_up_count': ns.groups[idx].link_up_count + (1 if link_up else 0)}) -%}
             {%- else -%}
-              {%- set _ = seen.update({key: groups | length}) -%}
-              {%- set _ = groups.append({'speed_mbps': sp, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
+              {%- set _ = ns.seen.update({key: ns.groups | length}) -%}
+              {%- set _ = ns.groups.append({'speed_mbps': sp, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
             {%- endif -%}
           {%- endfor -%}
-          {{ {'groups': groups} }}
+          {{ {'groups': ns.groups} }}
       no_log: true
 
     - name: "linux | network | build fragment (raw)"
