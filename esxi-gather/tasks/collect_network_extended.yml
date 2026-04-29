@@ -74,13 +74,25 @@
           {%- set key = _e_hostname if (_e_hostname in d) else ((d.keys() | list | first) if d else none) -%}
           {%- set vmnics = (d.get(key, {}).get('vmnic_details', [])) if key else [] -%}
           {%- for n in vmnics -%}
+            {# 잔류 fix (Round 12 후속): speed_mbps int 일관성. Connected 시 int (10000),
+               Disconnected 시 raw "N/A" → null. 호출자 cross-channel 일관성 보장 #}
+            {%- set raw_sp = n.actual_speed | default(none) -%}
+            {%- set sp_int = none -%}
+            {%- if raw_sp is number -%}
+              {%- set sp_int = raw_sp | int -%}
+            {%- elif raw_sp is string and raw_sp != 'N/A' and raw_sp -%}
+              {%- set digits = raw_sp | regex_replace('[^0-9]', '') -%}
+              {%- if digits -%}{%- set sp_int = digits | int -%}{%- endif -%}
+            {%- endif -%}
+            {%- set raw_dup = n.actual_duplex | default(none) -%}
+            {%- set dup = none if (raw_dup in ['N/A', '', none]) else raw_dup -%}
             {%- set _ = out.append({
               'name':         n.device | default(none),
               'driver':       n.driver | default(none),
               'mac':          n.mac    | default(none),
               'link_status':  n.status | default(none),
-              'speed_mbps':   n.actual_speed   | default(none),
-              'duplex':       n.actual_duplex  | default(none),
+              'speed_mbps':   sp_int,
+              'duplex':       dup,
               'pci':          n.location | default(none),
               'adapter':      n.adapter  | default(none),
             }) -%}

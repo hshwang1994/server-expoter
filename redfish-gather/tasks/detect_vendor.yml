@@ -3,10 +3,11 @@
 # 빈 계정으로 Manufacturer 감지 → _rf_detected_vendor
 # vendor_aliases.yml 기반 정규화 (하드코딩 벤더 목록 제거)
 
+# 잔류 fix (Round 12 후속): include_vars 'name:' 옵션 reserved keyword 경고 우회.
+# vendor_aliases.yml 은 plaintext (vault 아님) 라 lookup('file') | from_yaml 가능.
 - name: "redfish | detect_vendor | load vendor aliases"
-  ansible.builtin.include_vars:
-    file: "{{ lookup('env','REPO_ROOT') }}/common/vars/vendor_aliases.yml"
-    name: _va
+  ansible.builtin.set_fact:
+    _va: "{{ lookup('file', lookup('env','REPO_ROOT') ~ '/common/vars/vendor_aliases.yml') | from_yaml }}"
 
 - name: "redfish | detect_vendor | probe"
   redfish_gather:

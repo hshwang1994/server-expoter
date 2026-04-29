@@ -13,7 +13,10 @@
         distribution:   "VMware ESXi"
         version:        "{{ _e_raw_facts.ansible_distribution_version | default(none) }}"
         kernel:         "{{ _e_raw_facts.ansible_distribution_build   | default(none) }}"
-        architecture:   "{{ _e_raw_facts.ansible_machine              | default(none) }}"
+        # 잔류 fix (Round 12 후속): vmware_host_facts 가 ansible_machine 미반환 시 x86_64 기본
+        architecture: >-
+          {%- set m = _e_raw_facts.ansible_machine | default(none) -%}
+          {{ m if m else 'x86_64' }}
         uptime_seconds: "{{ (_e_raw_facts.ansible_uptime               | default(0)) | int }}"
         selinux:        null
         hostname:       "{{ _e_hostname | default(_e_ip) }}"
@@ -42,8 +45,19 @@
         cores_physical:  "{{ _e_raw_facts.ansible_processor_cores | default(none) }}"
         logical_threads: "{{ _e_raw_facts.ansible_processor_vcpus | default(none) }}"
         model:           "{{ _e_raw_facts.ansible_processor       | default(none) }}"
-        max_speed_mhz:   "{{ _e_raw_facts.ansible_processor_mhz   | default(none) }}"
-        architecture:    "{{ _e_raw_facts.ansible_machine         | default(none) }}"
+        # 잔류 fix (Round 12 후속): vmware_host_facts 가 ansible_processor_mhz 미반환 시
+        # CPU model 의 "@ N.NGHz" 패턴에서 추출 (Intel/AMD 표준 표기).
+        max_speed_mhz: >-
+          {%- set raw_mhz = _e_raw_facts.ansible_processor_mhz | default(none) -%}
+          {%- if raw_mhz -%}{{ raw_mhz }}
+          {%- else -%}
+            {%- set m = (_e_raw_facts.ansible_processor | default('')) | regex_search('@\s*([0-9.]+)\s*GHz', '\\1') -%}
+            {%- if m -%}{{ ((m | first | float) * 1000) | int }}{%- else -%}{{ none }}{%- endif -%}
+          {%- endif -%}
+        # ansible_machine 미반환 시 x86_64 기본 (ESXi 7.x 는 모두 x86_64 — Apple/ARM 서버 미지원)
+        architecture: >-
+          {%- set m = _e_raw_facts.ansible_machine | default(none) -%}
+          {{ m if m else 'x86_64' }}
         # cycle-016 Phase O: ESXi cpu.summary.groups 에 max_speed_mhz / manufacturer / architecture 추가
         summary:
           groups:
@@ -55,8 +69,16 @@
                 {%- elif p -%}{{ _e_raw_facts.ansible_processor.split()[0] | default('unknown') }}
                 {%- else -%}{{ none }}
                 {%- endif -%}
-              max_speed_mhz:    "{{ _e_raw_facts.ansible_processor_mhz | default(none) }}"
-              architecture:     "{{ _e_raw_facts.ansible_machine | default(none) }}"
+              max_speed_mhz: >-
+                {%- set raw_mhz = _e_raw_facts.ansible_processor_mhz | default(none) -%}
+                {%- if raw_mhz -%}{{ raw_mhz }}
+                {%- else -%}
+                  {%- set m = (_e_raw_facts.ansible_processor | default('')) | regex_search('@\s*([0-9.]+)\s*GHz', '\\1') -%}
+                  {%- if m -%}{{ ((m | first | float) * 1000) | int }}{%- else -%}{{ none }}{%- endif -%}
+                {%- endif -%}
+              architecture: >-
+                {%- set m = _e_raw_facts.ansible_machine | default(none) -%}
+                {{ m if m else 'x86_64' }}
               sockets:          "{{ _e_raw_facts.ansible_processor_count | default(0) | int }}"
               cores_per_socket: >-
                 {%- set s = (_e_raw_facts.ansible_processor_count | default(0) | int) -%}

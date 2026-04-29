@@ -5,34 +5,42 @@
 - name: "esxi | normalize network | extract dns and gw"
   ansible.builtin.set_fact:
     _e_default_gw:  "{{ _e_raw_facts.ansible_default_ipv4.gateway | default(none) }}"
-    # production-audit (2026-04-29): vmware_host_config_info는 hosts_config_info[hostname]={config dict} 구조.
-    # 기존: top-level (hostname keys) iterate → 'dns' 키 절대 매칭 안 됨 → DNS 항상 빈 list.
-    # 수정: 호스트별 inner dict로 drill-in 후 dns 관련 필드 추출.
+    # 잔류 fix (Round 12 후속): vmware_host_dns_info (collect_dns.yml) 결과를 1순위로,
+    # 기존 vmware_host_config_info drill-in 을 폴백으로. dns_info 모듈은 host_name 키로
+    # ip_address (DNS 서버 list) / search_domain / domain_name 정확 반환.
     _e_dns_servers: >-
       {%- set dns_out = [] -%}
-      {%- set host_cfgs = (_e_raw_config | default({})).values() | list -%}
-      {%- for host_cfg in host_cfgs -%}
-        {%- set net_info = host_cfg.get('network_system_info', host_cfg) if host_cfg is mapping else {} -%}
-        {%- set dns_cfg = (net_info.get('dns_config') if net_info is mapping else {}) | default({}) -%}
-        {%- for srv in (dns_cfg.address | default([])) -%}
+      {%- set dns_dict = _e_raw_dns | default({}) -%}
+      {%- if dns_dict is mapping and (dns_dict | length > 0) -%}
+        {%- set first_key = (dns_dict.keys() | list | first) -%}
+        {%- set entry = dns_dict.get(first_key, {}) -%}
+        {%- for srv in (entry.ip_address | default([])) -%}
           {%- if srv -%}{%- set _ = dns_out.append(srv | string) -%}{%- endif -%}
         {%- endfor -%}
-        {# fallback: scan flat keys containing 'dns' on inner dict #}
-        {%- if not dns_out and host_cfg is mapping -%}
-          {%- for k, v in host_cfg.items() -%}
-            {%- if 'dns' in (k|lower) and v -%}
-              {%- if v is iterable and v is not string -%}
-                {%- for entry in v -%}
-                  {%- if entry -%}{%- set _ = dns_out.append(entry | string) -%}{%- endif -%}
-                {%- endfor -%}
-              {%- else -%}
-                {%- set _ = dns_out.append(v | string) -%}
-              {%- endif -%}
-            {%- endif -%}
+      {%- endif -%}
+      {%- if not dns_out -%}
+        {# fallback: vmware_host_config_info drill-in (production-audit 보존) #}
+        {%- set host_cfgs = (_e_raw_config | default({})).values() | list -%}
+        {%- for host_cfg in host_cfgs -%}
+          {%- set net_info = host_cfg.get('network_system_info', host_cfg) if host_cfg is mapping else {} -%}
+          {%- set dns_cfg = (net_info.get('dns_config') if net_info is mapping else {}) | default({}) -%}
+          {%- for srv in (dns_cfg.address | default([])) -%}
+            {%- if srv -%}{%- set _ = dns_out.append(srv | string) -%}{%- endif -%}
           {%- endfor -%}
-        {%- endif -%}
-      {%- endfor -%}
+        {%- endfor -%}
+      {%- endif -%}
       {{ dns_out | unique | list }}
+    _e_search_domains: >-
+      {%- set out = [] -%}
+      {%- set dns_dict = _e_raw_dns | default({}) -%}
+      {%- if dns_dict is mapping and (dns_dict | length > 0) -%}
+        {%- set first_key = (dns_dict.keys() | list | first) -%}
+        {%- set entry = dns_dict.get(first_key, {}) -%}
+        {%- for sd in (entry.search_domain | default([])) -%}
+          {%- if sd -%}{%- set _ = out.append(sd | string) -%}{%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+      {{ out }}
   no_log: true
 
 - name: "esxi | normalize network | build interfaces"

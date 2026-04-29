@@ -1,0 +1,35 @@
+---
+# esxi-gather/tasks/collect_dns.yml
+#
+# 잔류 미세 이슈 fix (Round 12 후속):
+#   vmware_host_facts / vmware_host_config_info 가 DNS 정보 미반환 케이스 우회.
+#   community.vmware.vmware_host_dns_info 모듈을 추가 호출하여 dns_servers / domain
+#   / search_domain 을 별도 fragment 로 받는다.
+#
+# 응답 형태 (community.vmware 6.2.0 + ESXi 7.0.3 실측):
+#   hosts_dns_info[hostname] = {
+#     dhcp: bool,
+#     host_name: str,
+#     domain_name: str,
+#     ip_address: [str],         # ← DNS 서버 list
+#     search_domain: [str],
+#     virtual_nic_device: str|null
+#   }
+
+- name: "esxi | collect | vmware_host_dns_info"
+  community.vmware.vmware_host_dns_info:
+    hostname:       "{{ _e_ip }}"
+    username:       "{{ ansible_user }}"
+    password:       "{{ ansible_password }}"
+    validate_certs: false
+    esxi_hostname:  "{{ _e_ip }}"
+  register:    _e_dns_result
+  delegate_to: localhost
+  failed_when: false
+  no_log: true
+
+- name: "esxi | collect | store raw dns"
+  ansible.builtin.set_fact:
+    _e_raw_dns: "{{ _e_dns_result.hosts_dns_info | default({}) }}"
+    _e_dns_ok:  "{{ _e_dns_result is not failed and _e_dns_result.hosts_dns_info is defined }}"
+  no_log: true

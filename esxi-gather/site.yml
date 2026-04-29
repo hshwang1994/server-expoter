@@ -108,6 +108,10 @@
         - name: "esxi | collect datastores"
           ansible.builtin.include_tasks: tasks/collect_datastores.yml
 
+        # 잔류 fix (Round 12 후속): vmware_host_facts/config_info 가 DNS 미반환 케이스 우회
+        - name: "esxi | collect dns"
+          ansible.builtin.include_tasks: tasks/collect_dns.yml
+
         - name: "esxi | normalize system/hardware/cpu/memory"
           ansible.builtin.include_tasks: tasks/normalize_system.yml
 
@@ -134,10 +138,11 @@
             file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/build_errors.yml"
 
         # cycle production-audit (2026-04-29): vendor_aliases.yml로 정규화 (lowercase) + auth_success=true
+        # 잔류 fix (Round 12 후속): include_vars 의 'name:' 옵션은 ansible-core 2.20+ 에서
+        # reserved keyword 경고 (callback 차단 못하는 stderr noise). lookup('file') | from_yaml 로 우회.
         - name: "esxi | load vendor_aliases for normalization"
-          ansible.builtin.include_vars:
-            file: "{{ lookup('env','REPO_ROOT') }}/common/vars/vendor_aliases.yml"
-            name: _e_vendor_aliases_map
+          ansible.builtin.set_fact:
+            _e_vendor_aliases_map: "{{ lookup('file', lookup('env','REPO_ROOT') ~ '/common/vars/vendor_aliases.yml') | from_yaml }}"
 
         # BUG #2 fix (cycle production-audit 후속): Jinja2 loop scoping —
         # block 안의 {% set %} 는 outer 변수에 영향 없음. cycle-016 "9 파일 namespace pattern fix"
