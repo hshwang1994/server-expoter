@@ -56,7 +56,17 @@
       "logical_threads": 44,
       "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
       "max_speed_mhz": 4000,
-      "architecture": null
+      "architecture": null,
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+            "sockets": 2,
+            "cores_per_socket": 22,
+            "total_cores": 44
+          }
+        ]
+      }
     },
     "memory": {
       "total_mb": 1048576,
@@ -241,7 +251,18 @@
           "part_number": "M386A8K40BM1-CRC    ",
           "health": "OK"
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 64,
+            "type": "DDR4",
+            "quantity": 16,
+            "group_total_gb": 1024
+          }
+        ],
+        "grand_total_gb": 1024
+      }
     },
     "storage": {
       "filesystems": [],
@@ -456,7 +477,26 @@
           "state": "Enabled",
           "boot_volume": null
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 1490,
+            "media_type": "SSD",
+            "protocol": "SATA",
+            "quantity": 5,
+            "group_total_gb": 7450
+          },
+          {
+            "unit_capacity_gb": 3576,
+            "media_type": "SSD",
+            "protocol": "SATA",
+            "quantity": 3,
+            "group_total_gb": 10728
+          }
+        ],
+        "grand_total_gb": 18178
+      }
     },
     "network": {
       "dns_servers": [],
@@ -528,7 +568,17 @@
           "is_primary": false,
           "addresses": []
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "speed_mbps": null,
+            "link_type": null,
+            "quantity": 6,
+            "link_up_count": 0
+          }
+        ]
+      }
     },
     "firmware": [
       {

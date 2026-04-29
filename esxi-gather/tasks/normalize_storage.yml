@@ -34,6 +34,17 @@
       {{ out }}
   no_log: true
 
+# cycle-016 (2026-04-29): ESXi 측은 datastore 단위 grouping (physical disk 정보 미수집)
+- name: "esxi | normalize storage | compute summary groups"
+  ansible.builtin.set_fact:
+    _e_stor_summary: >-
+      {%- set total = 0 -%}
+      {%- for ds in (_e_norm_datastores | default([])) -%}
+        {%- set total = total + ((ds.total_mb | default(0) | int) / 1024) | round(0, 'floor') | int -%}
+      {%- endfor -%}
+      {{ {'groups': [], 'grand_total_gb': total} }}
+  no_log: true
+
 - name: "esxi | normalize storage | build fragment"
   ansible.builtin.set_fact:
     _data_fragment:
@@ -43,6 +54,8 @@
         datastores:      "{{ _e_norm_datastores }}"
         controllers:     []
         logical_volumes: []
+        # cycle-016: datastore 합계 기반 summary (groups 빈 배열 — physical disk 정보 미수집)
+        summary:         "{{ _e_stor_summary | default({'groups': [], 'grand_total_gb': 0}) }}"
     _sections_supported_fragment: ['storage']
     _sections_collected_fragment: >-
       {{ ['storage'] if _e_ds_ok | bool else [] }}

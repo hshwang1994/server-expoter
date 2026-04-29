@@ -27,6 +27,16 @@
         logical_threads: "{{ _e_raw_facts.ansible_processor_vcpus | default(none) }}"
         model:           "{{ _e_raw_facts.ansible_processor       | default(none) }}"
         architecture:    "{{ _e_raw_facts.ansible_machine         | default(none) }}"
+        # cycle-016 (2026-04-29): ESXi 는 vSphere API 가 model 1개만 노출 — sockets 단순 카운트
+        summary:
+          groups:
+            - model:            "{{ _e_raw_facts.ansible_processor | default('unknown') }}"
+              sockets:          "{{ _e_raw_facts.ansible_processor_count | default(0) | int }}"
+              cores_per_socket: >-
+                {%- set s = (_e_raw_facts.ansible_processor_count | default(0) | int) -%}
+                {%- set c = (_e_raw_facts.ansible_processor_cores | default(0) | int) -%}
+                {{ (c // s) if s > 0 else 0 }}
+              total_cores:      "{{ _e_raw_facts.ansible_processor_cores | default(0) | int }}"
       memory:
         total_mb:     "{{ _e_raw_facts.ansible_memtotal_mb | default(none) }}"
         total_basis:  "hypervisor_visible"
@@ -34,6 +44,11 @@
         visible_mb:   "{{ _e_raw_facts.ansible_memtotal_mb | default(none) }}"
         free_mb:      "{{ _e_raw_facts.ansible_memfree_mb  | default(none) }}"
         slots:        []
+        # cycle-016 (2026-04-29): ESXi 는 DIMM slot 정보 미수집 — grand_total 만
+        summary:
+          groups: []
+          grand_total_gb: >-
+            {{ ((_e_raw_facts.ansible_memtotal_mb | default(0) | int) / 1024) | round(0, 'floor') | int }}
     _sections_supported_fragment: ['system','hardware','cpu','memory']
     _sections_collected_fragment: >-
       {{ ['system','hardware','cpu','memory'] if _e_facts_ok | bool else [] }}

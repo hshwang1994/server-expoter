@@ -69,7 +69,11 @@
       "installed_mb": null,
       "visible_mb": 3915,
       "free_mb": 1325,
-      "slots": []
+      "slots": [],
+      "summary": {
+        "groups": [],
+        "grand_total_gb": 3
+      }
     },
     "power": null,
     "network": {
@@ -102,7 +106,17 @@
           "family": "ipv4",
           "address": "10.100.64.254"
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "speed_mbps": 10000,
+            "link_type": null,
+            "quantity": 1,
+            "link_up_count": 1
+          }
+        ]
+      }
     },
     "hardware": null,
     "cpu": {
@@ -110,7 +124,17 @@
       "cores_physical": 2,
       "logical_threads": 2,
       "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
-      "architecture": "x86_64"
+      "architecture": "x86_64",
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+            "sockets": 2,
+            "cores_per_socket": 1,
+            "total_cores": 2
+          }
+        ]
+      }
     },
     "storage": {
       "datastores": [],
@@ -138,7 +162,19 @@
           "usage_percent": 12.6,
           "status": "mounted"
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 100,
+            "media_type": "HDD",
+            "protocol": null,
+            "quantity": 1,
+            "group_total_gb": 100
+          }
+        ],
+        "grand_total_gb": 100
+      }
     },
     "users": [
       {

@@ -36,10 +36,17 @@
         {%- endif -%}
       {%- endfor -%}
       {{ out }}
+    # cycle-016 (2026-04-29): default 메시지에 채널/IP 컨텍스트 포함 — "수집 실패" 단독 회피
     _norm_errors:
       - section:  "{{ _fail_error_section | default('gather') }}"
-        message:  "{{ _fail_error_message | default('수집 실패') }}"
-        detail:   null
+        message: >-
+          {{ _fail_error_message
+             | default(
+                 '수집 실패 — 채널=' ~ (_out_target_type | default('unknown'))
+                 ~ ', IP=' ~ (_out_ip | default(inventory_hostname | default('?')))
+                 ~ ' (자세한 사유는 diagnosis.failure_stage / failure_reason 참조)'
+               ) }}
+        detail:   "{{ _fail_error_detail | default(none) }}"
     _out_status: "failed"
 
 - name: "normalize | build_failed_output | build fallback meta & correlation"

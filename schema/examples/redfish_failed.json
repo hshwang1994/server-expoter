@@ -27,7 +27,9 @@
     "failure_reason": "이 장비는 Redfish를 지원하지 않습니다.",
     "details": {
       "channel": "redfish",
-      "checked_ports": [443],
+      "checked_ports": [
+        443
+      ],
       "selected_port": 443,
       "probe_facts": {}
     }
@@ -64,12 +66,19 @@
       "physical_disks": [],
       "datastores": [],
       "controllers": [],
-      "logical_volumes": []
+      "logical_volumes": [],
+      "summary": {
+        "groups": [],
+        "grand_total_gb": 0
+      }
     },
     "network": {
       "dns_servers": [],
       "default_gateways": [],
-      "interfaces": []
+      "interfaces": [],
+      "summary": {
+        "groups": []
+      }
     },
     "users": [],
     "firmware": [],

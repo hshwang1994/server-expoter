@@ -66,6 +66,33 @@
           {{ out }}
       no_log: true
 
+    # cycle-016 (2026-04-29): storage.summary group 산출
+    - name: "linux | storage | compute summary groups"
+      ansible.builtin.set_fact:
+        _l_stor_summary: >-
+          {%- set groups = [] -%}
+          {%- set seen = {} -%}
+          {%- set total = 0 -%}
+          {%- for d in (_l_norm_physical_disks | default([])) -%}
+            {%- if d.total_mb -%}
+              {%- set cap_gb = (d.total_mb | int / 1024) | round(0, 'floor') | int -%}
+              {%- set mt = d.media_type | default(none) -%}
+              {%- set pr = d.protocol | default(none) -%}
+              {%- set key = (cap_gb | string) ~ '|' ~ (mt | string) ~ '|' ~ (pr | string) -%}
+              {%- if key in seen -%}
+                {%- set idx = seen[key] -%}
+                {%- set q = groups[idx].quantity + 1 -%}
+                {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+              {%- else -%}
+                {%- set _ = seen.update({key: groups | length}) -%}
+                {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+              {%- endif -%}
+              {%- set total = total + cap_gb -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ {'groups': groups, 'grand_total_gb': total} }}
+      no_log: true
+
     - name: "linux | storage | build fragment"
       ansible.builtin.set_fact:
         _data_fragment:
@@ -75,6 +102,7 @@
             datastores:      []
             controllers:     []
             logical_volumes: []
+            summary:         "{{ _l_stor_summary | default({'groups': [], 'grand_total_gb': 0}) }}"
         _sections_supported_fragment: ['storage']
         _sections_collected_fragment: ['storage']
         _sections_failed_fragment:    []
@@ -163,6 +191,32 @@
           {{ out }}
       no_log: true
 
+    - name: "linux | storage | compute summary groups (raw)"
+      ansible.builtin.set_fact:
+        _l_stor_summary_r: >-
+          {%- set groups = [] -%}
+          {%- set seen = {} -%}
+          {%- set total = 0 -%}
+          {%- for d in (_l_norm_physical_disks_raw | default([])) -%}
+            {%- if d.total_mb -%}
+              {%- set cap_gb = (d.total_mb | int / 1024) | round(0, 'floor') | int -%}
+              {%- set mt = d.media_type | default(none) -%}
+              {%- set pr = d.protocol | default(none) -%}
+              {%- set key = (cap_gb | string) ~ '|' ~ (mt | string) ~ '|' ~ (pr | string) -%}
+              {%- if key in seen -%}
+                {%- set idx = seen[key] -%}
+                {%- set q = groups[idx].quantity + 1 -%}
+                {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+              {%- else -%}
+                {%- set _ = seen.update({key: groups | length}) -%}
+                {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'media_type': mt, 'protocol': pr, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+              {%- endif -%}
+              {%- set total = total + cap_gb -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ {'groups': groups, 'grand_total_gb': total} }}
+      no_log: true
+
     - name: "linux | storage | build fragment (raw)"
       ansible.builtin.set_fact:
         _data_fragment:
@@ -172,6 +226,7 @@
             datastores:      []
             controllers:     []
             logical_volumes: []
+            summary:         "{{ _l_stor_summary_r | default({'groups': [], 'grand_total_gb': 0}) }}"
         _sections_supported_fragment: ['storage']
         _sections_collected_fragment: ['storage']
         _sections_failed_fragment:    []

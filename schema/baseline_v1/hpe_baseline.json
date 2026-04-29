@@ -177,7 +177,17 @@
           "addresses": []
         }
       ],
-      "default_gateways": []
+      "default_gateways": [],
+      "summary": {
+        "groups": [
+          {
+            "speed_mbps": null,
+            "link_type": null,
+            "quantity": 10,
+            "link_up_count": 3
+          }
+        ]
+      }
     },
     "memory": {
       "total_mb": 524288,
@@ -362,7 +372,18 @@
           "part_number": "M321R4GA3EB0-CWMXJ",
           "health": "OK"
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 32,
+            "type": "DDR5",
+            "quantity": 16,
+            "group_total_gb": 512
+          }
+        ],
+        "grand_total_gb": 512
+      }
     },
     "hardware": {
       "vendor": "HPE",
@@ -741,7 +762,19 @@
           "state": "Enabled",
           "boot_volume": null
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 1788,
+            "media_type": "SSD",
+            "protocol": "SATA",
+            "quantity": 4,
+            "group_total_gb": 7152
+          }
+        ],
+        "grand_total_gb": 7152
+      }
     },
     "cpu": {
       "sockets": 2,
@@ -749,7 +782,17 @@
       "logical_threads": 128,
       "model": "Intel(R) Xeon(R) Gold 6430",
       "max_speed_mhz": 4000,
-      "architecture": null
+      "architecture": null,
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) Gold 6430",
+            "sockets": 2,
+            "cores_per_socket": 32,
+            "total_cores": 64
+          }
+        ]
+      }
     }
   },
   "schema_version": "1"

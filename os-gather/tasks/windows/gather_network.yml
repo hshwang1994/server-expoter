@@ -89,6 +89,27 @@
       {{ grouped.values() | list }}
   no_log: true
 
+# cycle-016 (2026-04-29): network.summary grouping
+- name: "windows | network | compute summary groups"
+  ansible.builtin.set_fact:
+    _w_net_summary: >-
+      {%- set groups = [] -%}
+      {%- set seen = {} -%}
+      {%- for n in (_w_norm_interfaces | default([])) -%}
+        {%- set sp = n.speed_mbps | default(none) -%}
+        {%- set link_up = (n.link_status | default('') | lower) in ['up','linkup'] -%}
+        {%- set key = sp | string -%}
+        {%- if key in seen -%}
+          {%- set idx = seen[key] -%}
+          {%- set _ = groups[idx].update({'quantity': groups[idx].quantity + 1, 'link_up_count': groups[idx].link_up_count + (1 if link_up else 0)}) -%}
+        {%- else -%}
+          {%- set _ = seen.update({key: groups | length}) -%}
+          {%- set _ = groups.append({'speed_mbps': sp, 'link_type': none, 'quantity': 1, 'link_up_count': 1 if link_up else 0}) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ {'groups': groups} }}
+  no_log: true
+
 - name: "windows | network | build fragment"
   ansible.builtin.set_fact:
     _data_fragment:
@@ -100,6 +121,7 @@
           {%- if gw -%}{%- set _ = out.append({'family':'ipv4','address':gw}) -%}{%- endif -%}
           {{ out }}
         interfaces: "{{ _w_norm_interfaces }}"
+        summary: "{{ _w_net_summary | default({'groups': []}) }}"
     _sections_supported_fragment: ['network']
     _sections_collected_fragment: ['network']
     _sections_failed_fragment:    []

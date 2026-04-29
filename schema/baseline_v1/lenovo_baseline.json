@@ -120,7 +120,29 @@
           "addresses": []
         }
       ],
-      "default_gateways": []
+      "default_gateways": [],
+      "summary": {
+        "groups": [
+          {
+            "speed_mbps": 100,
+            "link_type": null,
+            "quantity": 1,
+            "link_up_count": 1
+          },
+          {
+            "speed_mbps": null,
+            "link_type": null,
+            "quantity": 3,
+            "link_up_count": 0
+          },
+          {
+            "speed_mbps": 1000,
+            "link_type": null,
+            "quantity": 1,
+            "link_up_count": 1
+          }
+        ]
+      }
     },
     "memory": {
       "total_mb": 524288,
@@ -305,7 +327,18 @@
           "part_number": "36ASF4G72PZ-3G2E7",
           "health": "OK"
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 32,
+            "type": "DDR4",
+            "quantity": 16,
+            "group_total_gb": 512
+          }
+        ],
+        "grand_total_gb": 512
+      }
     },
     "hardware": {
       "vendor": "Lenovo",
@@ -579,7 +612,19 @@
         }
       ],
       "filesystems": [],
-      "logical_volumes": []
+      "logical_volumes": [],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 1788,
+            "media_type": "SSD",
+            "protocol": "SATA",
+            "quantity": 4,
+            "group_total_gb": 7152
+          }
+        ],
+        "grand_total_gb": 7152
+      }
     },
     "cpu": {
       "sockets": 2,
@@ -587,7 +632,17 @@
       "logical_threads": 128,
       "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
       "max_speed_mhz": 3200,
-      "architecture": null
+      "architecture": null,
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz",
+            "sockets": 2,
+            "cores_per_socket": 32,
+            "total_cores": 64
+          }
+        ]
+      }
     }
   },
   "schema_version": "1"

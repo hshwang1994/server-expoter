@@ -10,7 +10,7 @@
 # Python Path
 # =============================================================================
 - block:
-    - name: "linux | memory | physical (dmidecode)"
+    - name: "linux | memory | physical (dmidecode total)"
       ansible.builtin.shell: |
         if command -v dmidecode >/dev/null 2>&1; then
           dmidecode -t memory 2>/dev/null \
@@ -28,6 +28,77 @@
       register: _l_mem_phys_raw
       changed_when: false
       failed_when: false
+      no_log: true
+
+    # cycle-016 (2026-04-29): slot 단위 dmidecode → summary.groups 산출
+    - name: "linux | memory | physical (dmidecode slots)"
+      ansible.builtin.shell: |
+        if command -v dmidecode >/dev/null 2>&1; then
+          dmidecode -t memory 2>/dev/null | awk '
+            BEGIN{ in_dev=0; size=""; type=""; speed=""; }
+            /^Memory Device/ { in_dev=1; size=""; type=""; speed=""; next }
+            in_dev && /^[[:space:]]*Size:/ {
+              if ($2 == "No" || $2 == "Volatile") next;
+              if ($3=="GB") size_mb = $2 * 1024;
+              else if ($3=="MB") size_mb = $2;
+              else if ($3=="KB") size_mb = int($2 / 1024);
+              else size_mb = 0;
+              size = size_mb;
+            }
+            in_dev && /^[[:space:]]*Type:/ && !/Type Detail/ { type=$2; }
+            in_dev && /^[[:space:]]*Speed:/ && !/Configured/ { speed=$2; }
+            in_dev && /^$/ { if (size != "" && size > 0) printf "SLOT|%s|%s|%s\n", size, type, speed; in_dev=0; size=""; type=""; speed=""; }
+          '
+        fi
+      register: _l_mem_slots_raw
+      changed_when: false
+      failed_when: false
+      no_log: true
+
+    - name: "linux | memory | parse slots + grouping"
+      ansible.builtin.set_fact:
+        _l_mem_slots: >-
+          {%- set out = [] -%}
+          {%- for line in (_l_mem_slots_raw.stdout_lines | default([])) -%}
+            {%- if line.startswith('SLOT|') -%}
+              {%- set parts = line.split('|') -%}
+              {%- if parts | length >= 3 -%}
+                {%- set _ = out.append({
+                  'capacity_mb': parts[1] | int,
+                  'type': parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none,
+                  'speed_mhz': (parts[3] | int) if (parts | length >= 4 and parts[3] | regex_search('^[0-9]+$')) else none
+                }) -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+      no_log: true
+
+    - name: "linux | memory | compute summary groups"
+      ansible.builtin.set_fact:
+        _l_mem_summary: >-
+          {%- set groups = [] -%}
+          {%- set seen = {} -%}
+          {%- set total = 0 -%}
+          {%- for s in (_l_mem_slots | default([])) -%}
+            {%- if s.capacity_mb > 0 -%}
+              {%- set cap_gb = (s.capacity_mb / 1024) | round(0, 'floor') | int -%}
+              {%- set t = s.type | default(none) -%}
+              {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
+              {%- if key in seen -%}
+                {%- set idx = seen[key] -%}
+                {%- set q = groups[idx].quantity + 1 -%}
+                {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+              {%- else -%}
+                {%- set _ = seen.update({key: groups | length}) -%}
+                {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+              {%- endif -%}
+              {%- set total = total + cap_gb -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- set fallback_mb = (_l_mem_phys_raw.stdout | trim | int) if (_l_mem_phys_raw.stdout | trim | length > 0) else (ansible_memtotal_mb | default(0) | int) -%}
+          {%- set fallback_total = (fallback_mb / 1024) | round(0, 'floor') | int -%}
+          {{ {'groups': groups, 'grand_total_gb': total if total > 0 else fallback_total} }}
       no_log: true
 
     - name: "linux | memory | build fragment"
@@ -54,13 +125,9 @@
                  else none }}
             visible_mb:  "{{ ansible_memtotal_mb | default(none) }}"
             free_mb:     "{{ ansible_memfree_mb  | default(none) }}"
-            slots:       []
-            # P3 (cycle 2026-04-28): group summary — Linux 는 P5 dmidecode 보강 후 채움
-            summary:
-              groups: []
-              grand_total_gb: >-
-                {%- set v = (_l_mem_phys_raw.stdout | trim | int) if (_l_mem_phys_raw.stdout | trim | length > 0) else (ansible_memtotal_mb | default(0) | int) -%}
-                {{ (v / 1024) | round(0, 'floor') | int }}
+            slots:       "{{ _l_mem_slots | default([]) }}"
+            # cycle-016 (2026-04-29): dmidecode slot 단위 group summary
+            summary: "{{ _l_mem_summary | default({'groups': [], 'grand_total_gb': 0}) }}"
         _sections_supported_fragment: ['memory']
         _sections_collected_fragment: ['memory']
         _sections_failed_fragment:    []
@@ -90,6 +157,24 @@
             | awk '{if($3=="GB")s+=$2*1024;else if($3=="MB")s+=$2;else if($3=="KB")s+=$2/1024} END{print int(s)}' 2>/dev/null)
         fi
         echo "MEM_PHYS_MB=${phys:-0}"
+        # cycle-016 (2026-04-29): slot 단위 emit (raw fallback)
+        if command -v dmidecode >/dev/null 2>&1; then
+          dmidecode -t memory 2>/dev/null | awk '
+            BEGIN{ in_dev=0; size=""; type=""; speed=""; }
+            /^Memory Device/ { in_dev=1; size=""; type=""; speed=""; next }
+            in_dev && /^[[:space:]]*Size:/ {
+              if ($2 == "No" || $2 == "Volatile") next;
+              if ($3=="GB") size_mb = $2 * 1024;
+              else if ($3=="MB") size_mb = $2;
+              else if ($3=="KB") size_mb = int($2 / 1024);
+              else size_mb = 0;
+              size = size_mb;
+            }
+            in_dev && /^[[:space:]]*Type:/ && !/Type Detail/ { type=$2; }
+            in_dev && /^[[:space:]]*Speed:/ && !/Configured/ { speed=$2; }
+            in_dev && /^$/ { if (size != "" && size > 0) printf "SLOT|%s|%s|%s\n", size, type, speed; in_dev=0; size=""; type=""; speed=""; }
+          '
+        fi
       register: _l_mem_raw_result
       changed_when: false
       failed_when: false
@@ -102,6 +187,50 @@
                   | select('search', '=')
                   | map('split', '=', 1)
                   | list) }}
+        _l_mem_slots_r: >-
+          {%- set out = [] -%}
+          {%- for line in (_l_mem_raw_result.stdout_lines | default([])) -%}
+            {%- if line.startswith('SLOT|') -%}
+              {%- set parts = line.split('|') -%}
+              {%- if parts | length >= 3 -%}
+                {%- set _ = out.append({
+                  'capacity_mb': parts[1] | int,
+                  'type': parts[2] if (parts[2] | length) > 0 and parts[2] != 'Unknown' else none,
+                  'speed_mhz': (parts[3] | int) if (parts | length >= 4 and parts[3] | regex_search('^[0-9]+$')) else none
+                }) -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ out }}
+      no_log: true
+
+    - name: "linux | memory | compute summary groups (raw)"
+      ansible.builtin.set_fact:
+        _l_mem_summary_r: >-
+          {%- set groups = [] -%}
+          {%- set seen = {} -%}
+          {%- set total = 0 -%}
+          {%- for s in (_l_mem_slots_r | default([])) -%}
+            {%- if s.capacity_mb > 0 -%}
+              {%- set cap_gb = (s.capacity_mb / 1024) | round(0, 'floor') | int -%}
+              {%- set t = s.type | default(none) -%}
+              {%- set key = (cap_gb | string) ~ '|' ~ (t | string) -%}
+              {%- if key in seen -%}
+                {%- set idx = seen[key] -%}
+                {%- set q = groups[idx].quantity + 1 -%}
+                {%- set _ = groups[idx].update({'quantity': q, 'group_total_gb': q * cap_gb}) -%}
+              {%- else -%}
+                {%- set _ = seen.update({key: groups | length}) -%}
+                {%- set _ = groups.append({'unit_capacity_gb': cap_gb, 'type': t, 'quantity': 1, 'group_total_gb': cap_gb}) -%}
+              {%- endif -%}
+              {%- set total = total + cap_gb -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- set phys = (_l_mem_rp.MEM_PHYS_MB | default('0')) | trim | int -%}
+          {%- set vis_kb = (_l_mem_rp.MEM_TOTAL_KB | default('0')) | trim | int -%}
+          {%- set fallback_v = phys if phys > 0 else (vis_kb / 1024) | round(0, 'floor') | int -%}
+          {%- set fallback_total = (fallback_v / 1024) | round(0, 'floor') | int -%}
+          {{ {'groups': groups, 'grand_total_gb': total if total > 0 else fallback_total} }}
       no_log: true
 
     - name: "linux | memory | build fragment (raw)"
@@ -122,15 +251,9 @@
               {{ ((_l_mem_rp.MEM_TOTAL_KB | default('0')) | trim | int / 1024) | round(0,'floor') | int }}
             free_mb: >-
               {{ ((_l_mem_rp.MEM_AVAIL_KB | default('0')) | trim | int / 1024) | round(0,'floor') | int }}
-            slots: []
-            # P3 (cycle 2026-04-28): group summary
-            summary:
-              groups: []
-              grand_total_gb: >-
-                {%- set phys = (_l_mem_rp.MEM_PHYS_MB | default('0')) | trim | int -%}
-                {%- set vis_kb = (_l_mem_rp.MEM_TOTAL_KB | default('0')) | trim | int -%}
-                {%- set v = phys if phys > 0 else (vis_kb / 1024) | round(0,'floor') | int -%}
-                {{ (v / 1024) | round(0, 'floor') | int }}
+            slots: "{{ _l_mem_slots_r | default([]) }}"
+            # cycle-016 (2026-04-29): dmidecode slot 단위 group summary (raw)
+            summary: "{{ _l_mem_summary_r | default({'groups': [], 'grand_total_gb': 0}) }}"
         _sections_supported_fragment: ['memory']
         _sections_collected_fragment: ['memory']
         _sections_failed_fragment:    []

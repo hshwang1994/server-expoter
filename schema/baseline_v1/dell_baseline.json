@@ -153,7 +153,29 @@
           "addresses": []
         }
       ],
-      "default_gateways": []
+      "default_gateways": [],
+      "summary": {
+        "groups": [
+          {
+            "speed_mbps": 0,
+            "link_type": null,
+            "quantity": 4,
+            "link_up_count": 2
+          },
+          {
+            "speed_mbps": 1000,
+            "link_type": null,
+            "quantity": 2,
+            "link_up_count": 2
+          },
+          {
+            "speed_mbps": 10240,
+            "link_type": null,
+            "quantity": 2,
+            "link_up_count": 2
+          }
+        ]
+      }
     },
     "memory": {
       "total_mb": 655360,
@@ -382,7 +404,18 @@
           "part_number": "M386A4G40DM1-CRC",
           "health": "OK"
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 32,
+            "type": "DDR4",
+            "quantity": 20,
+            "group_total_gb": 640
+          }
+        ],
+        "grand_total_gb": 640
+      }
     },
     "hardware": {
       "vendor": "Dell Inc.",
@@ -857,7 +890,33 @@
           "state": "Enabled",
           "boot_volume": false
         }
-      ]
+      ],
+      "summary": {
+        "groups": [
+          {
+            "unit_capacity_gb": 447,
+            "media_type": "SSD",
+            "protocol": "SATA",
+            "quantity": 2,
+            "group_total_gb": 894
+          },
+          {
+            "unit_capacity_gb": 1788,
+            "media_type": "SSD",
+            "protocol": "SAS",
+            "quantity": 4,
+            "group_total_gb": 7152
+          },
+          {
+            "unit_capacity_gb": 223,
+            "media_type": "SSD",
+            "protocol": "SATA",
+            "quantity": 2,
+            "group_total_gb": 446
+          }
+        ],
+        "grand_total_gb": 8492
+      }
     },
     "cpu": {
       "sockets": 2,
@@ -865,7 +924,17 @@
       "logical_threads": 24,
       "model": "Intel(R) Xeon(R) Silver 4214 CPU @ 2.20GHz",
       "max_speed_mhz": 4000,
-      "architecture": null
+      "architecture": null,
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) Silver 4214 CPU @ 2.20GHz",
+            "sockets": 2,
+            "cores_per_socket": 12,
+            "total_cores": 24
+          }
+        ]
+      }
     }
   },
   "schema_version": "1"

@@ -28,7 +28,9 @@
     "details": {
       "channel": "os",
       "adapter_candidate": "os_linux_rhel",
-      "checked_ports": [22],
+      "checked_ports": [
+        22
+      ],
       "detected_os": "linux",
       "detected_port": 22
     }
@@ -70,7 +72,9 @@
           "service": "chronyd",
           "active": true,
           "synced": true,
-          "sources": ["pool.ntp.org"]
+          "sources": [
+            "pool.ntp.org"
+          ]
         },
         "firewall": {
           "service": "firewalld",
@@ -78,7 +82,11 @@
           "default_zone": "public"
         },
         "listening_ports": [
-          {"protocol": "tcp", "port": 22, "process": "sshd"}
+          {
+            "protocol": "tcp",
+            "port": 22,
+            "process": "sshd"
+          }
         ]
       }
     },
@@ -109,10 +117,8 @@
       "free_mb": 128000,
       "slots": [],
       "summary": {
-        "total_capacity_mib": 262144,
-        "module_count": null,
-        "module_types": null,
-        "speeds_mhz": null
+        "groups": [],
+        "grand_total_gb": 256
       }
     },
     "storage": {
@@ -124,31 +130,40 @@
       "hbas": [],
       "infiniband": [],
       "summary": {
-        "physical_disk_count": 0,
-        "logical_volume_count": 0,
-        "total_capacity_mb": null,
-        "media_types": []
+        "groups": [],
+        "grand_total_gb": 0
       }
     },
     "network": {
-      "dns_servers": ["8.8.8.8", "8.8.4.4"],
-      "default_gateways": [{"family": "ipv4", "address": "10.10.1.1"}],
+      "dns_servers": [
+        "8.8.8.8",
+        "8.8.4.4"
+      ],
+      "default_gateways": [
+        {
+          "family": "ipv4",
+          "address": "10.10.1.1"
+        }
+      ],
       "interfaces": [],
       "driver_map": [
-        {"interface": "eth0", "driver": "i40e", "version": "2.22.18"}
+        {
+          "interface": "eth0",
+          "driver": "i40e",
+          "version": "2.22.18"
+        }
       ],
       "summary": {
-        "interface_count": 0,
-        "adapter_count": null,
-        "total_port_count": null,
-        "primary_interface_id": null
+        "groups": []
       }
     },
     "users": [
       {
         "name": "root",
         "uid": 0,
-        "groups": ["root"],
+        "groups": [
+          "root"
+        ],
         "home": "/root",
         "shell": "/bin/bash",
         "last_access_time": "2026-04-28T03:21:11Z"
