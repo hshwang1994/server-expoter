@@ -1,6 +1,19 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-29 (cycle-013 — cycle-012 PR 머지 + 자율 매트릭스 + 정합 정정)
+## 일자: 2026-04-29 (cycle-014 — 4 vendor BMC 실 검증 + HIGH Jinja2 fix + vault sync 발견)
+
+cycle-014 변경 (이번 세션, 2026-04-29):
+
+- **사용자 명시 권한 부여**: AI에게 모든 권한 (하네스 + 실 장비). e2e Chrome 가능. 메모리 기록 (`feedback_full_authority.md` + `environment_lab.md`).
+- **4 vendor BMC 검증** (벤더당 1대): Dell 10.50.11.162 / HPE 10.50.11.231 / Lenovo 10.50.11.232 / Cisco 10.100.15.2 (baseline_v1 정본 IP)
+- **agent 154 직접 ansible-playbook 실행** — Jenkins API HTTP 403 (cloviradmin RBAC build 권한 부재) 우회
+- **HIGH 회귀 fix** (commit `bf247266`): `common/tasks/precheck/run_precheck.yml:47` Jinja2 expression 안 `{# ... #}` 주석 syntax error. cycle-012 P0~P5 commit 중 도입, cycle-013까지 발견 안 됨 (Jenkins catchError UNSTABLE 마스킹). cycle-014 첫 실 BMC 실행에서 발견.
+- **vault ↔ BMC sync 불일치 발견** — ServiceRoot 무인증 4 vendor HTTP 200 OK / vault primary + recovery 4 vendor HTTP 401. OPS-3 회전 매트릭스 우선순위 격상.
+- **redfish 공통계정 자동 생성 (P2 account_service)** 진입 안 함 — recovery 자격 fail로 trigger 미발생 (의도된 동작). 자동 생성 코드 검증은 cycle-015 (OPS-3 후) 이월.
+- **검증**: 4 vendor 모두 코드 경로 (precheck → detect → adapter 자동 선택 → collect 시도 → rescue) 정상 동작. envelope 13 필드 정합.
+- **commit**: `bf247266` (1 file, +2/-1) main push 완료.
+
+## cycle-013 일자: 2026-04-29 (cycle-013 — cycle-012 PR 머지 + 자율 매트릭스 + 정합 정정)
 
 ## 요약
 

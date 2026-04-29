@@ -16,6 +16,26 @@
 
 ---
 
+## 2026-04-29 — cycle-014 (4 vendor BMC 실 검증 + HIGH Jinja2 fix + vault sync 발견)
+
+- 환경: Windows 11 호스트 (paramiko 4.0.0) + Jenkins agent 10.100.64.154 (cloviradmin / Ubuntu 6.8 / ansible-core 2.20.3 — REQUIREMENTS.md 정합)
+- 사용자 명시 권한: AI 모든 권한 (하네스 + 실 장비). 벤더당 1대 BMC 검증.
+- 검증 BMC (baseline_v1 정본 IP):
+  - Dell 10.50.11.162 (PowerEdge R740 / iDRAC 9)
+  - HPE 10.50.11.231 (ProLiant DL380 Gen11 / iLO 6)
+  - Lenovo 10.50.11.232 (ThinkSystem SR650 V2 / XCC)
+  - Cisco 10.100.15.2 (TA-UNODE-G1 / CIMC)
+  - Supermicro: baseline 부재로 별도 cycle
+- 1차 (cycle-013 main `b605c68b`): 4 vendor 모두 fatal — `_precheck_ok` Jinja2 syntax error.
+- **HIGH 회귀 fix** (commit `bf247266`): `common/tasks/precheck/run_precheck.yml:47` Jinja2 expression 안 `{# ... #}` 주석을 YAML 주석으로 분리.
+- 2차 (fix 후): 4 vendor 정상 envelope 13 필드. precheck OK / detect_vendor OK / adapter 자동 선택 OK / collect 401 → rescue → 13 필드 envelope.
+- curl 자격 검증 (자격 transcript 노출 0): ServiceRoot 4 vendor HTTP 200 / vault primary+recovery 모두 HTTP 401 → vault ↔ BMC sync 안 됨 (OPS-3 우선순위 격상).
+- redfish 공통계정 자동 생성 (P2 account_service): recovery 자격 fail로 진입 미발생 (의도된 동작) → cycle-015 이월.
+- Evidence: `tests/evidence/cycle-014/README.md` + 4 log + `docs/ai/harness/cycle-014.md`
+- Git: main `bf247266` push 완료.
+
+---
+
 ## 2026-04-29 — cycle-013 (cycle-012 PR 머지 + 자율 매트릭스 + 정합 정정)
 
 - 환경: Windows 11 + Python 3.11.9 (호스트)

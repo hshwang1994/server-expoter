@@ -1,10 +1,23 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-29 (cycle-013 종료 시점 — cycle-012 자율 매트릭스 7건 closed + 정합 정정)
+## 일자: 2026-04-29 (cycle-014 종료 시점 — 4 vendor BMC 검증 + HIGH Jinja2 fix + vault sync 발견)
 
 ## ⏳ 현재 상태 (한 줄)
 
-cycle-012 PR #1 머지 완료 (`b74c1103`). cycle-013에서 자율 매트릭스 7건 (AI-1~AI-7) 모두 closed + 분포 1건 over count 정정. **lab 검증 + main 정리 대기 중**.
+cycle-014에서 4 vendor BMC (Dell/HPE/Lenovo/Cisco) 코드 경로 검증 완료. 발견한 cycle-013 main HIGH 회귀 (`_precheck_ok` Jinja2 syntax error) commit `bf247266` fix + main push. vault 자격 ↔ 실 BMC sync 안 됨 발견 → **OPS-3 회전 매트릭스 우선순위 격상**.
+
+## cycle-014 핵심 결과
+
+| 항목 | 결과 |
+|---|---|
+| 4 vendor 코드 경로 (precheck → detect → adapter → collect → rescue) | PASS (4/4 vendor detect 성공, adapter 자동 선택 OK) |
+| HIGH Jinja2 회귀 fix | commit `bf247266` main push 완료 |
+| vault primary 자격 (4 vendor infraops) | HTTP 401 → OPS-3 회전 필요 |
+| vault recovery 자격 (USERID/root/admin/?) | HTTP 401 → OPS-3 회전 필요 |
+| account_service 자동 생성 검증 | 미진입 (recovery 자격 fail로 trigger 안 됨) — cycle-015 이월 |
+| Supermicro 검증 | baseline 부재 — 별도 cycle |
+
+## cycle-013 종료 시점
 
 ## 다음 세션 시작 시 확인 순서 (cold start)
 
@@ -36,7 +49,7 @@ cycle-012 PR #1 머지 완료 (`b74c1103`). cycle-013에서 자율 매트릭스 
 |---|---|---|---|
 | OPS-1 | Jenkins 빌드 시범 1회 (target_type=redfish, 임의 BMC) | UI 클릭 + lab 환경 | console log 받으면 envelope 분석 + 회귀 fixture 추가 |
 | ~~OPS-2~~ | ~~PR 머지 결정 (squash 권장)~~ | ~~rule 93 R4 main 보호~~ | **closed 2026-04-29** — PR #1 머지 완료 (`b74c1103`) |
-| OPS-3 | 평문 password 6종 회전 (Passw0rd1!/Goodmit0802!/Dellidrac1!/calvin/hpinvent1!/VMware1!) — Git history 잔존 | 운영팀 일정 + 실 장비 | 회전 후 vault에 새 password 반영 + encrypt + 새 PR |
+| **OPS-3 (우선순위 격상)** | **평문 password 6종 회전 + vault 갱신 — cycle-014에서 4 vendor 모두 HTTP 401 확인됨** | 운영팀 일정 + 실 장비 | 회전 후 vault에 새 password 반영 + encrypt + cycle-015 진입 가능 |
 | OPS-4 | P1 lab 회귀 — vendor 5종 1차 / 2차 fallback 시나리오 | 실 BMC + lab cycle | 결과 받으면 evidence + baseline 갱신 |
 | OPS-5 | P2 dryrun OFF 전환 (Dell + HPE 먼저) | rule 92 R5 + BMC 잠금 위험 | 결정 받으면 `_rf_account_service_dryrun: false` 토글 + lab 검증 |
 | OPS-6 | baseline_v1/* 7개 실측 갱신 (P3/P4 신 필드 정합) | rule 13 R4 — 실측 기반만 | probe_redfish.py 결과 받으면 baseline 갱신 + Stage 4 회귀 |
@@ -45,6 +58,8 @@ cycle-012 PR #1 머지 완료 (`b74c1103`). cycle-013에서 자율 매트릭스 
 | AI-9 | 25개 stale reference cleanup (cycle-011 advisory 잔여) | 즉시 — cycle-013 11건 처리 후 약 38건 잔존 | 별도 cycle (영향 범위 큼) — rule 60 / pre_commit_policy / vault-rotator 본문 참조 정리 |
 | AI-10 | docs/ai/harness/ archive 진입 (cycle-001~005 → archive/) | rule 70 R6 정본 catalog 비대화 차단 | 별도 cycle — 사용자 archive 정책 명시 후 |
 | AI-11 | docs/ai/impact/ 6 보고서 archive (구조·정책 전환 reasoning 보존) | rule 70 R6 첫 질문 YES | 별도 cycle |
+| **cycle-015** | OPS-3 후 4 vendor primary 인증 성공 검증 + recovery only 시나리오 + account_service 진입 + dryrun=true→false | OPS-3 완료 | redfish 공통계정 자동 생성 검증 (cycle-012 P2 코드의 실 BMC 동작) |
+| Supermicro 추가 | baseline_v1 추가 + Supermicro BMC IP 명시 + 5번째 vendor 검증 | 사용자 명시 (Supermicro lab BMC 보유 여부) | 5 vendor 완전 검증 |
 
 ## 사용자 결정 명시 필요 (Phase 진입 전)
 
