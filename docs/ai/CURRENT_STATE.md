@@ -1,6 +1,33 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-29 (production-audit — 4 agent 전수조사 + HIGH 30+건 일괄 수정)
+## 일자: 2026-04-29 (production-audit 후속 — ESXi BUG #1 / #2 / #4 fix, Round 12 검증)
+
+## 요약 (Round 12 — 2026-04-29 14시)
+
+사용자 명시 보고: ESXi 출력 JSON 에서 `hostname=IP`, `vendor` 정규화 실패, `network.adapters / virtual_switches / storage.hbas` 빈 배열.
+
+agent 10.100.64.154 SSH 접속 + raw facts 진단 (`tests/scripts/diag_esxi_raw.yml`) → 3 BUG 확정 + fix:
+
+- **BUG #1 (hostname=IP)**: `normalize_system.yml` 의 `system.fqdn = _e_ip` 잘못. `_e_hostname` 변수 도입 (ansible_hostname 우선, IP 폴백)
+- **BUG #2 (vendor 정규화 실패)**: cycle-016 "9 파일 namespace pattern fix" 잔류분 — `esxi-gather/site.yml` 의 `set canonical = canon` 이 inner loop scope 만 영향. `namespace(canonical=none)` wrapping 으로 해결
+- **BUG #4 (extended modules 빈 배열)**: `community.vmware 6.2.0` 의 hosts_*_info dict key 는 ESXi configured hostname (IP 아님). 또한 진짜 dict list 는 `vmnic_details` / `vmhba_details` (string list `all` 아님). 매핑 키도 `pci→location`, `adapter_type→type`, `node_world_wide_name→node_wwn`. vswitch 는 dict-of-dict 구조. portgroups 는 `vmware_portgroup_info` 결과를 vswitch 별 group 후 join.
+
+**검증** (실 ESXi 10.100.64.1 + 10.100.64.2):
+- esxi01: 6 NIC + vSwitch0 + 4 HBA (AHCI×2 + SAS RAID + iSCSI)
+- esxi02: 6 NIC + vSwitch0 + 5 HBA (AHCI×2 + SAS RAID + FC×2 nfnic Cisco UCS VIC Fnic, wwpn `20:00:00:27:E3:6C:A6:6E/F` 정확 추출)
+- pytest 158/158 PASS, vendor boundary / harness consistency / ansible-syntax-check 모두 통과
+- `schema/baseline_v1/esxi_baseline.json` 갱신 (esxi02 실측, +231/-47 lines)
+- evidence: `tests/evidence/2026-04-29-esxi-bug-fix.md` + `tests/evidence/esxi01_2026-04-29.json`
+
+**잔류 미세 이슈 (별도 cycle)**:
+- `default_gateways=[]` / `dns_servers=[]` (vmware_host_facts 미반환 + host_config_info 빈 응답 — `vmware_host_dns_info` 모듈 추가 필요)
+- `speed_mbps` int / "N/A" string 혼재
+- `cpu.architecture` / `max_speed_mhz` null (model 파싱 폴백 가능)
+- `include_vars` `name:` 옵션 reserved-name 경고 (4곳 — 호출자 영향 0, 별도 cycle)
+
+---
+
+## 이전 cycle: production-audit (2026-04-29 오전 — 4 agent 전수조사 + HIGH 30+건 일괄 수정)
 
 ## 요약 (production-audit)
 

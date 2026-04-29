@@ -59,40 +59,52 @@
       failed_when: false
       no_log: true
 
+    # BUG #4 fix (cycle production-audit 후속): hosts_*_info dict 의 top-level key 는
+    # ESXi configured hostname (예: "esxi01") — _e_ip 가 아니다.
+    # 또한 진짜 dict list 는 'all' (string list) 이 아니라 'vmnic_details' / 'vmhba_details'.
+    # vswitch 는 dict-of-dict (key=vswitch name, value=info).
+    # 키 매핑: pci→location, adapter_type→type, node_world_wide_name→node_wwn.
+    # portgroups 는 별도 portgroup_info 결과를 vswitch 별로 group 해서 채운다.
+    # 진단 근거: tests/scripts/diag_esxi_raw.yml 결과 (community.vmware 6.2.0 + ESXi 7.0.3).
     - name: "esxi | extended | normalize"
       ansible.builtin.set_fact:
         _e_ext_adapters: >-
           {%- set out = [] -%}
-          {%- set vmnics = (_e_vmnic.hosts_vmnics_info | default({})).get(_e_ip, {}).get('all', []) -%}
+          {%- set d = _e_vmnic.hosts_vmnics_info | default({}) -%}
+          {%- set key = _e_hostname if (_e_hostname in d) else ((d.keys() | list | first) if d else none) -%}
+          {%- set vmnics = (d.get(key, {}).get('vmnic_details', [])) if key else [] -%}
           {%- for n in vmnics -%}
             {%- set _ = out.append({
               'name':         n.device | default(none),
               'driver':       n.driver | default(none),
               'mac':          n.mac    | default(none),
               'link_status':  n.status | default(none),
-              'speed_mbps':   n.actual_speed | default(none),
-              'duplex':       n.actual_duplex | default(none),
-              'pci':          n.pci    | default(none),
+              'speed_mbps':   n.actual_speed   | default(none),
+              'duplex':       n.actual_duplex  | default(none),
+              'pci':          n.location | default(none),
+              'adapter':      n.adapter  | default(none),
             }) -%}
           {%- endfor -%}
           {{ out }}
         _e_ext_hbas: >-
           {%- set out = [] -%}
           {%- set ib  = [] -%}
-          {%- set vmhbas = (_e_vmhba.hosts_vmhbas_info | default({})).get(_e_ip, {}).get('all', []) -%}
+          {%- set d = _e_vmhba.hosts_vmhbas_info | default({}) -%}
+          {%- set key = _e_hostname if (_e_hostname in d) else ((d.keys() | list | first) if d else none) -%}
+          {%- set vmhbas = (d.get(key, {}).get('vmhba_details', [])) if key else [] -%}
           {%- for h in vmhbas -%}
-            {%- set adapter_type = (h.adapter_type | default('')) | lower -%}
-            {%- set is_fc = 'fc' in adapter_type or 'fibrechannel' in adapter_type -%}
+            {%- set adapter_type = (h.type | default('')) | lower -%}
             {%- set is_ib = 'infiniband' in adapter_type -%}
             {%- set entry = {
               'name':         h.device     | default(none),
               'driver':       h.driver     | default(none),
               'model':        h.model      | default(none),
-              'adapter_type': h.adapter_type | default(none),
+              'adapter_type': h.type       | default(none),
               'link_status':  h.status     | default(none),
-              'wwpn':         h.port_world_wide_name | default(none),
-              'wwnn':         h.node_world_wide_name | default(none),
-              'pci':          h.pci_slot   | default(none),
+              'wwpn':         h.port_wwn   | default(none),
+              'wwnn':         h.node_wwn   | default(none),
+              'pci':          h.location   | default(none),
+              'bus':          h.bus        | default(none),
             } -%}
             {%- if is_ib -%}
               {%- set _ = ib.append(entry) -%}
@@ -101,21 +113,42 @@
             {%- endif -%}
           {%- endfor -%}
           {{ {'hbas': out, 'infiniband': ib} }}
+        _e_ext_portgroups: >-
+          {%- set d = _e_portgroup.hosts_portgroup_info | default({}) -%}
+          {%- set key = _e_hostname if (_e_hostname in d) else ((d.keys() | list | first) if d else none) -%}
+          {{ (d.get(key, [])) if key else [] }}
+      no_log: true
+
+    # vswitch 는 dict-of-dict 구조라 별도 task — _e_ext_portgroups 에 의존 (vswitch 별 portgroups join)
+    - name: "esxi | extended | build vswitch list"
+      ansible.builtin.set_fact:
         _e_ext_vswitches: >-
           {%- set out = [] -%}
-          {%- set vsws = (_e_vswitch.hosts_vswitch_info | default({})).get(_e_ip, []) -%}
-          {%- for v in vsws -%}
-            {%- set _ = out.append({
-              'name':       v.switch | default(none),
-              'num_ports':  v.num_ports | default(none),
-              'mtu':        v.mtu | default(none),
-              'pnics':      v.pnics | default([]),
-              'portgroups': v.portgroups | default([]),
-            }) -%}
+          {%- set d = _e_vswitch.hosts_vswitch_info | default({}) -%}
+          {%- set key = _e_hostname if (_e_hostname in d) else ((d.keys() | list | first) if d else none) -%}
+          {%- set vsws_dict = d.get(key, {}) if key else {} -%}
+          {%- set pg_by_vsw = namespace(map={}) -%}
+          {%- for pg in (_e_ext_portgroups | default([])) -%}
+            {%- set vsw = pg.vswitch | default('') -%}
+            {%- if vsw -%}
+              {%- if vsw not in pg_by_vsw.map -%}
+                {%- set _ = pg_by_vsw.map.update({vsw: []}) -%}
+              {%- endif -%}
+              {%- set _ = pg_by_vsw.map[vsw].append(pg.portgroup) -%}
+            {%- endif -%}
           {%- endfor -%}
+          {%- if vsws_dict is mapping -%}
+            {%- for sw_name, sw_info in vsws_dict.items() -%}
+              {%- set _ = out.append({
+                'name':       sw_name,
+                'num_ports':  sw_info.num_ports | default(none),
+                'mtu':        sw_info.mtu       | default(none),
+                'pnics':      sw_info.pnics     | default([]),
+                'portgroups': pg_by_vsw.map.get(sw_name, []),
+              }) -%}
+            {%- endfor -%}
+          {%- endif -%}
           {{ out }}
-        _e_ext_portgroups: >-
-          {{ (_e_portgroup.hosts_portgroup_info | default({})).get(_e_ip, []) }}
       no_log: true
 
     - name: "esxi | extended | merge fragment"

@@ -93,6 +93,15 @@
             msg: "vmware_host_facts 수집 실패 — ESXi 연결 또는 인증 문제. ESXi 호스트 접근성, vSphere API(443) 포트, 자격증명(vault)을 확인하세요."
           when: not (_e_facts_ok | bool)
 
+        # BUG #1 fix (cycle production-audit 후속): vmware_host_vmnic_info / vmware_vswitch_info /
+        # vmware_portgroup_info / vmware_host_vmhba_info 의 hosts_*_info dict 는 ESXi configured
+        # hostname 을 키로 사용한다. _e_ip (IP) 로 lookup 하면 항상 빈 결과 → BUG #4 의 직접 원인.
+        # 또한 system.hostname / system.fqdn 도 IP 가 아닌 ansible_hostname 을 사용해야 한다.
+        - name: "esxi | resolve hostname from raw facts"
+          ansible.builtin.set_fact:
+            _e_hostname: "{{ _e_raw_facts.ansible_hostname | default(_e_ip) }}"
+          no_log: true
+
         - name: "esxi | collect config"
           ansible.builtin.include_tasks: tasks/collect_config.yml
 
@@ -130,20 +139,23 @@
             file: "{{ lookup('env','REPO_ROOT') }}/common/vars/vendor_aliases.yml"
             name: _e_vendor_aliases_map
 
+        # BUG #2 fix (cycle production-audit 후속): Jinja2 loop scoping —
+        # block 안의 {% set %} 는 outer 변수에 영향 없음. cycle-016 "9 파일 namespace pattern fix"
+        # 잔류분. namespace 로 outer scope 갱신.
         - name: "esxi | normalize vendor via aliases"
           ansible.builtin.set_fact:
             _e_vendor_normalized: >-
               {%- set raw = (_e_raw_facts.ansible_system_vendor | default('')) | trim -%}
               {%- set raw_lower = raw | lower -%}
-              {%- set canonical = none -%}
+              {%- set ns = namespace(canonical=none) -%}
               {%- for canon, aliases in (_e_vendor_aliases_map.vendor_aliases | default({})).items() -%}
                 {%- for a in aliases -%}
                   {%- if a | lower == raw_lower -%}
-                    {%- set canonical = canon -%}
+                    {%- set ns.canonical = canon -%}
                   {%- endif -%}
                 {%- endfor -%}
               {%- endfor -%}
-              {{ canonical if canonical else (raw if raw else none) }}
+              {{ ns.canonical if ns.canonical else (raw if raw else none) }}
 
         - name: "esxi | set output meta"
           ansible.builtin.set_fact:

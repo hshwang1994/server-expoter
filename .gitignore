@@ -56,3 +56,4 @@ tests/reference/**/.crawl_inflight/
 # Incoming-review 자동 보고서 (각 머지마다 생성, 정리 후 후속 PR)
 docs/ai/incoming-review/*-*.md
 !docs/ai/incoming-review/.gitkeep
+.cache/

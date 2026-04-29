@@ -6,6 +6,8 @@
   ansible.builtin.set_fact:
     _data_fragment:
       # cycle-016 Phase P: 3 채널 일관성 — system.runtime 노출 (Linux/Windows 와 동일 키)
+      # BUG #1 fix: hostname / fqdn 을 ansible_hostname (ESXi configured name) 으로.
+      # 이전: fqdn=_e_ip (= IP), hostname 키 자체 누락 → build_output.yml 이 IP 폴백.
       system:
         os_family:      "VMware ESXi"
         distribution:   "VMware ESXi"
@@ -14,7 +16,8 @@
         architecture:   "{{ _e_raw_facts.ansible_machine              | default(none) }}"
         uptime_seconds: "{{ (_e_raw_facts.ansible_uptime               | default(0)) | int }}"
         selinux:        null
-        fqdn:           "{{ _e_ip }}"
+        hostname:       "{{ _e_hostname | default(_e_ip) }}"
+        fqdn:           "{{ _e_hostname | default(_e_ip) }}"
         hosting_type:   "hypervisor"
         runtime:
           # ESXi 는 vmware_host_facts 에서 제한적 — 기술적 가능 영역만

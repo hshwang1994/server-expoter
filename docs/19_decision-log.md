@@ -1,6 +1,41 @@
 # 의사결정 로그
 
-> 최종 갱신: 2026-04-15
+> 최종 갱신: 2026-04-29 (Round 12 — ESXi BUG #1/#2/#4 fix)
+
+## Round 12 (2026-04-29) — ESXi 채널 hostname / vendor / extended modules fix
+
+### 배경
+사용자 보고: ESXi 출력 JSON 에서 `hostname=IP`, `vendor` 정규화 실패, `network.adapters / virtual_switches / storage.hbas` 빈 배열.
+
+### 진단
+agent 10.100.64.154 SSH + 진단 playbook (`tests/scripts/diag_esxi_raw.yml`) 으로 raw facts 캡처.
+
+| BUG | 원인 |
+|---|---|
+| #1 hostname=IP | `normalize_system.yml` 의 `system.fqdn = _e_ip` (ansible_hostname 미사용) |
+| #2 vendor 정규화 | Jinja2 loop scoping — cycle-016 namespace fix 잔류분 |
+| #4 extended 빈 | `community.vmware 6.2.0` hosts_*_info dict key 는 hostname (IP 아님). dict list 는 `vmnic_details`/`vmhba_details` (`all` 은 string list). 매핑 키 정정: pci→location, adapter_type→type, node_wwn 등. vswitch 는 dict-of-dict |
+
+### Fix
+- `esxi-gather/site.yml` (+11 lines) — `_e_hostname` 변수 + namespace pattern
+- `esxi-gather/tasks/normalize_system.yml` (+3 lines)
+- `esxi-gather/tasks/collect_network_extended.yml` (+30 lines)
+- `schema/baseline_v1/esxi_baseline.json` (+231 / -47, esxi02 실측 갱신)
+
+### 검증
+- 실 호스트 esxi01 + esxi02 (10.100.64.1 / .2) 본 site.yml 실행 — NIC/vSwitch/HBA 모두 정상 채워짐
+- pytest 158/158 PASS, vendor boundary / harness consistency / ansible-syntax-check 통과
+- evidence: `tests/evidence/2026-04-29-esxi-bug-fix.md`
+
+### 잔류 (별도 cycle)
+- `default_gateways=[]` / `dns_servers=[]` — vmware_host_facts 미반환 / host_config_info 빈 응답 (vmware_host_dns_info 모듈 추가 필요)
+- `speed_mbps` int / "N/A" string 혼재
+- `cpu.architecture` / `max_speed_mhz` null (model 파싱 폴백 가능)
+- `include_vars` `name:` reserved-name 경고 (호출자 영향 0)
+
+---
+
+
 
 ## 1. 코드 점검 1차/2차 결과 요약
 
