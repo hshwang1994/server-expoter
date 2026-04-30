@@ -207,26 +207,45 @@ def ssh_banner_check(host, port, timeout):
 
 
 def probe_redfish(host, port, timeout, verify=False):
-    """Redfish ServiceRoot 프로브"""
+    """Redfish ServiceRoot 프로브.
+
+    ServiceRoot가 200이 아닌 HTTP 응답 (401/403/503)을 던지더라도, BMC가
+    Redfish 서비스를 응답한다는 증거 → protocol_supported=True. 인증 검증은
+    Stage 4 (auth) 또는 본 수집 (redfish_gather library의 무인증→인증
+    fallback) 에서 처리.
+
+    배경: 일부 BMC (HPE iLO5/6 보안 강화 펌웨어, Lenovo XCC 일부) 는
+    무인증 ServiceRoot에 401을 던진다. 이전 구현은 401/403/503을 모두
+    HTTP 실패로 분류해 "Redfish 미지원"으로 오판정 → 통신 정상인 장비를
+    차단. probe_esxi 의 status_code 허용 패턴 (line 260) 을 따라 정정.
+    """
     url = "https://{0}:{1}/redfish/v1/".format(host, port)
     ok, err, payload = http_get(url, timeout, verify=verify)
-    if not ok:
-        return False, err, None
 
-    json_data = payload.get("json") if payload else None
-    probe_facts = {}
+    if ok:
+        json_data = payload.get("json") if payload else None
+        probe_facts = {}
+        if json_data:
+            probe_facts["redfish_version"] = json_data.get("RedfishVersion")
+            probe_facts["product"] = json_data.get("Product")
+            systems_uri = None
+            systems = json_data.get("Systems")
+            if isinstance(systems, dict):
+                systems_uri = systems.get("@odata.id")
+            probe_facts["systems_uri"] = systems_uri
+        return True, None, probe_facts
 
-    if json_data:
-        probe_facts["redfish_version"] = json_data.get("RedfishVersion")
-        probe_facts["product"] = json_data.get("Product")
-        # Systems 링크에서 벤더 정보 탐색 시도
-        systems_uri = None
-        systems = json_data.get("Systems")
-        if isinstance(systems, dict):
-            systems_uri = systems.get("@odata.id")
-        probe_facts["systems_uri"] = systems_uri
+    # HTTP 응답은 왔지만 status != 200 — 서비스 살아있고 인증/일시상태 이슈
+    # 401: 무인증 ServiceRoot 차단 (인증 강화 펌웨어)
+    # 403: IP 화이트리스트 / 권한 부족 (BMC는 응답 중)
+    # 503: BMC 일시 과부하 / 부팅 직후 — 본 수집에서 재시도 가능
+    if payload and payload.get("status_code") in (401, 403, 503):
+        return True, None, {
+            "root_status_code": payload.get("status_code"),
+            "requires_auth_at_root": payload.get("status_code") in (401, 403),
+        }
 
-    return True, None, probe_facts
+    return False, err, None
 
 
 def probe_os(host, port, timeout):
