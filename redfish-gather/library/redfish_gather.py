@@ -1667,8 +1667,69 @@ def gather_firmware(bmc_ip, username, password, timeout, verify_ssl):
     return fw_list, errors
 
 
+def _gather_power_subsystem(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
+    """DMTF 2020.4 (Redfish 1.13+) PowerSubsystem fallback parser.
+
+    cycle 2026-05-01: 신 펌웨어 (HPE iLO 6 / Lenovo XCC2-3 / Dell iDRAC9 5.x+ /
+    Supermicro X14+) 가 /Power 대신 /PowerSubsystem 응답. 기본 PSU 정보는 공통.
+    PowerControl 같은 system-level metric 은 PowerSubsystem 에 직접 없고
+    EnvironmentMetrics 로 분리됨 — 본 fallback 은 PSU info 만 매핑 (호출자 envelope
+    유지). PowerControl 미응답이면 None.
+    """
+    errors = []
+    ps_path = _p(chassis_uri) + '/PowerSubsystem'
+    st, ps_data, perr = _get(bmc_ip, ps_path, username, password, timeout, verify_ssl)
+    if perr or st != 200:
+        # PowerSubsystem 도 없으면 진짜 미지원 — 호출자가 not_supported 분류
+        return {}, [_err('power', f'PowerSubsystem 미지원: {perr or st}')] if st != 404 else []
+
+    # PowerSubsystem.PowerSupplies 컬렉션 fetch
+    psu_link = _safe(ps_data, 'PowerSupplies', '@odata.id')
+    psus = []
+    if psu_link:
+        st_c, coll, _err_c = _get(bmc_ip, _p(psu_link), username, password, timeout, verify_ssl)
+        if st_c == 200:
+            for member in (_safe(coll, 'Members') or []):
+                m_uri = _safe(member, '@odata.id')
+                if not m_uri:
+                    continue
+                st_m, mdata, _err_m = _get(bmc_ip, _p(m_uri), username, password, timeout, verify_ssl)
+                if st_m != 200:
+                    continue
+                psus.append({
+                    'name':             _safe(mdata, 'Name'),
+                    'model':            _safe(mdata, 'Model'),
+                    'serial':           _safe(mdata, 'SerialNumber'),
+                    'manufacturer':     _safe(mdata, 'Manufacturer'),
+                    'power_capacity_w': _safe_int(_safe(mdata, 'PowerCapacityWatts')),
+                    'firmware_version': _safe(mdata, 'FirmwareVersion'),
+                    'health':           _safe(mdata, 'Status', 'Health'),
+                    'state':            _safe(mdata, 'Status', 'State'),
+                })
+
+    # PowerControl 은 PowerSubsystem 표준에 없음 — chassis-level 합산 또는 None
+    pc_capacity = None
+    psu_caps = [p['power_capacity_w'] for p in psus if p['power_capacity_w'] is not None]
+    if psu_caps:
+        pc_capacity = sum(psu_caps)
+    power_control = {
+        'power_consumed_watts':  None,
+        'power_capacity_watts':  pc_capacity,
+        'interval_in_min':       None,
+        'min_consumed_watts':    None,
+        'avg_consumed_watts':    None,
+        'max_consumed_watts':    None,
+    } if psus else None
+
+    return {'power_supplies': psus, 'power_control': power_control}, errors
+
+
 def gather_power(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
-    """Chassis/{id}/Power — PSU 정보. chassis_uri는 detect_vendor()에서 전달."""
+    """Chassis/{id}/Power — PSU 정보. chassis_uri는 detect_vendor()에서 전달.
+
+    cycle 2026-05-01: /Power 404 시 /PowerSubsystem fallback (DMTF 2020.4 신 schema).
+    Storage SimpleStorage fallback 패턴 따름 (line 1417).
+    """
     errors = []
     if not chassis_uri:
         errors.append(_err('power', 'chassis_uri 없음 (detect_vendor 에서 Chassis 미발견)'))
@@ -1676,6 +1737,11 @@ def gather_power(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
 
     power_path = _p(chassis_uri) + '/Power'
     st, pdata, perr = _get(bmc_ip, power_path, username, password, timeout, verify_ssl)
+
+    # cycle 2026-05-01: 404 = 신 펌웨어 가능 → PowerSubsystem fallback
+    if st == 404:
+        return _gather_power_subsystem(bmc_ip, chassis_uri, username, password, timeout, verify_ssl)
+
     if perr or st != 200:
         errors.append(_err('power', f'Power 정보 실패: {perr or st}'))
         return {}, errors
@@ -1729,14 +1795,43 @@ def gather_power(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
 
 # ── 메인 ─────────────────────────────────────────────────────────────────────
 
-def _make_section_runner(all_errors, collected, failed):
-    """섹션 collector wrapper — 예외/errors 누적 + collected/failed 추적.
+def _is_404_only_error(errs):
+    """모든 errors가 'HTTP 404' 시그널이면 True (endpoint 자체 부재 = capability 미지원).
+
+    cycle 2026-05-01: 404 = "endpoint 없음 = vendor/펌웨어 미지원" — errors[] 노이즈
+    분리. 5xx / timeout / 401 / 403 과 분리해 'unsupported' 시그널로 분류.
+    """
+    if not errs:
+        return False
+    for e in errs:
+        if not isinstance(e, dict):
+            return False
+        detail = (e.get('detail') or '')
+        msg = (e.get('message') or '')
+        # 'HTTP 404' 패턴: detail에 'HTTP 404' 또는 message에 '404' 단독 정수
+        if 'HTTP 404' in detail or 'HTTP 404' in msg:
+            continue
+        # message가 정확히 '...: 404' (st 정수 그대로) 패턴
+        if msg.endswith(': 404') or msg.endswith(' 404'):
+            continue
+        return False
+    return True
+
+
+def _make_section_runner(all_errors, collected, failed, unsupported=None):
+    """섹션 collector wrapper — 예외/errors 누적 + collected/failed/unsupported 추적.
 
     rule 60: stacktrace는 stderr console verbose에만, errors[]에는 type+message만.
+    cycle 2026-05-01: 404 시그널은 unsupported list로 분리 (endpoint 부재 = capability 미지원).
+    호환성: unsupported 인자 미전달 시 기존 동작 유지 (back-compat).
     """
     def _run(section, fn, *args):
         try:
             val, errs = fn(*args)
+            # 404 only면 unsupported로 분류, errors[]에서 제외 (호출자 noise 차단)
+            if unsupported is not None and _is_404_only_error(errs):
+                unsupported.append(section)
+                return val
             all_errors.extend(errs)
             collected.append(section)
             if errs:
@@ -1758,11 +1853,14 @@ def _make_section_runner(all_errors, collected, failed):
 
 def _collect_all_sections(bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
                           username, password, timeout, verify_ssl,
-                          all_errors, collected, failed):
+                          all_errors, collected, failed, unsupported=None):
     """9개 섹션 dispatch (system / bmc / processors / memory / storage / network /
     firmware / power / network_adapters[P4]).
+
+    cycle 2026-05-01: unsupported list 추가 — 404 응답 섹션을 별도 분류
+    (capability 미지원 = noise 아님).
     """
-    _run = _make_section_runner(all_errors, collected, failed)
+    _run = _make_section_runner(all_errors, collected, failed, unsupported)
     creds = (username, password, timeout, verify_ssl)
     return {
         'system':            _run('system',     gather_system,     bmc_ip, system_uri, vendor, *creds, chassis_uri),
@@ -2079,8 +2177,8 @@ def main():
         )
         return
 
-    # ── 기존 gather mode (변경 없음) ─────────────────────────────────────
-    all_errors, collected, failed = [], [], []
+    # ── 기존 gather mode (cycle 2026-05-01: unsupported 분류 추가) ──────
+    all_errors, collected, failed, unsupported = [], [], [], []
 
     vendor, system_uri, manager_uri, chassis_uri, det_errors = detect_vendor(
         bmc_ip, username, password, timeout, verify_ssl
@@ -2090,13 +2188,14 @@ def main():
     if not system_uri:
         module.exit_json(
             changed=False, status='failed', vendor=vendor,
-            collected=[], failed_sections=['all'], errors=all_errors, data={},
+            collected=[], failed_sections=['all'], unsupported_sections=[],
+            errors=all_errors, data={},
         )
 
     result_data = _collect_all_sections(
         bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
         username, password, timeout, verify_ssl,
-        all_errors, collected, failed,
+        all_errors, collected, failed, unsupported,
     )
 
     final_status, clean = _compute_final_status(collected, failed, all_errors)
@@ -2104,6 +2203,7 @@ def main():
     module.exit_json(
         changed=False, status=final_status, vendor=vendor,
         collected=clean, failed_sections=list(set(failed)),
+        unsupported_sections=list(set(unsupported)),
         errors=all_errors, data=result_data,
     )
 
