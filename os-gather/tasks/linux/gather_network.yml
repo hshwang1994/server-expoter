@@ -16,14 +16,18 @@
       # 형식: SLOT "class" "vendor" "device" -rRR -pPP "subvendor" "subdevice"
       # awk -F'"' 분할 시 → $2=class / $4=vendor / $6=device / $8=subvendor
       # 이전 코드: vendor=$6 (= device 잘못), device=$8 (= subvendor 잘못)
+      #
+      # LOW-9 fix: stderr 캡처 (2>/dev/null 제거) — 권한 부족 시 lspci 가 partial
+      # stdout 으로 NIC 일부만 enumerate 가능. stderr 비어있지 않으면 errors_fragment
+      # 에 명시해 호출자가 partial 인지 추적 가능.
       ansible.builtin.shell: |
         export LANG=C LC_ALL=C
         if command -v lspci >/dev/null 2>&1; then
-          lspci -k -mm -d ::0200 2>/dev/null | while IFS= read -r line; do
+          lspci -k -mm -d ::0200 | while IFS= read -r line; do
             slot=$(echo "$line" | awk -F'"' '{print $1}' | tr -d ' ')
             vendor=$(echo "$line" | awk -F'"' '{print $4}')
             device=$(echo "$line" | awk -F'"' '{print $6}')
-            driver=$(lspci -k -s "$slot" 2>/dev/null | awk '/Kernel driver in use:/{print $5}')
+            driver=$(lspci -k -s "$slot" | awk '/Kernel driver in use:/{print $5}')
             echo "ADAPTER|${slot}|${vendor}|${device}|${driver}"
           done
         fi
@@ -201,7 +205,8 @@
         _sections_supported_fragment: ['network']
         _sections_collected_fragment: ['network']
         _sections_failed_fragment:    []
-        _errors_fragment:             []
+        # LOW-9: lspci stderr 비어있지 않으면 권한 부족/partial enumeration 의심 — errors[] 에 명시.
+        _errors_fragment: "{{ [{'section':'network','message':('lspci stderr (NIC partial 가능): ' ~ (_l_lspci_nic.stderr | default('') | truncate(200))),'detail':{'rc':(_l_lspci_nic.rc | default(none))}}] if ((_l_lspci_nic.stderr | default('') | trim | length) > 0) else [] }}"
       no_log: true
   when: _l_python_mode == 'python_ok'
 
