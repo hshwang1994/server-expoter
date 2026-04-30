@@ -1,31 +1,44 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-30 (vault accounts 우선순위 재정렬 — Dell/Lenovo 사용자 명시)
+## 일자: 2026-04-30 (vault accounts 우선순위 재정렬 — primary default + recovery 우선순위 사용자 명시 — 정정 후)
 
-## 요약 (vault accounts reorder — 2026-04-30, 사용자 명시)
+## 요약 (vault accounts reorder — 2026-04-30, 사용자 명시 + 비즈니스 로직 정정)
 
-`load_vault.yml`은 list 순서 그대로 `_rf_accounts` 사용 (별도 정렬 없음 — 주석은 misleading). vault file의 list 순서가 곧 multi-account fallback 시도 순서.
+### 진짜 비즈니스 로직 (site.yml + account_service.yml 확인 결과)
 
-**Dell (vault/redfish/dell.yml)** — 사용자 명시 "Dellidrac1! 1번, calvin 2번, 나머지 뒤로":
-1. dell_fallback_1 (root/Dellidrac1!) ← 1순위
-2. dell_fallback_2 (root/calvin) ← 2순위
-3. common_infraops (infraops/Passw0rd1!)
+- `primary` (= infraops/Passw0rd1!) = **provision target** — server-exporter가 모든 BMC에 생성/유지하는 표준 운영 계정
+- `recovery` (vendor마다 다름) = **provision 진입 자격** — BMC에 이미 존재하는 자격증명. primary가 아직 없을 때 recovery로 BMC 접속 후 primary 생성 (POST AccountService)
+- `_rf_accounts` list 순서대로 시도 → 어느 자격이든 succeed → 만약 succeed가 recovery면 → primary 자동 생성/갱신 → primary로 rotate 후 재수집
+
+→ **list[0] = primary 가 정상**. 이미 BMC에 primary 있으면 그대로 succeed (account_service skip). 없으면 recovery로 fallback → provision.
+
+### 사용자 명시 = recovery 후보들 안에서의 우선순위 (정정)
+
+**Dell (vault/redfish/dell.yml)** — primary 1번 + recovery 사용자 명시 우선순위:
+1. common_infraops (infraops/Passw0rd1!) ← primary (default, provision target)
+2. dell_fallback_1 (root/Dellidrac1!) ← recovery 1순위 (사용자 명시)
+3. dell_fallback_2 (root/calvin) ← recovery 2순위 (사용자 명시)
 4. dell_current (root/GoodskInfra1!)
 5. lab_dell_root (root/Goodmit0802!)
 
-**Lenovo (vault/redfish/lenovo.yml)** — 사용자 명시 "USERID/Passw0rd1! 첫번째":
-1. lenovo_fallback (USERID/Passw0rd1!) ← 1순위
-2. common_infraops (infraops/Passw0rd1!)
+**Lenovo (vault/redfish/lenovo.yml)** — primary 1번 + recovery 사용자 명시:
+1. common_infraops (infraops/Passw0rd1!) ← primary
+2. lenovo_fallback (USERID/Passw0rd1!) ← recovery 1순위
 3. lenovo_current (USERID/VMware1!)
 
-**HPE (vault/redfish/hpe.yml)** — 사용자 명시 "admin/hpinvent1! 첫번째":
-1. hpe_fallback (admin/hpinvent1!) ← 1순위
-2. common_infraops (infraops/Passw0rd1!)
+**HPE (vault/redfish/hpe.yml)** — primary 1번 + recovery 사용자 명시:
+1. common_infraops (infraops/Passw0rd1!) ← primary
+2. hpe_fallback (admin/hpinvent1!) ← recovery 1순위
 3. hpe_current (admin/VMware1!)
 
-role / ansible_user / ansible_password 미변경 (legacy backward-compat 유지). 변경은 list 순서만.
+role / ansible_user / ansible_password 미변경. list 순서만 변경.
 
-검증: ansible-vault decrypt 후 yaml parse 검증으로 새 순서 확인.
+### 직전 commit (잘못된 순서) 정정 이력
+
+- commit 4a84f095 / 700ffbcd: common_infraops를 recovery 후순위로 보냄 (잘못)
+- 본 commit: common_infraops를 1번으로 복원 + recovery 안에서 사용자 명시 순서 유지
+
+검증: ansible-vault decrypt round-trip + yaml parse OK.
 
 ---
 
