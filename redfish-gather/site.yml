@@ -20,6 +20,8 @@
   hosts: all
   gather_facts: no
   connection: local
+  # 2026-04-30 perf: dead-host 다수 inventory에서 host별 독립 진행 (linear 시 stuck host가 wave 막음)
+  strategy: free
 
   vars:
     ansible_python_interpreter: "{{ ansible_playbook_python }}"

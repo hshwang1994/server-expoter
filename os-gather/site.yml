@@ -25,11 +25,14 @@
   hosts: all
   gather_facts: no
   connection: local
+  # 2026-04-30 perf: dead-host 다수 inventory에서 host별 독립 진행 (linear 시 stuck host가 wave 막음)
+  strategy: free
 
   vars:
     ansible_python_interpreter: "{{ ansible_playbook_python }}"
-    # 포트 감지 타임아웃 (초) — 느린 네트워크 환경에서 증가 가능
-    _probe_timeout: "{{ probe_timeout | default(5) }}"
+    # 포트 감지 타임아웃 (초) — 2026-04-30 perf: 5→2 (200 dead host 시나리오에서 host당 15→6초)
+    # 진짜 느린 LAN host는 probe_timeout 변수로 override 가능
+    _probe_timeout: "{{ probe_timeout | default(2) }}"
 
   tasks:
 
@@ -160,6 +163,8 @@
   hosts: _os_linux
   gather_facts: no
   become: no
+  # 2026-04-30 perf: stuck host (SSH connect timeout) 가 wave 막지 않도록 host별 독립 진행
+  strategy: free
 
   vars_files:
     - "{{ lookup('env','REPO_ROOT') }}/vault/linux.yml"
@@ -349,6 +354,8 @@
 - name: "os-gather | windows"
   hosts: _os_windows
   gather_facts: no
+  # 2026-04-30 perf: stuck host (WinRM read/op timeout) 가 wave 막지 않도록 host별 독립 진행
+  strategy: free
 
   vars_files:
     - "{{ lookup('env','REPO_ROOT') }}/vault/windows.yml"
