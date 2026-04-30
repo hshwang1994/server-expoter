@@ -542,7 +542,14 @@
         {%- if mapped not in out -%}{%- set _ = out.append(mapped) -%}{%- endif -%}
       {%- endfor -%}
       {{ out }}
-    _errors_fragment: "{{ _rf_raw_collect.errors | default([]) }}"
+    # rule 22 R8: _errors_fragment 는 list of dicts 타입 강제. module 결과가 string
+    # 으로 coerce 된 경우 character iteration 차단 (회귀 fix).
+    _errors_fragment: >-
+      {%- set raw = _rf_raw_collect.errors | default([]) -%}
+      {%- if raw is string -%}{{ [{'section':'redfish_collect','message':raw,'detail':none}] if (raw | trim | length > 0) else [] }}
+      {%- elif raw is mapping -%}{{ [raw] }}
+      {%- elif raw is iterable -%}{{ raw | list }}
+      {%- else -%}{{ [] }}{%- endif -%}
   no_log: true
 
 - name: "redfish | normalize_standard | merge fragment"

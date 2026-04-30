@@ -341,15 +341,13 @@
     # `_out_vendor: null` overwrite (commit 0d3058c4)였고 이미 해결됨.
     # vendor 정상 추출(asv=Dell Inc.) 호스트에서도 항상 에러로 emit되어 호출자 혼란.
     # vendor가 진짜 미정의(UNDEF)인 케이스만 진단으로 emit.
-    _errors_fragment: >-
-      {{ (_l_id_diagnostics | default([])) +
-         ([{'section': 'system',
-            'message': 'vendor extraction failed — ansible_system_vendor undefined and _l_raw_vendor unset',
-            'detail': 'inv_host=' ~ inventory_hostname}]
-          if (ansible_system_vendor is not defined
-              and (_l_raw_vendor | default(none)) is none)
-          else []) }}
-      }}
+    # ROOT CAUSE FIX: 이전 코드는 `>-` block scalar 끝에 잉여 `}}` 두 글자가
+    # 있어, Jinja expression 결과 list 가 string 으로 coerce 된 뒤 `\n}}` 가 concat
+    # 되어 `_errors_fragment` 가 list 가 아닌 string ('[...]\n}}') 로 들어감.
+    # merge_fragment.yml 의 `for e in <string>` 가 character 단위로 iterate 하면서
+    # ['[', ']', '\n', '}', '}'] 5개 character 가 errors[].message 로 분해 채워졌음.
+    # 단일 line Jinja expression 으로 전환 + list 타입 보존.
+    _errors_fragment: "{{ (_l_id_diagnostics | default([])) + ([{'section': 'system', 'message': 'vendor extraction failed — ansible_system_vendor undefined and _l_raw_vendor unset', 'detail': 'inv_host=' ~ inventory_hostname}] if (ansible_system_vendor is not defined and (_l_raw_vendor | default(none)) is none) else []) }}"
     _l_fb: "{{ _l_fb | default({}) }}"
   no_log: true
 

@@ -129,7 +129,14 @@
     _sections_supported_fragment: ['system']
     _sections_collected_fragment: ['system']
     _sections_failed_fragment:    []
-    _errors_fragment: "{{ _w_id_diagnostics | default([]) }}"
+    # rule 22 R8: list of dicts 타입 강제. _w_id_diagnostics 가 string 으로 coerce
+    # 된 경우 character iteration 차단.
+    _errors_fragment: >-
+      {%- set raw = _w_id_diagnostics | default([]) -%}
+      {%- if raw is string -%}{{ [{'section':'windows_system','message':raw,'detail':none}] if (raw | trim | length > 0) else [] }}
+      {%- elif raw is mapping -%}{{ [raw] }}
+      {%- elif raw is iterable -%}{{ raw | list }}
+      {%- else -%}{{ [] }}{%- endif -%}
   no_log: true
 
 - name: "windows | system | merge fragment"

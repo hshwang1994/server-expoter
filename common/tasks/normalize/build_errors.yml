@@ -14,13 +14,28 @@
   ansible.builtin.set_fact:
     _norm_errors: >-
       {%- set out = [] -%}
-      {%- for e in (_all_errors | default([])) -%}
+      {#- 방어: _all_errors 가 string/dict 인 경우 character iteration 차단.
+          merge_fragment.yml 의 동일 가드와 정합. 빈 단일 char ('[', ']', '\n', '}')
+          가 errors[].message 로 분해 채워지는 회귀 차단. -#}
+      {%- set ae_raw = _all_errors | default([]) -%}
+      {%- if ae_raw is string -%}
+        {%- set ae = [{'section':'unknown','message':ae_raw,'detail':none}] if (ae_raw | trim | length > 0) else [] -%}
+      {%- elif ae_raw is mapping -%}
+        {%- set ae = [ae_raw] -%}
+      {%- elif ae_raw is iterable -%}
+        {%- set ae = ae_raw -%}
+      {%- else -%}
+        {%- set ae = [] -%}
+      {%- endif -%}
+      {%- for e in ae -%}
         {%- if e is string -%}
-          {%- set _ = out.append({
-            'section': 'unknown',
-            'message': e,
-            'detail':  none
-          }) -%}
+          {%- if e | trim | length > 0 -%}
+            {%- set _ = out.append({
+              'section': 'unknown',
+              'message': e,
+              'detail':  none
+            }) -%}
+          {%- endif -%}
         {%- elif e is mapping -%}
           {%- set _ = out.append({
             'section': e.section | default('unknown'),
