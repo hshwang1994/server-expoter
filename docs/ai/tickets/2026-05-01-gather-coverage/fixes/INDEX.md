@@ -41,20 +41,50 @@
 
 ## R4 추가 (2026-05-01 추가 검색 — 7건)
 
-- [F26](./F26.md) — PCIeDevice 섹션 수집 (P3)
-- [F27](./F27.md) — Sensor schema 활용 (P2 / F6 묶음)
-- [F28](./F28.md) — VirtualMedia 수집 (P3 / scope 외)
-- [F29](./F29.md) — BIOS Attribute Registry 수집 (P3)
-- [F30](./F30.md) — Telemetry MetricReport (P3 / scope 외)
-- [F31](./F31.md) — Huawei iBMC vendor 추가 (P3 / 9단계)
-- [F32](./F32.md) — Linux storage deep 도구 (P2)
+> 참고: 사용자 의도 (2026-05-01) "호환성 fallback only" 기준 R4 의 다수는 **새 데이터 수집 영역**.
+> 호환성과 새 데이터 수집은 별도 영역으로 분리해야.
 
-## 종합 32건 fix 후보
+- [F26](./F26.md) — PCIeDevice 섹션 수집 (P3) — **새 섹션**
+- [F27](./F27.md) — Sensor schema 활용 (P2 / F6 묶음) — **새 섹션**
+- [F28](./F28.md) — VirtualMedia 수집 (P3 / scope 외) — **새 섹션**
+- [F29](./F29.md) — BIOS Attribute Registry (P3) — **새 데이터**
+- [F30](./F30.md) — Telemetry MetricReport (P3 / scope 외) — **새 섹션**
+- [F31](./F31.md) — Huawei iBMC vendor 추가 (P3 / 9단계) — **새 vendor**
+- [F32](./F32.md) — Linux storage deep 도구 (P2) — **새 데이터**
 
-- P1 즉시 권장: 3건 (F05 / F13 / F23)
-- P2 lab 검증 후: 11건 (F02 / F04 / F06 / F08 / F10 / F12 / F17 / F20 / F21 / F27 / F32)
-- P3 사고 재현 시: 16건 (F01 / F03 / F07 / F09 / F11 / F14~F19 / F22 / F24 / F26 / F28~F31)
-- P4 운영 영역: 1건 (F25)
+## R5 추가 (호환성 only — 사용자 의도 정확히 부합 — 4건)
+
+- [F33](./F33.md) — Session 인증 (X-Auth-Token) Additive (Basic fallback) (P3)
+- [F34](./F34.md) — Drive Protocol OEM enum 자동 통과 (이미 호환, 검증만 P3)
+- [F35](./F35.md) — Manager URI 변종 (이미 호환, 검증만 P3)
+- [F36](./F36.md) — HPE OEM fallback sensor (F6 묶음 P2)
+
+## 종합 36건 fix 후보 — 호환성 vs 새 데이터 분리
+
+### 호환성 fallback (사용자 의도 부합 — 18건)
+
+| Priority | 항목 |
+|---|---|
+| P1 | F05 / F13 / F23 |
+| P2 | F02 / F04 / F08 / F10 / F12 / F17 / F20 / F21 / F36 |
+| P3 | F01 / F09 / F11 / F14 / F15 / F22 / F24 / F33 / F34 / F35 |
+
+### 새 데이터 수집 (사용자 의도와 별도 영역 — 별도 cycle 권장)
+
+| 영역 | 항목 |
+|---|---|
+| 새 섹션 | F06 / F26 / F27 / F28 / F30 |
+| 새 데이터 | F03 / F19 / F29 / F32 |
+| 새 vendor | F31 |
+
+### 횡단 / 추적 (4건)
+F07 / F16 / F18 / F25
+
+## 종합 호환성 매트릭스
+
+cycle 2026-04-30 + 2026-05-01 + 이전 누적 — **35건 호환성 fallback 이미 적용됨** (A~L 14 카테고리)
+
+자세히: [../COMPATIBILITY-MATRIX.md](../COMPATIBILITY-MATRIX.md)
 
 ## Cold-start 가이드
 

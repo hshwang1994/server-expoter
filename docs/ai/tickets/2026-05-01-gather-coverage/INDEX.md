@@ -20,6 +20,13 @@
 
 ## 티켓 파일
 
+### 사용자 의도 (2026-05-01 명시)
+
+> "호환성 fallback only — 새 데이터 수집 아님"
+> "lab 장비 한계 → web 검색이 fixture 대체"
+
+→ [COMPATIBILITY-MATRIX.md](./COMPATIBILITY-MATRIX.md) — 적용된 35건 호환성 + 신규 후보
+
 ### Cycle 작업 (이미 적용된 commit)
 
 - [CYCLE-2026-04-30.md](./CYCLE-2026-04-30.md) — HTTP 406 호환 fix + Lenovo XCC reverse regression hotfix + 401/403 vault fallback 정상화 + verbosity 토글
