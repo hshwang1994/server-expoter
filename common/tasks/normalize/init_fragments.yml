@@ -14,6 +14,9 @@
 #   _all_sec_supported    : list  — 지원 섹션 누적
 #   _all_sec_collected    : list  — 수집 성공 섹션 누적
 #   _all_sec_failed       : list  — 수집 실패 섹션 누적
+#   _all_sec_unsupported  : list  — 지원되지 않는 섹션 누적 (cycle 2026-05-01)
+#                                   - redfish 404, OS 명령 부재, ESXi API 미지원
+#                                   - errors[] 노이즈 차단 + sections.{name}='not_supported'
 #   _all_errors           : list  — errors 누적
 
 - name: "normalize | validate REPO_ROOT"
@@ -66,8 +69,9 @@
       users:    []
       firmware: []
       power:    null
-    _all_sec_supported: []
-    _all_sec_collected: []
-    _all_sec_failed:    []
-    _all_errors:        []
+    _all_sec_supported:   []
+    _all_sec_collected:   []
+    _all_sec_failed:      []
+    _all_sec_unsupported: []
+    _all_errors:          []
   no_log: true

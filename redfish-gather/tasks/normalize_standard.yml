@@ -407,8 +407,10 @@
 # ── sections from redfish_gather module result ────────────────────────────────
 - name: "redfish | normalize_standard | map module sections to schema"
   ansible.builtin.set_fact:
-    _rf_collected_raw: "{{ (_rf_raw_collect.collected | default([])) | to_json | from_json }}"
-    _rf_failed_raw:    "{{ (_rf_raw_collect.failed_sections | default([])) | to_json | from_json }}"
+    _rf_collected_raw:    "{{ (_rf_raw_collect.collected | default([])) | to_json | from_json }}"
+    _rf_failed_raw:       "{{ (_rf_raw_collect.failed_sections | default([])) | to_json | from_json }}"
+    # cycle 2026-05-01: redfish_gather 모듈이 emit 하는 unsupported_sections (404 only)
+    _rf_unsupported_raw:  "{{ (_rf_raw_collect.unsupported_sections | default([])) | to_json | from_json }}"
     # processors → cpu, storage/network direct, firmware/power direct
     # P4 (cycle 2026-04-28): network_adapters → network (NetworkAdapters/Ports 데이터는 network 섹션 안 sub-key)
     _rf_proc_map:
@@ -538,6 +540,15 @@
       {%- set out = [] -%}
       {%- set pmap = _rf_proc_map -%}
       {%- for s in _rf_failed_raw -%}
+        {%- set mapped = pmap.get(s, s) -%}
+        {%- if mapped not in out -%}{%- set _ = out.append(mapped) -%}{%- endif -%}
+      {%- endfor -%}
+      {{ out }}
+    # cycle 2026-05-01: 404 only 섹션은 'unsupported' 분류 (errors[] 노이즈 차단)
+    _sections_unsupported_fragment: >-
+      {%- set out = [] -%}
+      {%- set pmap = _rf_proc_map -%}
+      {%- for s in _rf_unsupported_raw -%}
         {%- set mapped = pmap.get(s, s) -%}
         {%- if mapped not in out -%}{%- set _ = out.append(mapped) -%}{%- endif -%}
       {%- endfor -%}

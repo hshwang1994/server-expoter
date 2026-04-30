@@ -6,18 +6,22 @@
 # ※ 에러 정규화 로직은 build_errors.yml에도 동일하게 존재함 (상호참조).
 #
 # 입력 변수 (호출 전 set_fact):
-#   _data_fragment               : dict  — 이번 태스크의 data 기여분 (없으면 {})
-#   _sections_supported_fragment : list  — 이번 태스크가 지원하는 섹션 목록
-#   _sections_collected_fragment : list  — 이번 태스크에서 수집 성공한 섹션
-#   _sections_failed_fragment    : list  — 이번 태스크에서 수집 실패한 섹션
-#   _errors_fragment             : list  — 이번 태스크의 errors
+#   _data_fragment                : dict  — 이번 태스크의 data 기여분 (없으면 {})
+#   _sections_supported_fragment  : list  — 이번 태스크가 지원하는 섹션 목록
+#   _sections_collected_fragment  : list  — 이번 태스크에서 수집 성공한 섹션
+#   _sections_failed_fragment     : list  — 이번 태스크에서 수집 실패한 섹션
+#   _sections_unsupported_fragment: list  — 이번 태스크에서 미지원으로 분류된 섹션
+#                                          (cycle 2026-05-01: redfish 404 / OS 명령 부재 / ESXi API 미지원)
+#                                          누락 시 [] 으로 처리 (back-compat)
+#   _errors_fragment              : list  — 이번 태스크의 errors
 #
 # 출력 변수 (누적):
-#   _merged_data       : dict — data 재귀 병합 결과
-#   _all_sec_supported : list
-#   _all_sec_collected : list
-#   _all_sec_failed    : list
-#   _all_errors        : list
+#   _merged_data         : dict — data 재귀 병합 결과
+#   _all_sec_supported   : list
+#   _all_sec_collected   : list
+#   _all_sec_failed      : list
+#   _all_sec_unsupported : list (cycle 2026-05-01)
+#   _all_errors          : list
 
 - name: "normalize | merge_fragment | accumulate sections and errors"
   ansible.builtin.set_fact:
@@ -30,6 +34,9 @@
     _all_sec_failed: >-
       {{ (_all_sec_failed | default([]))
          | union(_sections_failed_fragment | default([])) }}
+    _all_sec_unsupported: >-
+      {{ (_all_sec_unsupported | default([]))
+         | union(_sections_unsupported_fragment | default([])) }}
     _all_errors: >-
       {%- set out = (_all_errors | default([])) | list -%}
       {#- 방어: _errors_fragment 가 string / dict / None 인 경우 character iteration
@@ -99,9 +106,10 @@
 # fragment 변수 초기화 (다음 태스크가 오염된 값을 쓰지 않도록)
 - name: "normalize | merge_fragment | reset fragment vars"
   ansible.builtin.set_fact:
-    _data_fragment:               {}
-    _sections_supported_fragment: []
-    _sections_collected_fragment: []
-    _sections_failed_fragment:    []
-    _errors_fragment:             []
+    _data_fragment:                 {}
+    _sections_supported_fragment:   []
+    _sections_collected_fragment:   []
+    _sections_failed_fragment:      []
+    _sections_unsupported_fragment: []
+    _errors_fragment:               []
   no_log: true
