@@ -168,14 +168,13 @@ def http_get(url, timeout, verify=False, auth=None):
 
     cycle 2026-04-30: HTTP 406 Not Acceptable 호환 — 일부 BMC 펌웨어
     (HPE iLO 펌웨어 ServiceRoot RedfishVersion 1.17.0 등)이 Accept 헤더
-    명시 안 된 요청을 거부. Redfish 표준 권장 (Accept + OData-Version) +
-    Python-urllib User-Agent 차단 BMC 회피용 명시 (외부 계약 — rule 96 R1).
+    명시 안 된 요청을 거부.
+    cycle 2026-04-30 hotfix: OData-Version + User-Agent 추가 시 Lenovo XCC
+    일부 펌웨어가 reject (사이트 검증). Accept 헤더만 명시 — 사용자 실측 OK 패턴.
     """
     ctx = _build_ssl_context(verify)
     req = urllib.request.Request(url)
     req.add_header("Accept", "application/json")
-    req.add_header("OData-Version", "4.0")
-    req.add_header("User-Agent", "server-exporter/1.0 (Redfish gather)")
     auth_header = _basic_auth_header(auth)
     if auth_header:
         req.add_header("Authorization", auth_header)

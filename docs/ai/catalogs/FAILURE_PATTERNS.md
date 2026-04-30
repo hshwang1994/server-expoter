@@ -20,6 +20,27 @@
 
 ---
 
+## 2026-04-30 — Hotfix — OData-Version/User-Agent 추가가 Lenovo XCC reject
+
+- 카테고리: external-contract-drift + reverse-regression
+- 발견 위치: cycle 2026-04-30 첫 fix (commit 4715bb5b) 적용 후 사이트 빌드
+- 증상:
+  - HTTP 406 fix 적용 후 lenovo 장비 수집 안 됨 (이전엔 정상이던 BMC)
+  - 사용자 검증: `Accept` 헤더만 추가했을 때는 OK / `OData-Version` + `User-Agent` 까지 추가한 commit 적용 후 fail
+- 원인:
+  - Lenovo XCC 일부 펌웨어가 추가 헤더 (`OData-Version` 또는 `User-Agent`)에 strict reject
+  - 정확히 어느 헤더가 reject 원인인지는 follow-up 진단 필요 (lab에서 헤더 single 추가 비교 시험)
+  - "표준 권장 = 모든 BMC 호환" 가정 실패 — Redfish 표준 권장 헤더가 일부 펌웨어 strict 처리에 부적합
+- 영향: HTTP 406 fix를 Lenovo XCC 사이트에 적용 못 함. Hotfix로 즉시 정정.
+- 수정: commit (Hotfix) — Accept 헤더만 유지, OData-Version + User-Agent 제거
+  - precheck_bundle.py http_get: Accept만
+  - redfish_gather.py _get/_post/_patch: User-Agent만 제거 (OData/Accept는 cycle 이전부터 잘 동작했으므로 유지)
+- 재발 방지:
+  - "표준 권장 헤더 = 안전" 가정 폐기. 실 BMC 펌웨어 검증 후 추가
+  - 새 헤더 추가 시 lab + 사이트 BMC 둘 다 사전 검증 의무 (rule 92 R3 대형 변경 회귀 체크리스트 강화)
+  - 사용자 실측 ("Accept 만으로 OK") 결과를 1순위 데이터로 채택 — 표준 spec보다 실 BMC 동작이 우선
+- 관련 rule: rule 25 R7-A (실측 검증), rule 92 R2 (선제 변경 자제), rule 96 R2 (외부 계약 질의 우선)
+
 ## 2026-04-30 — Redfish BMC HTTP 406 (precheck Stage 3 false-positive 미지원)
 
 - 카테고리: external-contract-drift + http-header-missing

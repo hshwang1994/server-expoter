@@ -88,11 +88,12 @@ def _auth(username, password):
 
 def _get(bmc_ip, path, username, password, timeout, verify_ssl):
     url = f'https://{bmc_ip}/redfish/v1/{path.lstrip("/")}'
+    # cycle 2026-04-30 hotfix: User-Agent 추가가 Lenovo XCC 일부 펌웨어 reject 유발 (사이트 검증).
+    # Accept + OData-Version 만 유지 (cycle 전부터 동작 검증된 헤더 셋).
     req = urlreq.Request(url, headers={
         'Authorization': _auth(username, password),
         'Accept': 'application/json',
         'OData-Version': '4.0',
-        'User-Agent': 'server-exporter/1.0 (Redfish gather)',
     })
     try:
         with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
@@ -117,7 +118,6 @@ def _post(bmc_ip, path, body, username, password, timeout, verify_ssl):
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'OData-Version': '4.0',
-        'User-Agent': 'server-exporter/1.0 (Redfish gather)',
     })
     try:
         with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
@@ -147,7 +147,6 @@ def _patch(bmc_ip, path, body, username, password, timeout, verify_ssl):
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'OData-Version': '4.0',
-        'User-Agent': 'server-exporter/1.0 (Redfish gather)',
     })
     try:
         with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
