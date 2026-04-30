@@ -67,17 +67,19 @@
 
 - name: "esxi | runtime | parse all"
   ansible.builtin.set_fact:
+    # MED-4 fix: hostname 명시 lookup 후 first() fallback. multi-host vCenter 환경
+    # 에서 임의 host 참조 차단. single-host 환경에서는 first() 동작과 동일.
     # NTP block: time_zone_name + ntp_servers list
     _e_runtime_timezone: >-
       {%- set hosts = (_e_ntp_result.hosts_ntp_info | default({})) -%}
       {%- if hosts -%}
-        {%- set first_h = hosts.values() | list | first | default([]) -%}
+        {%- set first_h = hosts.get(_e_hostname | default(_e_ip)) | default(hosts.values() | list | first | default([])) -%}
         {%- if first_h -%}{{ first_h[0].time_zone_name | default(none) }}{%- else -%}{{ none }}{%- endif -%}
       {%- else -%}{{ none }}{%- endif -%}
     _e_runtime_ntp_active: >-
       {%- set hosts = (_e_ntp_result.hosts_ntp_info | default({})) -%}
       {%- if hosts -%}
-        {%- set first_h = hosts.values() | list | first | default([]) -%}
+        {%- set first_h = hosts.get(_e_hostname | default(_e_ip)) | default(hosts.values() | list | first | default([])) -%}
         {%- if first_h -%}{{ (first_h[0].ntp_servers | default([]) | length) > 0 }}{%- else -%}{{ none }}{%- endif -%}
       {%- else -%}{{ none }}{%- endif -%}
 
@@ -92,7 +94,7 @@
       {%- if (_e_firewall_result is failed | default(false)) or not fws -%}
         {{ none }}
       {%- else -%}
-        {%- set rules = fws.values() | list | first | default([]) -%}
+        {%- set rules = fws.get(_e_hostname | default(_e_ip)) | default(fws.values() | list | first | default([])) -%}
         {%- if (rules | length) == 0 -%}
           {{ none }}
         {%- else -%}
@@ -105,7 +107,7 @@
     _e_runtime_ntp_synced: >-
       {%- set svcs = (_e_service_result.host_service_info | default({})) -%}
       {%- if svcs -%}
-        {%- set svc_list = svcs.values() | list | first | default([]) -%}
+        {%- set svc_list = svcs.get(_e_hostname | default(_e_ip)) | default(svcs.values() | list | first | default([])) -%}
         {%- set ntp_svc = (svc_list | selectattr('key','equalto','ntpd') | list | first | default({})) -%}
         {{ ntp_svc.running | default(false) }}
       {%- else -%}{{ none }}{%- endif -%}
