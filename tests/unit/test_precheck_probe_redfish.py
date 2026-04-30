@@ -87,6 +87,30 @@ def test_service_root_503_treated_as_supported():
     assert facts["requires_auth_at_root"] is False
 
 
+def test_service_root_406_treated_as_supported():
+    """회귀 차단 (cycle 2026-04-30): 406 = Accept 헤더 협상 불일치.
+    HPE iLO 펌웨어 ServiceRoot RedfishVersion 1.17.0 등 일부 BMC가 Accept 헤더
+    누락된 요청을 거부. http_get에 Accept/OData-Version 명시 + 406도 supported로 분류.
+    """
+    payload = {"status_code": 406, "json": None}
+    with patch.object(precheck_bundle, "http_get", _http_get_returning(False, "HTTP 406", payload)):
+        ok, _, facts = precheck_bundle.probe_redfish("10.1.1.1", 443, 6.0)
+    assert ok is True
+    assert facts["root_status_code"] == 406
+    assert facts["requires_auth_at_root"] is False
+    assert facts["header_negotiation_issue"] is True
+
+
+def test_service_root_405_treated_as_supported():
+    """405 = Method Not Allowed. Redfish 서비스 살아있고 GET 제한이 있는 드문 펌웨어."""
+    payload = {"status_code": 405, "json": None}
+    with patch.object(precheck_bundle, "http_get", _http_get_returning(False, "HTTP 405", payload)):
+        ok, _, facts = precheck_bundle.probe_redfish("10.1.1.1", 443, 6.0)
+    assert ok is True
+    assert facts["root_status_code"] == 405
+    assert facts["header_negotiation_issue"] is True
+
+
 def test_service_root_404_real_unsupported():
     """404 = /redfish/v1/ 자체가 없음 → 진짜 Redfish 미지원."""
     payload = {"status_code": 404, "json": None}

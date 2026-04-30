@@ -92,6 +92,7 @@ def _get(bmc_ip, path, username, password, timeout, verify_ssl):
         'Authorization': _auth(username, password),
         'Accept': 'application/json',
         'OData-Version': '4.0',
+        'User-Agent': 'server-exporter/1.0 (Redfish gather)',
     })
     try:
         with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
@@ -116,6 +117,7 @@ def _post(bmc_ip, path, body, username, password, timeout, verify_ssl):
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'OData-Version': '4.0',
+        'User-Agent': 'server-exporter/1.0 (Redfish gather)',
     })
     try:
         with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
@@ -145,6 +147,7 @@ def _patch(bmc_ip, path, body, username, password, timeout, verify_ssl):
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'OData-Version': '4.0',
+        'User-Agent': 'server-exporter/1.0 (Redfish gather)',
     })
     try:
         with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:

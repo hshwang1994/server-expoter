@@ -165,9 +165,17 @@ def http_get(url, timeout, verify=False, auth=None):
     """HTTP GET — urllib stdlib 단일 경로 (외부 의존 없음).
 
     반환: (ok, err, payload) — payload={'status_code': int, 'json': dict|None}
+
+    cycle 2026-04-30: HTTP 406 Not Acceptable 호환 — 일부 BMC 펌웨어
+    (HPE iLO 펌웨어 ServiceRoot RedfishVersion 1.17.0 등)이 Accept 헤더
+    명시 안 된 요청을 거부. Redfish 표준 권장 (Accept + OData-Version) +
+    Python-urllib User-Agent 차단 BMC 회피용 명시 (외부 계약 — rule 96 R1).
     """
     ctx = _build_ssl_context(verify)
     req = urllib.request.Request(url)
+    req.add_header("Accept", "application/json")
+    req.add_header("OData-Version", "4.0")
+    req.add_header("User-Agent", "server-exporter/1.0 (Redfish gather)")
     auth_header = _basic_auth_header(auth)
     if auth_header:
         req.add_header("Authorization", auth_header)
@@ -261,11 +269,15 @@ def probe_redfish(host, port, timeout, verify=False):
         # HTTP 응답은 왔지만 status != 200 — 서비스 살아있고 인증/일시상태 이슈
         # 401: 무인증 ServiceRoot 차단 (인증 강화 펌웨어)
         # 403: IP 화이트리스트 / 권한 부족 (BMC는 응답 중)
+        # 405: Method Not Allowed — Redfish 응답하나 GET/HEAD 제한 (드물지만 일부 펌웨어)
+        # 406: Not Acceptable — Accept 헤더 협상 불일치 (cycle 2026-04-30: http_get에서
+        #      Accept/OData-Version 명시했으나 BMC 펌웨어가 추가 헤더 요구하는 케이스)
         # 503: BMC 일시 과부하 / 부팅 직후 — 본 수집에서 재시도 가능
-        if payload and payload.get("status_code") in (401, 403, 503):
+        if payload and payload.get("status_code") in (401, 403, 405, 406, 503):
             facts = {
                 "root_status_code": payload.get("status_code"),
                 "requires_auth_at_root": payload.get("status_code") in (401, 403),
+                "header_negotiation_issue": payload.get("status_code") in (405, 406),
             }
             if attempt > 1:
                 facts["retry_count"] = attempt - 1
