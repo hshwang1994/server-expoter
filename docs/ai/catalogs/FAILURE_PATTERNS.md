@@ -20,6 +20,39 @@
 
 ---
 
+## 2026-05-01 — 404 'failed' 오분류 → 'not_supported' 분류 도입 (3채널 인프라)
+
+- 카테고리: external-contract-drift + scope-miss
+- 발견 위치: 사용자 사이트 envelope errors[] 보고 (Dell host)
+  - `power 정보 실패: HTTP 404: Not Found`
+  - `networkadapters 미지원 또는 실패: HTTP 404: Not Found`
+- 증상:
+  - 일부 vendor/펌웨어가 `/Chassis/{id}/Power` / `/Chassis/{id}/NetworkAdapters` 자체 미응답 (404)
+  - 코드가 'failed'로 분류 → errors[] 노이즈 (호출자 입장에서 "수집 실패"로 오해)
+  - DMTF 2020.4 (Redfish 1.13+)에서 Power schema deprecated → PowerSubsystem 권장
+  - 신 펌웨어 (HPE Gen12 / Lenovo XCC2-3 / Dell iDRAC9 5+ / Supermicro X14+) 가 PowerSubsystem만 응답
+  - 기존 fallback 패턴은 storage (Storage→SimpleStorage) 만 — power/network_adapters는 부재
+- 원인:
+  - **404 (endpoint 자체 부재 = capability 미지원) vs 5xx (진짜 fail) 구분 없이 같은 errors[] 분류**
+  - 신 표준 (PowerSubsystem) fallback 미구현
+  - sections 분류 enum이 success/failed/not_supported 인데 실제 코드는 not_supported 분류 안 함
+- 영향: 5 vendor 모두 영향. iDRAC8 / 일부 PowerEdge / 구 Lenovo 등 capability 미지원 모델은 호출자 envelope에 영구적 noise.
+- 수정 (cycle 2026-05-01 4 commit):
+  1. `9eb11fe4` redfish `_make_section_runner` 404-only errs 분리 → unsupported list. `gather_power` PowerSubsystem fallback parser
+  2. `a483811b` 3채널 fragment 인프라 — `_all_sec_unsupported` + `_sections_unsupported_fragment` 도입 (init/merge/build_sections). redfish normalize_standard wiring
+  3. `5df5a9e1` 회귀 테스트 9건 (test_redfish_404_unsupported.py)
+  4. (본 commit) 문서 governance
+- 재발 방지:
+  - DMTF schema 변천 (Power→PowerSubsystem / Thermal→ThermalSubsystem) 추적 의무
+  - 새 vendor adapter 추가 시 `tested_against` 펌웨어별 endpoint 호환성 origin 주석 (rule 96 R1)
+  - 404 분류 패턴을 다른 채널(OS/ESXi)로 점진 전환 — fragment 인프라 마련됨
+- 외부 계약 sources:
+  - DMTF Redfish 2020.4 (Power deprecated)
+  - HPE iLO 6 v1.10 (BaseNetworkAdapters → Chassis/NetworkAdapters)
+  - Lenovo XCC3 = Redfish 1.17.0 / XCC2 = 1.20.0
+  - Supermicro X14+ PowerSubsystem
+- 관련 rule: rule 96 (external-contract-integrity), rule 13 R5 (envelope), rule 95 R1 #11
+
 ## 2026-04-30 — Hotfix — OData-Version/User-Agent 추가가 Lenovo XCC reject
 
 - 카테고리: external-contract-drift + reverse-regression

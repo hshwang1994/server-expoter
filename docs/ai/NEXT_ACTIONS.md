@@ -1,6 +1,39 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-30 (HTTP 406 호환 fix cycle 후 follow-up)
+## 일자: 2026-05-01 (404 'failed'→'not_supported' 분류 cycle 완료 — follow-up)
+
+### 본 cycle 완료 (2026-05-01 사용자 명시 "모든 채널 / 모든 섹션" 진행)
+
+- `9eb11fe4` redfish 404 분류 + PowerSubsystem fallback (DMTF 2020.4 호환)
+- `a483811b` 3채널 fragment 인프라 (`_all_sec_unsupported` + build_sections)
+- `5df5a9e1` 회귀 테스트 9건
+- (본 commit) FAILURE_PATTERNS + NEXT_ACTIONS 갱신
+
+검증: pytest 76/76 PASS / verify_harness_consistency PASS / py_compile 모두 OK.
+
+### Follow-up (사이트 검증 + 점진 전환)
+
+| 항목 | 작업 | 우선 |
+|---|---|---|
+| Site-A Dell envelope 재확인 | `power` / `network_adapters` 가 `'not_supported'` 분류로 emit + errors[] noise 사라짐 | P0 |
+| HPE Gen12 / Lenovo XCC3 1.17.0 PowerSubsystem fallback 효과 | envelope `data.power.power_supplies` 채워지는지 | P0 |
+| OS gather 미지원 분류 전환 | `gather_hba_ib.yml` (lspci 부재 시), Windows WMI namespace 미지원 시 — `_sections_unsupported_fragment` 활용 | P1 |
+| ESXi gather 미지원 분류 | esxcli/vSphere API 미지원 케이스 fragment 분류 | P1 |
+| Thermal 섹션 신규 검토 | `schema/sections.yml`에 thermal 추가? DMTF 2020.4 영향 | P2 |
+| HPE iLO 5 BaseNetworkAdapters fallback | 일부 펌웨어 호환성 — 사고 재현 후 | P2 |
+| SSH/WinRM/vSphere 호환성 — 사고 재현 후 별도 cycle | rule 92 R2 정신상 선제 변경 자제 | P3 |
+
+### 본 cycle 적용 정적 검증
+
+- pytest tests/unit/ — 76/76 PASS (신규 9건 추가)
+- verify_harness_consistency — PASS
+- py_compile — 1 파일 PASS (redfish_gather.py)
+- YAML syntax — 5 파일 PASS (init/merge/build_sections/build_status/normalize_standard)
+- 사이트 검증은 사용자 빌드에서만 가능 (Jenkins agent + 실 BMC)
+
+---
+
+## 이전 일자: 2026-04-30 (HTTP 406 호환 fix cycle 후 follow-up)
 
 ### 본 cycle 완료 (2026-04-30 site-A 사고 root cause fix 4 commit)
 
