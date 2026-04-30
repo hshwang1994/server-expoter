@@ -32,10 +32,14 @@ def build_diagnosis(precheck_result, channel, adapter_id=None):
     if not isinstance(precheck_result, dict):
         precheck_result = {}
 
+    # cycle 2026-04-30: detail 필드를 envelope diagnosis.details에도 노출.
+    # 이전엔 errors[0].detail 에만 있어 디버깅 시 root cause (예: 'HTTP 406') 찾기 어려웠음.
+    # rule 13 R5 envelope 13 필드 자체는 변경 없음 (details는 dict 내부 키 추가).
     details = {
         "channel": channel,
         "adapter_candidate": adapter_id,
         "checked_ports": precheck_result.get("checked_ports", []),
+        "detail": precheck_result.get("detail"),
     }
 
     # OS 채널 추가 정보

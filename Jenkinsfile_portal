@@ -69,6 +69,14 @@ pipeline {
             defaultValue: '',
             description : '결과 전달 Callback URL (예: http://portal.example.com)'
         )
+        // cycle 2026-04-30: 디버그용 ANSIBLE_VERBOSITY 토글 (운영 기본 0)
+        // 0=production (json_only callback만), 1~4=점진적 verbose. 디버그 빌드 한정 1~2 권장.
+        // 주의: -vv 이상 시 vault 변수 노출 가능 (no_log 미설정 task가 있다면). 운영은 0 유지.
+        choice(
+            name        : 'verbosity',
+            choices     : ['0', '1', '2', '3', '4'],
+            description : 'Ansible verbosity (0=운영, 1~2=디버그, 3~4=깊은 진단)'
+        )
     }
 
     environment {
@@ -147,6 +155,8 @@ pipeline {
                 REPO_ROOT                = "${WORKSPACE}"
                 ANSIBLE_CONFIG           = "${WORKSPACE}/ansible.cfg"
                 ANSIBLE_JSON_OUTPUT_FILE = "${WORKSPACE}/gather_output.json"
+                // cycle 2026-04-30: verbosity 파라미터로 빌드별 토글 (운영 기본 0)
+                ANSIBLE_VERBOSITY        = "${params.verbosity}"
             }
             steps {
                 script {
