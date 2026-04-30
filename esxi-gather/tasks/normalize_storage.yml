@@ -4,6 +4,10 @@
 
 - name: "esxi | normalize storage | build datastores"
   ansible.builtin.set_fact:
+    # MED-11 fix: NFS/vSAN/vVOL 등 capacity 미수집 datastore 도 type/accessible 메타는
+    # 보존하되 size 필드는 null 로 명시 (이전: 0 으로 출력 → 호출자가 "0 byte 빈 datastore"
+    # 와 "용량 미수집" 구분 불가). cap=0 인 datastore name 은 _e_unsized_ds 에 누적 후
+    # errors_fragment 로 emit.
     _e_norm_datastores: >-
       {%- set out = [] -%}
       {%- for ds in (_e_raw_ds | default([])) -%}
@@ -21,17 +25,28 @@
         {%- set total_mb = (cap /1048576)|round(0,'floor')|int -%}
         {%- set free_mb  = (free/1048576)|round(0,'floor')|int -%}
         {%- set used_mb  = total_mb - free_mb -%}
+        {%- set sized = total_mb > 0 -%}
         {%- set _ = out.append({
           'name':          ds.name,
           'type':          ds.type | default(none),
-          'total_mb':      total_mb,
-          'free_mb':       free_mb,
-          'used_mb':       used_mb,
-          'usage_percent': (used_mb/total_mb*100)|round(1) if total_mb>0 else 0,
+          'total_mb':      total_mb if sized else none,
+          'free_mb':       free_mb  if sized else none,
+          'used_mb':       used_mb  if sized else none,
+          'usage_percent': (used_mb/total_mb*100)|round(1) if sized else none,
           'accessible':    ds.accessible | default(none)
         }) -%}
       {%- endfor -%}
       {{ out }}
+    _e_unsized_ds: >-
+      {%- set names = [] -%}
+      {%- for ds in (_e_raw_ds | default([])) -%}
+        {%- set has_cap = (ds.capacity is defined and (ds.capacity | int) > 0) -%}
+        {%- set has_total = (ds.total is defined and ((ds.total | regex_replace('[^0-9.]','') | default('0')) | float) > 0) -%}
+        {%- if not (has_cap or has_total) -%}
+          {%- set _ = names.append(ds.name | default('unknown')) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ names }}
   no_log: true
 
 # cycle-016 (2026-04-29): ESXi 측은 datastore 단위 grouping (physical disk 정보 미수집, namespace pattern)
@@ -61,7 +76,11 @@
       {{ ['storage'] if _e_ds_ok | bool else [] }}
     _sections_failed_fragment: >-
       {{ [] if _e_ds_ok | bool else ['storage'] }}
-    _errors_fragment: []
+    # cap 미수집 datastore (NFS/vSAN/vVOL 일부) 가 있으면 호출자가 사유 추적 가능하도록
+    # errors[] 에 명시. 정상 수집은 빈 list.
+    _errors_fragment: >-
+      {{ [{'section':'storage','message':'datastore capacity 미수집 (type/accessible 보존, size=null): ' ~ (_e_unsized_ds | join(', ')),'detail':{'datastores':_e_unsized_ds}}]
+         if (_e_unsized_ds | default([]) | length > 0) else [] }}
   no_log: true
 
 - name: "esxi | normalize storage | merge fragment"
