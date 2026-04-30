@@ -1,5 +1,42 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-01 (gather coverage 전수 조사 cycle — 25건 fix 후보 등재)
+
+### 본 cycle 완료 (2026-05-01 사용자 명시 "검색-티켓저장 반복")
+
+- Phase A: INDEX + CYCLE-04-30 + CYCLE-05-01 + COVERAGE-MAIN 티켓
+- Phase B Round 1: DMTF 표준 13 영역 (8건 fix 후보)
+- Phase B Round 2: 5 vendor × BMC 세대 호환성 (7건 추가)
+- Phase B Round 3: 사고/함정 + OS/ESXi (10건 추가)
+- Phase D: 종합 매트릭스 + push
+
+총 25건 fix 후보 발견 (P0=처리완료 / P1=3건 권장 / P2=9건 검증 / P3=11건 선제자제).
+
+### 다음 cycle 권장 P1 작업 (3건)
+
+| # | 영역 | 작업 | 파일 |
+|---|---|---|---|
+| F5 | power | gather_power의 PowerSubsystem fallback에 EnvironmentMetrics 추가 (system-level metric 보존) | `redfish_gather.py` `_gather_power_subsystem` |
+| F13 | users | Cisco CIMC AccountService 'not_supported' 분류 — cycle 2026-05-01 인프라 활용 | adapter cisco_cimc.yml + redfish_gather.py |
+| F23 | os | OS gather (hba_ib 등) 미지원 케이스 `_sections_unsupported_fragment` 분류 점진 전환 | os-gather/tasks/linux/gather_*.yml |
+
+### P2 작업 (9건 — lab 검증/사고 재현 후)
+
+자세한 list: docs/ai/tickets/2026-05-01-gather-coverage/COVERAGE-MAIN.md 참조
+
+### P3 작업 (11건 — 사고 재현 시까지 보류)
+
+자세한 list: docs/ai/tickets/2026-05-01-gather-coverage/coverage/MATRIX-R3.md 참조
+
+### 티켓 위치
+
+- 전체 메인: `docs/ai/tickets/2026-05-01-gather-coverage/INDEX.md`
+- 종합 매트릭스: `docs/ai/tickets/2026-05-01-gather-coverage/COVERAGE-MAIN.md`
+- Round 별 결과: `coverage/MATRIX-R{1,2,3}.md`
+- 기존 cycle: `CYCLE-2026-04-30.md` + `CYCLE-2026-05-01.md`
+
+---
+
 ## 일자: 2026-05-01 (404 'failed'→'not_supported' 분류 cycle 완료 — follow-up)
 
 ### 본 cycle 완료 (2026-05-01 사용자 명시 "모든 채널 / 모든 섹션" 진행)

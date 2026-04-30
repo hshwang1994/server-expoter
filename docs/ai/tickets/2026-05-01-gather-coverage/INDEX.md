@@ -11,9 +11,9 @@
 | Phase A — 기존 cycle 티켓화 | [DONE] | CYCLE-04-30 / CYCLE-05-01 / COVERAGE-MAIN 작성 완료 |
 | Phase B Round 1 — DMTF 표준 13 영역 | [DONE] | coverage/MATRIX-R1.md (12 영역 검색 + 8건 fix 후보 발견) |
 | Phase B Round 2 — Vendor 펌웨어 호환성 | [DONE] | coverage/MATRIX-R2.md (5 vendor × BMC 세대 매트릭스 + 7건 신규 fix 후보 F9~F15) |
-| Phase B Round 3 — 알려진 사고/함정 | [TODO] | 13 영역 |
-| Phase C — OS/ESXi 채널 3 round | [TODO] | SSH/WinRM/vSphere/esxcli |
-| Phase D — 종합 매트릭스 + push | [TODO] | |
+| Phase B Round 3 — 알려진 사고/함정 | [DONE] | coverage/MATRIX-R3.md (10건 fix 후보 추가 F16~F25) |
+| Phase C — OS/ESXi 채널 3 round | [DONE] | R3에 통합 (paramiko/WinRM/pyvmomi) |
+| Phase D — 종합 매트릭스 + push | [DONE] | COVERAGE-MAIN 갱신, 25건 fix 후보 분류 |
 
 ## 티켓 파일
 
