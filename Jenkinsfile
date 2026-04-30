@@ -161,7 +161,6 @@ pipeline {
                                 sh """
                                     printf '%s' "\${VAULT_PASSWORD}" > "${vaultPassFile}"
                                     chmod 600 "${vaultPassFile}"
-                                    echo "[debug] vault_pass_tmp size: \$(wc -c < ${vaultPassFile}) bytes"
                                 """
                                 ansiblePlaybook(
                                     playbook    : playbook,

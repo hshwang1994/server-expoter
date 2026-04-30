@@ -181,11 +181,9 @@ pipeline {
                             def vaultPassFile = "${env.WORKSPACE}/.vault_pass_tmp"
                             try {
                                 // sh printf 로 password 파일 작성 — writeFile 의 자동 newline 추가 회피.
-                                // wc -c 로 size 확인 ('Goodmit0802!' = 12 bytes 가 정상).
                                 sh """
                                     printf '%s' "\${VAULT_PASSWORD}" > "${vaultPassFile}"
                                     chmod 600 "${vaultPassFile}"
-                                    echo "[debug] vault_pass_tmp size: \$(wc -c < ${vaultPassFile}) bytes"
                                 """
                                 ansiblePlaybook(
                                     playbook    : playbook,
