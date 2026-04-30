@@ -15,8 +15,9 @@
 #   4. 결과를 envelope.meta.account_service 에 노출 (password 미포함)
 #
 # dryrun 변수:
-#   _rf_account_service_dryrun (default true)
-#   외부 override: -e _rf_account_service_dryrun=false (사용자 명시 승인 후에만)
+#   _rf_account_service_dryrun (default false — cycle 2026-04-30 사용자 명시 승인으로 OFF 전환)
+#   원래 default true (cycle-014 결정 — lab 잠금 위험 회피). 사용자 명시 승인으로 false 전환됨.
+#   외부 override: -e _rf_account_service_dryrun=true (시뮬레이션 모드 강제)
 
 - name: "redfish | account_service | resolve target primary account"
   ansible.builtin.set_fact:
@@ -28,7 +29,8 @@
       {{ (_rf_accounts | default([])
             | selectattr('username','eq', (_rf_used_account | default({})).username | default(''))
             | list | first) | default({}) }}
-    _rf_account_service_dryrun: "{{ _rf_account_service_dryrun | default(true) }}"
+    # cycle 2026-04-30: 사용자 명시 승인 — default false 로 전환 (실 동작)
+    _rf_account_service_dryrun: "{{ _rf_account_service_dryrun | default(false) }}"
   no_log: true
 
 - name: "redfish | account_service | abort if no primary target"

@@ -1904,16 +1904,31 @@ def account_service_provision(
         out['slot_uri'] = existing.get('slot_uri')
         if dryrun:
             return out
-        # 비밀번호 + Enabled + RoleId 갱신
-        body = {
+        # 비밀번호 + Enabled + RoleId + Locked 갱신
+        # cycle 2026-04-30: 명세 "있는데 사용을 못하면 enable" — Locked: False 명시 추가.
+        # disabled (Enabled=False) + locked (consecutive failed login) 둘 다 풀어 사용 가능 상태로.
+        body_full = {
             'Password': target_password,
             'Enabled':  True,
+            'Locked':   False,
             'RoleId':   target_role,
         }
         code, _, err = _patch(
-            bmc_ip, _p(existing['slot_uri']), body,
+            bmc_ip, _p(existing['slot_uri']), body_full,
             current_username, current_password, timeout, verify_ssl,
         )
+        # 일부 펌웨어가 Locked 필드 PATCH 거부 (read-only) — Locked 빼고 1회 retry
+        if code not in (200, 204) and code in (400, 405):
+            body_no_locked = {k: v for k, v in body_full.items() if k != 'Locked'}
+            code, _, err = _patch(
+                bmc_ip, _p(existing['slot_uri']), body_no_locked,
+                current_username, current_password, timeout, verify_ssl,
+            )
+            if code in (200, 204) and not err:
+                out['errors'].append(_err(
+                    'account_service',
+                    'Locked 필드 PATCH 거부 — Locked 빼고 retry 성공 (BMC 펌웨어가 Locked read-only)',
+                ))
         if code in (200, 204) and not err:
             out['recovered'] = True
         else:

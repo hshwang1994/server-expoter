@@ -1,6 +1,36 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-30 (vault accounts 우선순위 재정렬 — primary default + recovery 우선순위 사용자 명시 — 정정 후)
+## 일자: 2026-04-30 (account_service dryrun OFF + Locked 보강 — 사용자 명시 승인, ADR-2026-04-30)
+
+## 요약 (account_service 실 동작 전환 — 2026-04-30)
+
+사용자 명시 승인:
+- "dryrun=true default 이게 무슨말?? 지금 동작안하는거임?? 동작하게 해야하는거아님??"
+- "Locked 보강 진행 해라 그리고 default가 동작하게 해라 지금 써야하는 기능이다"
+
+### 변경
+
+1. **`redfish-gather/tasks/account_service.yml` line 31**: `_rf_account_service_dryrun | default(true)` → `default(false)`. 이제 default 동작이 **실 PATCH/POST**.
+2. **`redfish-gather/library/redfish_gather.py::account_service_provision`**:
+   - `existing` 분기 PATCH body에 `Locked: False` 추가 (명세 "있는데 사용을 못하면 enable" 의 locked 풀기)
+   - 일부 펌웨어가 Locked PATCH 거부 (400/405) 시 → Locked 빼고 1회 retry (안전판)
+3. **docs**: ADR-2026-04-30, VENDOR_ADAPTERS.md dryrun 정책 절 갱신.
+
+### 영향
+
+- **vendor**: dell / hpe / lenovo / supermicro 4 vendor 적용. Cisco는 표준 미지원으로 not_supported errors 기록 후 종료 (변화 없음)
+- **흐름**: recovery 자격으로 1차 수집 succeed → account_service 진입 → 실 PATCH/POST → recovered=true → primary로 rotate → 재수집
+- **lab BMC에 infraops 영구 생성/갱신/enable**: 다음 빌드부터 자동
+
+### 검증
+
+- Python syntax PASS, YAML syntax PASS
+- pytest 216/216 PASS
+- vendor boundary PASS
+
+---
+
+## 이전 일자: 2026-04-30 (vault accounts 우선순위 재정렬 — primary default + recovery 우선순위 사용자 명시 — 정정 후)
 
 ## 요약 (vault accounts reorder — 2026-04-30, 사용자 명시 + 비즈니스 로직 정정)
 

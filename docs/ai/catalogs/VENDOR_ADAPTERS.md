@@ -63,7 +63,7 @@ recovery_accounts:
 
 **커버리지 (16/16)**: dell_idrac×3, hpe_ilo×4, lenovo_xcc/imm2/bmc, supermicro_x11/x9/bmc, cisco_cimc/bmc, redfish_generic.
 
-**dryrun 정책**: `_rf_account_service_dryrun: true` (기본). lab 검증 후 vendor별 OFF 전환은 사용자 명시 승인 (rule 92 R5 — OPS-5 매트릭스).
+**dryrun 정책 (cycle 2026-04-30 갱신)**: `_rf_account_service_dryrun: false` (기본 — 사용자 명시 승인으로 OFF 전환). 실 PATCH/POST 호출되어 BMC에 infraops 자동 생성/enable 됨. 시뮬레이션 강제는 `-e _rf_account_service_dryrun=true` override. ADR-2026-04-30-account-service-dryrun-off 참조.
 
 **Cisco 한정**: AccountService 미지원 (Round 11 실측). dryrun 의미 없음 — 운영자 수동 복구 절차 매뉴얼 별도 (DEC-3 매트릭스).
 
