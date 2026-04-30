@@ -45,6 +45,13 @@
   - [thermal.md](./coverage/thermal.md) ✓ Th1~Th3 + F6
   - [hba_ib.md](./coverage/hba_ib.md) ✓ HB1~HB4 + F7
   - [runtime.md](./coverage/runtime.md) ✓ Rt1~Rt7
+  - [pcie.md](./coverage/pcie.md) ✓ R4 신규 + F26
+  - [sensors.md](./coverage/sensors.md) ✓ R4 신규 + F27
+  - [virtualmedia.md](./coverage/virtualmedia.md) ✓ R4 신규 + F28
+  - [bios.md](./coverage/bios.md) ✓ R4 신규 + F29
+  - [telemetry.md](./coverage/telemetry.md) ✓ R4 신규 + F30
+  - [new_vendors.md](./coverage/new_vendors.md) ✓ R4 신규 + F31 (Huawei + 4 후보)
+  - [os_storage_deep.md](./coverage/os_storage_deep.md) ✓ R4 신규 + F32
 
 ### Fix 후보 25건 개별 ticket (Cold-start 가능)
 

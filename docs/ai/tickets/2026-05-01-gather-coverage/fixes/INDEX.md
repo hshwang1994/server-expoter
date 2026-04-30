@@ -39,6 +39,23 @@
 
 - F25 — vSphere 7→8 upgrade path 제한 (사이트 운영팀)
 
+## R4 추가 (2026-05-01 추가 검색 — 7건)
+
+- [F26](./F26.md) — PCIeDevice 섹션 수집 (P3)
+- [F27](./F27.md) — Sensor schema 활용 (P2 / F6 묶음)
+- [F28](./F28.md) — VirtualMedia 수집 (P3 / scope 외)
+- [F29](./F29.md) — BIOS Attribute Registry 수집 (P3)
+- [F30](./F30.md) — Telemetry MetricReport (P3 / scope 외)
+- [F31](./F31.md) — Huawei iBMC vendor 추가 (P3 / 9단계)
+- [F32](./F32.md) — Linux storage deep 도구 (P2)
+
+## 종합 32건 fix 후보
+
+- P1 즉시 권장: 3건 (F05 / F13 / F23)
+- P2 lab 검증 후: 11건 (F02 / F04 / F06 / F08 / F10 / F12 / F17 / F20 / F21 / F27 / F32)
+- P3 사고 재현 시: 16건 (F01 / F03 / F07 / F09 / F11 / F14~F19 / F22 / F24 / F26 / F28~F31)
+- P4 운영 영역: 1건 (F25)
+
 ## Cold-start 가이드
 
 각 ticket에:
