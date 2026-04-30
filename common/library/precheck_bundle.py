@@ -53,7 +53,7 @@ options:
   timeout_protocol:
     description: 프로토콜 핸드셰이크 타임아웃 (초)
     type: float
-    default: 6.0
+    default: 15.0
   timeout_auth:
     description: 인증 시도 타임아웃 (초)
     type: float
@@ -249,35 +249,58 @@ def probe_redfish(host, port, timeout, verify=False):
 
 
 def probe_os(host, port, timeout):
-    """OS 채널 프로토콜 프로브 (SSH banner 또는 WinRM endpoint)"""
+    """OS 채널 프로토콜 프로브 (SSH banner 또는 WinRM endpoint).
+
+    WinRM (5985/5986): /wsman 이 200/401/403/405/503 응답 시 서비스 살아있음.
+    403/503 추가 (probe_redfish 와 동일 정합): SPN 불일치/잠긴 계정 (403),
+    IIS 재시작 중 (503) 등도 endpoint 자체는 살아있음 → 본 Ansible 수집에서
+    처리. 이전 구현은 이를 "WinRM 미응답" 으로 오판정했음.
+
+    SSH (22): banner 가 'SSH-' 로 시작하는지로 판정 — banner 차단 SSH 서버는
+    이전과 동일하게 fail (드문 케이스, 별도 cycle 검토).
+    """
     if port == 22:
         return ssh_banner_check(host, port, timeout)
     elif port in (5985, 5986):
         scheme = "https" if port == 5986 else "http"
         url = "{0}://{1}:{2}/wsman".format(scheme, host, port)
         ok, err, payload = http_get(url, timeout, verify=False)
-        if ok or (payload and payload.get("status_code") in (200, 401, 405)):
-            return True, None, {
+        if ok or (payload and payload.get("status_code") in (200, 401, 403, 405, 503)):
+            facts = {
                 "transport": "winrm",
                 "scheme": scheme,
                 "port": port,
             }
+            if payload:
+                facts["root_status_code"] = payload.get("status_code")
+            return True, None, facts
         return False, err, None
     else:
         return False, "지원하지 않는 OS 포트: {0}".format(port), None
 
 
 def probe_esxi(host, port, timeout, verify=False):
-    """vSphere API endpoint 프로브"""
+    """vSphere API endpoint 프로브.
+
+    /sdk는 GET 메서드에 대해 다양한 응답을 던진다 (200/301/302/404/405/500/SOAP fault).
+    응답이 오기만 하면 vSphere 서비스 살아있음으로 판단.
+
+    401/403 추가 (probe_redfish 와 동일 정합): vCenter SSO / 인증 요구
+    환경에서 /sdk 가 401/403을 던지더라도 endpoint 자체는 살아있음 →
+    Stage 4 (auth) 또는 본 수집 (community.vmware) 에서 처리. 이전 구현은
+    이를 "vSphere endpoint 미응답" 으로 오판정했음.
+    """
     url = "https://{0}:{1}/sdk".format(host, port)
     ok, err, payload = http_get(url, timeout, verify=verify)
-    # /sdk는 보통 200 또는 SOAP fault를 반환 — 둘 다 "서비스 있음"으로 판단
     if ok:
         return True, None, {"vsphere_endpoint": url}
-    # 일부 ESXi는 /sdk에 POST만 허용하므로, 연결만 되면 성공으로 봄
-    # 404도 포함: ESXi 7+에서 GET /sdk → 404이지만 POST(SOAP)는 정상 응답
-    if payload and payload.get("status_code") in (200, 301, 302, 404, 405, 500):
-        return True, None, {"vsphere_endpoint": url}
+    # 응답 오면 서비스 살아있음 — auth/일시상태 이슈는 후속 단계 책임
+    if payload and payload.get("status_code") in (200, 301, 302, 401, 403, 404, 405, 500, 503):
+        return True, None, {
+            "vsphere_endpoint": url,
+            "root_status_code": payload.get("status_code"),
+            "requires_auth_at_root": payload.get("status_code") in (401, 403),
+        }
     return False, err, None
 
 
@@ -375,7 +398,7 @@ def run_module():
             ),
             ports=dict(type="list", elements="int", default=[]),
             timeout_port=dict(type="float", default=3.0),
-            timeout_protocol=dict(type="float", default=6.0),
+            timeout_protocol=dict(type="float", default=15.0),
             timeout_auth=dict(type="float", default=8.0),
             username=dict(type="str", required=False, no_log=True),
             password=dict(type="str", required=False, no_log=True),

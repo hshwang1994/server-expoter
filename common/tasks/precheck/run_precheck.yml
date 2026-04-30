@@ -28,7 +28,7 @@
     channel: "{{ _precheck_channel }}"
     ports: "{{ _precheck_ports | default(omit) }}"
     timeout_port: "{{ _precheck_timeout_port | default(3.0) }}"
-    timeout_protocol: "{{ _precheck_timeout_protocol | default(6.0) }}"
+    timeout_protocol: "{{ _precheck_timeout_protocol | default(15.0) }}"
     timeout_auth: "{{ _precheck_timeout_auth | default(8.0) }}"
     username: "{{ _precheck_username | default(omit) }}"
     password: "{{ _precheck_password | default(omit) }}"
