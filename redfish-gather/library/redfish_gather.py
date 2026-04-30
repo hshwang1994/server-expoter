@@ -1088,6 +1088,11 @@ def _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout,
     controller_name 은 실제 하드웨어 모델명 (예: "ThinkSystem RAID 930-8i 2GB Flash PCIe").
     Storage 객체의 Name 은 "RAID Storage" 같은 컨테이너 라벨이라 별개로 보존.
     """
+    # 반환 (dict, errors_list) — 401/403/503 응답을 silent fail 로 두지 않고
+    # errors 에 누적해 호출자가 "controller 정보 부재" 사유를 추적할 수 있게 한다.
+    # 이전 구현은 cst != 200 인 모든 응답을 빈 dict 로만 반환해 권한 부족/일시 과부하를
+    # 정상 부재와 구분 불가했음.
+    errors = []
     inline_ctrls = _safe(sdata, 'StorageControllers') or []
     if inline_ctrls:
         c = inline_ctrls[0]
@@ -1097,29 +1102,36 @@ def _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout,
             'controller_firmware':     _safe(c, 'FirmwareVersion'),
             'controller_manufacturer': _safe(c, 'Manufacturer'),
             'controller_health':       _safe(c, 'Status', 'Health'),
-        }
+        }, errors
     ctrl_link = _safe(sdata, 'Controllers', '@odata.id')
     if not ctrl_link:
-        return {}
+        return {}, errors
     cst, ctrl_coll, cerr = _get(bmc_ip, _p(ctrl_link), username, password, timeout, verify_ssl)
     if cerr or cst != 200:
-        return {}
+        # 401/403/503: BMC 가 응답한 의미 있는 에러 — errors 에 기록
+        errors.append(_err('storage',
+                           f'Controllers 컬렉션 fetch 실패 ({ctrl_link}): {cerr or cst}',
+                           detail={'status_code': cst}))
+        return {'controller_fetch_status': cst}, errors
     ctrl_members = _safe(ctrl_coll, 'Members') or []
     if not ctrl_members:
-        return {}
+        return {}, errors
     c_uri = _safe(ctrl_members[0], '@odata.id')
     if not c_uri:
-        return {}
+        return {}, errors
     cst2, cdata, cerr2 = _get(bmc_ip, _p(c_uri), username, password, timeout, verify_ssl)
     if cerr2 or cst2 != 200:
-        return {}
+        errors.append(_err('storage',
+                           f'Controller fetch 실패 ({c_uri}): {cerr2 or cst2}',
+                           detail={'status_code': cst2}))
+        return {'controller_fetch_status': cst2}, errors
     return {
         'controller_name':         _safe(cdata, 'Name'),
         'controller_model':        _safe(cdata, 'Model'),
         'controller_firmware':     _safe(cdata, 'FirmwareVersion'),
         'controller_manufacturer': _safe(cdata, 'Manufacturer'),
         'controller_health':       _safe(cdata, 'Status', 'Health'),
-    }
+    }, errors
 
 
 def _extract_storage_drives(sdata, bmc_ip, username, password, timeout, verify_ssl):
@@ -1248,7 +1260,8 @@ def _gather_standard_storage(bmc_ip, members, username, password, timeout, verif
         if serr or st != 200:
             errors.append(_err('storage', f'Storage {uri} 실패: {serr or st}'))
             continue
-        ctrl_info = _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout, verify_ssl)
+        ctrl_info, c_errs = _extract_storage_controller_info(sdata, bmc_ip, username, password, timeout, verify_ssl)
+        errors.extend(c_errs)
         drives, d_errs = _extract_storage_drives(sdata, bmc_ip, username, password, timeout, verify_ssl)
         errors.extend(d_errs)
         # name 우선순위: controller_name (실제 하드웨어 모델) → Storage 객체 Name fallback.
