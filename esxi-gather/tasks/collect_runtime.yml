@@ -83,13 +83,23 @@
 
     # Firewall: rule 54개 = ESXi 방화벽 활성. ESXi는 시스템 레벨에서 firewall always-on.
     # 'enabled' rule이 1개 이상이면 firewall_state=enabled.
+    #
+    # 권한 부족/모듈 실패와 "정상 disabled" 구분: rules list 가 비어있으면
+    # ESXi 표준상 비정상 (firewall always-on) → 미수집(null) 으로 보고. 이전 구현은
+    # 빈 list 를 disabled 로 오판해 보안 라벨이 반대로 갔음.
     _e_runtime_firewall_state: >-
       {%- set fws = (_e_firewall_result.hosts_firewall_info | default({})) -%}
-      {%- if fws -%}
+      {%- if (_e_firewall_result is failed | default(false)) or not fws -%}
+        {{ none }}
+      {%- else -%}
         {%- set rules = fws.values() | list | first | default([]) -%}
-        {%- set enabled_count = (rules | selectattr('enabled','equalto',true) | list | length) -%}
-        {{ 'enabled' if enabled_count > 0 else 'disabled' }}
-      {%- else -%}{{ none }}{%- endif -%}
+        {%- if (rules | length) == 0 -%}
+          {{ none }}
+        {%- else -%}
+          {%- set enabled_count = (rules | selectattr('enabled','equalto',true) | list | length) -%}
+          {{ 'enabled' if enabled_count > 0 else 'disabled' }}
+        {%- endif -%}
+      {%- endif -%}
 
     # NTPD service running 상태로 ntp_synchronized 판정 (ntp_servers 미설정 시 fallback false).
     _e_runtime_ntp_synced: >-
