@@ -157,8 +157,12 @@ pipeline {
                         ]) {
                             def vaultPassFile = "${env.WORKSPACE}/.vault_pass_tmp"
                             try {
-                                writeFile(file: vaultPassFile, text: env.VAULT_PASSWORD)
-                                sh "chmod 600 ${vaultPassFile}"
+                                // sh printf 로 password 파일 작성 — writeFile 의 자동 newline 추가 회피.
+                                sh """
+                                    printf '%s' "\${VAULT_PASSWORD}" > "${vaultPassFile}"
+                                    chmod 600 "${vaultPassFile}"
+                                    echo "[debug] vault_pass_tmp size: \$(wc -c < ${vaultPassFile}) bytes"
+                                """
                                 ansiblePlaybook(
                                     playbook    : playbook,
                                     inventory   : inventory,
