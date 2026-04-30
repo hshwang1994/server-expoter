@@ -137,12 +137,16 @@ pipeline {
         }
 
         // -- 2. Gather [Agent] -------------------------------------------------
+        // ansiblePlaybook step (Ansible Plugin) 방식.
+        // OUTPUT JSON 은 callback (json_only.py) 의 ANSIBLE_JSON_OUTPUT_FILE 환경변수
+        // 지원으로 ${WORKSPACE}/gather_output.json 에 한 줄씩 append 된다.
         stage('Gather') {
             agent { label "${params.loc}" }
             options { timeout(time: 60, unit: 'MINUTES') }
             environment {
-                REPO_ROOT      = "${WORKSPACE}"
-                ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+                REPO_ROOT                = "${WORKSPACE}"
+                ANSIBLE_CONFIG           = "${WORKSPACE}/ansible.cfg"
+                ANSIBLE_JSON_OUTPUT_FILE = "${WORKSPACE}/gather_output.json"
             }
             steps {
                 script {
@@ -161,37 +165,48 @@ pipeline {
                     def inventory = inventoryMap[params.target_type]
                     echo "[Gather] playbook=${playbook}"
 
+                    // 이전 빌드 결과 파일이 있을 경우 깨끗하게 시작
+                    sh "rm -f \"${env.WORKSPACE}/gather_output.json\""
+
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                        // P0: Jenkins credentials store 의 Secret File 등록 vault password
+                        // P0: Jenkins credentials store 의 Secret Text 등록 vault password
                         //     credentialsId='server-gather-vault-password' (docs/01_jenkins-setup.md)
+                        //     Secret File 방식은 trailing newline 문제로 vault decrypt 실패 가능 → Secret Text 사용
                         withCredentials([
-                            file(
+                            string(
                                 credentialsId: 'server-gather-vault-password',
-                                variable     : 'VAULT_PASSWORD_FILE',
+                                variable     : 'VAULT_PASSWORD',
                             ),
                         ]) {
-                            sh """\
-                                /opt/ansible-env/bin/ansible-playbook \
-                                    '${playbook}' \
-                                    -i '${inventory}' \
-                                    --vault-password-file=\"\${VAULT_PASSWORD_FILE}\" \
-                                2>&1 | tee \"\${WORKSPACE}/gather_output.log\"
-                            """
+                            def vaultPassFile = "${env.WORKSPACE}/.vault_pass_tmp"
+                            try {
+                                writeFile(file: vaultPassFile, text: env.VAULT_PASSWORD)
+                                sh "chmod 600 ${vaultPassFile}"
+                                ansiblePlaybook(
+                                    playbook    : playbook,
+                                    inventory   : inventory,
+                                    installation: 'ansible',
+                                    colorized   : true,
+                                    extras      : "--vault-password-file=${vaultPassFile}",
+                                )
+                            } finally {
+                                sh "rm -f ${vaultPassFile} || true"
+                            }
                         }
                     }
                 }
 
-                // --- 마스터로 결과 파일 전달 (기존 SSH 22 터널 사용) ---
+                // --- 마스터로 결과 파일 전달 ---
                 stash(
-                    name       : 'gather-log',
-                    includes   : 'gather_output.log',
+                    name       : 'gather-output',
+                    includes   : 'gather_output.json',
                     allowEmpty : true,
                 )
             }
             post {
                 always {
                     // 에이전트 workspace 에서 결과 파일 삭제
-                    sh 'rm -f "${WORKSPACE}/gather_output.log"'
+                    sh 'rm -f "${WORKSPACE}/gather_output.json"'
                 }
             }
         }
@@ -220,29 +235,38 @@ pipeline {
             }
             steps {
                 script {
-                    // 에이전트에서 stash 한 결과 파일을 마스터 workspace 에 복원
-                    unstash 'gather-log'
+                    // 에이전트에서 stash 한 OUTPUT JSON 파일을 마스터 workspace 에 복원
+                    unstash 'gather-output'
 
                     // callbackUrl 전처리: 공백 제거 + 후행 슬래시 제거 (호출자 입력 방어)
                     def baseUrl = params.callbackUrl.trim().replaceAll('/+$', '')
                     def callbackEndpoint = baseUrl + '/api/jenkins/gather/' + params.target_type.trim()
                     echo "[Callback] POST -> ${callbackEndpoint}"
 
-                    def logContent = readFile("${WORKSPACE}/gather_output.log")
-                    def logLines = logContent.split('\n')
+                    // json_only callback (ANSIBLE_JSON_OUTPUT_FILE) 이 host 별 OUTPUT JSON 을 한 줄씩 append 한 파일.
+                    def jsonContent = ""
+                    try {
+                        jsonContent = readFile("${WORKSPACE}/gather_output.json").trim()
+                    } catch (Exception e) {
+                        error "[Callback] gather_output.json 읽기 실패: ${e.message}"
+                    }
+
+                    if (!jsonContent) {
+                        error "[Callback] gather_output.json 이 비어있습니다 — gather 결과 미생성"
+                    }
 
                     def rawJsonLines = []
-                    for (int i = 0; i < logLines.length; i++) {
-                        def line = logLines[i].trim()
-                        if (line.startsWith('{') && line.contains('"status"') && line.endsWith('}')) {
-                            rawJsonLines.add(line)
+                    for (line in jsonContent.split('\n')) {
+                        def t = line.trim()
+                        if (t.length() > 0) {
+                            rawJsonLines.add(t)
                         }
                     }
 
-                    echo "[Callback] JSON 라인 ${rawJsonLines.size()}개 추출"
+                    echo "[Callback] JSON 라인 ${rawJsonLines.size()}개"
 
                     if (rawJsonLines.isEmpty()) {
-                        error "[Callback] gather 결과 JSON 을 찾지 못했습니다"
+                        error "[Callback] gather_output.json 에 유효 JSON 라인 0개"
                     }
 
                     def gatherArray = rawJsonLines.join(',')
@@ -297,7 +321,7 @@ pipeline {
             post {
                 always {
                     // 마스터 workspace 에서 결과 파일 삭제
-                    sh 'rm -f "${WORKSPACE}/gather_output.log"'
+                    sh 'rm -f "${WORKSPACE}/gather_output.json"'
                 }
             }
         }

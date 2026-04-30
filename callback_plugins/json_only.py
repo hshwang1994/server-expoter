@@ -47,6 +47,10 @@ class CallbackModule(CallbackBase):
     def __init__(self):
         super(CallbackModule, self).__init__()
         self._output_task = os.getenv('ANSIBLE_JSON_OUTPUT_TASK', 'OUTPUT')
+        # ANSIBLE_JSON_OUTPUT_FILE 이 set 되면 OUTPUT JSON 을 그 파일에도 append.
+        # Plugin step (ansiblePlaybook) 에서 stdout capture 가 어려운 경우 사용.
+        # stdout 출력은 그대로 유지 (호환성).
+        self._output_file = os.getenv('ANSIBLE_JSON_OUTPUT_FILE', '').strip()
 
     # ── 내부 유틸 ────────────────────────────────────────────────────────────
 
@@ -66,8 +70,16 @@ class CallbackModule(CallbackBase):
                         '[json_only] _emit: JSON 파싱 실패, 문자열 그대로 출력 '
                         '(reason={}, head={!r})\n'.format(type(e).__name__, data[:120])
                     )
-        print(json.dumps(data, ensure_ascii=False, separators=(',', ':')),
-              file=target, flush=True)
+        line = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+        print(line, file=target, flush=True)
+        # OUTPUT 결과를 파일로도 기록 (stdout target 일 때만, stderr 결과는 제외)
+        if self._output_file and target is sys.stdout:
+            try:
+                with open(self._output_file, 'a', encoding='utf-8') as fh:
+                    fh.write(line + '\n')
+            except (OSError, IOError):
+                # 파일 쓰기 실패는 silent — stdout 은 정상이므로 callback 흐름에 영향 없음
+                pass
 
     def _emit_error(self, error_type, message, host=None, task=None):
         payload = {

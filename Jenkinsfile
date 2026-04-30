@@ -147,20 +147,28 @@ pipeline {
 
                     // Ansible 실패 시 unstable 처리 (partial result JSON 포함)
                     // catchError 로 감싸서 post 단계까지 진행
+                    // Secret Text 방식 사용 (Secret File trailing newline 문제 회피)
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         withCredentials([
-                            file(
+                            string(
                                 credentialsId: 'server-gather-vault-password',
-                                variable     : 'VAULT_PASSWORD_FILE',
+                                variable     : 'VAULT_PASSWORD',
                             ),
                         ]) {
-                            ansiblePlaybook(
-                                playbook    : playbook,
-                                inventory   : inventory,
-                                installation: 'ansible',
-                                colorized   : true,
-                                extras      : "--vault-password-file=${VAULT_PASSWORD_FILE}",
-                            )
+                            def vaultPassFile = "${env.WORKSPACE}/.vault_pass_tmp"
+                            try {
+                                writeFile(file: vaultPassFile, text: env.VAULT_PASSWORD)
+                                sh "chmod 600 ${vaultPassFile}"
+                                ansiblePlaybook(
+                                    playbook    : playbook,
+                                    inventory   : inventory,
+                                    installation: 'ansible',
+                                    colorized   : true,
+                                    extras      : "--vault-password-file=${vaultPassFile}",
+                                )
+                            } finally {
+                                sh "rm -f ${vaultPassFile} || true"
+                            }
                         }
                     }
                 }
