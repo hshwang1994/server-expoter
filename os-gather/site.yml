@@ -79,49 +79,22 @@
         _winrm_scheme: "{{ 'https' if _probe_winrm_https is succeeded else 'http' }}"
       no_log: true
 
-    # 포트 감지 실패 → build_failed_output 공통 모듈 사용
-    - name: "detect | port fail | set failed vars"
-      when: _detected_os | trim == 'unknown'
-      ansible.builtin.set_fact:
-        _out_target_type:       "os"
-        _out_collection_method: "agent"
-        _out_ip:                "{{ ansible_host | default(inventory_hostname) }}"
-        _out_vendor:            null
-        _fail_sec_supported:    "{{ ['system','cpu','memory','storage','network','users'] }}"
-        _fail_error_section:    "os_detect"
-        _fail_error_message:    "SSH(22)/WinRM(5985/5986) 모두 응답 없음 — 대상 서버의 방화벽, SSH/WinRM 서비스 상태, 네트워크 연결을 확인하세요."
-        _diagnosis:
-          reachable:          false
-          port_open:          false
-          protocol_supported: false
-          auth_success:       false
-          failure_stage:      "port"
-          failure_reason:     "SSH(22)/WinRM(5985/5986) 모두 응답 없음"
-          details:
-            checked_ports: [22, 5985, 5986]
-
-    - name: "detect | port fail | init fragments"
-      when: _detected_os | trim == 'unknown'
-      ansible.builtin.include_tasks:
-        file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/init_fragments.yml"
-
-    - name: "detect | port fail | build_failed_output"
-      when: _detected_os | trim == 'unknown'
-      ansible.builtin.include_tasks:
-        file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/build_failed_output.yml"
-
-    - name: "detect | port fail | inject schema_version"
-      when: _detected_os | trim == 'unknown'
-      ansible.builtin.set_fact:
-        _output: "{{ _output | combine({'schema_version': '1'}) }}"
-
-    - name: OUTPUT
-      when: _detected_os | trim == 'unknown'
-      ansible.builtin.debug:
-        msg: "{{ _output | to_json }}"
-
     # ── add_host 는 인벤토리 조작 모듈이므로 암시적 run_once 동작.
     #    loop + run_once: true 로 모든 호스트를 한 번에 등록한다.
+    # 2026-04-30 perf: port-fail OUTPUT 처리는 _os_failed 그룹에 등록 후 별도 PLAY 1.5 (strategy: free)에서.
+    # PLAY 1 linear에서 200 dead host의 OUTPUT/build_failed_output 누적 처리(11분)를 회피.
+    - name: "detect | register failed hosts"
+      ansible.builtin.add_host:
+        name:               "{{ item }}"
+        groups:             _os_failed
+        ansible_host:       "{{ hostvars[item].ansible_host | default(item) }}"
+        ansible_connection: local
+        _os_type:           unknown
+      loop: "{{ ansible_play_hosts_all }}"
+      when: (hostvars[item]._detected_os | default('') | trim) == 'unknown'
+      run_once: true
+      no_log: true
+
     - name: "detect | register linux hosts"
       ansible.builtin.add_host:
         name:                    "{{ item }}"
@@ -155,6 +128,57 @@
       when: (hostvars[item]._detected_os | default('') | trim) == 'windows'
       run_once: true
       no_log: true
+
+
+# ── PLAY 1.5: Port-fail OUTPUT (host별 독립, 200 dead host 14분→수초) ──────
+# 2026-04-30 perf: PLAY 1 (linear, add_host 호환)에서 분리.
+# 각 dead host의 build_failed_output 처리가 독립 wave로 진행되어 wall-clock 단축.
+
+- name: "os-gather | failed-output"
+  hosts: _os_failed
+  gather_facts: no
+  connection: local
+  strategy: free
+
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+
+  tasks:
+
+    - name: "failed-output | set port-fail vars"
+      ansible.builtin.set_fact:
+        _out_target_type:       "os"
+        _out_collection_method: "agent"
+        _out_ip:                "{{ ansible_host | default(inventory_hostname) }}"
+        _out_vendor:            null
+        _fail_sec_supported:    "{{ ['system','cpu','memory','storage','network','users'] }}"
+        _fail_error_section:    "os_detect"
+        _fail_error_message:    "SSH(22)/WinRM(5985/5986) 모두 응답 없음 — 대상 서버의 방화벽, SSH/WinRM 서비스 상태, 네트워크 연결을 확인하세요."
+        _diagnosis:
+          reachable:          false
+          port_open:          false
+          protocol_supported: false
+          auth_success:       false
+          failure_stage:      "port"
+          failure_reason:     "SSH(22)/WinRM(5985/5986) 모두 응답 없음"
+          details:
+            checked_ports: [22, 5985, 5986]
+
+    - name: "failed-output | init fragments"
+      ansible.builtin.include_tasks:
+        file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/init_fragments.yml"
+
+    - name: "failed-output | build_failed_output"
+      ansible.builtin.include_tasks:
+        file: "{{ lookup('env','REPO_ROOT') }}/common/tasks/normalize/build_failed_output.yml"
+
+    - name: "failed-output | inject schema_version"
+      ansible.builtin.set_fact:
+        _output: "{{ _output | combine({'schema_version': '1'}) }}"
+
+    - name: OUTPUT
+      ansible.builtin.debug:
+        msg: "{{ _output | to_json }}"
 
 
 # ── PLAY 2: Linux 수집 ───────────────────────────────────────────────────────
