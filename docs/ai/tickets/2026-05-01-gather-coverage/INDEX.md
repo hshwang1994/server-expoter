@@ -14,6 +14,9 @@
 | Phase B Round 3 — 알려진 사고/함정 | [DONE] | coverage/MATRIX-R3.md (10건 fix 후보 추가 F16~F25) |
 | Phase C — OS/ESXi 채널 3 round | [DONE] | R3에 통합 (paramiko/WinRM/pyvmomi) |
 | Phase D — 종합 매트릭스 + push | [DONE] | COVERAGE-MAIN 갱신, 25건 fix 후보 분류 |
+| Phase E — 13 개별 coverage/{section}.md | [DONE] | 13 영역 자세한 ticket (cold-start 가능) |
+| Phase F — 영역별 추가 검색 (system 시작) | [PARTIAL] | system 영역 3회 검색. 다른 영역은 R1~R3 검색 결과로 충분 (추가 필요 시 진행) |
+| Phase G — Fix 25건 개별 ticket | [DONE] | fixes/F01.md~F25.md (cold-start 형식) |
 
 ## 티켓 파일
 
@@ -25,31 +28,47 @@
 ### Coverage 조사 (gather 영역별)
 
 - [COVERAGE-MAIN.md](./COVERAGE-MAIN.md) — 메인 진행 상태 + 종합 매트릭스
-- coverage/ 디렉토리:
-  - [system.md](./coverage/system.md)
-  - [bmc.md](./coverage/bmc.md)
-  - [cpu.md](./coverage/cpu.md)
-  - [memory.md](./coverage/memory.md)
-  - [storage.md](./coverage/storage.md)
-  - [network.md](./coverage/network.md)
-  - [network_adapters.md](./coverage/network_adapters.md)
-  - [firmware.md](./coverage/firmware.md)
-  - [users.md](./coverage/users.md)
-  - [power.md](./coverage/power.md)
-  - [thermal.md](./coverage/thermal.md)
-  - [hba_ib.md](./coverage/hba_ib.md)
-  - [runtime.md](./coverage/runtime.md)
+- coverage/ 디렉토리 (13 영역 + 3 round 매트릭스):
+  - [MATRIX-R1.md](./coverage/MATRIX-R1.md) — DMTF 표준 종합
+  - [MATRIX-R2.md](./coverage/MATRIX-R2.md) — Vendor 펌웨어 호환성
+  - [MATRIX-R3.md](./coverage/MATRIX-R3.md) — 사고/함정 (OS/ESXi 포함)
+  - [system.md](./coverage/system.md) ✓ S1~S7 + F1/F14/F15
+  - [bmc.md](./coverage/bmc.md) ✓ B1~B5
+  - [cpu.md](./coverage/cpu.md) ✓ C1~C4 + F2
+  - [memory.md](./coverage/memory.md) ✓ M1~M5 + F10
+  - [storage.md](./coverage/storage.md) ✓ St1~St5
+  - [network.md](./coverage/network.md) ✓ N1~N6 + F3
+  - [network_adapters.md](./coverage/network_adapters.md) ✓ NA1~NA5 + F4/F11
+  - [firmware.md](./coverage/firmware.md) ✓ Fw1~Fw6
+  - [users.md](./coverage/users.md) ✓ U1~U7 + F13/F20
+  - [power.md](./coverage/power.md) ✓ P1~P8 + F5/F12
+  - [thermal.md](./coverage/thermal.md) ✓ Th1~Th3 + F6
+  - [hba_ib.md](./coverage/hba_ib.md) ✓ HB1~HB4 + F7
+  - [runtime.md](./coverage/runtime.md) ✓ Rt1~Rt7
+
+### Fix 후보 25건 개별 ticket (Cold-start 가능)
+
+- [fixes/INDEX.md](./fixes/INDEX.md) — P1/P2/P3 분류
+- fixes/F01.md ~ F25.md — 각 fix 별 cold-start 가이드 (현재위치/변경/회귀/검증/risk)
 
 ## 작업자 가이드 (세션 cold start)
 
-1. **현재 적용된 cycle**: CYCLE-04-30 + CYCLE-05-01 둘 다 main에 적용 + push 완료. 5 vendor BMC 호환성 + 인프라 마련됨.
-2. **진행 중**: COVERAGE 조사. 각 coverage/{section}.md 의 "진행 상태" 표 확인.
-3. **다음 작업**:
-   - 진행 상태가 [TODO] 인 영역 → 다음 round 진행
-   - [WIP] → 진행 중인 round 마무리
-   - [DONE] → 다음 단계 진행
-4. **검색 방법**: WebSearch 도구 (server-exporter 내 사용 가능).
-5. **티켓 갱신**: 각 round 후 coverage/{section}.md 의 "Round N" 절에 결과 + sources 추가.
+1. **현재 적용된 cycle**: CYCLE-04-30 + CYCLE-05-01 둘 다 main에 적용 + push 완료
+2. **조사 완료**: 13 영역 × 3 round 모두 [DONE]. 25건 fix 후보 분류
+3. **다음 작업 시작점**:
+   - **P1 (3건)** — F05 / F13 / F23 — 다음 cycle 즉시 시작 가능
+   - **P2 (9건)** — lab 검증 / 사고 재현 후
+   - **P3 (11건)** — 사고 발견 시까지 대기
+4. **각 fix ticket** — fixes/F##.md — 현재위치/변경/회귀/검증 모두 명시 (cold-start 가능)
+5. **사용자 명시 원칙**: "기존에있는것을 버리는게아니라 더 다양한환경을 호환하기위해서" → **Additive only**
+
+## 사용자 명시 원칙 (rule 92 R2 + 2026-05-01)
+
+- 기존 path / 동작 유지 (Storage→SimpleStorage fallback 모범)
+- 새 endpoint / 펌웨어 / vendor 호환만 추가
+- Back-compat 인자 (default=기존동작)
+- 회귀 테스트 (기존 lab fixture 통과 + 신규 fixture 추가)
+- 사고 재현 없이 선제 변경 자제 (rule 92 R2)
 
 ## 마무리 조건 (사용자 명시 2026-05-01)
 
