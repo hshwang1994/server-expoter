@@ -20,6 +20,53 @@
 
 ---
 
+## 2026-04-30 — Redfish BMC HTTP 406 (precheck Stage 3 false-positive 미지원)
+
+- 카테고리: external-contract-drift + http-header-missing
+- 발견 위치: `common/library/precheck_bundle.py` http_get (line 164~)
+- 증상:
+  - 사이트별 일부 Lenovo/HPE BMC만 precheck Stage 3에서 "Redfish 미지원" abort
+  - curl `-k` 로는 ServiceRoot 200 정상 응답
+  - 같은 Jenkins agent + 같은 Python에서 동일 URL Python urllib만 fail
+  - root cause: HTTP 406 Not Acceptable
+- 원인: `precheck_bundle.http_get` 가 `Accept`/`OData-Version` 헤더 명시 안 함.
+  Python urllib는 default로 `Accept` 헤더 안 보내고, 일부 BMC 펌웨어
+  (HPE iLO 펌웨어 ServiceRoot RedfishVersion 1.17.0 등)는 명시 요구. curl은
+  default로 `Accept: */*` 보내서 OK. **본 수집 (`redfish_gather.py`) 은 이미
+  헤더 보냄 — precheck만 누락된 drift**.
+- 영향: precheck Stage 3 통과 못하는 BMC 사이트별 수집 0%. 본 수집까지 못 감.
+- 수정: commit 4715bb5b (`fix: precheck/redfish HTTP 헤더 호환`)
+  - http_get에 Accept/OData-Version/User-Agent 명시
+  - probe_redfish status 허용 405/406 추가 (이중 안전)
+  - redfish_gather.py _get/_post/_patch User-Agent 일관 추가
+  - 회귀 테스트 2건 (test_service_root_405/406_treated_as_supported)
+- 재발 방지:
+  - 새 외부 통신 함수 추가 시 헤더 origin 주석 의무 (rule 96 R1 강화 검토)
+  - 사이트별 BMC 펌웨어 다양성 회귀 — `tests/fixtures/redfish/` 에 1.17.0 fixture 추가 필요 (별도 cycle)
+- 관련 rule: rule 96 (external-contract-integrity), rule 95 R1 #11
+
+## 2026-04-30 — _compute_final_status partial 오판정 (vault fallback 차단)
+
+- 카테고리: ai-hallucination + cross-flow-consistency
+- 발견 위치: `redfish-gather/library/redfish_gather.py:1781` `_compute_final_status`
+- 증상:
+  - Dell vault accounts list 첫 자격 fail이어도 status='partial' 반환
+  - try_one_account.yml `_rf_attempt_ok` (status != 'failed') 가드가 partial을 success로 판정
+  - → 두 번째 자격증명으로 fallback 안 됨
+  - 사용자 보고: vault 순서 [A, B] / [B, A] 둘 다 첫 자격 매칭 서버만 OK
+- 원인: 1개 섹션이라도 collected에 들어가면 무조건 'partial' 반환. 인증 fail 흔적
+  (errors[]에 HTTP 401/403) 무시.
+- 영향: multi-account vault 시나리오 (recovery / 공통계정 fallback) 무력화. 데이터
+  일부만 받은 상태로 호출자에 emit (호출자도 "부분 성공"으로 오해).
+- 수정: commit 7b0afc0c (`fix: 401/403 발견 시 'failed' 강제`)
+  - _compute_final_status 시그니처 errors 추가
+  - errors[]에 HTTP 401/403 detail 발견 시 partial 무효화 → 'failed'
+  - 회귀 테스트 7건 (test_redfish_compute_final_status.py)
+- 재발 방지:
+  - try_one_account loop 가드 + final_status 판정 일관성 cross-flow 회귀 의무
+  - status 'partial' / 'failed' 분류 기준에 auth 차원 명시 (rule 13 R5 envelope 정의 보강 검토)
+- 관련 rule: rule 95 R1 #6 (빈 callback message), rule 13 R5
+
 ## 2026-04-29 — production-audit-bundle (4 agent 전수조사로 일괄 발굴)
 
 - 카테고리: scope-miss + cross-channel-drift + jinja2-loop-scoping

@@ -282,14 +282,17 @@ def _strip_or_none(value):
 # vendor_aliases.yml이 primary, 본 dict는 secondary. 신규 alias 추가 시 vendor_aliases.yml만
 # 갱신하면 충분 (verify_harness_consistency.py 동기화 게이트로 drift 검출).
 _FALLBACK_VENDOR_MAP = {
-    'dell': 'dell', 'dell inc.': 'dell',                                    # nosec rule12-r1
+    'dell': 'dell', 'dell inc.': 'dell', 'dell emc': 'dell',                # nosec rule12-r1
     'hpe': 'hpe', 'hewlett packard enterprise': 'hpe',                      # nosec rule12-r1
+    'hewlett packard enterprise co.': 'hpe', 'hewlett-packard': 'hpe',      # nosec rule12-r1
     'hp enterprise': 'hpe', 'hp': 'hpe',                                    # nosec rule12-r1
-    'lenovo': 'lenovo',                                                     # nosec rule12-r1
+    'lenovo': 'lenovo', 'lenovo group ltd.': 'lenovo',                      # nosec rule12-r1
+    'lenovo group limited': 'lenovo', 'ibm': 'lenovo',                      # nosec rule12-r1
     'supermicro': 'supermicro', 'super micro computer, inc.': 'supermicro', # nosec rule12-r1
-    'super micro computer': 'supermicro',                                   # nosec rule12-r1
+    'super micro computer': 'supermicro', 'smci': 'supermicro',             # nosec rule12-r1
     'cisco': 'cisco', 'cisco systems inc': 'cisco',                         # nosec rule12-r1
-    'cisco systems inc.': 'cisco', 'cisco systems': 'cisco',                # nosec rule12-r1
+    'cisco systems inc.': 'cisco', 'cisco systems, inc': 'cisco',           # nosec rule12-r1
+    'cisco systems, inc.': 'cisco', 'cisco systems': 'cisco',               # nosec rule12-r1
 }
 # 호환 alias (외부 코드가 _BUILTIN_VENDOR_MAP 이름 참조 시)
 _BUILTIN_VENDOR_MAP = _FALLBACK_VENDOR_MAP

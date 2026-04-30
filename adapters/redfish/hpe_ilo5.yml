@@ -6,6 +6,8 @@
 # Last sync: 2026-04-28 (full-sweep)
 # Notes: ProLiant Gen10/Gen10 Plus. Redfish 1.x 표준 호환.
 # Tested against: 실장비 검증 결과는 schema/baseline_v1/<vendor>_baseline.json + tests/evidence/ 참조
+# 2026-04-30 호환성: 일부 펌웨어 (Redfish 1.17.0 등)는 HTTP 406 (Accept 헤더 명시 요구) —
+# precheck/redfish_gather에 Accept/OData-Version/User-Agent 헤더 명시 fix 필요 (commit 4715bb5b 적용).
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_hpe_ilo5
 channel: redfish

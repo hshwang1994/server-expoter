@@ -1,6 +1,33 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-30 (vendor-detect-robustness G1~G7 전체 + multi-account 보강 완료 — 잔여 결정 항목)
+## 일자: 2026-04-30 (HTTP 406 호환 fix cycle 후 follow-up)
+
+### 본 cycle 완료 (2026-04-30 site-A 사고 root cause fix 4 commit)
+
+- Commit 1 (4715bb5b): precheck/redfish HTTP 헤더 명시 + 405/406 허용
+- Commit 2 (7b0afc0c): `_compute_final_status` 401/403 강제 failed (Dell vault fallback 정상화)
+- Commit 3 (2c543e1c): `diagnosis.details.detail` 노출 + Jenkinsfile_portal verbosity 토글
+- Commit 4: vendor_aliases 보강 (HPE/Lenovo/Cisco/Dell/Supermicro 변형) + governance 문서
+
+### Follow-up (사용자 측 사이트에서만 가능)
+
+| 항목 | 작업 | 우선 |
+|---|---|---|
+| Site-A 1.17.0 펌웨어 BMC fixture 캡처 | `tests/fixtures/redfish/hpe_ilo_fw1_17/` ServiceRoot 응답 추가 → 회귀 차단 | P1 |
+| Site-A `verbosity=2` 빌드 1회 실행 | 다른 BMC 잠재 사고 자동 발굴 | P1 |
+| Dell vault fallback 실제 작동 검증 | Site-A에서 multi-account vault 1번 시도 (Commit 2 효과) | P1 |
+| SSH/WinRM/vSphere 같은 호환성 함정 점검 | 사고 재현 후 별도 cycle (rule 92 R2 정신상 선제 변경 자제) | P2 |
+
+### 본 cycle 적용 정적 검증
+
+- `pytest tests/unit/` — 67/67 PASS (회귀 + 신규 9건 추가)
+- `python scripts/ai/verify_harness_consistency.py` — PASS
+- `python -m py_compile` — 3 파일 PASS
+- 사이트 검증은 사용자 빌드에서만 가능 (Jenkins agent + 실 BMC)
+
+---
+
+## 이전 일자: 2026-04-30 (vendor-detect-robustness G1~G7 전체 + multi-account 보강 완료 — 잔여 결정 항목)
 
 ### G1~G7 전체 적용 완료 (2026-04-30)
 

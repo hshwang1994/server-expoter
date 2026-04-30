@@ -12,6 +12,11 @@
 #   - Redfish: 1.20.0
 #   - CPU: Intel Xeon Gold 6430
 #   - 데이터 경로: tests/reference/redfish/hpe/10_50_11_231/
+# Tested against (실측 2026-04-30, 사이트 site-A):
+#   - ProLiant Compute DL380 Gen12 (Redfish 1.20.0) — Stage 3 OK
+#   - 기타 site BMC (Redfish 1.17.0, Product 필드 부재) — HTTP 406 발생
+#     → http_get Accept/OData/User-Agent 헤더 명시 fix 후 통과 (cycle 2026-04-30)
+#     → FAILURE_PATTERNS.md 2026-04-30 entry 참조
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_hpe_ilo6
 channel: redfish

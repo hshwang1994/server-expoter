@@ -18,12 +18,15 @@ vendor_aliases:
   dell:
     - "Dell"
     - "Dell Inc."
+    - "Dell EMC"
     - "DELL"
     - "dell"
 
   hpe:
     - "HPE"
     - "Hewlett Packard Enterprise"
+    - "Hewlett Packard Enterprise Co."
+    - "Hewlett-Packard"
     - "HP Enterprise"
     - "HP"
     - "Hp"
@@ -31,6 +34,9 @@ vendor_aliases:
 
   lenovo:
     - "Lenovo"
+    - "Lenovo Group Ltd."
+    - "Lenovo Group Limited"
+    - "IBM"
     - "LENOVO"
     - "lenovo"
 
@@ -38,12 +44,15 @@ vendor_aliases:
     - "Supermicro"
     - "Super Micro Computer, Inc."
     - "Super Micro Computer"
+    - "SMCI"
     - "SUPERMICRO"
     - "supermicro"
 
   cisco:
     - "Cisco Systems Inc"
     - "Cisco Systems Inc."
+    - "Cisco Systems, Inc"
+    - "Cisco Systems, Inc."
     - "Cisco Systems"
     - "Cisco"
     - "CISCO"
