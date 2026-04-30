@@ -1778,9 +1778,29 @@ def _collect_all_sections(bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
     }
 
 
-def _compute_final_status(collected, failed):
-    """collected / failed list → final_status (success / partial / failed)."""
+def _compute_final_status(collected, failed, errors=None):
+    """collected / failed list → final_status (success / partial / failed).
+
+    cycle 2026-04-30: errors[]에 인증 실패 (HTTP 401/403) 흔적 발견 시 'failed' 강제.
+    이전 동작은 1개 섹션이라도 collected에 들어가면 'partial' 반환 — try_one_account
+    loop가 'partial'을 success로 판정해 두 번째 자격증명으로 fallback 안 함 (Dell vault
+    accounts 순서 사고). 인증 자체가 거부된 상태에서 partial로 emit하면 호출자도
+    "데이터 일부 받음"으로 오해. auth fail 명시적으로 'failed'로 분류.
+    """
     clean = [s for s in collected if s not in failed]
+
+    # 인증 실패 시그널이 errors[]에 있으면 partial/success로 끌어올리지 않음
+    if errors:
+        for e in errors:
+            if not isinstance(e, dict):
+                continue
+            detail = (e.get('detail') or '')
+            msg = (e.get('message') or '')
+            if 'HTTP 401' in detail or 'HTTP 403' in detail:
+                return 'failed', clean
+            if '401' in msg and 'auth' in msg.lower():
+                return 'failed', clean
+
     if not clean:
         return 'failed', clean
     if failed:
@@ -2077,7 +2097,7 @@ def main():
         all_errors, collected, failed,
     )
 
-    final_status, clean = _compute_final_status(collected, failed)
+    final_status, clean = _compute_final_status(collected, failed, all_errors)
 
     module.exit_json(
         changed=False, status=final_status, vendor=vendor,
