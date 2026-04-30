@@ -18,6 +18,11 @@
 2. common_infraops (infraops/Passw0rd1!)
 3. lenovo_current (USERID/VMware1!)
 
+**HPE (vault/redfish/hpe.yml)** — 사용자 명시 "admin/hpinvent1! 첫번째":
+1. hpe_fallback (admin/hpinvent1!) ← 1순위
+2. common_infraops (infraops/Passw0rd1!)
+3. hpe_current (admin/VMware1!)
+
 role / ansible_user / ansible_password 미변경 (legacy backward-compat 유지). 변경은 list 순서만.
 
 검증: ansible-vault decrypt 후 yaml parse 검증으로 새 순서 확인.
