@@ -96,6 +96,16 @@
 | L2 | IPv6 `::` placeholder | filter | ✓ |
 | L3 | server NIC IPv4 부재 → BMC NIC fallback (Cisco) | gateways union | ✓ |
 
+### M. InfiniBand 채널 호환성 (R6 신규)
+| # | 변종 | 코드 위치 | 상태 |
+|---|---|---|---|
+| M1 | Redfish PortType=InfiniBand 자동 분류 | normalize_standard.yml:305-309 | ✓ |
+| M2 | Linux lspci IB 식별 + raw fallback | gather_hba_ib.yml | ✓ |
+| M3 | Linux IB 도구 부재 graceful | gather_hba_ib.yml failed_when:false | ✓ (F37 unsupported 분류 후속) |
+| M4 | Windows IB NIC 분류 (Mellanox VEN_15B3) | 미수집 | ✗ F38 |
+| M5 | ESXi IB Ethernet adapter 인식 | esxi-gather/normalize_network.yml | △ (vendor 의도 — F39 skip) |
+| M6 | ConnectX VPI mode (IB↔Eth 전환) | normalize_standard.yml raw passthrough | ✓ (F40 검증) |
+
 ## 추가 호환성 fix 후보 (web 검색 R5 — 사용자 의도 부합)
 
 ### F33 — Session 인증 (X-Auth-Token) 도입 검토
@@ -121,16 +131,24 @@
 
 ## 종합 결론
 
-**호환성 fallback 은 이미 대부분 적용됨** (35건 / cycle 2026-04-30 + 2026-05-01 + 이전 cycle 누적).
+**호환성 fallback 은 이미 대부분 적용됨** (41건 / cycle 2026-04-30 + 2026-05-01 + 이전 cycle 누적).
 
-남은 진짜 호환성 fix 후보:
-- F02 / F04 / F05 / F09 / F10 / F12 / F13 / F14 / F15 / F17 / F20 / F21 / F22 / F24
-- F33 / F34 (검증) / F35 (검증) / F36 (F6 묶음)
+남은 진짜 호환성 fix 후보 (22건):
+- P1: F05 / F13 / F23
+- P2: F02 / F04 / F08 / F10 / F12 / F17 / F20 / F21 / F36
+- P3: F01 / F09 / F11 / F14 / F15 / F22 / F24 / F33 / F34 / F35
+- R6 InfiniBand: F37 / F38 / F39 / F40
+- 횡단: F07 / F16
 
-**호환성 영역에서 추가 검색 효용 적음** — 이미 14 카테고리 (A~L) 다양한 변종 처리 완료.
+**호환성 영역 외 (별도 cycle)** — 12건:
+- 새 데이터: F03 / F29 / F32
+- 새 섹션: F06 / F19 / F26 / F27 / F28 / F30
+- 새 vendor: F31
+- 운영 / 추적: F18 / F25
 
-신규 데이터 수집 (F03/F06/F19/F26/F28/F29/F30/F32/F31) 은 **사용자 의도와 어긋남** — 별도 영역으로 분리. 현재 cycle scope 외.
+**호환성 영역에서 추가 검색 효용 적음** — 이미 15 카테고리 (A~M) 다양한 변종 처리 완료.
 
 ## 갱신 history
 
 - 2026-05-01: 호환성 매트릭스 작성. 35건 적용된 호환성 분류. F33~F36 신규 후보. 신규 데이터 수집과 분리.
+- 2026-05-01 R6: InfiniBand M 카테고리 추가 (M1~M6). F37~F40 InfiniBand 호환성 fix 후보. 호환성 vs 새 데이터 ticket 분리 명시.
