@@ -1,6 +1,30 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-30 (vendor-detect-robustness — G1~G7 전체 + multi-account 보강 — 사용자 명시 "남은 작업 모두" 진행)
+## 일자: 2026-04-30 (vault accounts 우선순위 재정렬 — Dell/Lenovo 사용자 명시)
+
+## 요약 (vault accounts reorder — 2026-04-30, 사용자 명시)
+
+`load_vault.yml`은 list 순서 그대로 `_rf_accounts` 사용 (별도 정렬 없음 — 주석은 misleading). vault file의 list 순서가 곧 multi-account fallback 시도 순서.
+
+**Dell (vault/redfish/dell.yml)** — 사용자 명시 "Dellidrac1! 1번, calvin 2번, 나머지 뒤로":
+1. dell_fallback_1 (root/Dellidrac1!) ← 1순위
+2. dell_fallback_2 (root/calvin) ← 2순위
+3. common_infraops (infraops/Passw0rd1!)
+4. dell_current (root/GoodskInfra1!)
+5. lab_dell_root (root/Goodmit0802!)
+
+**Lenovo (vault/redfish/lenovo.yml)** — 사용자 명시 "USERID/Passw0rd1! 첫번째":
+1. lenovo_fallback (USERID/Passw0rd1!) ← 1순위
+2. common_infraops (infraops/Passw0rd1!)
+3. lenovo_current (USERID/VMware1!)
+
+role / ansible_user / ansible_password 미변경 (legacy backward-compat 유지). 변경은 list 순서만.
+
+검증: ansible-vault decrypt 후 yaml parse 검증으로 새 순서 확인.
+
+---
+
+## 이전 일자: 2026-04-30 (vendor-detect-robustness — G1~G7 전체 + multi-account 보강 — 사용자 명시 "남은 작업 모두" 진행)
 
 ## 요약 (vendor-detect-robustness 전체 — 2026-04-30)
 
