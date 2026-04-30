@@ -61,10 +61,12 @@
           vendor={{ _rf_attempt.vendor | default('?') }},
           first_error={{ (_rf_attempt.errors | default([]) | first | default({})).message | default('?') }}
 
-    # cycle 2026-04-30: BMC lockout 회피 — 실패 시 0.5초 backoff 후 다음 후보.
+    # cycle 2026-04-30: BMC lockout 회피 — 실패 시 1초 backoff 후 다음 후보.
     # 일부 BMC (HPE iLO, Dell iDRAC)가 연속 fail 시 source IP 일시 차단. transient 회피.
+    # site.yml strategy: free 와 호환되도록 pause 대신 controller-side sleep 사용
+    # (pause 모듈은 free strategy 에서 host loop bypass 미지원 → 즉시 ERROR).
     - name: "redfish | try_account | backoff on failure"
       when: not (_rf_attempt_ok | bool)
-      ansible.builtin.pause:
-        seconds: 1
+      ansible.builtin.command: sleep 1
+      delegate_to: localhost
       changed_when: false
