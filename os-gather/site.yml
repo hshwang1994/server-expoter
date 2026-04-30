@@ -25,8 +25,8 @@
   hosts: all
   gather_facts: no
   connection: local
-  # 2026-04-30 perf: dead-host 다수 inventory에서 host별 독립 진행 (linear 시 stuck host가 wave 막음)
-  strategy: free
+  # 주의: PLAY 1은 add_host (run_once + loop) 사용으로 strategy: free 불가 (#23 빌드 실패)
+  # connection: local + 짧은 wait_for라 linear여도 wave 막힘 영향 작음. perf는 _probe_timeout 단축으로 대응.
 
   vars:
     ansible_python_interpreter: "{{ ansible_playbook_python }}"
