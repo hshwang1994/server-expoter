@@ -1,6 +1,33 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-04-30 (residual-sweep — squash merge 직후 잔여 7건 fix)
+## 일자: 2026-04-30 (vendor-detect-robustness G1~G7 전체 + multi-account 보강 완료 — 잔여 결정 항목)
+
+### G1~G7 전체 적용 완료 (2026-04-30)
+
+`docs/ai/CURRENT_STATE.md` 참조. ad-hoc unit 22/22 PASS, pytest 216/216 PASS.
+
+### 사용자 결정 대기 (정책 변경)
+
+| 항목 | 영향 | 결정 |
+|---|---|---|
+| multi-account `_rf_attempt_ok` 강화 (`status == 'success'` 만 OK) | primary `partial` 결과 시 fallback 시도. 정상 partial 운영 (일부 섹션 not_supported 환경) 영향 가능 | 진행/보류 |
+| account 순서 재정렬 (recovery 우선) | 운영 환경에 따라 fallback 우선 시도 — vault 정책 변경 | 진행/보류 |
+| BMC lockout 정책 (현재 1초 backoff) 늘리기 | 5 accounts × 1s = 5s 추가 빌드 시간. 더 길게 (3~5초) 안전 | 진행/보류 |
+
+### 실측 검증 필요 (lab 환경)
+
+- **Lenovo 실 장비**: G1+G2+G3+G6 적용 후 vendor=null 해소 확인. `tests/redfish-probe/probe_redfish.py --vendor lenovo` 또는 Jenkins console log
+- **구 BMC TLS**: G4 적용 후 "Redfish 미지원" 오판정 해소 확인 (해당 lab 장비 있을 시)
+- **Dell `Dellidrac1!` 401**: G3+G6+backoff 적용 후 multi-account fallback 동작 확인. Jenkins console log에서 try_one_account.yml 출력으로 어느 account에서 succeed/fail 판단
+
+### Commit/push 결정 대기
+
+- 본 cycle 변경은 main 브랜치 직접 작업 — rule 93 R4 사용자 명시 승인 필요
+- 변경 4 파일 + docs 4 파일
+
+---
+
+## 이전 일자: 2026-04-30 (residual-sweep — squash merge 직후 잔여 7건 fix)
 
 ## 잔여 (residual-sweep 후속)
 

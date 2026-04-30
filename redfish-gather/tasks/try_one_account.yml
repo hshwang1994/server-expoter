@@ -48,9 +48,23 @@
         _rf_used_account_role: "{{ _try_account.role | default('primary') }}"
       no_log: true
 
+    # cycle 2026-04-30: 실패 시 status / 첫 error 메시지를 advisory log에 노출 (디버깅 편의).
+    # password는 자동 redact 안 되므로 명시적 필드만 출력.
     - name: "redfish | try_account | log failure (advisory)"
       when: not (_rf_attempt_ok | bool)
       ansible.builtin.debug:
         msg: >-
           attempt failed — label={{ _try_account.label | default('unlabeled') }},
-          role={{ _try_account.role | default('primary') }}
+          role={{ _try_account.role | default('primary') }},
+          username={{ _try_account.username | default('') }},
+          status={{ _rf_attempt.status | default('?') }},
+          vendor={{ _rf_attempt.vendor | default('?') }},
+          first_error={{ (_rf_attempt.errors | default([]) | first | default({})).message | default('?') }}
+
+    # cycle 2026-04-30: BMC lockout 회피 — 실패 시 0.5초 backoff 후 다음 후보.
+    # 일부 BMC (HPE iLO, Dell iDRAC)가 연속 fail 시 source IP 일시 차단. transient 회피.
+    - name: "redfish | try_account | backoff on failure"
+      when: not (_rf_attempt_ok | bool)
+      ansible.builtin.pause:
+        seconds: 1
+      changed_when: false

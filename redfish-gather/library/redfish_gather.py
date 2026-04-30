@@ -65,10 +65,22 @@ from ansible.module_utils.basic import AnsibleModule
 # ── HTTP 유틸 ────────────────────────────────────────────────────────────────
 
 def _ctx(verify_ssl):
+    """HTTPS context — verify_ssl=False 시 self-signed BMC 인증서 허용.
+
+    cycle 2026-04-30: 구 BMC (HPE iLO4, Lenovo IMM2, 일부 iDRAC7/8 펌웨어) 호환.
+    OpenSSL 3.x legacy renegotiation + weak cipher 허용 — verify=False 환경 한정.
+    curl -k 와 동등한 관용성. 사내 BMC self-signed 망 한정.
+    """
     ctx = ssl.create_default_context()
     if not verify_ssl:
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
+        if hasattr(ssl, 'OP_LEGACY_SERVER_CONNECT'):
+            ctx.options |= ssl.OP_LEGACY_SERVER_CONNECT
+        try:
+            ctx.set_ciphers('DEFAULT@SECLEVEL=0')
+        except ssl.SSLError:
+            pass
     return ctx
 
 def _auth(username, password):
@@ -279,6 +291,19 @@ _FALLBACK_VENDOR_MAP = {
 # 호환 alias (외부 코드가 _BUILTIN_VENDOR_MAP 이름 참조 시)
 _BUILTIN_VENDOR_MAP = _FALLBACK_VENDOR_MAP
 
+# BMC 시그니처 → vendor (Redfish ServiceRoot Product/Name 필드의 BMC 제품명 매칭)
+# nosec rule12-r1: ServiceRoot v1.0~1.4 펌웨어는 Vendor/Product 표준 필드 부재.
+# BMC 제품명이 vendor 시그니처로 사실상 외부 Redfish spec 일부 (HPE Hpe namespace,
+# Dell iDRAC, Lenovo XClarity 등). vendor 분기 코드가 아니라 정규화 맵.
+_BMC_PRODUCT_HINTS = {
+    'idrac': 'dell', 'integrated dell': 'dell',                             # nosec rule12-r1
+    'ilo': 'hpe', 'proliant': 'hpe',                                        # nosec rule12-r1
+    'xclarity': 'lenovo', 'thinksystem': 'lenovo',                          # nosec rule12-r1
+    'xcc': 'lenovo', 'imm2': 'lenovo',                                      # nosec rule12-r1
+    'megarac': 'supermicro',                                                # nosec rule12-r1
+    'cimc': 'cisco', 'ucs': 'cisco',                                        # nosec rule12-r1
+}
+
 
 def _load_vendor_aliases_file():
     """vendor_aliases.yml을 로드합니다. 실패 시 빈 dict 반환.
@@ -353,6 +378,54 @@ def _normalize_vendor_from_aliases(mfr_lower):
 
 # ── 벤더 감지 ────────────────────────────────────────────────────────────────
 
+def _probe_realm_hint(bmc_ip, timeout, verify_ssl):
+    """G6 (cycle 2026-04-30): 401/403 응답의 WWW-Authenticate realm에서 vendor hint 추출.
+
+    ServiceRoot 본문이 비어 vendor 식별 불가한 BMC에서도 401 응답 헤더의
+    `WWW-Authenticate: Basic realm="iDRAC"` / `realm="iLO"` / `realm="XClarity Controller"`
+    같은 realm 문자열로 vendor를 추정한다. 부가 fallback (필수 아님).
+
+    Returns: vendor canonical name 또는 None
+    """
+    import re
+    url = f'https://{bmc_ip}/redfish/v1/'
+    req = urlreq.Request(url, headers={'Accept': 'application/json', 'OData-Version': '4.0'})
+    realm_header = None
+    try:
+        # 무인증으로 시도 — 200이면 realm 없음 (이미 다른 단계에서 처리)
+        with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
+            return None
+    except urlerr.HTTPError as e:
+        # 401/403일 때 WWW-Authenticate 헤더에서 realm 추출
+        if e.code in (401, 403):
+            realm_header = e.headers.get('WWW-Authenticate') or ''
+    except (urlerr.URLError, socket.timeout, OSError, ValueError):
+        return None
+
+    if not realm_header:
+        return None
+
+    # realm="..." 추출
+    m = re.search(r'realm\s*=\s*"([^"]+)"', realm_header, re.IGNORECASE)
+    if not m:
+        m = re.search(r"realm\s*=\s*'([^']+)'", realm_header, re.IGNORECASE)
+    if not m:
+        return None
+    realm = m.group(1).lower().strip()
+
+    # vendor_aliases + BMC product hints 매칭
+    aliases_yaml = _load_vendor_aliases_file()
+    vm = {**_FALLBACK_VENDOR_MAP, **aliases_yaml}
+    for alias, canon in vm.items():
+        if alias and alias in realm:
+            return canon
+    # nosec rule12-r1: realm BMC 시그니처
+    for hint, canon in _BMC_PRODUCT_HINTS.items():                              # nosec rule12-r1
+        if hint in realm:                                                       # nosec rule12-r1
+            return canon                                                        # nosec rule12-r1
+    return None
+
+
 def _get_noauth(bmc_ip, path, timeout, verify_ssl):
     """인증 없이 GET 요청 (ServiceRoot 등 무인증 엔드포인트용)"""
     url = f'https://{bmc_ip}/redfish/v1/{path.lstrip("/")}'
@@ -396,36 +469,58 @@ def _detect_vendor_from_service_root(root):
     # 1. Oem 객체의 키 이름 확인
     oem = _safe(root, 'Oem')
     if isinstance(oem, dict):
+        # 1-A. 정확 매칭 (예: Oem.Lenovo, Oem.Hpe, Oem.Dell)
         for key in oem:
             k = key.lower()
             if k in vm:
                 return vm[k]
+        # 1-B. namespace prefix 매칭 — Lenovo XCC2/XCC3 'Lenovo_xxx', 일부 펌웨어 'Hpe_xxx' 등
+        # nosec rule12-r1: BMC vendor OEM namespace prefix → vendor 식별 (외부 Redfish spec)
+        for key in oem:                                                       # nosec rule12-r1
+            k = key.lower()                                                   # nosec rule12-r1
+            for alias, canon in vm.items():                                   # nosec rule12-r1
+                if not alias:                                                 # nosec rule12-r1
+                    continue                                                  # nosec rule12-r1
+                if k.startswith(alias + '_') or k.startswith(alias + '.'):    # nosec rule12-r1
+                    return canon                                              # nosec rule12-r1
 
-    # 2. Vendor 필드 확인 (정확 매칭)
+    # 2. Vendor 필드 확인 — ServiceRoot v1.5.0+ 표준
+    # G7 (cycle 2026-04-30): 'Dell Inc.' 같은 trailing dot/whitespace + substring 매칭
     vendor_field = _safe(root, 'Vendor')
     if vendor_field and isinstance(vendor_field, str):
-        v = vendor_field.lower().strip().rstrip('.')
-        if v in vm:
-            return vm[v]
+        v = vendor_field.lower().strip()
+        # 2-A. 정확 매칭 (원형 + trailing dot 제거 두 형식 둘 다 시도)
+        for cand in (v, v.rstrip('.').strip()):
+            if cand in vm:
+                return vm[cand]
+        # 2-B. substring 매칭 (Product/Name과 동일 정신)
+        for alias, canonical in vm.items():
+            if alias and alias in v:
+                return canonical
 
-    # 3. Product 필드에 벤더명 포함 확인
+    # 3. Product 필드에 벤더명 포함 확인 — ServiceRoot v1.3.0+ 표준
     product = _safe(root, 'Product')
     if product and isinstance(product, str):
         p = product.lower()
         for alias, canonical in vm.items():
             if alias in p:
                 return canonical
-        # nosec rule12-r1: HPE iLO/ProLiant 시그니처 → vendor 식별 (외부 spec)
-        if 'ilo' in p or 'proliant' in p:                                     # nosec rule12-r1
-            return 'hpe'                                                      # nosec rule12-r1
+        # nosec rule12-r1: BMC 시그니처 → vendor 식별 (외부 Redfish spec OEM namespace)
+        for hint, canon in _BMC_PRODUCT_HINTS.items():                        # nosec rule12-r1
+            if hint in p:                                                     # nosec rule12-r1
+                return canon                                                  # nosec rule12-r1
 
-    # 4. Name 필드에 벤더명 포함 확인
+    # 4. Name 필드에 벤더명 포함 확인 — Cisco "Cisco RESTful Root Service" 등
     name = _safe(root, 'Name')
     if name and isinstance(name, str):
         n = name.lower()
         for alias, canonical in vm.items():
             if alias in n:
                 return canonical
+        # nosec rule12-r1: BMC 시그니처 fallback (Name 필드)
+        for hint, canon in _BMC_PRODUCT_HINTS.items():                        # nosec rule12-r1
+            if hint in n:                                                     # nosec rule12-r1
+                return canon                                                  # nosec rule12-r1
 
     # 5. 해당 없음
     return None
@@ -499,6 +594,39 @@ def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
         bmc_ip, _safe(root, 'Chassis', '@odata.id'),
         username, password, timeout, verify_ssl,
     )
+
+    # G3 (cycle 2026-04-30): vendor=unknown 시 Chassis/Managers/System Manufacturer fallback.
+    # ServiceRoot v1.0~1.4 펌웨어는 Vendor/Product 표준 필드 부재 — Manufacturer는 표준.
+    if vendor == 'unknown':
+        for fb_uri, fb_label in (
+            (chassis_uri, 'Chassis'),
+            (manager_uri, 'Managers'),
+            (system_uri, 'Systems'),
+        ):
+            if not fb_uri:
+                continue
+            fst, fdata, _ferr = _get(bmc_ip, _p(fb_uri), username, password, timeout, verify_ssl)
+            if fst != 200 or not isinstance(fdata, dict):
+                continue
+            mfr = _safe(fdata, 'Manufacturer')
+            if mfr and isinstance(mfr, str):
+                fb_vendor = _normalize_vendor_from_aliases(mfr.strip().lower())
+                if fb_vendor and fb_vendor != 'unknown':
+                    vendor = fb_vendor
+                    # errors에서 'ServiceRoot에서 벤더 식별 불가' 제거 (해소됨)
+                    errors = [e for e in errors if 'ServiceRoot에서 벤더 식별 불가' not in (e.get('message') or '')]
+                    errors.append(_err('vendor_detect',
+                        f'{fb_label} Manufacturer fallback로 vendor={fb_vendor} 식별 (ServiceRoot 정보 부족)'))
+                    break
+
+    # G6 (cycle 2026-04-30): G3까지 fail이면 401 WWW-Authenticate realm 헤더로 마지막 추정.
+    if vendor == 'unknown':
+        realm_vendor = _probe_realm_hint(bmc_ip, timeout, verify_ssl)
+        if realm_vendor:
+            vendor = realm_vendor
+            errors = [e for e in errors if 'ServiceRoot에서 벤더 식별 불가' not in (e.get('message') or '')]
+            errors.append(_err('vendor_detect',
+                f'WWW-Authenticate realm fallback로 vendor={realm_vendor} 식별 (ServiceRoot/Resources 본문 부족)'))
 
     return vendor, system_uri, manager_uri, chassis_uri, errors
 

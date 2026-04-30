@@ -130,11 +130,24 @@ def tcp_check(host, port, timeout):
 
 
 def _build_ssl_context(verify):
-    """HTTPS context — verify=False 시 self-signed BMC 인증서 허용."""
+    """HTTPS context — verify=False 시 self-signed BMC 인증서 허용.
+
+    cycle 2026-04-30: 구 BMC (HPE iLO4, Lenovo IMM2, 일부 iDRAC7/8 펌웨어)
+    호환을 위해 verify=False 환경 한정으로 OpenSSL 3.x legacy renegotiation +
+    weak cipher 허용. curl -k 와 동등한 관용성. 사내 BMC self-signed 망 한정.
+    """
     ctx = ssl.create_default_context()
     if not verify:
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
+        # OpenSSL 3.x: 구 BMC TLS legacy renegotiation 차단 해제
+        if hasattr(ssl, 'OP_LEGACY_SERVER_CONNECT'):
+            ctx.options |= ssl.OP_LEGACY_SERVER_CONNECT
+        # 약한 cipher 허용 (TLS 1.0/1.1, RC4 등 — verify=False BMC 망 한정)
+        try:
+            ctx.set_ciphers('DEFAULT@SECLEVEL=0')
+        except ssl.SSLError:
+            pass
     return ctx
 
 
@@ -218,34 +231,54 @@ def probe_redfish(host, port, timeout, verify=False):
     무인증 ServiceRoot에 401을 던진다. 이전 구현은 401/403/503을 모두
     HTTP 실패로 분류해 "Redfish 미지원"으로 오판정 → 통신 정상인 장비를
     차단. probe_esxi 의 status_code 허용 패턴 (line 260) 을 따라 정정.
+
+    G5 (cycle 2026-04-30): payload=None 케이스 (URLError/timeout/SSLError)
+    에 1회 retry. BMC 부팅 직후 / 일시 부하 transient 차단.
     """
+    import time as _time
     url = "https://{0}:{1}/redfish/v1/".format(host, port)
-    ok, err, payload = http_get(url, timeout, verify=verify)
 
-    if ok:
-        json_data = payload.get("json") if payload else None
-        probe_facts = {}
-        if json_data:
-            probe_facts["redfish_version"] = json_data.get("RedfishVersion")
-            probe_facts["product"] = json_data.get("Product")
-            systems_uri = None
-            systems = json_data.get("Systems")
-            if isinstance(systems, dict):
-                systems_uri = systems.get("@odata.id")
-            probe_facts["systems_uri"] = systems_uri
-        return True, None, probe_facts
+    last_err = None
+    last_payload = None
+    for attempt in (1, 2):  # 최대 2회 시도 (1 retry)
+        ok, err, payload = http_get(url, timeout, verify=verify)
 
-    # HTTP 응답은 왔지만 status != 200 — 서비스 살아있고 인증/일시상태 이슈
-    # 401: 무인증 ServiceRoot 차단 (인증 강화 펌웨어)
-    # 403: IP 화이트리스트 / 권한 부족 (BMC는 응답 중)
-    # 503: BMC 일시 과부하 / 부팅 직후 — 본 수집에서 재시도 가능
-    if payload and payload.get("status_code") in (401, 403, 503):
-        return True, None, {
-            "root_status_code": payload.get("status_code"),
-            "requires_auth_at_root": payload.get("status_code") in (401, 403),
-        }
+        if ok:
+            json_data = payload.get("json") if payload else None
+            probe_facts = {}
+            if json_data:
+                probe_facts["redfish_version"] = json_data.get("RedfishVersion")
+                probe_facts["product"] = json_data.get("Product")
+                systems_uri = None
+                systems = json_data.get("Systems")
+                if isinstance(systems, dict):
+                    systems_uri = systems.get("@odata.id")
+                probe_facts["systems_uri"] = systems_uri
+            if attempt > 1:
+                probe_facts["retry_count"] = attempt - 1
+            return True, None, probe_facts
 
-    return False, err, None
+        # HTTP 응답은 왔지만 status != 200 — 서비스 살아있고 인증/일시상태 이슈
+        # 401: 무인증 ServiceRoot 차단 (인증 강화 펌웨어)
+        # 403: IP 화이트리스트 / 권한 부족 (BMC는 응답 중)
+        # 503: BMC 일시 과부하 / 부팅 직후 — 본 수집에서 재시도 가능
+        if payload and payload.get("status_code") in (401, 403, 503):
+            facts = {
+                "root_status_code": payload.get("status_code"),
+                "requires_auth_at_root": payload.get("status_code") in (401, 403),
+            }
+            if attempt > 1:
+                facts["retry_count"] = attempt - 1
+            return True, None, facts
+
+        last_err, last_payload = err, payload
+        # payload=None (URLError/timeout/SSLError) 일 때만 retry. HTTP 응답이 온 status는 retry 불필요.
+        if payload is not None:
+            break
+        if attempt == 1:
+            _time.sleep(1)  # 1초 backoff
+
+    return False, last_err, None
 
 
 def probe_os(host, port, timeout):

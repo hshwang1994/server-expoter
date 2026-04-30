@@ -2,7 +2,82 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
-## 일자: 2026-04-30 (probe HTTP status_code 정합 매트릭스 추가) / 2026-04-28 (cycle-006 + full-sweep)
+## 일자: 2026-04-30 (vendor detection robustness — Lenovo XCC2/XCC3 namespace prefix + BMC product hints + TLS legacy 호환) / 2026-04-30 (probe HTTP status_code 정합 매트릭스 추가) / 2026-04-28 (cycle-006 + full-sweep)
+
+## ServiceRoot vendor detection — DMTF 표준 + vendor 동작 (2026-04-30 추가)
+
+> 출처: [DSP0266 v1.15.0](https://redfish.dmtf.org/schemas/DSP0266_1.15.0.html), [DSP2046](https://www.dmtf.org/sites/default/files/standards/documents/DSP2046_2022.3.html), HPE/Lenovo/Dell/Cisco vendor 공식 문서.
+
+### DMTF Redfish ServiceRoot 표준 필드 (top-level)
+- `Vendor` 필드: ServiceRoot **v1.5.0+** 부터 표준 (str)
+- `Product` 필드: ServiceRoot **v1.3.0+** 부터 표준 (str)
+- `Manufacturer`는 ServiceRoot에 **없음** — Chassis/Managers/System 리소스에 표준
+- `Oem` 객체: 표준 (vendor namespace 규약은 reverse-DNS 권장이지만 단순 vendor명도 허용)
+- 무인증 접근 의무: `Services shall not require authentication to retrieve the service root and /redfish resources`
+
+### Vendor별 ServiceRoot 동작 매트릭스
+
+| Vendor | Oem 키 | Product 시그니처 | Vendor 필드 | Name 필드 | 비고 |
+|---|---|---|---|---|---|
+| Dell iDRAC9 5.x+ | `Oem.Dell` | "Integrated Dell Remote Access Controller" | "Dell Inc." (펌웨어별) | "Root Service" | v1.3+ ServiceRoot |
+| HPE iLO5/6 | `Oem.Hpe` | "iLO 5" / "ProLiant" | "HPE" (iLO5 2.x+) | "Root Service" | iLO4는 `Oem.Hp` (legacy) |
+| Lenovo XCC | `Oem.Lenovo` | "XClarity Controller" | "Lenovo" (펌웨어별) | "Root Service" | 표준 |
+| Lenovo XCC2/XCC3 | **`Oem.Lenovo_xxx`** (namespace prefix) | "XClarity Controller" / "ThinkSystem" | 펌웨어별 | "Root Service" | namespace prefix 펌웨어 多 |
+| Supermicro AMI MegaRAC | `Oem.Supermicro` 또는 부재 | "AMI MegaRAC SP" | 펌웨어별 | 펌웨어별 | X11/X12 펌웨어별 차이 |
+| Cisco CIMC | Oem 부재인 펌웨어 多 | "Cisco UCS" / "CIMC" | 펌웨어별 | **"Cisco RESTful Root Service"** | Name 의존 |
+
+### 구버전 펌웨어 (ServiceRoot v1.0~1.4)
+
+- `Vendor` / `Product` 표준 필드 자체 부재
+- 매칭 가능 단서: `Oem` 키, `Name` 필드, Manufacturer (Chassis/Managers fallback)
+- 영향 BMC: 구 iDRAC7/8 펌웨어, iLO 4, IMM2
+
+### server-exporter 매칭 알고리즘 (`redfish_gather._detect_vendor_from_service_root`)
+
+1. **Oem 정확 매칭** — `Oem.{vendor}` 키 정확 매칭 (vendor_aliases.yml + _FALLBACK_VENDOR_MAP)
+2. **Oem namespace prefix** — `{alias}_xxx` / `{alias}.xxx` (cycle 2026-04-30 추가, Lenovo XCC2/XCC3 호환)
+3. **Vendor 필드 정확 매칭** (v1.5+ 표준)
+4. **Product 필드 부분 일치** + `_BMC_PRODUCT_HINTS` (idrac/ilo/proliant/xclarity/thinksystem/xcc/imm2/megarac/cimc/ucs)
+5. **Name 필드 부분 일치** + `_BMC_PRODUCT_HINTS` (Cisco "Cisco RESTful Root Service" catch)
+6. 모두 fail → `None` (호출자가 unknown 처리)
+
+### 적용 완료 (cycle 2026-04-30)
+
+- **G1**: Oem 정확 매칭 + namespace prefix 매칭 (`Lenovo_xxx`, `Hpe_iLO` 등 호환)
+- **G2**: `_BMC_PRODUCT_HINTS` 도입 — Product/Name 필드에 idrac/ilo/proliant/xclarity/thinksystem/xcc/imm2/megarac/cimc/ucs 매칭
+- **G3**: ServiceRoot vendor=unknown 시 Chassis → Managers → Systems 의 Manufacturer fallback 순회
+- **G4**: TLS legacy renegotiation + `DEFAULT@SECLEVEL=0` (verify=False 한정)
+- **G5**: probe_redfish — payload=None (URLError/timeout/SSLError) 시 1초 backoff + 1회 retry
+- **G6**: 401/403 응답의 `WWW-Authenticate: Basic realm="..."` 헤더에서 vendor hint (마지막 fallback)
+- **G7**: Vendor 필드 — 정확 매칭 (원형 + trailing dot 제거 두 형식) + substring 매칭으로 보강 (`Dell Inc.`, `Cisco Systems Inc.` 등)
+
+## TLS handshake 호환성 (2026-04-30 추가)
+
+> 출처: Python 3.12 changelog (OpenSSL 3.x), CVE-2023-0286 / CVE-2009-3555 컨텍스트.
+
+### 문제
+
+- Python 3.12 + OpenSSL 3.x default `ssl.create_default_context()`:
+  - TLS 1.2 미만 / weak cipher / legacy renegotiation **차단**
+  - 구 BMC (HPE iLO4, Lenovo IMM2, 일부 iDRAC7/8 펌웨어) handshake 실패
+  - precheck Stage 3 → URLError → "Redfish 미지원" 오판정 (curl `-k`는 통과)
+
+### 해결 (cycle 2026-04-30)
+
+`precheck_bundle._build_ssl_context` + `redfish_gather._ctx` 둘 다 verify=False 시:
+
+```python
+if hasattr(ssl, 'OP_LEGACY_SERVER_CONNECT'):
+    ctx.options |= ssl.OP_LEGACY_SERVER_CONNECT
+try:
+    ctx.set_ciphers('DEFAULT@SECLEVEL=0')
+except ssl.SSLError:
+    pass
+```
+
+- 적용 영역: **verify=False 한정** (사내 BMC self-signed 망)
+- 보안 trade-off: verify=True (운영 외 환경 — 본 시스템에선 미사용) 시 영향 없음
+- curl `-k` 와 동등한 관용성
 
 ## HTTP status_code → protocol_supported 정합 매트릭스 (2026-04-30 추가)
 

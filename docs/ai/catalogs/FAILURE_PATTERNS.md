@@ -121,3 +121,76 @@
 8. **callback URL 후행 슬래시** (이미 commit 4ccc1d7로 fix): 입력 URL 정규화 누락
 9. **Jenkinsfile cron 사용자 승인 누락** (rule 80): AI 임의 cron 변경
 10. **incoming-merge 위반 무시** (rule 97): 자동 검사 보고서를 후속 PR으로 정리 안 함
+
+## 2026-04-30 — Lenovo XCC2/XCC3 namespace prefix Oem 키로 vendor=null
+
+- 카테고리: external-contract-drift
+- 발견 위치: `redfish-gather/library/redfish_gather.py::_detect_vendor_from_service_root`
+- 증상: Lenovo 장비인데 ServiceRoot vendor 감지 결과 `null`. envelope의 `vendor: null` 출력. 동적 vault 로딩 실패로 인증 단계 우회 가능성.
+- 원인: 일부 Lenovo XCC2/XCC3 펌웨어가 Oem 키를 단순 `"Lenovo"`가 아닌 `"Lenovo_xxx"` namespace prefix 형식으로 반환. 기존 코드는 정확 매칭만 시도 (`if k in vm`).
+- 영향: Lenovo 일부 펌웨어 전체. vendor=null → adapter 매칭 generic fallback → 일부 OEM 섹션 누락.
+- 수정: cycle 2026-04-30 — `_detect_vendor_from_service_root`에 namespace prefix 매칭 1-B 단계 추가 (`k.startswith(alias + '_') or k.startswith(alias + '.')`)
+
+## 2026-04-30 — 구 BMC TLS handshake 실패로 "Redfish 미지원" 오판정
+
+- 카테고리: external-contract-drift
+- 발견 위치: `common/library/precheck_bundle.py::_build_ssl_context`, `redfish-gather/library/redfish_gather.py::_ctx`
+- 증상: curl `-k` 로는 ServiceRoot 정상 응답 받는데, server-exporter precheck Stage 3에서 "이 장비는 Redfish를 지원하지 않습니다" 메시지.
+- 원인: Python 3.12 + OpenSSL 3.x default SSL context는 legacy renegotiation 차단 + weak cipher 차단. 구 BMC (HPE iLO4, Lenovo IMM2, 일부 iDRAC7/8 펌웨어)와 handshake 실패 → URLError → http_get payload=None → probe_redfish가 status_code 분기 못 타서 fail.
+- 영향: 구 BMC 펌웨어 환경 전체. precheck Stage 3 false negative → 본 수집 진입 차단.
+- 수정: cycle 2026-04-30 — verify=False 시 `OP_LEGACY_SERVER_CONNECT` + `DEFAULT@SECLEVEL=0` 적용 (curl `-k` 동등 관용성, BMC self-signed 망 한정)
+
+## 2026-04-30 — BMC 제품명 시그니처 부족으로 vendor=null
+
+- 카테고리: external-contract-drift
+- 발견 위치: `redfish-gather/library/redfish_gather.py::_detect_vendor_from_service_root`
+- 증상: ServiceRoot Vendor 필드 부재 + Oem 부재 펌웨어에서 Product에 "XClarity Controller" / "iDRAC9" / "AMI MegaRAC" 등 BMC 제품명만 있을 때 vendor=null.
+- 원인: 기존 코드는 `'ilo' in product` / `'proliant' in product` 만 추가 매칭 (HPE만). Dell iDRAC / Lenovo XClarity / Supermicro MegaRAC / Cisco CIMC 시그니처 부재.
+- 영향: ServiceRoot v1.0~1.4 펌웨어 + Oem 부재 BMC.
+- 수정: cycle 2026-04-30 — `_BMC_PRODUCT_HINTS` 상수 도입 (idrac/ilo/proliant/xclarity/thinksystem/xcc/imm2/megarac/cimc/ucs). Product + Name 필드 둘 다 매칭.
+
+## 2026-04-30 — ServiceRoot v1.0~1.4 펌웨어 vendor=unknown (G3 fix)
+
+- 카테고리: external-contract-drift
+- 발견 위치: `redfish-gather/library/redfish_gather.py::detect_vendor`
+- 증상: ServiceRoot Vendor/Product 표준 필드 부재 + Oem 부재 BMC 펌웨어에서 vendor=unknown.
+- 원인: Vendor는 ServiceRoot v1.5.0+, Product는 v1.3.0+ 표준 필드. 구 펌웨어 (구 iDRAC7/8, iLO 4, IMM2)는 두 필드 모두 부재. ServiceRoot 5단계 매칭 모두 fail.
+- 영향: 구 BMC 펌웨어 환경. vendor=unknown → adapter 매칭 generic fallback.
+- 수정: cycle 2026-04-30 — `detect_vendor`에 Chassis → Managers → Systems Manufacturer fallback 순회 추가. 표준 Manufacturer 필드는 v1.0+ 모든 BMC 표준.
+
+## 2026-04-30 — probe_redfish transient URLError로 false negative (G5 fix)
+
+- 카테고리: external-contract-drift
+- 발견 위치: `common/library/precheck_bundle.py::probe_redfish`
+- 증상: BMC 부팅 직후 / 일시 부하 시 1회 fail로 "Redfish 미지원" 오판정.
+- 원인: payload=None (URLError/timeout/SSLError) 시 retry 부재 — 1회 fail 즉시 status 결정.
+- 영향: BMC 재시작 / 운영 부하 transient 환경.
+- 수정: cycle 2026-04-30 — payload=None 시 1초 backoff 후 1회 retry. probe_facts에 retry_count 노출.
+
+## 2026-04-30 — ServiceRoot 본문 비어도 401 realm으로 vendor 식별 가능 (G6 fix)
+
+- 카테고리: external-contract-drift
+- 발견 위치: `redfish-gather/library/redfish_gather.py::_probe_realm_hint` (신규)
+- 증상: 일부 보안 강화 BMC 펌웨어가 무인증 ServiceRoot에 401 + 본문 비어 반환. ServiceRoot 5단계 + G3 Chassis fallback 모두 인증 필요해 fail.
+- 원인: 401 응답의 `WWW-Authenticate: Basic realm="iDRAC"` / `realm="iLO"` / `realm="XClarity Controller"` 헤더 미활용.
+- 영향: 보안 강화 펌웨어 환경. vendor=unknown → vault 동적 로딩 차단 가능.
+- 수정: cycle 2026-04-30 — `_probe_realm_hint` 신규. 401/403 응답의 realm에서 vendor_aliases + `_BMC_PRODUCT_HINTS` 매칭. detect_vendor 의 마지막 fallback로 통합.
+
+## 2026-04-30 — Vendor 필드 'Dell Inc.' trailing dot 케이스 (G7 fix)
+
+- 카테고리: external-contract-drift
+- 발견 위치: `redfish-gather/library/redfish_gather.py::_detect_vendor_from_service_root` step 2
+- 증상: ServiceRoot `Vendor: "Dell Inc."` 응답에서 vendor=null. (Product 매칭이 보통 회복하지만 Vendor 단독 케이스 fail)
+- 원인: 기존 코드 `v.lower().strip().rstrip('.')` 로 `'dell inc'` 만들고 정확 매칭만. vm에 `'dell inc'` 키 없음 (`'dell inc.'` 만 있음).
+- 영향: Vendor 필드만 채우고 Product/Oem 비어 있는 펌웨어.
+- 수정: cycle 2026-04-30 — 정확 매칭은 원형 + trailing dot 제거 두 형식 모두 시도. 추가로 substring 매칭으로 보강.
+
+## 2026-04-30 — Redfish multi-account fallback BMC lockout 회피 + 디버그 로그 보강
+
+- 카테고리: external-contract-drift
+- 발견 위치: `redfish-gather/tasks/try_one_account.yml`
+- 증상: 5 accounts 순회 시 일부 BMC (iDRAC, iLO 일부 펌웨어)가 연속 fail에 source IP 일시 차단. 결과적으로 정답 자격증명도 401 받음. 디버깅 시 어느 단계에서 fail인지 message 부족.
+- 원인: attempt 사이 backoff 부재 + failure log가 label/role 만 표시 (status/error 미포함).
+- 영향: BMC lockout 환경 + 디버깅 시간 증가.
+- 수정 (부분): cycle 2026-04-30 — 실패 시 1초 backoff + status/vendor/first_error 로그 보강.
+- 미적용 (사용자 결정 대기): primary `partial` 결과를 fallback 시도 차단으로 처리하는 정책 변경 (`_rf_attempt_ok = status == 'success'` 강화).

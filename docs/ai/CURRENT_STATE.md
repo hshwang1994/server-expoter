@@ -1,6 +1,56 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-04-29 (account-fallback-validation — 사용자 명시 lab 권한 위임 8 채널 실 검증)
+## 일자: 2026-04-30 (vendor-detect-robustness — G1~G7 전체 + multi-account 보강 — 사용자 명시 "남은 작업 모두" 진행)
+
+## 요약 (vendor-detect-robustness 전체 — 2026-04-30)
+
+사용자 명시 요청 진행: "이 장비는 redfish 지원 안 함" + "Lenovo 벤더 null" + "Dell `Dellidrac1!` 401 계정 틀림". Web 조사 (DMTF DSP0266 v1.15 / HPE iLO / Lenovo XCC / Dell iDRAC / Cisco CIMC) → 현재 코드 gap **G1~G7 전체 적용** + Dell multi-account fallback 보강.
+
+### 적용 변경 (3 파일)
+
+**`redfish-gather/library/redfish_gather.py`**:
+- `_BMC_PRODUCT_HINTS` 상수 신규 (idrac/ilo/proliant/xclarity/thinksystem/xcc/imm2/megarac/cimc/ucs)
+- `_detect_vendor_from_service_root`:
+  - **G1**: Oem 정확 매칭 + namespace prefix 매칭 (`Lenovo_xxx`, `Hpe_iLO`)
+  - **G2**: Product/Name 필드에 `_BMC_PRODUCT_HINTS` 적용
+  - **G7**: Vendor 필드 정확(원형+trailing dot) + substring 매칭 (`'Dell Inc.'`, `'Cisco Systems Inc.'` 호환)
+- `_probe_realm_hint` 신규 — **G6**: 401 `WWW-Authenticate` realm에서 vendor 추정
+- `detect_vendor`:
+  - **G3**: vendor=unknown 시 Chassis → Managers → Systems Manufacturer fallback
+  - **G6**: G3까지 fail이면 `_probe_realm_hint` 로 마지막 추정
+- `_ctx`: **G4** verify=False 시 `OP_LEGACY_SERVER_CONNECT` + `DEFAULT@SECLEVEL=0`
+
+**`common/library/precheck_bundle.py`**:
+- `_build_ssl_context`: **G4** 동일 TLS legacy 옵션
+- `probe_redfish`: **G5** payload=None 시 1초 backoff + 1회 retry. probe_facts.retry_count 노출
+
+**`redfish-gather/tasks/try_one_account.yml`** (Dell 401 추적):
+- attempt 실패 시 1초 backoff (BMC lockout 회피)
+- failure 로그 보강 (status / vendor / first_error 메시지)
+
+### 검증
+
+- Python syntax: PASS (3 파일)
+- YAML syntax: PASS (try_one_account.yml)
+- pytest 회귀: **216/216 PASS**
+- vendor boundary (rule 12): PASS
+- harness consistency: PASS
+- ad-hoc unit (vendor detection 22 케이스): **22/22 PASS**
+
+### 미적용 (사용자 명시 결정 필요)
+
+- **multi-account partial 정책**: 현재 `_rf_attempt_ok = status != 'failed'` 이라 status=`'partial'` 도 OK 처리해 fallback 차단. 강화안 (`status == 'success'` 만 OK)은 정상 partial 운영 영향 가능 → 사용자 결정 대기.
+- **Dell BMC 실측 검증**: 본 변경이 실제 401 해결하는지 Jenkins console log 확인 필요.
+
+### Vault quote 가설 폐기
+
+- vault_decrypt_check.py로 5 vault 모두 검증
+- 모든 password 값이 `"..."` double-quoted — quote 누락 **없음 확정**
+- Dell 401 원인은 quote가 아니라 (a) BMC 실제 password mismatch, (b) lockout, 또는 (c) partial 상태 fallback 차단 가능성. (b)는 본 cycle backoff 로 일부 보강. (a)/(c)는 실측 검증 필요
+
+---
+
+## 이전 일자: 2026-04-29 (account-fallback-validation — 사용자 명시 lab 권한 위임 8 채널 실 검증)
 
 ## 요약 (account-fallback-validation — 2026-04-29 18:30, 8 채널 실 BMC/OS/ESXi 검증)
 
