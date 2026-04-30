@@ -2,7 +2,65 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
-## 일자: 2026-04-28 (cycle-006 + full-sweep 갱신 — redfish_gather.py 변경 trigger 반영)
+## 일자: 2026-04-30 (probe HTTP status_code 정합 매트릭스 추가) / 2026-04-28 (cycle-006 + full-sweep)
+
+## HTTP status_code → protocol_supported 정합 매트릭스 (2026-04-30 추가)
+
+> precheck Stage 3 (probe_*) 및 본 수집 endpoint 호출 시 의미. 200 외 응답이 모두 fail 이 아니라는 외부 계약. 본 매트릭스는 5 commits (c23d185f / 31178f8c / a60e42b5 / 6ea2c292 / 9d5c957b) 의 root reference.
+
+### Redfish ServiceRoot (`GET /redfish/v1/`)
+
+| status_code | 의미 | server-exporter 처리 | 발생 BMC 예시 |
+|---|---|---|---|
+| 200 | 정상 무인증 응답 (표준) | protocol_supported=True, JSON 추출 | Dell iDRAC 9 5.x+, HPE iLO5 표준, Lenovo XCC, Supermicro |
+| 401 | 인증 필요 (보안 강화 펌웨어) | protocol_supported=True, requires_auth_at_root=true | HPE iLO5/6 일부 펌웨어, Lenovo XCC 일부 |
+| 403 | IP 화이트리스트 / 권한 부족 | protocol_supported=True, requires_auth_at_root=true | 관리망 제한 환경 |
+| 404 | path 자체 없음 = 진짜 미지원 | protocol_supported=False | Redfish 미지원 BMC |
+| 500 | BMC 내부 오류 (응답 깨짐) | protocol_supported=False | 펌웨어 버그 |
+| 503 | 일시 과부하 / 부팅 직후 | protocol_supported=True (재시도 가능) | BMC 재시작 직후 / 일시 과부하 |
+| timeout | 응답 무 | protocol_supported=False | 네트워크 / BMC 다운 |
+| SSL fail | TLS 호환성 | protocol_supported=False | 구형 BMC TLS 1.0만 |
+
+### vSphere `/sdk` (`GET https://{ip}/sdk`)
+
+| status_code | 의미 | server-exporter 처리 |
+|---|---|---|
+| 200 | 정상 응답 | OK |
+| 301/302 | 리다이렉트 | OK (서비스 살아있음) |
+| 401/403 | 인증 / 권한 (vCenter SSO) | OK (Stage 4 또는 본 수집 처리) |
+| 404 | ESXi 7+ GET /sdk 정상 동작 (POST SOAP만 허용) | OK |
+| 405 | Method Not Allowed (정상) | OK |
+| 500 | SOAP fault (정상 — discover 응답) | OK |
+| 503 | 일시 과부하 | OK (재시도) |
+| timeout / SSL fail | 실 장애 | fail |
+
+### WinRM `/wsman` (`GET https://{ip}:5986/wsman`)
+
+| status_code | 의미 | server-exporter 처리 |
+|---|---|---|
+| 200 | 정상 응답 | OK |
+| 401 | 인증 필요 (WinRM 표준) | OK |
+| 403 | SPN 불일치 / 잠긴 계정 | OK (서비스 살아있음) |
+| 405 | GET 메서드 미지원 (정상 — POST(SOAP) 본 수집) | OK |
+| 503 | IIS 재시작 중 | OK (재시도) |
+| 404 / connection refused | 진짜 WinRM 미지원 | fail |
+
+### Storage Controllers fetch (`GET /redfish/v1/Systems/<id>/Storage/<sid>/Controllers`)
+
+본 endpoint 는 인증 후 호출. 401/403/503 은 권한 부족 / 일시 상태 → controller_fetch_status 메타 + errors[] 누적 (a60e42b5 fix). 빈 dict 만 반환하지 않음.
+
+### timeout 정책
+
+| 단계 | 기본값 | 비고 |
+|---|---|---|
+| precheck Stage 1+2 (TCP) | 3.0s | 빠른 차단 |
+| precheck Stage 3 (protocol) | **15.0s** (이전 6.0s) | 노후 BMC 응답 시간 대응 (31178f8c) |
+| precheck Stage 4 (auth) | 8.0s | |
+| 본 수집 (redfish_gather) | 30s | site.yml `_rf_timeout` |
+
+### 위 매트릭스의 운영 의미
+
+이전 구현 (2026-04-30 이전)은 200 외 응답을 모두 fail로 분류 → 인증 강화 BMC / vCenter SSO / 일시 과부하 환경에서 false negative 빈발. 본 매트릭스가 정본.
 
 ## Redfish API
 

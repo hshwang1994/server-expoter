@@ -62,6 +62,49 @@
 - 관련 rule: rule 27 R3 (Vault 2단계 — 1단계가 본 drift 검출), rule 96 R1 (외부계약 origin), rule 50 R1 (vendor 정규화)
 - 관련 evidence: `tests/evidence/cycle-015/connectivity-2026-04-29.md` 5절
 
+## 2026-04-30 — http-200-only-protocol-classification (5 commits)
+
+- 카테고리: external-contract-drift
+- 발견 위치: `common/library/precheck_bundle.py` (probe_redfish/probe_esxi/probe_os) + `redfish_gather.py` (storage controller / network adapters) + `esxi-gather/tasks/collect_runtime.yml` (firewall_state)
+- 증상: 호출자에게 "Redfish 미지원" / "vSphere endpoint 미응답" / "WinRM 미응답" / "controller 정보 부재" 보고가 발생하지만 실제 BMC/ESXi/Windows 는 정상 응답 중. 인증 강화 펌웨어 (HPE iLO5/6 일부, Lenovo XCC 일부) 가 ServiceRoot 무인증 시 401 던지는 케이스가 가장 흔함.
+- 원인: HTTP 200 응답만 "프로토콜 살아있음"으로 분류, 401/403/503 등 의미 있는 응답을 모두 fail 로 분류. probe_esxi 는 이미 status_code 화이트리스트 패턴 갖고 있었으나 401/403/503 누락. probe_os WinRM 도 403/503 누락.
+- 영향: 인증 강화 BMC + 다중 host vCenter + IIS 재시작 중 Windows 환경에서 false negative — 호출자가 "장비 자체 미지원" 으로 잘못 판단.
+- 수정 (2026-04-30 push):
+  - `c23d185f` probe_redfish 401/403/503 → protocol_supported (회귀 테스트 8건)
+  - `31178f8c` probe_esxi/probe_os 401/403/503 + timeout_protocol 6→15s (회귀 13건)
+  - `a60e42b5` redfish storage controller 401/403/503 silent fail 정정 (errors 누적 + status_code 메타, 회귀 7건)
+  - `6ea2c292` ESXi firewall_state 빈 list ≠ disabled (보안 라벨 반대 보고 차단)
+  - `9d5c957b` ESXi collect_runtime hostname 명시 lookup (multi-host 임의 host 참조 차단)
+- 재발 방지:
+  - 새 probe / endpoint 추가 시 status_code 화이트리스트 명시 의무 (별도 rule 검토 후속)
+  - rule 96 R4 정합 — origin 주석에 "status_code 응답별 의미" 매트릭스 기록 권장 (`EXTERNAL_CONTRACTS.md` 매트릭스 참조)
+- 관련 rule: rule 27 R5 (precheck layer), rule 96 R1 / R4 (외부계약), rule 95 R1 #11 (외부계약 drift)
+- 관련 evidence: `tests/unit/test_precheck_probe_*.py` (3 파일 21 케이스), `tests/unit/test_redfish_storage_controller.py` (7 케이스)
+
+---
+
+## 2026-04-30 — errors-string-iteration (char 분해 회귀)
+
+- 카테고리: jinja2-string-coerce + fragment-violation
+- 발견 위치: `os-gather/tasks/linux/gather_system.yml:344-352` (root cause) + `common/tasks/normalize/merge_fragment.yml` (수신측 char iter)
+- 증상: 호출자 envelope `errors[]` 가 단일 character 들로 분해된 5개 entry 보고 — `[{"section":"unknown","message":"["}, {"...":"]"}, {"...":"\n"}, {"...":"}"}, {"...":"}"}]`. 사용자가 의미 있는 메시지 받지 못함.
+- 원인 (3 layer):
+  1. **ROOT**: `_errors_fragment: >- ... }} }}` — `>-` folded scalar 끝에 잉여 `}}` 두 글자. Jinja list 결과가 string 으로 coerce 되며 `\n}}` 가 concat → `_errors_fragment` 가 list 가 아닌 string `"[]\n}}"` 로 들어감.
+  2. **수신측 char iter**: `merge_fragment.yml` 의 `for e in (_errors_fragment | default([]))` 가 string 입력에 대해 character 단위 iterate (Jinja2 표준).
+  3. **방어 부재**: `_errors_fragment` 가 list 가 아닌 경우의 가드 없음.
+- 영향: 모든 OS gather Linux Python path. 호출자 시스템 파싱 오류 가능. 보안 영향 없음 (정보 손실만).
+- 수정 (2026-04-30 push):
+  - `88de692d` (root cause + 방어 layer 2겹) — gather_system.yml 잉여 `}}` 제거 + merge_fragment/build_errors 에 string/dict/None/int 입력 list 강제 wrap, char iter 차단, whitespace char skip. 회귀 테스트 10건.
+  - `cfc24eee` (전수 스캔 후속) — 같은 패턴이 windows/gather_system + redfish/normalize_standard 의 `_errors_fragment` 에도 잠재 위험으로 존재 → 단일 ternary 로 단순화.
+- 재발 방지:
+  - **신규 패턴 식별**: fragment 변수에 `>-` block scalar + 다중 `{{}}` 분기 + plain text 혼재 = string-coerce 위험. 단일 expression 또는 별도 set_fact 분리 권장.
+  - rule 22 R8 (fragment 타입) — list of dicts 강제 명시. 본 cycle entry 추가 검토.
+  - 회귀 테스트 패턴: jinja2 라이브러리로 fragment Jinja 직접 evaluate (Ansible 환경 없이 단위 테스트 가능).
+- 관련 rule: rule 22 R7/R8 (fragment 명명/타입), rule 23 R8 (ASCII 태그 — 다이어그램 정렬도 같은 폰트 폭 이슈)
+- 관련 evidence: `tests/unit/test_errors_normalize.py` 10 케이스 (사용자 보고 케이스 정확 재현 + 차단 검증)
+
+---
+
 ## 향후 가능 패턴 (Plan 1+2 도입 시점 예측)
 
 참고 — clovirone에서 학습한 일반 패턴은 rule 95 R1 (의심 패턴 11종)에 흡수됨.
