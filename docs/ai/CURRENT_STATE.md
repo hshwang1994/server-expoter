@@ -1,5 +1,63 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-01 (cycle-019 — 7-loop + 10R extended audit P1 22건 일괄 수행)
+
+### 사용자 명시
+- "/clear" 후 "예정돼있는 티켓 모두 수행해."
+
+### 본 cycle 적용 (P1 카테고리)
+
+| Fix | 영역 | 결과 |
+|---|---|---|
+| F83 | redfish_gather.py docstring | "GET only — PATCH/POST/DELETE 미사용" 명시 (DSP0266 §11 + bmcweb #262 회피) |
+| F84 | SSLContext min/max version | minimum_version=TLSv1_2 / maximum_version=TLSv1_3 (DMTF DSP0266 §10.2 + iLO 7 호환) |
+| F48 | NetworkPorts/Ports fallback 검증 | redfish_gather.py:1598-1599 이미 적용됨 — 회귀 테스트 3건 신규 |
+| F41 | dell_idrac10.yml 신규 (priority=120) | PowerEdge 17G — R670/R770/R7715/R6715/R6815 cover (lab 부재 — web sources) |
+| F47 | hpe_ilo7.yml 신규 (priority=120) | Gen12 ProLiant — DL360/DL380 Gen12 (3-part version 형식 분리) |
+| F55 | lenovo_xcc3.yml 신규 (priority=120) | ThinkSystem V4 / OpenBMC — bundle 2024.3 |
+| F56 | lenovo_xcc.yml 좁힘 | XCC1/XCC2 (V2/V3) cover. XCC3 분리 |
+| F61 | supermicro_x12/x13/x14.yml 신규 3종 | AST2600 Whitley/Eagle/X14H14 (priority=90/100/110) |
+| F68 | cisco_cimc.yml capabilities 매트릭스 확장 | M4 lab + M5~M8 web sources (firmware_patterns "^[4-6]\\." 좁힘) |
+| F69 | cisco_ucs_xseries.yml 신규 (priority=110) | X210c/X410c standalone CIMC (IMM 모드 별도 채널) |
+| F80 | EXTERNAL_CONTRACTS.md DMTF 매트릭스 | 2024.1 ~ 2025.4 spec + 모든 vendor BMC schema bundle |
+| F91 | EXTERNAL_CONTRACTS advisory 등재 | CVE-2024-54085 AMI MegaRAC (Critical 10.0) — server-exporter read-only 영향 0 |
+| F97 | SSL Unexpected EOF retry advisory | F84 의 SSLContext fallback 일부 회피. 추적 |
+| F104 | Session lockout advisory | Basic Auth 단발성 유지 시 영향 없음 |
+| F125 | Cisco CIMC < 4.x advisory | cisco_cimc.yml firmware_patterns "^[4-6]\\." 로 좁힘 |
+| F126 | DIMM error vendor 차이 | Health 만 raw passthrough — 호출자 시스템이 vendor 별 해석 |
+
+### 검증
+
+- pytest **101/101 PASS** (94 → 101, 신규 7건 — F48/F84 회귀)
+- verify_harness_consistency PASS (rules=28 / skills=48 / agents=59 / policies=10)
+- verify_vendor_boundary PASS (vendor 하드코딩 0건)
+- check_project_map_drift PASS (fingerprint 갱신 — adapter 27→34)
+- py_compile redfish_gather.py PASS
+- YAML 9 파일 syntax PASS (7 신규 + lenovo_xcc + cisco_cimc 변경)
+- adapter 4 필수 키 (match/capabilities/collect/normalize) 7 신규 모두 존재
+
+### 표면 카운트 변동
+
+- adapters: 27 → 34 (Redfish 16 → 23, OS / ESXi 변동 없음)
+  - dell: 3 → 4 (idrac10 신규)
+  - hpe: 4 → 5 (ilo7 신규)
+  - lenovo: 3 → 4 (xcc3 신규)
+  - supermicro: 3 → 5 (x12/x13/x14 신규, x9 유지)
+  - cisco: 2 → 3 (ucs_xseries 신규)
+- rules / skills / agents / policies / hooks: 변동 없음 (cycle-018 그대로)
+
+### 본 cycle 미수행 (사용자 결정 필요)
+
+- **F74~F77** (Huawei / Inspur / Fujitsu / Quanta) — rule 50 R2 신규 vendor 9단계 절차 (사용자 명시 승인 필요). lab 부재 + 운영 도입 신호 없음. fixes/F44~F47.md 코드 생성 ticket 만 보존 (vault 미생성).
+- **F81** (ThermalSubsystem fallback) — 향후 thermal 섹션 진입 시 적용. 현재 thermal 섹션 자체 미수집 → 영향 없음.
+
+### 다음 cycle 권장
+
+- **사이트 fixture 캡처** — 사용자 도입 시 신 generation BMC (Dell iDRAC10 / HPE iLO7 / Lenovo XCC3 / Supermicro X14 / Cisco UCS X-Series) 첫 수집 검증
+- **F138 DMTF Redfish-Service-Validator** 도입 검토 (10R extended P1)
+
+---
+
 ## 일자: 2026-05-01 (cycle-018 — 정기 자기개선 cycle, rule 28 drift 정정)
 
 ### 사용자 명시

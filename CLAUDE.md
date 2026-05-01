@@ -137,8 +137,10 @@ server-exporter/ (프로젝트 루트)
        ├── build_*.yml (10개: sections, status, errors, meta, correlation, output)
        └── supported_sections.yml, status_rules.yml
 
-[3] Adapter 시스템 (27개 YAML + adapters/registry.yml)
-   ├── adapters/redfish/ (16개: generic + dell×3 + hpe×4 + lenovo×3 + supermicro×3 + cisco×2)
+[3] Adapter 시스템 (34개 YAML + adapters/registry.yml — cycle 2026-05-01 +7 신 generation)
+   ├── adapters/redfish/ (23개: generic + dell×4 + hpe×5 + lenovo×4 + supermicro×5 + cisco×3 + ucs_xseries×1)
+   │   - cycle 2026-05-01 신규 7개: dell_idrac10 (F41) + hpe_ilo7 (F47) + lenovo_xcc3 (F55)
+   │   - + supermicro_x12/x13/x14 (F61) + cisco_ucs_xseries (F69)
    ├── adapters/os/ (7개: linux_*/windows_*)
    └── adapters/esxi/ (4개: generic + 6x/7x/8x)
 

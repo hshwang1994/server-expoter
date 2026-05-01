@@ -1,10 +1,23 @@
 ---
 # ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
 # Vendor: Cisco
-# Firmware: 4.x / 5.x
+# Firmware: 4.x / 5.x / 6.x — UCS C-Series M4 ~ M8 generation cover
 # Origin: Cisco UCS Manager / CIMC Redfish API documentation
-# Last sync: 2026-04-29 (cisco-critical-review 실측 재확인)
-# Notes: UCS C-Series. strategy: standard_only (OEM 디렉터리 미생성).
+# Last sync: 2026-05-01 (F68 — M5~M8 generation 매트릭스 확장)
+# Notes: UCS C-Series M4~M8. strategy: standard_only (OEM 디렉터리 미생성).
+#
+# Generation 매트릭스 (F68 cycle 2026-05-01 — web sources):
+#   - M4 (Broadwell-EP) — lab tested 10.100.15.2 / 4.1(2g) / Redfish 1.2.0 ✓
+#   - M5 (Skylake-SP) — 4.3(2.x) 마지막 (2024-2025 EOL). web sources only.
+#   - M6 (Ice Lake-SP) — Redfish 1.x 정식 지원. web sources only.
+#   - M7 (Sapphire Rapids) — Redfish 활발 지원. web sources only.
+#   - M8 (Emerald Rapids) — IMC 4.3(6.250039) 첫 지원. 2025 출하. web sources only.
+# Sources (M5~M8 web sources, rule 96 R1-A):
+#   - https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/c/sw/api/4_3/b-cisco-ucs-c-series-servers-rest-api-programmer-s-guide-release-4-3/m-cisco-imc-rest-api-overview.html
+#   - https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/release/notes/b_release-notes-for-cisco-ucs-rack-server-software-release-6-0-1.html
+#   - https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/release/notes/b_release-notes-for-cisco-ucs-rack-server-software-release-4_3_5.html
+#   - https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/release/notes/b_release-notes-for-cisco-ucs-rack-server-software-release-4_3_6.html
+#   - https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/c/sw/api/3_0/b_Cisco_IMC_REST_API_guide_301/m_redfish_api_examples.html
 # Tested against (실측 2026-04-29, cisco-critical-review):
 #   - TA-UNODE-G1 (Cisco Systems Inc) × 1대 (10.100.15.2)
 #   - CIMC FirmwareVersion: "4.1(2g)"
@@ -48,6 +61,16 @@ priority: 100
 
 match:
   vendor: ["Cisco", "Cisco Systems Inc", "Cisco Systems Inc.", "Cisco Systems", "cisco"]
+  # F125 cycle 2026-05-01 — CIMC < 4.x advisory: 매우 제한적 Redfish (Redfish 1.0.x).
+  #   3.x 이하 펌웨어는 cisco_bmc.yml (priority=10, generic fallback) 가 cover.
+  # 본 adapter (M4 lab tested + M5~M8 web sources) 는 4.x / 5.x / 6.x cover.
+  firmware_patterns: ["^[4-6]\\.", "CIMC.*[4-6]"]
+  model_patterns:
+    - "UCSC-C[0-9]+ M[4-8]"
+    - "C220 M[4-8]"
+    - "C240 M[4-8]"
+    - "C480 M[4-8]"
+    - "TA-UNODE.*"
 
 capabilities:
   sections_supported:

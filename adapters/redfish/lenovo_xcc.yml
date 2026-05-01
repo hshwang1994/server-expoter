@@ -1,10 +1,11 @@
 ---
 # ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
 # Vendor: Lenovo
-# Firmware: XCC — 1.x / 2.x / 3.x
+# Firmware: XCC — XCC1 (1.x) / XCC2 (2.x) — ThinkSystem V2/V3
 # Origin: Lenovo XCC Redfish API documentation
-# Last sync: 2026-04-28 (Round 11 reference 수집)
-# Notes: ThinkSystem 모던 세대 (SR/ST). Redfish 1.x 표준 호환.
+# Last sync: 2026-05-01 (F56 — XCC3 분리 후 본 adapter 는 XCC1/XCC2 cover)
+# Notes: ThinkSystem V2/V3 (SR/ST). Redfish 1.x 표준 호환.
+#   XCC3 는 lenovo_xcc3.yml (priority=120, ThinkSystem V4) 별도 — F55/F56.
 # Tested against (실측 2026-04-28, Round 11):
 #   - ThinkSystem SR650 V2 × 1대 (10.50.11.232)
 #   - XCC FirmwareVersion: "AFBT58B 5.70 2025-08-11"
@@ -20,7 +21,13 @@ priority: 100
 
 match:
   vendor: ["Lenovo", "LENOVO"]
+  # XCC1 / XCC2 만 cover. XCC3 는 lenovo_xcc3.yml (priority=120) 우선.
+  # firmware_patterns 는 XCC + V2/V3 model 시그니처. 점수 동률 시 XCC3 priority 가 높아 자동 우선.
   firmware_patterns: ["XCC"]
+  model_patterns:
+    - "ThinkSystem.*V2"
+    - "ThinkSystem.*V3"
+    - "ThinkSystem.*"
 
 capabilities:
   sections_supported:

@@ -1,5 +1,34 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-01 (cycle-019 — 7-loop + 10R extended audit P1 22건 일괄 수행 완료)
+
+### 본 cycle 완료 (사용자 명시 "예정돼있는 티켓 모두 수행해.")
+
+- **호환성 fallback P1 22건 일괄 적용**:
+  - F41 dell_idrac10.yml (PowerEdge 17G) / F47 hpe_ilo7.yml (Gen12) / F55 lenovo_xcc3.yml (V4 / OpenBMC)
+  - F61 supermicro_x12/x13/x14.yml 3종 (AST2600) / F69 cisco_ucs_xseries.yml (X210c/X410c)
+  - F56 lenovo_xcc.yml 좁힘 (V2/V3) / F68 cisco_cimc.yml 매트릭스 확장 (M4~M8)
+  - F83 GET-only docstring 명시 / F84 TLS 1.2/1.3 SSLContext 명시
+  - F48 NetworkPorts/Ports fallback 회귀 7건 신규
+  - F80 EXTERNAL_CONTRACTS DMTF 매트릭스 / F91/F97/F104/F125/F126 advisory 5건 등재
+- adapter 표면: 27 → 34 (+7)
+- pytest 94 → 101 (신규 7건 — F48/F84 회귀)
+- 모든 정적 검증 PASS
+
+### 본 cycle 미수행 (외부 의존)
+
+- **F74~F77 신규 vendor (Huawei / Inspur / Fujitsu / Quanta)** — rule 50 R2 9단계 사용자 명시 승인 필요. lab 부재 + 운영 도입 신호 없음. fixes/F44~F47.md ticket 만 보존.
+- **F81 ThermalSubsystem fallback** — 향후 thermal 섹션 진입 시 적용 (호환성 영역 외)
+- **F138 DMTF Redfish-Service-Validator 도입** — 검토 권장 (외부 도구)
+- **사이트 fixture 캡처** — 사용자 사이트 신 generation BMC 도입 시 capture-site-fixture skill 적용
+
+### 다음 cycle 권장
+
+- 사용자 사이트 신 generation BMC 도입 신호 시 → F74~F77 9단계 진행 또는 F##.md ticket 즉시 진입
+- 정기 harness self-improvement cycle (rule 28 측정 11종 drift 검사)
+
+---
+
 ## 일자: 2026-05-01 (cycle-018 — 정기 자기개선 cycle 완료)
 
 ### 본 cycle 완료 (사용자 명시 "계획된 작업 모두 수행해라" → "진행해라")

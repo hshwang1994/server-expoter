@@ -20,6 +20,47 @@
 
 ---
 
+## 2026-05-01 — 외부 계약 advisory 다수 등재 (F91/F97/F104/F125/F126 — 10R extended audit)
+
+- 카테고리: external-contract-drift (advisory)
+- 발견 위치: 10-Round Extended Web Audit (`docs/ai/tickets/2026-05-01-gather-coverage/WEB-EXTENDED-AUDIT-10R-2026-05-01.md`)
+- 증상: 외부 계약 변종 / 보안 advisory / vendor 차이 — 사고 재현 전 사전 등재
+- 등재 항목:
+  - **F91 CVE-2024-54085** — AMI MegaRAC SPx Authentication Bypass (Critical 10.0). server-exporter read-only → 영향 0. 운영팀 BMC 펌웨어 업그레이드 권장.
+  - **F97 SSL Unexpected EOF** — Dell iDRAC9 일부 펌웨어. F84 의 SSLContext min/max + SECLEVEL=0 fallback 일부 회피.
+  - **F104 Session lockout** — Basic Auth 단발성 유지 시 영향 없음. F33 (X-Auth-Token 도입) 진행 시 DELETE session 보장 의무.
+  - **F125 Cisco CIMC < 4.x** — cisco_cimc.yml firmware_patterns "^[4-6]\\." 로 4.x 이상만 매칭. 3.x 이하는 cisco_bmc.yml fallback.
+  - **F126 DIMM error vendor 차이** — Health 만 raw passthrough. 호출자 시스템이 vendor 별 해석.
+- 원인: web 검색 (DMTF / vendor docs / community) — lab 부재 영역 사전 식별 (rule 96 R1-A)
+- 영향: 직접 코드 변경 0. 외부 계약 변종 등재 (`EXTERNAL_CONTRACTS.md` ## F91/F97/F104/F125/F126 절)
+- 수정: docs only — `docs/ai/catalogs/EXTERNAL_CONTRACTS.md` 갱신
+- 재발 방지: 사고 재현 시 본 advisory 참조 후 fix
+- 관련 rule: rule 96 R1-A (lab 부재 web sources)
+
+## 2026-05-01 — 신 generation BMC adapter 부재 사전 식별 (F41/F47/F55/F61/F69)
+
+- 카테고리: external-contract-drift (사전 차단)
+- 발견 위치: 7-loop Web Compatibility Audit
+- 증상: 신 generation BMC (Dell iDRAC10 / HPE iLO7 / Lenovo XCC3 / Supermicro X12-X14 / Cisco UCS X-Series) 출하 시 기존 adapter 가 매칭은 되지만 schema 일부 차이로 envelope 누락 가능
+- 사전 차단 적용:
+  - dell_idrac10.yml (priority=120) — F41 (PowerEdge 17G)
+  - hpe_ilo7.yml (priority=120) — F47 (Gen12)
+  - lenovo_xcc3.yml (priority=120) — F55 (ThinkSystem V4 / OpenBMC)
+  - supermicro_x12.yml / x13.yml / x14.yml — F61 (AST2600 + 신 features)
+  - cisco_ucs_xseries.yml (priority=110) — F69 (X210c/X410c standalone)
+- 추가 호환성:
+  - F48: NetworkPorts deprecated → Ports fallback (이미 적용)
+  - F83: redfish_gather.py GET only 명시
+  - F84: SSLContext minimum_version=TLSv1_2 / maximum_version=TLSv1_3
+  - F80: EXTERNAL_CONTRACTS.md DMTF spec 매트릭스
+  - F56: lenovo_xcc.yml 을 V2/V3 로 좁힘 (XCC3 분리)
+  - F68: cisco_cimc.yml 에 M5~M8 generation 매트릭스 + firmware_patterns 좁힘
+- 원인: 사용자 명시 "redfish 코드의 벤더, 모델, 버전 호환성 전수조사. 루프 7번"
+- 영향: 신 BMC 도입 시 envelope quality 저하 사전 차단 (호환성 fallback only — 새 데이터 추가 아님)
+- 수정: 본 cycle commit
+- 재발 방지: cycle 2026-05-01 cold start 가능 ticket fixes/F##.md 보존
+- 관련 rule: rule 96 R1-A (web sources), rule 50 R2 (vendor 추가 절차 — 본 cycle 은 신규 vendor 가 아닌 기존 5 vendor 의 신 generation 만)
+
 ## 2026-05-01 — 404 'failed' 오분류 → 'not_supported' 분류 도입 (3채널 인프라)
 
 - 카테고리: external-contract-drift + scope-miss

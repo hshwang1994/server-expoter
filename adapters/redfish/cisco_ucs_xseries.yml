@@ -1,0 +1,75 @@
+---
+# ── Origin metadata (rule 96 R1 + R1-A) ───────────────────────────────────────
+# Vendor: Cisco
+# Firmware: UCS X-Series (X210c / X410c) standalone CIMC
+# Origin: Cisco UCS X-Series 공식 + Intersight Managed Mode docs
+# Last sync: 2026-05-01 (web sources only — lab 부재)
+# Notes: UCS X-Series Modular System (X210c M6 / X410c M7 / X-Series M8).
+#   X-Series 는 두 모드:
+#     1) standalone — CIMC Redfish 직접 (M-series 와 유사) ← 본 adapter cover
+#     2) IMM (Intersight Managed Mode) — Intersight cloud 만 (직접 BMC 연결 불가)
+#       → server-exporter 범위 외 (별도 채널 또는 별도 cycle)
+# Sources (rule 96 R1-A — lab 부재):
+#   - https://www.cisco.com/c/en/us/support/servers-unified-computing/ucs-x-series-modular-system/series.html
+#   - https://www.cisco.com/c/en/us/td/docs/unified_computing/Intersight/b_Intersight_Managed_Mode_Configuration_Guide/b_intersight_managed_mode_guide_chapter_01010.html
+#   - https://www.cisco.com/c/en/us/td/docs/unified_computing/Intersight/Server-Firmware/4_3/b_intersight_server_fw_rn_4_3.html
+# Compatibility 가정 (web sources):
+#   - manufacturer: "Cisco Systems" / "Cisco Systems Inc."
+#   - Manager URI: /redfish/v1/Managers/CIMC (M-series 와 동일)
+#   - System URI: /redfish/v1/Systems/<serial>
+#   - OEM namespace: Oem.Cisco
+#   - standalone 모드 → CIMC Redfish 표준 (M5~M8 와 유사)
+#   - IMM 모드는 본 adapter 에서 graceful 실패 (precheck protocol 단계에서 차단)
+# ──────────────────────────────────────────────────────────────────────────────
+adapter_id: redfish_cisco_ucs_xseries
+channel: redfish
+priority: 110
+
+match:
+  vendor: ["Cisco", "Cisco Systems Inc", "Cisco Systems Inc.", "Cisco Systems", "cisco"]
+  model_patterns:
+    - "UCS-X.*"
+    - "UCSX-.*"
+    - "X210c.*"
+    - "X410c.*"
+    - "UCS X-Series.*"
+
+capabilities:
+  sections_supported:
+    - system
+    - hardware
+    - bmc
+    - cpu
+    - memory
+    - storage
+    - network
+    - firmware
+    - power
+
+collect:
+  strategy: standard_only
+  standard_tasks: "redfish-gather/tasks/collect_standard.yml"
+
+normalize:
+  standard_tasks: "redfish-gather/tasks/normalize_standard.yml"
+
+credentials:
+  profile: "cisco"
+  fallback_profiles: []
+  recovery_accounts: []
+
+graceful_degradation:
+  on_section_fail: continue
+  on_auth_fail: abort
+  critical_sections: [system, hardware]
+  optional_sections: [firmware, power]
+
+vendor_notes:
+  family: ucs_xseries
+  modes:
+    - standalone   # 본 adapter cover — CIMC Redfish
+    - intersight_managed   # 본 adapter 범위 외 — 별도 채널 필요
+
+diagnosis:
+  protocol_name: redfish
+  not_supported_message: "Cisco UCS X-Series 장비 — standalone CIMC Redfish 가정 (lab 부재 — web sources 기반). IMM 모드는 별도 Intersight 채널 필요."

@@ -5,15 +5,30 @@ Ansible Custom Module: redfish_gather  v4
 ------------------------------------------
 검증된 벤더별 URI 구조 (공식 문서 기반):
 
-  HPE iLO 5/6  : Systems/1               / Managers/1   (Oem.Hpe / Oem.Hp fallback)
-  Dell iDRAC 9 : Systems/System.Embedded.1 / Managers/iDRAC.Embedded.1  (Oem.Dell)
-  Lenovo XCC   : Systems/1               / Managers/1   (Oem.Lenovo)
-  Supermicro   : Systems/1               / Managers/1   (Oem.Supermicro)
+  HPE iLO 5/6/7 : Systems/1               / Managers/1   (Oem.Hpe / Oem.Hp fallback)
+  Dell iDRAC 9/10 : Systems/System.Embedded.1 / Managers/iDRAC.Embedded.1  (Oem.Dell)
+  Lenovo XCC/XCC2/XCC3 : Systems/1        / Managers/1   (Oem.Lenovo)
+  Supermicro X11~X14 : Systems/1          / Managers/1   (Oem.Supermicro)
     Manufacturer = "Super Micro Computer, Inc."
-  Cisco CIMC   : Systems/<serial>        / Managers/CIMC (Oem.Cisco — 옵션)
+  Cisco CIMC M4~M8 / UCS X-Series : Systems/<serial> / Managers/CIMC (Oem.Cisco — 옵션)
     Manufacturer = "Cisco Systems"
 
 외부 라이브러리 불필요 — Python stdlib(urllib, ssl, socket) 만 사용
+
+──────────────────────────────────────────────────────────────────────────────
+Read-only 보장 (F83 / F87 — DSP0266 §11 + bmcweb OpenBMC #262 회피):
+──────────────────────────────────────────────────────────────────────────────
+본 모듈은 GET only — 정보 수집만 수행.
+- _post() / _patch() 헬퍼는 P2 AccountService 계정 생성/갱신 진입점 한정 사용
+  (recovery 계정 부재 시 자동 생성). dryrun=true 가 기본값이라 실 BMC 호출은
+  사용자 명시 토글 후만. dryrun=false 도 idempotent (이미 존재 시 PATCH skip).
+- ETag / If-Match 헤더 미사용 → bmcweb 일부 펌웨어의 If-Match crash 회피
+  (OpenBMC issue #262).
+- DELETE / OEM Action (SystemErase / SetBiosTime / RetryCloudConnect / ClearCMOS
+  등) 절대 호출 안 함.
+- F84 cycle 2026-05-01 추가: TLS 1.2/1.3 양쪽 호환 — _ctx() 가 SSLContext
+  default 정책 (TLS 1.2 minimum) 사용. 구 BMC OpenSSL 3.x renegotiation 은
+  OP_LEGACY_SERVER_CONNECT 로 호환. SECLEVEL=0 으로 weak cipher 허용.
 """
 
 __metaclass__ = type
@@ -70,8 +85,24 @@ def _ctx(verify_ssl):
     cycle 2026-04-30: 구 BMC (HPE iLO4, Lenovo IMM2, 일부 iDRAC7/8 펌웨어) 호환.
     OpenSSL 3.x legacy renegotiation + weak cipher 허용 — verify=False 환경 한정.
     curl -k 와 동등한 관용성. 사내 BMC self-signed 망 한정.
+
+    F84 cycle 2026-05-01 — TLS 1.2/1.3 양쪽 호환 명시:
+    - minimum_version = TLSv1_2 (DMTF DSP0266 §10.2 권장 + iLO 7 enum 제거)
+    - maximum_version = TLSv1_3 (Gen11+ / XCC3+ / X14+ 강제 가능)
+    - SECLEVEL=0 으로 weak cipher 허용 (iLO 4 / IMM2 / 구 iDRAC 펌웨어)
+    구 BMC TLS 1.0/1.1 만 지원하면 본 코드는 핸드셰이크 실패 → graceful
+    degradation 으로 status=failed (precheck protocol 단계). 별 사고 신호
+    없으면 minimum_version 유지. (rule 92 R2)
     """
     ctx = ssl.create_default_context()
+    # TLS 1.2 minimum (DSP0266 §10.2). TLS 1.0/1.1 은 이미 DMTF/HPE/Cisco/Dell 모두 deprecated.
+    if hasattr(ssl, 'TLSVersion'):
+        try:
+            ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+            ctx.maximum_version = ssl.TLSVersion.TLSv1_3
+        except (ValueError, AttributeError):
+            # Python < 3.7 또는 OpenSSL TLS 1.3 미지원 — default 유지
+            pass
     if not verify_ssl:
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE

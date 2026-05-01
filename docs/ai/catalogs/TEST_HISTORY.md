@@ -2,6 +2,22 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-01 (cycle-019 — 7-loop + 10R extended audit P1 22건)
+
+- 환경: 로컬 (Python 3.11.9 / pytest 9.0.2)
+- 테스트 신규 7건: `tests/unit/test_redfish_tls_and_network_fallback.py`
+  - F84: `test_f84_tls_context_min_version_1_2` / `test_f84_tls_context_max_version_1_3` / `test_f84_tls_context_unverified_self_signed` / `test_f84_tls_context_legacy_renegotiation_flag`
+  - F48: `test_f48_network_adapters_uses_ports_when_no_networkports` / `test_f48_network_adapters_prefers_networkports_when_present` / `test_f48_network_adapters_skip_empty_placeholder`
+- pytest 결과: **101/101 PASS** (cycle-018 94 → 101, +7)
+- 정적 검증:
+  - verify_harness_consistency PASS
+  - verify_vendor_boundary PASS
+  - check_project_map_drift PASS (fingerprint 갱신 — adapter 27 → 34)
+  - py_compile redfish_gather.py PASS
+  - YAML 9 파일 syntax PASS
+  - adapter 4 필수 키 (match/capabilities/collect/normalize) 7 신규 모두 존재
+- baseline 회귀: skip — 신 generation BMC adapter (F41/F47/F55/F61/F69) 는 lab 부재 영역. 기존 5 vendor lab fixture 영향 없음 (priority 역전 없음, 신 adapter 는 모두 priority ≥ 90 + model_patterns 차등).
+
 ## 형식
 
 ```

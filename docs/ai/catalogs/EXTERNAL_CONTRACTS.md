@@ -285,6 +285,123 @@ cycle-015 첫 연결성 검증에서 사용자 라벨 vs 실 Manufacturer drift 
 - 10.100.15.3 → timeout 5s
 - 다음 일과시간 재확인 (OPS-11)
 
+## DMTF Redfish spec 연도별 매트릭스 (F80 cycle 2026-05-01)
+
+> 사용자 명시 (rule 96 R1-A — lab 부재 영역 web sources 4종 1개 이상). 본 매트릭스는 server-exporter 가 의존하는 외부 계약 중 DMTF 표준 진화 추적용. raw passthrough 정책 → spec 변경에 직접 영향 작음. 단 신 endpoint 추가 시 호환성 fallback 필요.
+
+### Spec release timeline
+
+| 연도 | Spec | 주요 변경 | server-exporter 영향 |
+|---|---|---|---|
+| 2018 | 1.5.0 (DSP0266) | ServiceRoot.Vendor 표준화 | adapter match 기반 |
+| 2020.4 | (DSP8010) | PowerSubsystem / ThermalSubsystem 신 endpoint | F81 — power fallback 적용 (cycle 2026-05-01 A2) |
+| 2024.1 | DSP8010_2024.1 | 4 신 schema, 29 update | 영향 작음 (raw passthrough) |
+| 2024.4 | DSP8010_2024.4 | StorageMetrics, CDU Controls, 20 update | 영향 작음 |
+| 2025.1 | DSP8010_2025.1 | 8 신 schema, 36 update, IIoT | 영향 작음 |
+| 2025.2 | DSP8010_2025.2 | 추가 Update | 영향 작음 |
+| 2025.4 | DSP8010_2025.4 | 최신 (2025-Q4) | 영향 작음 |
+
+### 주요 spec sources (rule 96 R1-A)
+
+- [DSP0266 v1.6.1](http://redfish.dmtf.org/schemas/DSP0266_1.6.1.html) — Specification
+- [DSP2046 2025.1 Resource Guide](https://www.dmtf.org/sites/default/files/standards/documents/DSP2046_2025.1.pdf)
+- [DSP8010 2025.2 Schema Bundle](https://redfish.dmtf.org/schemas/v1/DSP8010_2025.2.pdf)
+- [DSP2064 1.1.0 Vendor Spec](https://www.dmtf.org/sites/default/files/standards/documents/DSP2064_1.1.0.pdf)
+- [DSP2060 User Guide](https://www.dmtf.org/sites/default/files/standards/documents/DSP2060_1.0.0.pdf)
+- [Redfish Release 2025.4](https://www.dmtf.org/content/redfish-release-20254-now-available-0)
+- [Redfish Release 2025.2](https://www.dmtf.org/content/redfish-release-20252-now-available)
+- [Redfish Release 2025.1](https://www.dmtf.org/content/redfish-release-20251-now-available)
+- [Redfish Release 2024.4](https://www.dmtf.org/content/redfish-release-20244-now-available)
+- [Redfish Release 2024.1](https://www.dmtf.org/content/redfish-release-20241-now-available)
+
+### Vendor BMC schema bundle 매트릭스
+
+| Vendor / Generation | Redfish version | Schema bundle | server-exporter adapter |
+|---|---|---|---|
+| Dell iDRAC 9 (4.x~7.x) | 1.20.1 | 2024.x | dell_idrac9.yml (priority=100) |
+| Dell iDRAC 10 (1.x — Gen17 PowerEdge) | 1.21.0+ (가정) | 2024.x+ | dell_idrac10.yml (priority=120, F41 cycle 2026-05-01 신규) |
+| HPE iLO 5 (Gen10/10+) | 1.13.0~1.16.0 | 8010_2022.x | hpe_ilo5.yml (priority=80) |
+| HPE iLO 6 (Gen11) | 1.20.0 | 8010_2024.1 | hpe_ilo6.yml (priority=100) |
+| HPE iLO 7 (Gen12) | 1.21.0+ | 8010_2024.x+ | hpe_ilo7.yml (priority=120, F47 cycle 2026-05-01 신규) |
+| Lenovo XCC1 (V1) | 1.13.0+ | bundle 2022.x | lenovo_xcc.yml (priority=100, F56에서 V2/V3 좁힘) |
+| Lenovo XCC2 (V2/V3) | 1.20.0 | bundle 2023.3 | lenovo_xcc.yml |
+| Lenovo XCC3 (V4 — OpenBMC) | 1.17.0 | bundle 2024.3 | lenovo_xcc3.yml (priority=120, F55 cycle 2026-05-01 신규) |
+| Supermicro X11 (AST2500) | 1.13.0+ | bundle 2022.x | supermicro_x11.yml (priority=100) |
+| Supermicro X12/H12 (AST2600) | 1.17.0+ | bundle 2023.x | supermicro_x12.yml (priority=90, F61 cycle 2026-05-01 신규) |
+| Supermicro X13/H13/B13 (AST2600 + Eagle) | 1.18.0+ | bundle 2024.x | supermicro_x13.yml (priority=100, F61 신규) |
+| Supermicro X14/H14 | 1.21.0 | bundle 2024.3 | supermicro_x14.yml (priority=110, F61 신규) |
+| Cisco CIMC M4 (4.1.x — lab) | 1.2.0 (구) | 미명시 | cisco_cimc.yml (priority=100) |
+| Cisco CIMC M5 (4.3(2.x) — EOL) | 1.5+ | bundle 2020.x | cisco_cimc.yml |
+| Cisco CIMC M6/M7 (5.x/6.x) | 1.13+ | bundle 2022.x+ | cisco_cimc.yml |
+| Cisco CIMC M8 (4.3(6.x)+) | 1.17+ | bundle 2024.x | cisco_cimc.yml |
+| Cisco UCS X-Series (X210c/X410c) standalone | 1.13+ | bundle 2022.x+ | cisco_ucs_xseries.yml (priority=110, F69 cycle 2026-05-01 신규) |
+| Cisco UCS X-Series IMM 모드 | (Intersight cloud) | (별도 채널) | server-exporter 범위 외 |
+
+### Endpoint 호환성 추적 (server-exporter 적용 호환 fallback)
+
+| Endpoint | DMTF spec since | 호환성 fallback 적용 | 영향 BMC |
+|---|---|---|---|
+| /Storage Volumes | Redfish 1.0 (필요 1.5+) | A1 — SimpleStorage fallback | 구 iDRAC8 / 구 iLO4 / 구 IMM2 |
+| /Chassis/{id}/PowerSubsystem | Redfish 2020.4 | A2 — Power fallback (gather_power_subsystem) | iDRAC9 / 신 iLO6+ / XCC3 |
+| /Chassis/{id}/ThermalSubsystem | Redfish 2020.4 | (thermal 섹션 진입 시 — F81 보류) | 향후 thermal cycle 진입 시 |
+| NetworkAdapters/Ports vs NetworkPorts | Redfish 1.6 (Ports) | F48 — Ports/NetworkPorts 둘 다 | iLO 6+ / Gen11+ deprecated NetworkPorts |
+| /UpdateService/FirmwareInventory/{id} | Redfish 1.0 | (gather_firmware 자동 cover) | 모든 vendor |
+| EnvironmentMetrics (Power/Thermal) | Redfish 2020.4 | F5 — power EnvironmentMetrics fallback | Gen11+ / 신 iDRAC9 7.x |
+| /AccountService Members 미지원 | (vendor 차이) | F13 — Cisco CIMC not_supported 분류 | Cisco CIMC 4.1.x |
+| OEM Action (SystemErase / ClearCMOS) | spec OEM | server-exporter 미사용 (read-only, F87) | — |
+
+### TLS / cipher 호환 (F84 cycle 2026-05-01)
+
+- minimum_version = TLSv1_2 (DMTF DSP0266 §10.2 + iLO 7 / Gen11 deprecated TLS 1.0/1.1)
+- maximum_version = TLSv1_3 (Gen11+ / XCC3+ / X14+)
+- SECLEVEL=0 (verify=False) — iLO 4 / IMM2 / 구 iDRAC 호환
+- OP_LEGACY_SERVER_CONNECT (verify=False) — OpenSSL 3.x renegotiation 호환
+
+### Read-only 보장 (F83/F87 cycle 2026-05-01)
+
+- redfish_gather.py 는 GET only (모듈 docstring 명시)
+- _post() / _patch() 는 P2 AccountService 한정 사용 (dryrun=true 기본)
+- ETag / If-Match 헤더 미사용 → bmcweb #262 If-Match crash 회피
+- DELETE / OEM Action 절대 호출 안 함
+
+## 보안 advisory 등재 (F91/F125 cycle 2026-05-01 — 10R extended audit)
+
+> 사용자 명시 (rule 96 R1-A — web sources). server-exporter 는 read-only / GET only → 직접 코드 영향은 없으나 운영 정책 / 자격증명 회전 의사결정 reference.
+
+### F91 — CVE-2024-54085 (AMI MegaRAC BMC SPx)
+
+- **CVSS**: 10.0 (Critical) — Authentication Bypass
+- **영향 vendor**: AMI MegaRAC SPx 사용 BMC (Supermicro / 일부 Lenovo / 일부 Tyan)
+- **server-exporter 영향**: 0 (read-only). 단 운영 정책 — 패치 안 된 BMC 자격증명은 회전 권장
+- **대응**: 운영팀 BMC 펌웨어 업그레이드 권장 (server-exporter 자체 fix 불필요)
+- **source**: AMI advisory 2025-03 / NIST NVD CVE-2024-54085
+
+### F97 — SSL Unexpected EOF retry (Dell iDRAC issue #18)
+
+- **증상**: Dell iDRAC9 일부 펌웨어 SSL Unexpected EOF (3-way handshake 직후)
+- **server-exporter 영향**: 1회 fail → graceful degradation status=failed
+- **대응**: F84 의 SSLContext min/max version + SECLEVEL=0 fallback 으로 일부 회피
+- **추가 검증 권장**: 사이트 사고 시 1회 retry 도입 (현재 미구현 — 추적만)
+
+### F104 — Session lockout 회피 (X-Auth-Token 도입 시)
+
+- **증상**: BMC session pool 한계 도달 → 잠금
+- **server-exporter 현재**: Basic Auth (단발성 collection 후 즉시 종료) → session 누수 불가
+- **F33 ticket 대비** (X-Auth-Token 도입 시): DELETE session 보장 (graceful logout)
+- **대응**: 현재 Basic Auth 유지 (rule 92 R2 — 사고 신호 없으면 변경 자제)
+
+### F125 — Cisco CIMC < 4.x advisory
+
+- **증상**: CIMC 3.x 이하 펌웨어 매우 제한적 Redfish (1.0.x)
+- **server-exporter 적용**: cisco_cimc.yml firmware_patterns "^[4-6]\\." 로 4.x 이상만. cisco_bmc.yml (priority=10) 가 3.x 이하 fallback cover.
+- **404 → 'not_supported' 분류**: 이미 cycle 2026-05-01 (I4) 적용
+
+### F126 — Cisco/Dell DIMM error 정보 vendor 차이
+
+- **증상**: DIMM error reporting 형식이 vendor 별 다름 (Cisco CIMC = Health 만, Dell = ECC count + correctable/uncorrectable 분리, HPE = AdvancedECC 등)
+- **server-exporter 영향**: 현재 Health 만 raw passthrough → 호출자 시스템이 vendor 별 해석 책임
+- **대응**: 호환성 영역 외 (새 데이터 — 별도 cycle)
+
 ## 정본 reference
 
 - `redfish-gather/library/redfish_gather.py` (정본 — 약 350줄, stdlib only)
