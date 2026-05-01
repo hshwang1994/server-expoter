@@ -3,7 +3,7 @@
 > 디렉터리 구조 카탈로그. session_start hook이 fingerprint drift 자동 검사.
 > fingerprint: `.claude/policy/project-map-fingerprint.yaml`
 
-## 일자: 2026-04-29 (cycle-012 후속 갱신)
+## 일자: 2026-05-01 (cycle-019 phase 2 후속 갱신 — 신규 vendor 4종 + 신 generation BMC 7종)
 
 ## 최상위 트리
 
@@ -11,9 +11,10 @@
 server-exporter/
 ├── CLAUDE.md, README.md, GUIDE_FOR_AI.md, REQUIREMENTS.md  (정본)
 ├── ansible.cfg                                              (Ansible 설정)
-├── Jenkinsfile, Jenkinsfile_grafana, Jenkinsfile_portal     (3종 4-Stage 파이프라인)
-├── adapters/                # 27 vendor adapter YAML + registry.yml
-│   ├── redfish/             # 16 (generic + dell×3 + hpe×4 + lenovo×3 + supermicro×3 + cisco×2)
+├── Jenkinsfile, Jenkinsfile_portal                          (2종 4-Stage 파이프라인 — cycle-015 _grafana 제거)
+├── adapters/                # 38 vendor adapter YAML + registry.yml
+│   ├── redfish/             # 27 (generic + dell×4 + hpe×5 + lenovo×4 + supermicro×5 + cisco×3 + ucs_xseries
+│   │                          + huawei×1 + inspur×1 + fujitsu×1 + quanta×1) — cycle-019 +11
 │   ├── os/                  # 7 (linux_*/windows_*)
 │   └── esxi/                # 4 (generic + 6x/7x/8x)
 ├── callback_plugins/        # json_only.py (stdout callback, OUTPUT만 JSON)
@@ -27,8 +28,8 @@ server-exporter/
 ├── os-gather/               # 3-Play (포트감지 → Linux → Windows)
 ├── esxi-gather/             # 1-Play (community.vmware)
 ├── redfish-gather/          # 1-Play (precheck → detect → adapter → collect → normalize)
-│   ├── library/redfish_gather.py    (~350줄, stdlib only)
-│   └── tasks/vendors/{vendor}/      (OEM tasks)
+│   ├── library/redfish_gather.py    (stdlib only — cycle-017 B5 _endpoint_with_fallback helper 도입)
+│   └── tasks/vendors/{vendor}/      (OEM tasks — dell/hpe/lenovo/supermicro)
 ├── schema/
 │   ├── sections.yml         # 10 섹션 정의
 │   ├── field_dictionary.yml # 39 Must + 20 Nice + 6 Skip = 65 entries (cycle-018 실측 2026-05-01, 16 section prefixes)
@@ -65,16 +66,16 @@ server-exporter/
 │       │   check_project_map_drift / check_gap_against_main /
 │       │   verify_harness_consistency / verify_vendor_boundary /
 │       │   scan_suspicious_patterns)
-│       └── hooks/ (18 Python hooks + install-git-hooks.sh)
+│       └── hooks/ (21 Python hooks + install-git-hooks.sh)
 └── .claude/
     ├── settings.json                         (hooks 등록 — cycle-011에서 보안 deny 38건 제거)
     ├── settings.local.json                   (개인)
     ├── rules/         (28 .md)
-    ├── skills/        (43 SKILL.md, 폴더당 1)
-    ├── agents/        (49 .md)
-    ├── policy/        (9 YAML)
+    ├── skills/        (48 SKILL.md, 폴더당 1)
+    ├── agents/        (59 .md)
+    ├── policy/        (10 YAML)
     ├── role/          (6 README: gather/output-schema/infra/qa/po/tpm)
-    ├── ai-context/    (14: common + gather/output-schema/infra/external + vendors)
+    ├── ai-context/    (18: common + gather/output-schema/infra/external + vendors×9)
     ├── templates/     (8)
     └── commands/      (5: harness-cycle / harness-full-sweep / review-guide / scheduler-guide / usage-guide)
 ```
@@ -84,7 +85,7 @@ server-exporter/
 ```
 호출자 (HTTP POST + inventory_json)
   ↓
-Jenkins Job (Jenkinsfile / _grafana / _portal, 4-Stage)
+Jenkins Job (Jenkinsfile / _portal, 4-Stage — cycle-015 _grafana 제거)
   ├─ [1 Validate] 입력값
   ├─ [2 Gather] ansible-playbook
   │   ├─ os-gather/site.yml (3-Play: 포트 → Linux → Windows)
@@ -93,12 +94,11 @@ Jenkins Job (Jenkinsfile / _grafana / _portal, 4-Stage)
   ├─ [3 Validate Schema] field_dictionary 정합 (FAIL 게이트)
   ├─ [4 (pipeline별)] FAIL 게이트
   │   ├─ Jenkinsfile          → E2E Regression (pytest baseline)
-  │   ├─ Jenkinsfile_grafana  → Ingest (Grafana 적재, master)
   │   └─ Jenkinsfile_portal   → Callback (호출자 통보, master)
   └─ [Post] callback_plugins/json_only.py → JSON envelope
 ```
 
-**vault binding (cycle-012)**: Jenkins credential `server-gather-vault-password` (Secret File) 등록 → Jenkinsfile×3 모두 `withCredentials([file(credentialsId: 'server-gather-vault-password', variable: 'VAULT_PWD')])` 패턴으로 사용.
+**vault binding (cycle-012)**: Jenkins credential `server-gather-vault-password` (Secret File) 등록 → Jenkinsfile×2 모두 `withCredentials([file(credentialsId: 'server-gather-vault-password', variable: 'VAULT_PWD')])` 패턴으로 사용.
 
 ## fingerprint 갱신
 
