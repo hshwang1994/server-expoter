@@ -152,3 +152,4 @@
 
 - 2026-05-01: 호환성 매트릭스 작성. 35건 적용된 호환성 분류. F33~F36 신규 후보. 신규 데이터 수집과 분리.
 - 2026-05-01 R6: InfiniBand M 카테고리 추가 (M1~M6). F37~F40 InfiniBand 호환성 fix 후보. 호환성 vs 새 데이터 ticket 분리 명시.
+- 2026-05-01 REVERT: cycle 2026-04-30 추가됐던 `diagnosis.details.detail` 키 제거 (사용자 명시 "신규 JSON 추가 없음" 원칙 위반 — 같은 정보 errors[0].detail 에 이미 존재).
