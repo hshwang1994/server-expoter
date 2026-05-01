@@ -3,26 +3,48 @@
 ## 적용 대상
 - 저장소 전체 (`**`) — 모든 branch 간 merge / cherry-pick / push
 
+## 사용자 명시 (2026-05-01)
+> "작업 끝나면 무조건 commit + push. 승인받지 말고 main에. git + gitlab 룰에 넣어라."
+
+→ 본 rule 93의 main 보호 + main push 승인 의무는 **해제**. force push만 차단 유지.
+
 ## Branch 역할 (단순 운영)
 
 | 브랜치 | 역할 | AI 권한 |
 |---|---|---|
-| `main` (운영 기준선) | 모든 변경의 최종 도착점 | 직접 push 금지 (force / 비공식 push). PR 또는 사용자 명시 승인 후만 |
+| `main` (운영 기준선) | 모든 변경의 최종 도착점 | **자율 commit + push 허용** (force 외) |
 | `feature/<name>` | 기능 추가 | AI 자유 작업 |
 | `fix/<name>` | 버그 수정 | AI 자유 작업 |
 | `vendor/<name>` | 새 벤더 추가 | AI 자유 작업 |
 | `docs/<name>` | 문서 작업 | AI 자유 작업 |
 | `harness/<name>` | 하네스 변경 | AI 자유 작업 |
 
+## Remote 구성 (origin = github + gitlab 동시 push)
+
+```
+$ git remote -v
+internal  http://10.100.64.156/root/server-expoter.git  (push only)
+origin    git@github.com:hshwang1994/server-exporter.git (fetch+push)
+origin    http://10.100.64.156/root/server-expoter.git   (push)
+```
+
+→ `git push origin main` 한 번이면 **github + gitlab 모두 push** (origin이 두 push URL 등록).
+internal remote는 별도 명시적 push용 (선택적).
+
 ## 목표 규칙
 
-### R1. 작업 브랜치 외 브랜치 push 금지
+### R1. 작업 브랜치 push 자율 진행
 
-- **Default**: AI는 현재 체크아웃된 브랜치에만 push. `git push origin <다른브랜치>` 금지
+- **Default**: AI는 현재 체크아웃된 브랜치에 자율 push. main 포함.
+  - main → `git push origin main` (github + gitlab 동시)
+  - feature/* → `git push -u origin feature/<name>` (신규) 또는 `git push origin feature/<name>` (기존)
+- **Allowed**: 작업 종료 시 별도 승인 없이 commit + push 진행
 - **Forbidden**:
-  - `git push --all`
   - `git push --force` / `-f` / `--force-with-lease`
-  - `git push origin main` (사용자 명시 승인 외)
+  - `git push --all` (여러 브랜치 일괄)
+  - 다른 브랜치 push (`git push origin <체크아웃 안 된 브랜치>`)
+- **Why**: 사용자 명시 (2026-05-01) — 자율 진행. force만 차단해서 이력 보호
+- **재검토**: force push 사고 발생 시 R1 강화
 
 ### R2. Branch 간 merge 사용자 승인
 
@@ -36,17 +58,25 @@
   - 승인 없는 git merge
   - "로컬 merge만 하니까" — push 직전 추가 승인 필요
   - `git pull origin <다른브랜치>` (실질적 merge)
+- **Allowed (예외)**: 같은 브랜치 동기화 `git pull origin main` (현재 main에서 origin/main fetch+ff)는 자율 진행
 
 ### R3. 현재 브랜치 확인 의무
 
 - **Default**: 모든 git 작업 시작 전 `git branch --show-current` 확인
 - **Forbidden**: 브랜치 이름 추정만으로 작업
 
-### R4. main 보호
+### R4. 작업 종료 시 commit + push 의무
 
-- main에 직접 commit / push 금지 (사용자 명시 승인 외)
-- force push 금지
-- direct push 시 사용자 명시 재확인
+- **Default**: AI 작업 종료 (rule 24 완료 게이트 6/6 통과) 직후 다음 자동 진행:
+  1. 변경 파일 add (pathspec — `git add .` 금지, rule 26 R3)
+  2. commit (rule 90 type prefix)
+  3. push (현재 브랜치 → origin)
+- **Allowed**: 사용자 명시 "push 보류" / "commit만" 시 push skip
+- **Forbidden**:
+  - 변경 후 commit/push 없이 세션 종료 (사용자가 명시 보류 한 경우 외)
+  - rule 24 6 체크 미통과 + push 강행
+- **Why**: 사용자 명시 (2026-05-01) — 작업 끝나면 무조건 commit + push. 분산 협업에서 origin 동기화 보장
+- **재검토**: 자동 push hook 도입 시 본 R4 자동화로 위임
 
 ### R5. 머지 전략 (default: squash)
 
@@ -67,7 +97,7 @@
 (C) merge commit — 병합 commit 추가
 ```
 
-### R6. 승인 요청 포맷
+### R6. 승인 요청 포맷 (R2 merge 시만)
 
 ```
 # 머지 승인 요청
@@ -79,22 +109,39 @@
 결정 필요: 진행 / 조정 / 취소 (squash / ff / merge 중)
 ```
 
+→ 단순 push (main 포함)는 R1 자율 — 본 R6 적용 안 됨.
+
+### R7. github + gitlab 동시 push 보장
+
+- **Default**: `origin` remote가 github (fetch+push) + gitlab (push only) 두 URL 모두 등록
+- **검증**: `git remote -v | grep origin | grep push | wc -l` ≥ 2
+- **Forbidden**: origin push URL 한 개만 (한쪽 remote만 push되어 sync drift)
+- **재구성** (사고 시):
+  ```bash
+  git remote set-url --add --push origin http://10.100.64.156/root/server-expoter.git
+  git remote set-url --add --push origin git@github.com:hshwang1994/server-exporter.git
+  ```
+- **Why**: 사용자 명시 — github + gitlab 양쪽 동기화. 한쪽 누락 시 협업자 시점 차이
+
 ## 금지 패턴
 
 - 현재 브랜치 확인 없이 git 작업 — R3
 - 다른 브랜치 push — R1
+- force push (`--force` / `-f`) — R1
+- `git push --all` — R1
 - 승인 없는 merge — R2
-- main 직접 commit — R4
-- 여러 브랜치 일괄 push (`--all`) — R1
-- 승인 포맷 생략 — R6
+- 작업 종료 + commit/push 누락 — R4
+- merge 승인 포맷 생략 — R6
+- origin push URL 단일화 — R7
 
 ## 리뷰 포인트
 
-- [ ] 모든 merge/push에 사용자 승인 기록
-- [ ] 4 요소 명시 (소스/타겟/범위/영향)
-- [ ] 현재 브랜치 확인 흔적
 - [ ] force / --all 사용 없음
+- [ ] 작업 종료 시 commit + push 진행
+- [ ] origin push URL 2개 이상 (github + gitlab)
+- [ ] merge 시 4 요소 명시 + 승인 기록
+- [ ] 현재 브랜치 확인 흔적
 
 ## 관련
 
-- rule: `00-core-repo`, `50-vendor-adapter-policy`
+- rule: `00-core-repo`, `24-completion-gate` R5, `50-vendor-adapter-policy`, `90-commit-convention`

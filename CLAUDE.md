@@ -469,15 +469,16 @@ server-exporter — 기능 작업 (huawei-vendor) (브랜치: feature/huawei-ven
 - 사용자가 "모두 진행", "계속" 명시
 - 이미 승인받은 범위 내 세부 선택
 - 검증 (ansible-playbook --syntax-check / pytest / verify_*)
-- 문서 갱신, commit, push (이미 승인된 흐름)
+- 문서 갱신, commit, **push (main 포함 — 2026-05-01 사용자 명시, rule 93 R1+R4)**
 
 **R2. 명시 승인 필요**:
 1. 보호 경로 변경 (vault / Jenkinsfile / schema/baseline_v1)
-2. main 직접 push / force push (rule 93)
+2. **force push** (`--force` / `-f` / `--force-with-lease`) — rule 93 R1
 3. 의존성 추가/삭제 (requirements 변경)
 4. schema 버전 결정 (rule 92 R5)
 5. cron 변경 (rule 80)
 6. 새 Vendor 추가 (rule 50)
+7. branch 간 merge / cherry-pick (rule 93 R2)
 
 **R3. "완료" 직전 체크**: rule 24 6체크 모두 PASS여야 완료 선언.
 

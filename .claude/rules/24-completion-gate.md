@@ -66,13 +66,13 @@
 
 ### R5. Git 태그/push 완료 의무
 
-- **Default**:
+- **Default** (rule 93 R1+R4 — 2026-05-01 사용자 명시):
   - 태그 (해당 시): `v{영역}-{상태}-{YYYYMMDD}` 포맷
-  - main 브랜치 push는 사용자 명시 승인 후 (rule 93 R1+R4)
-- **Allowed**: 작업 브랜치(feature/* 등) 자체 push는 자동 진행 가능 (rule 93 R1)
-- **Forbidden**: 사용자 명시 승인 없이 main push
-- **Why**: rule 93 정신. main 보호
-- **재검토**: 브랜치 보호 규칙이 GitHub 측에서 강제되면 본 R5 완화
+  - **모든 브랜치 push 자율 진행** (main 포함 — github + gitlab 동시)
+  - 작업 종료 시 commit + push 무조건 (사용자 "보류" 명시 시 skip)
+- **Forbidden**: force push / `--all` / 다른 브랜치 push (rule 93 R1)
+- **Why**: 사용자 명시 (2026-05-01) — 작업 끝나면 자율 commit + push, github + gitlab 동기화
+- **재검토**: force push 사고 발생 시 강화
 
 ### R6. Schema/Baseline 변경 시 회귀 통과 의무
 
