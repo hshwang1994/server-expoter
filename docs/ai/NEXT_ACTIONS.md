@@ -1,6 +1,30 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-05-01 (P1 follow-up cycle — F5/F13/F23 회귀 보강 + F23 적용 완료)
+## 일자: 2026-05-01 (cycle-018 — 정기 자기개선 cycle 완료)
+
+### 본 cycle 완료 (사용자 명시 "계획된 작업 모두 수행해라" → "진행해라")
+
+- 6단계 파이프라인 (observer → architect → reviewer → governor → updater → verifier) 1회 진입 완료
+- drift 4건 + 부수 2건 fix (12 파일 변경)
+- 표면 카운트 변동 0 (rules=28 / skills=48 / agents=59 / policies=10 / hooks=21 그대로)
+- ADR 불필요 (rule 70 R8 trigger 미해당)
+- pytest 94/94 PASS / 6종 검증 모두 PASS
+
+### 핵심 fix
+- SessionStart "Baseline 0개" 버그 해결 (`collect_repo_facts.py` 경로 fix)
+- field_dictionary 8 doc stale 정정 (46 → 65 entries, 분류 체계 유지)
+- adapter 3 doc stale 정정 (25 → 27)
+- `_vendor_count()` 명명 명확화 (docstring)
+- untracked 잔재 9건 + vault_decrypt_check.py `.gitignore` 등록 (Goodmit0802! 평문 leak 차단)
+
+### 다음 cycle 권장
+- **harness-evolution-coordinator 다음 정기 cycle** — 본 cycle은 doc drift 위주. 다음은 코드 영역 (rule 28 측정 #11 외부 계약 / Fragment 토폴로지) drift 검사 필요
+- **vault_decrypt_check.py 평문 password 제거** — fallback `"Goodmit0802!"` 삭제 후 `os.environ.get('VAULT_PASSWORD')` 강제. 그 후 git add 가능 (현재 .gitignore로 leak만 차단)
+- (기존 P2/P3 잔여 — 변동 없음, 외부 의존)
+
+---
+
+## 이전 일자: 2026-05-01 (P1 follow-up cycle — F5/F13/F23 회귀 보강 + F23 적용 완료)
 
 ### 본 cycle 완료 (사용자 명시 "남아있는 작업 모두 수행해라")
 

@@ -1,6 +1,47 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-01 (P1 follow-up — F5/F13/F23 회귀 보강 + F23 적용)
+## 일자: 2026-05-01 (cycle-018 — 정기 자기개선 cycle, rule 28 drift 정정)
+
+### 사용자 명시
+- "/clear" 후 "계획된 작업 모두 수행해라" → "진행해라"
+
+### 본 cycle 작업 (6단계 파이프라인)
+
+| Stage | 결과 |
+|---|---|
+| 1. Observer | 11종 측정 — drift 4건 + 부수 2건 발견 (HIGH 1 / MED 1 / LOW 2) |
+| 2. Architect | diff 명세 작성 |
+| 3. Reviewer | architect 미발견 보안 위험 (vault_decrypt_check.py:97 평문 password) 적발 |
+| 4. Governor | 모두 Tier 1/2, ADR 불필요 (rule 70 R8 trigger 미해당) |
+| 5. Updater | 12 파일 적용 (script 1 + .gitignore + doc/rule 10) |
+| 6. Verifier | 검증 6종 모두 PASS (pytest 94/94 포함) |
+
+### 핵심 fix
+
+| Fix | 영역 | 결과 |
+|---|---|---|
+| F-CYCLE-018-1 | `collect_repo_facts.py:79` 경로 버그 | `tests/baseline_v1` → `schema/baseline_v1` (SessionStart "0개" → "8개") |
+| F-CYCLE-018-2 | field_dictionary doc stale 8 파일 | 46 entries → 65 entries (분류 체계 유지: 39 Must + 20 Nice + 6 Skip) |
+| F-CYCLE-018-3 | adapter doc stale 3 파일 | 25개 → 27개 (Redfish 14 → 16) |
+| F-CYCLE-018-4 | `_vendor_count()` 명명 오용 | docstring 명시 (실 normalized vendor 5 vs adapter 변종 15) |
+| F-CYCLE-018-5 | untracked 잔재 9 + vault_decrypt_check.py | `.gitignore` 영구 ignore (Goodmit0802! 평문 leak 차단) |
+
+### 검증
+- pytest **94/94 PASS**
+- verify_harness_consistency PASS (rules 28 / skills 48 / agents 59 / policies 10 — 표면 카운트 변동 0)
+- verify_vendor_boundary PASS
+- output_schema_drift_check PASS (fd_paths=65 fd_section_prefixes=16)
+- check_project_map_drift PASS
+- collect_repo_facts.py 실행 → "Baseline: 8개" 정상
+
+### 적용 원칙
+- rule 25 R7-A 사용자 실측 > spec — observer hallucinate (rules 32 주장) 적발 후 메인 직접 측정
+- rule 22 / 96 R1-B Additive only — envelope 변경 0, 분류 체계 유지
+- rule 70 R8 ADR trigger 미해당 — rule 본문 의미 변경 0 / 표면 카운트 변경 0 / 보호 경로 변경 0
+
+---
+
+## 이전: 2026-05-01 (P1 follow-up — F5/F13/F23 회귀 보강 + F23 적용)
 
 ### 사용자 명시 (2026-05-01 후속)
 - "남아있는 작업 모두 수행해라"

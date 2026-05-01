@@ -12,9 +12,9 @@
 - 3-channel 통합 수집 시스템 (os-gather + esxi-gather + redfish-gather)
 - Ansible 2.20.3 + Python 3.12.3 + Java 21 (Jenkins Agent)
 - 멀티벤더 (Dell / HPE / Lenovo / Supermicro / Cisco)
-- Adapter 25개 (Redfish 14 + OS 7 + ESXi 4)
-- Schema 10 sections + Field Dictionary 31 Must + 9 Nice + 6 Skip = 46 entries (cycle-006 실측)
-- 145+ Test fixtures + 7+ baseline JSON
+- Adapter 27개 (Redfish 16 + OS 7 + ESXi 4) + adapters/registry.yml
+- Schema 10 sections + Field Dictionary 39 Must + 20 Nice + 6 Skip = 65 entries (cycle-018 실측, 16 section prefixes)
+- 207 Test fixtures + 8 baseline JSON (7 vendor + rhel810_raw_fallback)
 - Jenkins multi-pipeline 2종 (Jenkinsfile / _portal) — Bitbucket 미사용 (cycle-015에서 _grafana 제거)
 - 운영: 단일 main + feature/* 브랜치
 - 정본: REQUIREMENTS.md / GUIDE_FOR_AI.md / README.md / docs/01~19

@@ -31,9 +31,9 @@ server-exporter/
 │   └── tasks/vendors/{vendor}/      (OEM tasks)
 ├── schema/
 │   ├── sections.yml         # 10 섹션 정의
-│   ├── field_dictionary.yml # 31 Must + 20 Nice + 6 Skip = 57 entries (cycle-012: P3/P4/P5 +11 Nice)
+│   ├── field_dictionary.yml # 39 Must + 20 Nice + 6 Skip = 65 entries (cycle-018 실측 2026-05-01, 16 section prefixes)
 │   ├── fields/              # 섹션별 상세
-│   ├── baseline_v1/         # 7+ vendor baseline JSON
+│   ├── baseline_v1/         # 7 vendor + rhel810_raw_fallback = 8 baseline JSON
 │   └── examples/            # success/partial/failed
 ├── tests/
 │   ├── redfish-probe/       # probe_redfish.py + deep_probe_redfish.py

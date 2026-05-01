@@ -71,6 +71,7 @@ python scripts/ai/hooks/output_schema_drift_check.py
 | 2026-04-28 | cycle-005에서 DRIFT-007 재정정: Must 28 / Nice 7 / Skip 5 (validate_field_dictionary.py 기준) | (cycle-005) |
 | 2026-04-28 | cycle-006에서 DRIFT-004 resolved: users 섹션 +6 추가 → **Must 31 / Nice 9 / Skip 6 = 46 entries** | (cycle-006) |
 | 2026-04-29 | cycle-012 P3/P4/P5 신 필드 +11 Nice → **Must 31 / Nice 20 / Skip 6 = 57 entries** | `8e536447` |
+| 2026-05-01 | cycle-018 실측 — Must 8 격상 → **Must 39 / Nice 20 / Skip 6 = 65 entries** (16 section prefixes) | (cycle-018) |
 
 ## 정본 reference
 

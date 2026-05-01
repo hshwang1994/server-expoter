@@ -137,16 +137,16 @@ server-exporter/ (프로젝트 루트)
        ├── build_*.yml (10개: sections, status, errors, meta, correlation, output)
        └── supported_sections.yml, status_rules.yml
 
-[3] Adapter 시스템 (25개 YAML)
-   ├── adapters/redfish/ (14개: generic + dell×3 + hpe×4 + lenovo×2 + supermicro×3 + cisco)
+[3] Adapter 시스템 (27개 YAML + adapters/registry.yml)
+   ├── adapters/redfish/ (16개: generic + dell×3 + hpe×4 + lenovo×3 + supermicro×3 + cisco×2)
    ├── adapters/os/ (7개: linux_*/windows_*)
    └── adapters/esxi/ (4개: generic + 6x/7x/8x)
 
 [4] Schema & 데이터
    ├── schema/
    │   ├── sections.yml (10개: system, hardware, bmc, cpu, memory, storage, network, firmware, users, power)
-   │   ├── field_dictionary.yml (31 Must + 9 Nice + 6 Skip = 46 entries — 실측 2026-04-28 cycle-006, users 섹션 +6 추가)
-   │   ├── baseline_v1/ (7개 벤더 baseline JSON)
+   │   ├── field_dictionary.yml (39 Must + 20 Nice + 6 Skip = 65 entries — 실측 2026-05-01 cycle-018, 16 section prefixes)
+   │   ├── baseline_v1/ (8 baseline JSON: 7 vendor + rhel810_raw_fallback)
    │   └── examples/ (success/partial/failed 예시)
    └── vault/ (linux.yml, windows.yml, esxi.yml, redfish/{vendor}.yml)
 

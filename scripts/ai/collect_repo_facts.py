@@ -51,7 +51,13 @@ def _ansible_version(repo_root: Path) -> str:
 
 
 def _vendor_count(repo_root: Path) -> int:
-    """adapters/redfish/ 안의 벤더별 어댑터 수 (generic 제외)."""
+    """Redfish adapter 변종 수 (generic 제외).
+
+    NOTE: 본 카운트는 vendor × 펌웨어/세대 조합 (예: dell_idrac8/9, hpe_ilo4/5/6)이며
+    실제 normalized vendor 수가 아니다. normalized vendor는 5개
+    (`common/vars/vendor_aliases.yml` 의 키: cisco/dell/hpe/lenovo/supermicro).
+    SessionStart 메시지의 "벤더 N종"은 adapter 변종 의미.
+    """
     rf_dir = repo_root / "adapters" / "redfish"
     if not rf_dir.is_dir():
         return 0
@@ -76,7 +82,7 @@ def collect_facts(repo_root: Path) -> Dict[str, object]:
     yml_files = _count_files(repo_root, "*.yml") + _count_files(repo_root, "*.yaml")
     pytest_files = _count_files(repo_root, "test_*.py") + _count_files(repo_root, "*_test.py")
     fixture_files = _count_files(repo_root / "tests" / "fixtures", "*.json") if (repo_root / "tests" / "fixtures").is_dir() else 0
-    baseline_files = _count_files(repo_root / "tests" / "baseline_v1", "*.json") if (repo_root / "tests" / "baseline_v1").is_dir() else 0
+    baseline_files = _count_files(repo_root / "schema" / "baseline_v1", "*.json") if (repo_root / "schema" / "baseline_v1").is_dir() else 0
     adapter_files = _count_files(repo_root / "adapters", "*.yml")
 
     return {
