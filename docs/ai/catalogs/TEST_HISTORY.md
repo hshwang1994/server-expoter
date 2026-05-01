@@ -16,6 +16,31 @@
 
 ---
 
+## 2026-05-01 — P1 follow-up (F5/F13/F23 회귀 보강 + F23 적용)
+
+- 환경: Windows 11 호스트 (Bash on Windows / pytest 9.0.2 / Python 3.11.9)
+- 입력: 사용자 명시 "남아있는 작업 모두 수행해라"
+- 적용:
+  - **F5** `redfish_gather.py:_gather_power_subsystem` — 이미 적용된 EnvironmentMetrics fallback에 회귀 5건 신규 (`tests/unit/test_power_environment_metrics_f5.py`)
+  - **F13** `redfish_gather.py:account_service_provision` — 이미 적용된 Cisco / 404 graceful 분류에 회귀 4건 신규 (`tests/unit/test_account_service_unsupported_f13.py`)
+  - **F23** `os-gather/tasks/{linux,windows}/gather_users.yml` — `_sections_unsupported_fragment` wiring (Linux Python+Raw / Windows rc-aware) + 회귀 9건 신규 (`tests/unit/test_os_users_unsupported_f23.py`)
+- 명령:
+  - `python -m pytest tests/unit/ -q` → **94/94 PASS** (2.21s, 76 기존 + 18 신규)
+  - `python -m py_compile redfish-gather/library/redfish_gather.py` → PASS
+  - `python -c "import yaml; yaml.safe_load(...)"` (Linux/Windows gather_users + cisco_cimc.yml) → PASS
+  - `python scripts/ai/verify_harness_consistency.py` → PASS (rules:28 skills:48 agents:59 policies:10)
+  - `python scripts/ai/verify_vendor_boundary.py` → PASS
+  - `python scripts/ai/check_project_map_drift.py --update` → 재baseline (os-gather + tests hash)
+- Baseline 갱신: 없음 (코드 fragment 분류 변경 only — envelope 13 필드 동일)
+- Evidence: 본 cycle은 코드 회귀 unit 위주. 사이트 검증 (Alpine/distroless 환경 빌드)은 외부 의존 — 후속.
+
+### Additive 원칙 (rule 96 R1-B)
+- envelope 13 필드 변경 0건
+- schema/sections.yml 변경 0건
+- `_sections_failed_fragment` → `_sections_unsupported_fragment` 라우팅만 (errors[] noise 차단)
+
+---
+
 ## 2026-05-01 — 호환성 ticket 일괄 (F01~F43 22건)
 
 - 환경: Windows 11 호스트 (Bash on Windows / pytest 9.0.2 / Python 3.11.9)

@@ -1,6 +1,46 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-01 (호환성 ticket 일괄 — F01~F43 22건 처리)
+## 일자: 2026-05-01 (P1 follow-up — F5/F13/F23 회귀 보강 + F23 적용)
+
+### 사용자 명시 (2026-05-01 후속)
+- "남아있는 작업 모두 수행해라"
+
+### 본 cycle 작업 (P1 fix 후보 3건)
+
+| Fix | 영역 | 처리 | 결과 |
+|---|---|---|---|
+| F5 | power | `_gather_power_subsystem` EnvironmentMetrics fallback | **이미 적용 확인** — 회귀 5건 신규 추가 (`test_power_environment_metrics_f5.py`) |
+| F13 | users (provision) | Cisco CIMC AccountService 'not_supported' 분류 | **이미 적용 확인** — 회귀 4건 신규 추가 (`test_account_service_unsupported_f13.py`) |
+| F23 | os | Linux/Windows users gather 'not_supported' 점진 전환 | **신규 적용** — `_sections_unsupported_fragment` wiring + 회귀 9건 (`test_os_users_unsupported_f23.py`) |
+
+### F23 변경 상세 (Additive only, rule 96 R1-B)
+
+`os-gather/tasks/linux/gather_users.yml` (Python mode + Raw mode):
+- 빈 `getent_passwd` / 빈 `_l_raw_passwd` → `_sections_unsupported_fragment: ['users']` (이전 `_sections_failed_fragment`)
+- root 항상 존재 가정 → 빈 결과 = 진짜 미지원 신호 (Alpine / distroless / busybox)
+- failed_fragment 는 빈 list로 전환 (errors[] noise 차단)
+
+`os-gather/tasks/windows/gather_users.yml`:
+- `_w_users_raw.rc != 0` AND `_w_norm_users_list | length == 0` → unsupported
+- rc=0 + 빈 list → collected (정상 0명 케이스 보존, Server Core 정상 동작)
+
+### 검증
+- pytest **94/94 PASS** (76 + 신규 18 = F5 5건 + F13 4건 + F23 9건)
+- verify_harness_consistency PASS
+- verify_vendor_boundary PASS
+- py_compile redfish_gather.py PASS
+- YAML syntax PASS (Linux/Windows gather_users.yml + cisco_cimc.yml)
+- check_project_map_drift PASS (재baseline — os-gather + tests hash 갱신)
+
+### 적용 원칙 (rule 96 R1-B Additive only)
+- envelope 13 필드 변경 0건
+- schema/sections.yml 변경 0건 (users 섹션 이미 정의)
+- 기존 동작 유지 + 진짜 미지원 신호만 unsupported로 명시 분류
+- 호출자 시스템 envelope shape 동일
+
+---
+
+## 이전: 2026-05-01 (호환성 ticket 일괄 — F01~F43 22건 처리)
 
 ### 사용자 명시 (2026-05-01 후속)
 - "호환성 티켓 모두 수행하세요"

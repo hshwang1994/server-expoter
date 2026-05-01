@@ -1,5 +1,23 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-01 (P1 follow-up cycle — F5/F13/F23 회귀 보강 + F23 적용 완료)
+
+### 본 cycle 완료 (사용자 명시 "남아있는 작업 모두 수행해라")
+
+- **F5 power EnvironmentMetrics fallback** — 코드 이미 적용 확인 (`_gather_power_subsystem` 1772-1791) + 회귀 5건 신규
+- **F13 Cisco CIMC AccountService 'not_supported'** — 코드 이미 적용 확인 (`account_service_provision` 2081-2103) + 회귀 4건 신규
+- **F23 OS gather not_supported 점진 전환** — Linux/Windows `gather_users.yml` 에 `_sections_unsupported_fragment` wiring + 회귀 9건 신규
+
+### 검증 PASS
+- pytest 94/94 (76 + 신규 18)
+- harness consistency / vendor boundary / py_compile / YAML / project_map_drift
+
+### 다음 cycle 권장 (P2 — 외부 의존)
+
+(이전 cycle 의 P2 / P3 list 그대로 유지 — 아래 표 이전.)
+
+---
+
 ## 일자: 2026-05-01 (하네스 보강 cycle 종료 — B1~B8 + D + E 모두 적용)
 
 ### 본 cycle 완료 (사용자 명시 "하네스 보강 작업 모두 수행해라 남겨두지말고 모두")

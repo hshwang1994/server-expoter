@@ -8,7 +8,7 @@ esxi-gather: 50df19596560
 filter_plugins: c77b89dd1f1b
 lookup_plugins: 9198f7689dd1
 module_utils: 32d2047adc60
-os-gather: b4a9dc1619c0
+os-gather: 60cb3a5ab846
 redfish-gather: e6cb339aba7c
 schema: ab4cbf1f681d
-tests: 815a9fdf862e
+tests: a10bf29ad0e1

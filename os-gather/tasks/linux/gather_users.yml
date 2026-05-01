@@ -88,6 +88,10 @@
           {{ users | sort(attribute='uid') }}
       no_log: true
 
+    # F23 (cycle 2026-05-01): getent 부재 환경 (Alpine / distroless / busybox)
+    # 에서 getent_passwd 가 undefined 또는 empty. root 는 정상 환경이면 항상
+    # 존재하므로 빈 결과 = 진짜 미지원 신호 → 'not_supported' 분류 (errors[] noise
+    # 차단). graceful failure 와 구분.
     - name: "linux | users | build fragment"
       ansible.builtin.set_fact:
         _data_fragment:
@@ -95,8 +99,9 @@
         _sections_supported_fragment: ['users']
         _sections_collected_fragment: >-
           {{ ['users'] if (getent_passwd is defined and getent_passwd) else [] }}
-        _sections_failed_fragment: >-
-          {{ [] if (getent_passwd is defined and getent_passwd) else ['users'] }}
+        _sections_failed_fragment: []
+        _sections_unsupported_fragment: >-
+          {{ ['users'] if (getent_passwd is not defined or not getent_passwd) else [] }}
         _errors_fragment: []
       no_log: true
   when: _l_python_mode == 'python_ok'
@@ -218,6 +223,8 @@
           {{ users | sort(attribute='uid') }}
       no_log: true
 
+    # F23 (cycle 2026-05-01): raw 경로에서도 getent 명령 부재 시 _l_raw_passwd
+     # 빈 dict. root 는 정상 환경이면 항상 응답 → 빈 결과 = 진짜 미지원.
     - name: "linux | users | build fragment (raw)"
       ansible.builtin.set_fact:
         _data_fragment:
@@ -225,8 +232,9 @@
         _sections_supported_fragment: ['users']
         _sections_collected_fragment: >-
           {{ ['users'] if (_l_raw_passwd | default({}) | length > 0) else [] }}
-        _sections_failed_fragment: >-
-          {{ [] if (_l_raw_passwd | default({}) | length > 0) else ['users'] }}
+        _sections_failed_fragment: []
+        _sections_unsupported_fragment: >-
+          {{ ['users'] if (_l_raw_passwd | default({}) | length == 0) else [] }}
         _errors_fragment: []
       no_log: true
   when: _l_python_mode != 'python_ok'
