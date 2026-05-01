@@ -7,57 +7,107 @@
 
 vendors:
   dell:
-    description: "Dell PowerEdge / iDRAC8 / iDRAC9"
+    description: "Dell PowerEdge / iDRAC8 / iDRAC9 / iDRAC10 (PowerEdge 17G)"
     adapters:
-      - "adapters/redfish/dell_idrac.yml"   # generic dell (priority=10)
-      - "adapters/redfish/dell_idrac8.yml"  # iDRAC8 (priority=50)
-      - "adapters/redfish/dell_idrac9.yml"  # iDRAC9 (priority=100)
+      - "adapters/redfish/dell_idrac.yml"     # generic dell (priority=10)
+      - "adapters/redfish/dell_idrac8.yml"    # iDRAC8 (priority=50)
+      - "adapters/redfish/dell_idrac9.yml"    # iDRAC9 (priority=100)
+      - "adapters/redfish/dell_idrac10.yml"   # iDRAC10 (priority=120, F41 cycle 2026-05-01)
     oem_tasks: "redfish-gather/tasks/vendors/dell/"
     vault: "vault/redfish/dell.yml"
     aliases: ["Dell", "Dell Inc.", "Dell EMC", "iDRAC"]
-    firmware_examples: ["3.x", "4.x", "5.x", "6.x", "7.x"]
+    firmware_examples: ["3.x", "4.x", "5.x", "6.x", "7.x", "1.x (iDRAC10)"]
 
   hpe:
-    description: "HPE ProLiant / iLO4 / iLO5 / iLO6"
+    description: "HPE ProLiant / iLO4 / iLO5 / iLO6 / iLO7 (Gen12)"
     adapters:
       - "adapters/redfish/hpe_ilo.yml"   # generic hpe (priority=10)
       - "adapters/redfish/hpe_ilo4.yml"  # iLO4
       - "adapters/redfish/hpe_ilo5.yml"  # iLO5 (priority=100)
       - "adapters/redfish/hpe_ilo6.yml"  # iLO6 (priority=100)
+      - "adapters/redfish/hpe_ilo7.yml"  # iLO7 Gen12 (priority=120, F47 cycle 2026-05-01)
     oem_tasks: "redfish-gather/tasks/vendors/hpe/"
     vault: "vault/redfish/hpe.yml"
     aliases: ["HPE", "Hewlett Packard Enterprise", "Hewlett-Packard", "HP", "iLO"]
-    firmware_examples: ["2.x", "3.x"]
+    firmware_examples: ["2.x", "3.x", "1.12.00 (iLO7)"]
 
   lenovo:
-    description: "Lenovo ThinkSystem / XCC / IMM2"
+    description: "Lenovo ThinkSystem / XCC1-XCC2 / XCC3 (V4 OpenBMC) / IMM2"
     adapters:
-      - "adapters/redfish/lenovo_xcc.yml"
-      - "adapters/redfish/lenovo_imm2.yml"
+      - "adapters/redfish/lenovo_bmc.yml"    # generic Lenovo (priority=10)
+      - "adapters/redfish/lenovo_imm2.yml"   # IMM2 (priority=50)
+      - "adapters/redfish/lenovo_xcc.yml"    # XCC1/XCC2 (priority=100, V2/V3)
+      - "adapters/redfish/lenovo_xcc3.yml"   # XCC3 (priority=120, F55 cycle 2026-05-01, V4 OpenBMC)
     oem_tasks: "redfish-gather/tasks/vendors/lenovo/"
     vault: "vault/redfish/lenovo.yml"
-    aliases: ["Lenovo", "XCC", "IBM"]
-    firmware_examples: ["1.x", "2.x", "3.x"]
+    aliases: ["Lenovo", "XCC", "IBM", "ThinkSystem"]
+    firmware_examples: ["1.x (IMM2)", "2.x", "AFBT.. (XCC2)", "3.x (XCC3 OpenBMC)"]
 
   supermicro:
-    description: "Supermicro X9 / X11 / 일반 BMC"
+    description: "Supermicro X9/X11 + X12/X13/X14/H14 (AST2600 신 generation)"
     adapters:
-      - "adapters/redfish/supermicro_bmc.yml"  # 일반 BMC
+      - "adapters/redfish/supermicro_bmc.yml"  # 일반 BMC (priority=10)
       - "adapters/redfish/supermicro_x9.yml"   # X9 세대
-      - "adapters/redfish/supermicro_x11.yml"  # X11 세대
+      - "adapters/redfish/supermicro_x11.yml"  # X11 (AST2500, priority=100)
+      - "adapters/redfish/supermicro_x12.yml"  # X12/H12 AST2600 (priority=90, F61 cycle 2026-05-01)
+      - "adapters/redfish/supermicro_x13.yml"  # X13/H13/B13 (priority=100, F61)
+      - "adapters/redfish/supermicro_x14.yml"  # X14/H14 (priority=110, F61)
     oem_tasks: "redfish-gather/tasks/vendors/supermicro/"
     vault: "vault/redfish/supermicro.yml"
     aliases: ["Supermicro", "Super Micro Computer, Inc.", "Super Micro Computer", "SMCI"]
-    firmware_examples: ["1.x", "2.x"]
+    firmware_examples: ["1.x", "2.x", "X12/X13/X14 (AST2600)"]
 
   cisco:
-    description: "Cisco UCS / CIMC (OEM 미구현 — strategy: standard_only)"
+    description: "Cisco UCS / CIMC + UCS X-Series (OEM 미구현 — strategy: standard_only)"
     adapters:
-      - "adapters/redfish/cisco_cimc.yml"
-    oem_tasks: null  # cisco는 strategy: standard_only — OEM 디렉터리 미생성 (2026-04-28 실측)
+      - "adapters/redfish/cisco_bmc.yml"          # generic Cisco fallback (priority=10)
+      - "adapters/redfish/cisco_cimc.yml"         # M4~M8 (priority=100)
+      - "adapters/redfish/cisco_ucs_xseries.yml"  # X210c/X410c standalone CIMC (priority=110, F69)
+    oem_tasks: null
     vault: "vault/redfish/cisco.yml"
     aliases: ["Cisco", "Cisco Systems", "Cisco Systems Inc", "Cisco Systems Inc.", "CIMC", "UCS"]
-    firmware_examples: ["4.x", "5.x"]
+    firmware_examples: ["4.x", "5.x", "6.x"]
+
+  # ── 2026-05-01 사용자 명시 승인 (F44~F47) — vault SKIP, lab 부재 ──────────
+  huawei:
+    description: "Huawei FusionServer Pro V5/V6 / iBMC (lab 부재 — web sources only)"
+    adapters:
+      - "adapters/redfish/huawei_ibmc.yml"  # priority=80
+    oem_tasks: null  # 향후 작성 (사이트 fixture 확보 후)
+    vault: null  # 미생성 (사용자 명시 2026-05-01) — 향후 vault/redfish/huawei.yml
+    aliases: ["Huawei", "HUAWEI", "Huawei Technologies Co., Ltd.", "iBMC"]
+    firmware_examples: []  # lab 부재
+    vault_status: "not_created (user explicit 2026-05-01)"
+
+  inspur:
+    description: "Inspur NF/TS 시리즈 / ISBMC (lab 부재 — web sources only)"
+    adapters:
+      - "adapters/redfish/inspur_isbmc.yml"  # priority=80
+    oem_tasks: null
+    vault: null
+    aliases: ["Inspur", "INSPUR", "Inspur Information", "ISBMC"]
+    firmware_examples: []
+    vault_status: "not_created (user explicit 2026-05-01)"
+
+  fujitsu:
+    description: "Fujitsu PRIMERGY M5/M6/M7 / iRMC S4-S6 (lab 부재 — web sources only)"
+    adapters:
+      - "adapters/redfish/fujitsu_irmc.yml"  # priority=80
+    oem_tasks: null
+    vault: null
+    aliases: ["Fujitsu", "FUJITSU", "Fujitsu Limited", "Fujitsu Technology Solutions", "iRMC", "PRIMERGY"]
+    firmware_examples: []
+    vault_status: "not_created (user explicit 2026-05-01)"
+
+  quanta:
+    description: "Quanta (QCT) QuantaGrid / OpenBMC (lab 부재 — web sources only)"
+    adapters:
+      - "adapters/redfish/quanta_qct_bmc.yml"  # priority=80
+    oem_tasks: null
+    vault: null
+    aliases: ["Quanta", "QUANTA", "Quanta Computer", "Quanta Cloud Technology", "QCT", "QuantaGrid"]
+    firmware_examples: []
+    vault_status: "not_created (user explicit 2026-05-01)"
 
   generic:
     description: "Vendor-agnostic Redfish (fallback, priority=0)"

@@ -2,7 +2,27 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
-## 2026-05-01 (cycle-019 — 7-loop + 10R extended audit P1 22건)
+## 2026-05-01 (cycle-019 phase 2 — F44~F47 신규 vendor 4종)
+
+- 환경: 로컬 (Python 3.11.9 / pytest 9.0.2)
+- 테스트 신규 7건: `tests/unit/test_new_vendors_f44_f47.py`
+  - `test_f44_f47_vendor_aliases_yaml_has_4_new_entries` — vendor_aliases.yml 4 entry
+  - `test_f44_f47_fallback_vendor_map_sync` — _FALLBACK_VENDOR_MAP sync 게이트
+  - `test_f44_f47_bmc_product_hints_added` — _BMC_PRODUCT_HINTS 7 신 시그니처
+  - `test_f44_f47_adapter_yaml_files_exist` — 4 adapter 파일 존재
+  - `test_f44_f47_adapter_yaml_required_keys` — 4 필수 키 + priority=80
+  - `test_f44_f47_adapter_match_includes_canonical_vendor` — match.vendor canonical
+  - `test_f44_f47_ai_context_files_exist` — 4 ai-context 파일 + vault SKIP 명시
+- pytest 결과: **108/108 PASS** (cycle-019 phase 1 101 → 108, +7)
+- 정적 검증:
+  - verify_harness_consistency PASS (vendor sync 게이트 통과)
+  - verify_vendor_boundary PASS (nosec 주석 적절)
+  - check_project_map_drift PASS (fingerprint 재갱신)
+  - py_compile redfish_gather.py PASS
+  - YAML 6 파일 syntax PASS
+- baseline 회귀: skip (lab 부재 — 신규 vendor 4종 모두 lab/사이트 부재)
+
+## 2026-05-01 (cycle-019 phase 1 — 7-loop + 10R extended audit P1 22건)
 
 - 환경: 로컬 (Python 3.11.9 / pytest 9.0.2)
 - 테스트 신규 7건: `tests/unit/test_redfish_tls_and_network_fallback.py`

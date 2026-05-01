@@ -1,0 +1,84 @@
+---
+# ── Origin metadata (rule 96 R1 + R1-A) ───────────────────────────────────────
+# Vendor: Huawei
+# Firmware: iBMC (Huawei integrated BMC) — FusionServer Pro V5/V6
+# Origin: Huawei FusionServer Pro Series Documentation
+# Last sync: 2026-05-01 (web sources only — lab 부재)
+# Notes: FusionServer Pro V5 / V6. 표준 Redfish + Oem.Huawei 확장.
+#   사용자 명시 승인 (2026-05-01) — vault SKIP. lab/사이트 도입 시 vault만 추가.
+# Sources (rule 96 R1-A — lab 부재):
+#   - https://support.huawei.com/enterprise/en/doc/EDOC1000163550/41dfb258/ibmc
+#   - https://github.com/Huawei/Huawei-iBMC-Cmdlets (vendor 공식 PowerShell repo)
+#   - https://networktelecom.ru/images/data/gallery/3071_9834_Huawei-FusionServer-Pro-V5-Rack-Server-Data-Sheet.pdf
+#   - https://manualzz.com/doc/o/1wk3dz/huawei-fusionserver-pro-2288h-v5-user-manual-9.2-logging-in-to-the-ibmc-webui
+# Compatibility 가정 (web sources):
+#   - manufacturer: "Huawei" / "Huawei Technologies Co., Ltd."
+#   - Manager URI 추정: /redfish/v1/Managers/iBMC (사이트 검증 필요)
+#   - System URI: /redfish/v1/Systems/1 (표준)
+#   - OEM namespace: Oem.Huawei
+#   - 표준 Redfish 호환 + IPMI 2.0 / SNMP / DCMI 보조
+# Vault: 미생성 (사용자 명시 2026-05-01) — vault/redfish/huawei.yml 부재 시
+#   precheck auth 단계에서 status=failed (graceful degradation, rule 27 R4)
+# ──────────────────────────────────────────────────────────────────────────────
+adapter_id: redfish_huawei_ibmc
+channel: redfish
+priority: 80
+
+match:
+  vendor: ["Huawei", "HUAWEI", "Huawei Technologies Co., Ltd.", "Huawei Technologies"]
+  model_patterns:
+    - "FusionServer.*"
+    - "2288H V[5-9]"
+    - "2288X V[5-9]"
+    - "2488H V[5-9]"
+    - "1288H V[5-9]"
+
+capabilities:
+  sections_supported:
+    - system
+    - hardware
+    - bmc
+    - cpu
+    - memory
+    - storage
+    - network
+    - firmware
+    - power
+    - users
+
+collect:
+  strategy: standard_only
+  standard_tasks: "redfish-gather/tasks/collect_standard.yml"
+  # OEM tasks 향후 작성 — 현재 standard_only (Oem.Huawei 추출은 사이트 fixture 확보 후)
+
+normalize:
+  standard_tasks: "redfish-gather/tasks/normalize_standard.yml"
+
+credentials:
+  profile: "huawei"
+  fallback_profiles: []
+  recovery_accounts: []  # vault 미생성 — lab/사이트 도입 후 정의
+
+auth:
+  preferred: [basic]
+
+graceful_degradation:
+  on_section_fail: continue
+  on_auth_fail: abort
+  critical_sections: [system, hardware]
+  optional_sections: [firmware, power]
+
+vendor_notes:
+  bmc_name: "iBMC"
+  manager_uri_hint: "/redfish/v1/Managers/iBMC"
+  oem_namespace: "Oem.Huawei"
+  vault_status: "not_created (user explicit 2026-05-01)"
+  expected_models:
+    - "FusionServer Pro 2288H V5"
+    - "FusionServer Pro 2288X V5"
+    - "FusionServer Pro 2488H V5"
+    - "FusionServer Pro 1288H V6"
+
+diagnosis:
+  protocol_name: redfish
+  not_supported_message: "Huawei iBMC 장비 — Redfish 표준 호환 가정 (lab 부재 — web sources 기반). vault 미생성 (사용자 명시 2026-05-01)."

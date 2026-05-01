@@ -57,3 +57,36 @@ vendor_aliases:
     - "Cisco"
     - "CISCO"
     - "cisco"
+
+  # ── 2026-05-01 사용자 명시 승인 — F44~F47 신규 4 vendor (lab 부재) ─────────
+  # vault 단계 SKIP (사용자 명시 2026-05-01). lab/사이트 도입 시 vault 만 추가.
+  huawei:
+    - "Huawei"
+    - "HUAWEI"
+    - "Huawei Technologies Co., Ltd."
+    - "Huawei Technologies"
+    - "huawei"
+
+  inspur:
+    - "Inspur"
+    - "INSPUR"
+    - "Inspur Information Technology Company Limited"
+    - "Inspur Information"
+    - "Inspur Systems"
+    - "inspur"
+
+  fujitsu:
+    - "Fujitsu"
+    - "FUJITSU"
+    - "Fujitsu Limited"
+    - "Fujitsu Technology Solutions"
+    - "fujitsu"
+
+  quanta:
+    - "Quanta"
+    - "QUANTA"
+    - "Quanta Computer"
+    - "Quanta Computer Inc."
+    - "Quanta Cloud Technology"
+    - "QCT"
+    - "quanta"

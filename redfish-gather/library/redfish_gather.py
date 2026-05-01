@@ -323,6 +323,17 @@ _FALLBACK_VENDOR_MAP = {
     'cisco': 'cisco', 'cisco systems inc': 'cisco',                         # nosec rule12-r1
     'cisco systems inc.': 'cisco', 'cisco systems, inc': 'cisco',           # nosec rule12-r1
     'cisco systems, inc.': 'cisco', 'cisco systems': 'cisco',               # nosec rule12-r1
+    # 2026-05-01 F44~F47 (사용자 명시 승인): Huawei / Inspur / Fujitsu / Quanta
+    'huawei': 'huawei', 'huawei technologies co., ltd.': 'huawei',          # nosec rule12-r1
+    'huawei technologies': 'huawei',                                        # nosec rule12-r1
+    'inspur': 'inspur',                                                     # nosec rule12-r1
+    'inspur information technology company limited': 'inspur',              # nosec rule12-r1
+    'inspur information': 'inspur', 'inspur systems': 'inspur',             # nosec rule12-r1
+    'fujitsu': 'fujitsu', 'fujitsu limited': 'fujitsu',                     # nosec rule12-r1
+    'fujitsu technology solutions': 'fujitsu',                              # nosec rule12-r1
+    'quanta': 'quanta', 'quanta computer': 'quanta',                        # nosec rule12-r1
+    'quanta computer inc.': 'quanta',                                       # nosec rule12-r1
+    'quanta cloud technology': 'quanta', 'qct': 'quanta',                   # nosec rule12-r1
 }
 # 호환 alias (외부 코드가 _BUILTIN_VENDOR_MAP 이름 참조 시)
 _BUILTIN_VENDOR_MAP = _FALLBACK_VENDOR_MAP
@@ -338,6 +349,11 @@ _BMC_PRODUCT_HINTS = {
     'xcc': 'lenovo', 'imm2': 'lenovo',                                      # nosec rule12-r1
     'megarac': 'supermicro',                                                # nosec rule12-r1
     'cimc': 'cisco', 'ucs': 'cisco',                                        # nosec rule12-r1
+    # 2026-05-01 F44~F47 (사용자 명시 승인) — vendor BMC 시그니처
+    'ibmc': 'huawei', 'fusionserver': 'huawei',                             # nosec rule12-r1
+    'isbmc': 'inspur',                                                      # nosec rule12-r1
+    'irmc': 'fujitsu', 'primergy': 'fujitsu',                               # nosec rule12-r1
+    'quantagrid': 'quanta', 'quantaplex': 'quanta',                         # nosec rule12-r1
 }
 
 
@@ -1061,7 +1077,9 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
 
     # nosec rule12-r1: vendor → BMC 표시명 매핑 (외부 spec 기반 표준 이름)
     bmc_names = {'dell': 'iDRAC', 'hpe': 'iLO', 'lenovo': 'XCC', 'supermicro': 'BMC',
-                 'cisco': 'CIMC'}                                              # nosec rule12-r1
+                 'cisco': 'CIMC',                                              # nosec rule12-r1
+                 'huawei': 'iBMC', 'inspur': 'ISBMC', 'fujitsu': 'iRMC',       # nosec rule12-r1
+                 'quanta': 'BMC'}                                              # nosec rule12-r1
     # cycle-016 Phase M/N: BMC 운영 정보 강화 — datetime / dns / mac / uuid / last_reset / timezone / power_state
     result = {
         'name':             bmc_names.get(vendor, 'BMC'),

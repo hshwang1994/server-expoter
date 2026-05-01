@@ -1,0 +1,84 @@
+---
+# ── Origin metadata (rule 96 R1 + R1-A) ───────────────────────────────────────
+# Vendor: Quanta (QCT — Quanta Cloud Technology)
+# Firmware: OpenBMC 기반 (bmcweb 표준)
+# Origin: Quanta QCT 공식 + OpenBMC 표준
+# Last sync: 2026-05-01 (web sources only — lab 부재)
+# Notes: QuantaGrid D54Q-2U / D52BQ-2U / 기타 OpenBMC 기반 모델.
+#   사용자 명시 승인 (2026-05-01) — vault SKIP. lab/사이트 도입 시 vault만 추가.
+# Sources (rule 96 R1-A — lab 부재):
+#   - https://www.qct.io/product/index/Server/rackmount-server/2U-Rackmount-Server/QuantaGrid-D54Q-2U
+#   - https://www.exalit.com/storage/2023/09/D54Q-2U_v20230330.pdf
+#   - https://www.hyperscalers.com/image/catalog/00-Products/Servers/QuantaGrid-D52BQ-2U-UG%202.0%20-%20HS.pdf
+#   - https://catalog.redhat.com/en/hardware/system/detail/218837 (Red Hat 인증)
+#   - https://bmc-toolbox.github.io/ (multi-vendor BMC abstraction reference)
+# Compatibility 가정 (web sources):
+#   - manufacturer: "Quanta" / "Quanta Computer" / "Quanta Cloud Technology" / "QCT"
+#   - Manager URI: /redfish/v1/Managers/bmc (OpenBMC 표준)
+#   - System URI: /redfish/v1/Systems/system (OpenBMC 표준)
+#   - OEM namespace: Oem.OpenBmc (vendor 표준 namespace) 또는 부재
+#   - OpenBMC 기반 → 표준 Redfish 우선, OEM 의존 작음
+#     (Lenovo XCC3 와 유사 — OpenBMC alignment)
+# Vault: 미생성 (사용자 명시 2026-05-01)
+# Note: redfish_generic.yml (priority=0) 가 OpenBMC 기반 BMC 부분 cover.
+#   본 adapter 는 vendor 시그니처 명확한 경우 우선.
+# ──────────────────────────────────────────────────────────────────────────────
+adapter_id: redfish_quanta_qct_bmc
+channel: redfish
+priority: 80
+
+match:
+  vendor: ["Quanta", "QUANTA", "Quanta Computer", "Quanta Computer Inc.", "Quanta Cloud Technology", "QCT"]
+  model_patterns:
+    - "QuantaGrid.*"
+    - "QuantaPlex.*"
+    - "D54Q.*"
+    - "D52BQ.*"
+
+capabilities:
+  sections_supported:
+    - system
+    - hardware
+    - bmc
+    - cpu
+    - memory
+    - storage
+    - network
+    - firmware
+    - power
+    - users
+
+collect:
+  strategy: standard_only
+  standard_tasks: "redfish-gather/tasks/collect_standard.yml"
+
+normalize:
+  standard_tasks: "redfish-gather/tasks/normalize_standard.yml"
+
+credentials:
+  profile: "quanta"
+  fallback_profiles: []
+  recovery_accounts: []
+
+auth:
+  preferred: [basic]
+
+graceful_degradation:
+  on_section_fail: continue
+  on_auth_fail: abort
+  critical_sections: [system, hardware]
+  optional_sections: [firmware, power]
+
+vendor_notes:
+  bmc_name: "BMC"  # OpenBMC 기반 — 별도 표시명 없음
+  base_platform: openbmc
+  oem_namespace: "Oem.OpenBmc"
+  vault_status: "not_created (user explicit 2026-05-01)"
+  expected_models:
+    - "QuantaGrid D54Q-2U"
+    - "QuantaGrid D52BQ-2U"
+    - "QuantaPlex T42S-2U"
+
+diagnosis:
+  protocol_name: redfish
+  not_supported_message: "Quanta QCT BMC 장비 (OpenBMC 기반) — Redfish 표준 호환 가정 (lab 부재 — web sources 기반). vault 미생성 (사용자 명시 2026-05-01)."

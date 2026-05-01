@@ -1,6 +1,72 @@
 # 의사결정 로그
 
-> 최종 갱신: 2026-04-29 (Round 12 — ESXi BUG #1/#2/#4 fix)
+> 최종 갱신: 2026-05-01 (cycle-019 — 7-loop + 10R audit P1 22건 + 신규 vendor 4종 도입)
+
+## 2026-05-01 (cycle-019) — 신규 vendor 4종 도입 (Huawei / Inspur / Fujitsu / Quanta)
+
+### 컨텍스트
+사용자 (hshwang1994) 명시:
+1. 2026-05-01 1차: "신규 장비 도입할 의향이 있다 다만 테스트할 lab 장비가 없다. 일단 vault는 만들지 말고 코드 생성에 대한 티켓은 만들어라"
+2. 2026-05-01 2차 (본 cycle): "신규 밴더 추가 승인하겠다"
+
+cycle-019 본 cycle 에서 7-loop + 10R extended audit P1 22건 적용 후, 사용자 명시 승인으로 신규 vendor 4종 진행.
+
+### 결정
+4 vendor adapter 코드 영역 진행. **vault 단계 SKIP** (lab 부재 — 사용자 명시 1차).
+
+### 적용 범위 (rule 50 R2 9단계 매핑)
+
+| 단계 | 작업 | 상태 |
+|---|---|---|
+| 1. vendor_aliases.yml 매핑 | 4 vendor alias 추가 | ✅ |
+| 2. adapter YAML 생성 | huawei_ibmc / inspur_isbmc / fujitsu_irmc / quanta_qct_bmc | ✅ |
+| 3. (선택) OEM tasks | 부재 (standard_only — 사이트 fixture 확보 후 보강) | DEFER |
+| 4. vault 생성 | vault/redfish/{vendor}.yml | **SKIP (사용자 명시)** |
+| 5. baseline | schema/baseline_v1/{vendor}_baseline.json | DEFER (lab 부재) |
+| 6. ai-context | .claude/ai-context/vendors/{vendor}.md 4종 | ✅ |
+| 7. vendor-boundary-map.yaml | huawei/inspur/fujitsu/quanta 추가 | ✅ |
+| 8. live-validation | docs/13_redfish-live-validation.md Round 갱신 | DEFER (lab 부재) |
+| 9. decision-log | 본 entry | ✅ |
+
+### redfish_gather.py 동기화
+
+`_FALLBACK_VENDOR_MAP` + `_BMC_PRODUCT_HINTS` + `bmc_names` dict 모두 4 vendor 추가 (rule 12 R1 nosec 주석 보존).
+
+- `_FALLBACK_VENDOR_MAP`: 11 신 entry (huawei/inspur/fujitsu/quanta 변형 alias)
+- `_BMC_PRODUCT_HINTS`: 7 신 entry (ibmc/fusionserver/isbmc/irmc/primergy/quantagrid/quantaplex)
+- `bmc_names`: 4 신 entry (huawei→iBMC, inspur→ISBMC, fujitsu→iRMC, quanta→BMC)
+
+### 영향
+- adapter 표면: 34 → 38 (Redfish 23 → 27)
+- vendor 정규화 list: 5 → 9
+- vault 신규: 0 (사용자 명시 SKIP)
+- baseline 신규: 0 (lab 부재)
+- 운영 가능 시점: lab 또는 사이트 장비 도입 + vault 생성 시
+
+### 부재 시 동작 (graceful degradation)
+
+- ServiceRoot 무인증 detect → vendor=huawei/inspur/fujitsu/quanta 정규화 OK
+- vault 부재 → precheck auth 단계에서 status=failed (rule 27 R4 graceful)
+- 호출자 envelope: status=failed + errors[] = ["vault not found for vendor=<huawei|inspur|fujitsu|quanta>"]
+
+### 사이트 도입 시 절차
+
+1. `vault/redfish/{vendor}.yml` 생성 (ansible-vault encrypt + username/password)
+2. `tests/redfish-probe/probe_redfish.py --vendor {vendor}` 실행
+3. `schema/baseline_v1/{vendor}_baseline.json` 생성
+4. `tests/evidence/<날짜>-{vendor}.md` Round 검증 기록
+5. `docs/13_redfish-live-validation.md` Round 갱신
+6. `capture-site-fixture` skill 으로 사이트 fixture 캡처
+
+### rule / 정본 참조
+
+- rule 50 R2 (vendor 추가 9단계, vault SKIP 사용자 명시 적용)
+- rule 96 R1-A (lab 부재 — web sources 4종 1개 이상 — 4 ticket 모두 충족)
+- rule 12 R1 (vendor 경계 — _FALLBACK_VENDOR_MAP 등 nosec 보존)
+- rule 92 R5 (사용자 명시 승인 — 본 entry 가 승인 trace)
+- ticket: `docs/ai/tickets/2026-05-01-gather-coverage/fixes/F44~F47.md`
+
+---
 
 ## Round 12 (2026-04-29) — ESXi 채널 hostname / vendor / extended modules fix
 

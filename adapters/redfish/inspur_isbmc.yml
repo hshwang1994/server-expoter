@@ -1,0 +1,80 @@
+---
+# ── Origin metadata (rule 96 R1 + R1-A) ───────────────────────────────────────
+# Vendor: Inspur
+# Firmware: ISBMC (Inspur Server BMC) — NF / TS 시리즈
+# Origin: Inspur 공식 문서 / 매뉴얼
+# Last sync: 2026-05-01 (web sources only — lab 부재)
+# Notes: NF5280M5 / NF5280M6 / NF5280LM6 / NF8480M6 (4-socket).
+#   사용자 명시 승인 (2026-05-01) — vault SKIP. lab/사이트 도입 시 vault만 추가.
+# Sources (rule 96 R1-A — lab 부재):
+#   - https://manualzz.com/doc/o/v7c5h/inspur-server-user-manual-nf5280m5-9.14-redfish
+#   - https://www.inspur.com/eportal/fileDir/defaultCurSite/resource/cms/2020/04/2020040211224398612.pdf
+#   - https://www.inspur.com/eportal/fileDir/en/resource/cms/2023/01/2023011012511875447.pdf (NF5280LM6 White Paper)
+# Compatibility 가정 (web sources):
+#   - manufacturer: "Inspur" / "Inspur Information Technology Company Limited"
+#   - Manager URI: /redfish/v1/Managers/<id> (표준)
+#   - System URI: /redfish/v1/Systems/<id>
+#   - OEM namespace: Oem.Inspur (부분 사용 가능)
+#   - 표준 Redfish + IPMI 2.0
+# Vault: 미생성 (사용자 명시 2026-05-01)
+# ──────────────────────────────────────────────────────────────────────────────
+adapter_id: redfish_inspur_isbmc
+channel: redfish
+priority: 80
+
+match:
+  vendor: ["Inspur", "INSPUR", "Inspur Information Technology Company Limited", "Inspur Information", "Inspur Systems"]
+  model_patterns:
+    - "NF5280.*"
+    - "NF8480.*"
+    - "NF5466.*"
+    - "TS860.*"
+    - "SA5212.*"
+
+capabilities:
+  sections_supported:
+    - system
+    - hardware
+    - bmc
+    - cpu
+    - memory
+    - storage
+    - network
+    - firmware
+    - power
+    - users
+
+collect:
+  strategy: standard_only
+  standard_tasks: "redfish-gather/tasks/collect_standard.yml"
+
+normalize:
+  standard_tasks: "redfish-gather/tasks/normalize_standard.yml"
+
+credentials:
+  profile: "inspur"
+  fallback_profiles: []
+  recovery_accounts: []
+
+auth:
+  preferred: [basic]
+
+graceful_degradation:
+  on_section_fail: continue
+  on_auth_fail: abort
+  critical_sections: [system, hardware]
+  optional_sections: [firmware, power]
+
+vendor_notes:
+  bmc_name: "ISBMC"
+  oem_namespace: "Oem.Inspur"
+  vault_status: "not_created (user explicit 2026-05-01)"
+  expected_models:
+    - "NF5280M5"
+    - "NF5280M6"
+    - "NF5280LM6"
+    - "NF8480M6"
+
+diagnosis:
+  protocol_name: redfish
+  not_supported_message: "Inspur ISBMC 장비 — Redfish 표준 호환 가정 (lab 부재 — web sources 기반). vault 미생성 (사용자 명시 2026-05-01)."

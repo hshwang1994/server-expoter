@@ -137,10 +137,13 @@ server-exporter/ (프로젝트 루트)
        ├── build_*.yml (10개: sections, status, errors, meta, correlation, output)
        └── supported_sections.yml, status_rules.yml
 
-[3] Adapter 시스템 (34개 YAML + adapters/registry.yml — cycle 2026-05-01 +7 신 generation)
-   ├── adapters/redfish/ (23개: generic + dell×4 + hpe×5 + lenovo×4 + supermicro×5 + cisco×3 + ucs_xseries×1)
-   │   - cycle 2026-05-01 신규 7개: dell_idrac10 (F41) + hpe_ilo7 (F47) + lenovo_xcc3 (F55)
-   │   - + supermicro_x12/x13/x14 (F61) + cisco_ucs_xseries (F69)
+[3] Adapter 시스템 (38개 YAML + adapters/registry.yml — cycle 2026-05-01 +11)
+   ├── adapters/redfish/ (27개: generic + dell×4 + hpe×5 + lenovo×4 + supermicro×5 + cisco×3 + ucs_xseries×1
+   │                       + huawei×1 + inspur×1 + fujitsu×1 + quanta×1)
+   │   - cycle 2026-05-01 신 generation 7개: dell_idrac10 (F41) + hpe_ilo7 (F47) + lenovo_xcc3 (F55)
+   │     + supermicro_x12/x13/x14 (F61) + cisco_ucs_xseries (F69)
+   │   - cycle 2026-05-01 신규 vendor 4개 (vault SKIP, 사용자 명시 승인): F44 huawei_ibmc /
+   │     F45 inspur_isbmc / F46 fujitsu_irmc / F47 quanta_qct_bmc
    ├── adapters/os/ (7개: linux_*/windows_*)
    └── adapters/esxi/ (4개: generic + 6x/7x/8x)
 

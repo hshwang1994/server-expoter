@@ -1,8 +1,57 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-01 (cycle-019 — 7-loop + 10R extended audit P1 22건 일괄 수행)
+## 일자: 2026-05-01 (cycle-019 phase 2 — F44~F47 신규 vendor 4종 도입)
 
-### 사용자 명시
+### 사용자 명시 (phase 2)
+- "신규 밴더 추가 승인하겠다" (rule 50 R2 9단계 vault SKIP — phase 1 사용자 명시 그대로 적용)
+
+### Phase 2 적용 — Huawei / Inspur / Fujitsu / Quanta
+
+| 단계 (rule 50 R2) | 작업 | 결과 |
+|---|---|---|
+| 1. vendor_aliases.yml | huawei / inspur / fujitsu / quanta 4 entry | ✅ |
+| 2. adapter YAML | huawei_ibmc / inspur_isbmc / fujitsu_irmc / quanta_qct_bmc (priority=80) | ✅ |
+| 3. OEM tasks | DEFER — standard_only (사이트 fixture 확보 후) | DEFER |
+| 4. vault | **SKIP** (사용자 명시 phase 1) | SKIP |
+| 5. baseline | DEFER (lab 부재) | DEFER |
+| 6. ai-context | huawei.md / inspur.md / fujitsu.md / quanta.md | ✅ |
+| 7. vendor-boundary-map.yaml | 4 vendor + 신 generation 7 adapter 매핑 갱신 | ✅ |
+| 8. live-validation | DEFER (lab 부재) | DEFER |
+| 9. decision-log | docs/19_decision-log.md cycle-019 entry | ✅ |
+
+### redfish_gather.py 동기화
+
+- `_FALLBACK_VENDOR_MAP` +11 entry (huawei/inspur/fujitsu/quanta 변형 alias)
+- `_BMC_PRODUCT_HINTS` +7 entry (ibmc / fusionserver / isbmc / irmc / primergy / quantagrid / quantaplex)
+- `bmc_names` +4 entry (huawei→iBMC, inspur→ISBMC, fujitsu→iRMC, quanta→BMC)
+
+### 검증 (phase 2)
+
+- pytest **108/108 PASS** (101 → 108, F44~F47 회귀 7건 신규)
+- verify_harness_consistency PASS (vendor_aliases ↔ _FALLBACK_VENDOR_MAP sync 게이트 통과)
+- verify_vendor_boundary PASS (nosec 주석 적절 — Allowed 영역만)
+- check_project_map_drift PASS (fingerprint 갱신)
+- py_compile + YAML 6 파일 syntax PASS
+- adapter 4 필수 키 + canonical vendor match 모두 PASS
+
+### 표면 카운트 변동 (phase 2)
+
+- adapters: 34 → 38 (Redfish 23 → 27, +4 신규 vendor)
+- vendor 정규화 list: 5 → 9 (5 → 9)
+- vault: 변동 없음 (SKIP)
+- baseline: 변동 없음 (lab 부재)
+
+### 부재 시 동작 (graceful degradation)
+
+- ServiceRoot 무인증 detect → vendor 정규화 OK (huawei/inspur/fujitsu/quanta)
+- vault 부재 → precheck auth 단계 status=failed (rule 27 R4)
+- envelope: status=failed + errors[] 명시 ("vault not found for vendor=<X>")
+
+---
+
+## 일자: 2026-05-01 (cycle-019 phase 1 — 7-loop + 10R extended audit P1 22건 일괄 수행)
+
+### 사용자 명시 (phase 1)
 - "/clear" 후 "예정돼있는 티켓 모두 수행해."
 
 ### 본 cycle 적용 (P1 카테고리)

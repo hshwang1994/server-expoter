@@ -1,8 +1,31 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-05-01 (cycle-019 — 7-loop + 10R extended audit P1 22건 일괄 수행 완료)
+## 일자: 2026-05-01 (cycle-019 phase 2 — F44~F47 신규 vendor 4종 도입 완료)
 
-### 본 cycle 완료 (사용자 명시 "예정돼있는 티켓 모두 수행해.")
+### 본 phase 완료 (사용자 명시 "신규 밴더 추가 승인하겠다")
+
+- **rule 50 R2 9단계 중 1/2/6/7/9 진행** — vault SKIP (사용자 명시 phase 1)
+- **adapter 4 신규**: huawei_ibmc / inspur_isbmc / fujitsu_irmc / quanta_qct_bmc (priority=80, lab 부재)
+- **vendor_aliases / _FALLBACK_VENDOR_MAP / _BMC_PRODUCT_HINTS / bmc_names** 동기화 (4 위치)
+- **ai-context vendors/** 4 신규 (huawei.md / inspur.md / fujitsu.md / quanta.md)
+- **vendor-boundary-map.yaml** 4 vendor + 신 generation 7 adapter 매핑 갱신
+- **decision-log** docs/19_decision-log.md cycle-019 entry
+- 표면: adapter 34 → 38 / vendor 정규화 5 → 9
+- pytest 101 → 108 (+7 신규 회귀)
+
+### 잔여 (외부 의존)
+
+- **vault 생성** (lab/사이트 도입 시) — `vault/redfish/{huawei,inspur,fujitsu,quanta}.yml` ansible-vault encrypt
+- **baseline 생성** (lab 도입 시) — `schema/baseline_v1/{vendor}_baseline.json`
+- **사이트 fixture 캡처** — capture-site-fixture skill (도입 시)
+- **OEM tasks** — `redfish-gather/tasks/vendors/{vendor}/` (사이트 fixture 확보 후 OEM extraction 보강)
+- **Round 검증 / live-validation** — docs/13_redfish-live-validation.md
+
+---
+
+## 일자: 2026-05-01 (cycle-019 phase 1 — 7-loop + 10R extended audit P1 22건 일괄 수행 완료)
+
+### 본 phase 완료 (사용자 명시 "예정돼있는 티켓 모두 수행해.")
 
 - **호환성 fallback P1 22건 일괄 적용**:
   - F41 dell_idrac10.yml (PowerEdge 17G) / F47 hpe_ilo7.yml (Gen12) / F55 lenovo_xcc3.yml (V4 / OpenBMC)
