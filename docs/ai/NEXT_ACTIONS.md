@@ -2,27 +2,27 @@
 
 ## 일자: 2026-05-01 (cycle-019 phase 3 — 잔여 ticket 상태 close)
 
-### 본 phase 완료 (사용자 명시 "남은 티켓 모두 수행")
+### 본 phase 완료 (사용자 명시 "남은 티켓 모두 수행 / 더이상 작업할게없나")
 
 - **PROJECT_MAP drift 정정** (cycle-015 _grafana 제거 / cycle-019 +11 adapter 반영) — commit `9bf9d196`
-- **fixes/INDEX.md status 마커 추가** — 22 호환성 ticket 전수 분류:
-  - P1 [DONE]: 3건 (F05/F13/F23 — 이전 P1 follow-up)
-  - [VERIFIED-COMPATIBLE]: 5건 (F01/F10/F12/F34/F35/F40) — 코드 자동 호환
-  - [TRACKING-ONLY]: 5건 (F09/F16/F17/F24/F41/F42) — 정기 추적
-  - [BLOCKED:lab-fixture]: 4건 (F02/F04/F15/F38)
-  - [BLOCKED:incident]: 4건 (F21/F22/F33)
-  - [BLOCKED:user-approval]: 1건 (F20 — 빌드 시간 영향)
-  - [BLOCKED:schema-out-of-scope]: 1건 (F37)
-  - [BY-DESIGN]: 1건 (F39)
-- **분석 결과**: AI 자율 진행 가능 작업 0건 (모두 외부 의존)
+- **fixes/INDEX.md status 정정** — F02/F20/F21 [DONE] 정정 (commit 36c40db9 적용 누락 분류)
+- **22 호환성 ticket 전수 분류** (정확한 status):
+  - **[DONE]**: 9건 (P1 3 + 호환성 일괄 3 + 묶음 3 — 모든 코드 적용 완료)
+  - **[VERIFIED-COMPATIBLE]**: 5건 (F01/F10/F12/F34/F35/F40) — 코드 자동 호환
+  - **[TRACKING-ONLY]**: 5건 (F09/F16/F17/F24/F41/F42) — 정기 추적
+  - **[BLOCKED:lab-fixture]**: 3건 (F04/F15/F38)
+  - **[BLOCKED:incident]**: 2건 (F22/F33)
+  - **[BY-DESIGN]**: 1건 (F39)
+  - **[BLOCKED:rhel10-adoption]**: 1건 (F43)
+  - **[BLOCKED:schema-out-of-scope]**: 1건 (F37)
+- **결론**: 호환성 ticket 전체 41% (9/22) 코드 적용 완료, 23% (5/22) 자동 호환 검증, 36% (8/22) 외부 의존
 
-### 잔여 (외부 의존 — AI 환경 외 결정 필요)
+### 잔여 (외부 의존 — AI 환경 외)
 
 | 분류 | 건수 | 진입 조건 |
 |---|---|---|
-| lab fixture 캡처 후 코드 적용 | 4건 (F02/F04/F15/F38) | HPE iLO5 구 펌웨어 / Supermicro X9 / Dell Core CPU / Windows IB host |
-| 사고 재현 후 코드 적용 | 4건 (F21/F22/F33) | RHEL 9 ssh-rsa / WinRM TLS 1.3 / Session lockout |
-| 사용자 빌드 시간 결정 | 1건 (F20) | multi-account host당 +25s 영향 평가 |
+| lab fixture 캡처 후 코드 적용 | 3건 (F04/F15/F38) | HPE iLO5 구 펌웨어 / Supermicro X9 / Windows Mellanox WinOF host |
+| 사고 재현 후 코드 적용 | 2건 (F22/F33) | WinRM TLS 1.3 / Redfish Session lockout |
 | RHEL 10 lab 도입 시 | 1건 (F43) | RHEL 10 운영 도입 결정 |
 | schema 신설 결정 | 1건 (F37) | hba_ib 섹션 신설 (호환성 외 영역) |
 | 정기 추적 (분기/연간) | 5건 | DMTF release / vendor EOL / CVE / community.vmware / errata |

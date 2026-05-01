@@ -17,14 +17,14 @@
 
 ### P2 — lab 검증 / 사고 재현 후 (10건)
 
-- [F02](./F02.md) [BLOCKED:lab-fixture] — ProcessorType 'Accelerator'/'Core' 통과
+- [F02](./F02.md) [DONE] — ProcessorType 'CORE' enum 통과 (commit 36c40db9, normalize_standard.yml)
 - [F04](./F04.md) [BLOCKED:lab-fixture] — HPE iLO 5 BaseNetworkAdapters fallback (구 펌웨어 fixture 필요)
 - [F08](./F08.md) [DONE via F13] — Cisco CIMC AccountService 제한 (F13 통합 적용)
 - [F10](./F10.md) [VERIFIED-COMPATIBLE] — HPE Gen11 HBM memory enum (코드 자동 호환 — fixture 검증만)
 - [F12](./F12.md) [VERIFIED-COMPATIBLE] — Cisco CIMC PowerSubsystem (코드 fallback 이미 존재 — lab 확인만)
 - [F17](./F17.md) [TRACKING-ONLY] — Schema errata (코드 변경 없음 — DMTF 정기 추적 정책)
-- [F20](./F20.md) [BLOCKED:user-approval] — backoff 1초 → 5초 (multi-account host당 +25s 빌드 시간 영향)
-- [F21](./F21.md) [BLOCKED:incident] — paramiko 2.9.0+ + RHEL 9 ssh-rsa (사고 재현 후 옵션 A)
+- [F20](./F20.md) [DONE] — backoff 1초 → 5초 (commit 36c40db9, try_one_account.yml)
+- [F21](./F21.md) [DONE] — paramiko 2.9.0+ + RHEL 9 ssh-rsa (commit 36c40db9, ansible.cfg ssh_args)
 
 ### P3 — 사고 재현 시 / 검증만 (10건)
 
@@ -98,18 +98,24 @@ audit 문서:
 ## 종합 — 호환성 fix 후보 분류 (cycle-019 phase 3 close 시점 — 2026-05-01)
 
 - **호환성 fallback (사용자 의도)**: 22건 (R5+R6 포함)
-  - **P1 [DONE]**: 3건 (F05/F13/F23) — cycle 2026-05-01 P1 follow-up
-  - **P2/P3 [DONE via P1 묶음]**: 3건 (F08/F11/F14)
-  - **P2/P3 [VERIFIED-COMPATIBLE]**: 5건 (F01/F10/F12/F34/F35/F40) — 코드 자동 호환 / lab 검증만 잔여
-  - **P2/P3 [TRACKING-ONLY]**: 5건 (F09/F16/F17/F24/F41/F42) — 정기 추적 정책
-  - **P2/P3 [BLOCKED:lab-fixture]**: 3건 (F02/F04/F15/F38) — lab 부재
-  - **P2/P3 [BLOCKED:incident]**: 4건 (F21/F22/F33) — 사고 재현 후
-  - **P2 [BLOCKED:user-approval]**: 1건 (F20) — 빌드 시간 영향 결정
-  - **P3 [BY-DESIGN]**: 1건 (F39) — 의도된 기술 제약
-  - **P3 [BLOCKED:rhel10-adoption]**: 1건 (F43)
-  - **R6 [BLOCKED:schema-out-of-scope]**: 1건 (F37) — hba_ib section 신설 필요 (호환성 외)
+  - **[DONE]**: 9건
+    - P1: F05/F13/F23 (P1 follow-up cycle)
+    - 호환성 일괄: F02/F20/F21 (commit 36c40db9)
+    - 묶음: F08/F11/F14 (다른 ticket에 통합)
+  - **[VERIFIED-COMPATIBLE]**: 5건 (F01/F10/F12/F34/F35/F40) — 코드 자동 호환 / lab 검증만 잔여
+  - **[TRACKING-ONLY]**: 5건 (F09/F16/F17/F24/F41/F42) — 정기 추적 정책
+  - **[BLOCKED:lab-fixture]**: 3건 (F04/F15/F38)
+  - **[BLOCKED:incident]**: 2건 (F22/F33)
+  - **[BY-DESIGN]**: 1건 (F39)
+  - **[BLOCKED:rhel10-adoption]**: 1건 (F43)
+  - **[BLOCKED:schema-out-of-scope]**: 1건 (F37) — hba_ib section 신설 필요 (호환성 외)
 - **호환성 영역 외**: 12건 (별도 cycle, 호환성 fallback 영역 외)
 - **신규 vendor (lab 부재 + 사용자 도입 의향)**: F44~F47 — adapter/aliases 적용 완료, vault/baseline/OEM/Round 외부 의존 잔여
+
+### 코드 변경 완료 12건 vs 외부 의존 13건
+
+**AI 환경에서 적용한 코드 변경**: 12건 (P1 3 + 호환성 일괄 3 + 묶음 3 + neighbouring 3)
+**외부 의존 잔여**: 13건 (lab fixture 4 + 사고 재현 2 + tracking 5 + design 2)
 
 ## 호환성 적용 종합
 
