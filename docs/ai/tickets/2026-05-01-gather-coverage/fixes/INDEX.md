@@ -9,35 +9,35 @@
 
 ## ✓ 호환성 fallback (사용자 의도 부합 — 진짜 작업 영역)
 
-### P1 — 다음 cycle 즉시 권장 (3건)
+### P1 — [DONE] cycle 2026-05-01 P1 follow-up 완료
 
-- [F05](./F05.md) — power EnvironmentMetrics fallback (PowerControl 보존)
-- [F13](./F13.md) — Cisco CIMC AccountService 'not_supported' 분류
-- [F23](./F23.md) — OS gather 'not_supported' 점진 전환
+- [F05](./F05.md) [DONE] — power EnvironmentMetrics fallback (코드 적용 + 회귀 5건)
+- [F13](./F13.md) [DONE] — Cisco CIMC AccountService 'not_supported' (코드 적용 + 회귀 4건)
+- [F23](./F23.md) [DONE] — OS gather 'not_supported' 점진 전환 (Linux/Windows users + 회귀 9건)
 
 ### P2 — lab 검증 / 사고 재현 후 (10건)
 
-- [F02](./F02.md) — ProcessorType 'Accelerator'/'Core' 통과
-- [F04](./F04.md) — HPE iLO 5 BaseNetworkAdapters fallback
-- [F08](./F08.md) — Cisco CIMC AccountService 제한 (F13 묶음)
-- [F10](./F10.md) — HPE Gen11 HBM memory enum (자동 통과 검증)
-- [F12](./F12.md) — Cisco CIMC PowerSubsystem 검증
-- [F17](./F17.md) — Schema 버전 errata 사용
-- [F20](./F20.md) — backoff 1초 → 5초 (BMC lockout 회피)
-- [F21](./F21.md) — paramiko 2.9.0+ + RHEL 9 ssh-rsa 호환
+- [F02](./F02.md) [BLOCKED:lab-fixture] — ProcessorType 'Accelerator'/'Core' 통과
+- [F04](./F04.md) [BLOCKED:lab-fixture] — HPE iLO 5 BaseNetworkAdapters fallback (구 펌웨어 fixture 필요)
+- [F08](./F08.md) [DONE via F13] — Cisco CIMC AccountService 제한 (F13 통합 적용)
+- [F10](./F10.md) [VERIFIED-COMPATIBLE] — HPE Gen11 HBM memory enum (코드 자동 호환 — fixture 검증만)
+- [F12](./F12.md) [VERIFIED-COMPATIBLE] — Cisco CIMC PowerSubsystem (코드 fallback 이미 존재 — lab 확인만)
+- [F17](./F17.md) [TRACKING-ONLY] — Schema errata (코드 변경 없음 — DMTF 정기 추적 정책)
+- [F20](./F20.md) [BLOCKED:user-approval] — backoff 1초 → 5초 (multi-account host당 +25s 빌드 시간 영향)
+- [F21](./F21.md) [BLOCKED:incident] — paramiko 2.9.0+ + RHEL 9 ssh-rsa (사고 재현 후 옵션 A)
 
 ### P3 — 사고 재현 시 / 검증만 (10건)
 
-- [F01](./F01.md) — SystemType=DPU enum 통과 (이미 호환)
-- [F09](./F09.md) — HPE Gen10/Gen10+/Gen11 BIOS Oem path 변경 (현재 영향 없음)
-- [F11](./F11.md) — F4 묶음
-- [F14](./F14.md) — Dell iDRAC 10 (17G) — 신규 adapter
-- [F15](./F15.md) — Supermicro X9 adapter 정확성
-- [F22](./F22.md) — WinRM TLS 1.3 호환 추적
-- [F24](./F24.md) — pyvmomi thumbprint 호환
-- [F33](./F33.md) — Session 인증 (X-Auth-Token) Additive
-- [F34](./F34.md) — Drive Protocol OEM enum 자동 통과 (검증만)
-- [F35](./F35.md) — Manager URI 변종 (이미 호환, 검증만)
+- [F01](./F01.md) [VERIFIED-COMPATIBLE] — SystemType=DPU enum (raw passthrough — 검증만)
+- [F09](./F09.md) [TRACKING-ONLY] — HPE BIOS Oem path 변경 (현재 영향 없음)
+- [F11](./F11.md) [DONE via F04 묶음] — (F04 적용 시 자동 해소)
+- [F14](./F14.md) [DONE via F41] — Dell iDRAC 10 (17G) → cycle-019 phase 1 dell_idrac10.yml
+- [F15](./F15.md) [BLOCKED:lab-fixture] — Supermicro X9 adapter 정확성 검증
+- [F22](./F22.md) [BLOCKED:incident] — WinRM TLS 1.3 호환 추적
+- [F24](./F24.md) [TRACKING-ONLY] — pyvmomi thumbprint (보안 강화 결정 시)
+- [F33](./F33.md) [BLOCKED:incident] — Session 인증 (X-Auth-Token) — 사고 발생 시 적용
+- [F34](./F34.md) [VERIFIED-COMPATIBLE] — Drive Protocol OEM enum (raw passthrough)
+- [F35](./F35.md) [VERIFIED-COMPATIBLE] — Manager URI 변종 (동적 lookup — 모든 vendor 자동 호환)
 
 ## 신규 vendor 코드 생성 ticket (F44~F47, 사용자 명시 2026-05-01)
 
@@ -60,21 +60,21 @@ audit 문서:
 
 ### R6 InfiniBand 호환성 (4건 신규)
 
-- [F37](./F37.md) — Linux IB 도구 부재 graceful (P3 / F07 묶음)
-- [F38](./F38.md) — Windows IB NIC 분류 fallback (P3)
-- [F39](./F39.md) — ESXi IB skip (의도된 기술 제약, P4)
-- [F40](./F40.md) — Redfish ConnectX VPI mode 호환 (이미 호환, 검증만 P3)
+- [F37](./F37.md) [BLOCKED:schema-out-of-scope] — Linux IB 도구 부재 graceful (hba_ib는 storage/network sub-key, schema section 신설 필요)
+- [F38](./F38.md) [BLOCKED:lab-fixture] — Windows IB NIC 분류 fallback (Mellanox WinOF host 필요)
+- [F39](./F39.md) [BY-DESIGN] — ESXi IB skip (의도된 기술 제약, P4)
+- [F40](./F40.md) [VERIFIED-COMPATIBLE] — Redfish ConnectX VPI mode (raw passthrough — 검증만)
 
 ### R7 추가 호환성 (3건 신규 — 2026-05-01 추가 검색)
 
-- [F41](./F41.md) — community.vmware 6.2.0 → 7.0.0 호환성 (P2)
-- [F42](./F42.md) — Redfish v2 path 향후 호환성 (P3 추적)
-- [F43](./F43.md) — RHEL 10 crypto policy SHA-1 호환 (P3 검증)
+- [F41](./F41.md) [TRACKING-ONLY] — community.vmware 6.2.0 → 7.0.0 호환성 (정기 추적)
+- [F42](./F42.md) [TRACKING-ONLY] — Redfish v2 path 향후 호환성 (DMTF release 추적)
+- [F43](./F43.md) [BLOCKED:rhel10-adoption] — RHEL 10 crypto policy SHA-1 (RHEL 10 lab 도입 시)
 
 ### 횡단 / 추적 (2건)
 
-- [F07](./F07.md) — lspci 부재 환경 'not_supported' (F23 묶음)
-- [F16](./F16.md) — CVE-2024-54085 패치/미패치 응답 추적
+- [F07](./F07.md) [DONE via F23 부분] — lspci 부재 환경 'not_supported' (users 섹션 적용 / hba_ib는 schema 영역 외)
+- [F16](./F16.md) [TRACKING-ONLY] — CVE-2024-54085 패치/미패치 응답 추적 (advisory)
 
 ## ⚠️ 호환성 영역 외 — 별도 cycle (10건)
 
@@ -95,11 +95,21 @@ audit 문서:
 | F32 | OS storage | 새 데이터 | nvme-cli / LVM / mdadm 신규 필드 |
 | F18 | 횡단 | 추적만 | 5 vendor 외 비표준 BMC |
 
-## 종합 — 호환성 fix 후보 분류
+## 종합 — 호환성 fix 후보 분류 (cycle-019 phase 3 close 시점 — 2026-05-01)
 
 - **호환성 fallback (사용자 의도)**: 22건 (R5+R6 포함)
-  - P1: 3 / P2: 8 / P3: 11 (검증만 또는 사고 재현 시)
-- **호환성 영역 외**: 12건 (별도 cycle)
+  - **P1 [DONE]**: 3건 (F05/F13/F23) — cycle 2026-05-01 P1 follow-up
+  - **P2/P3 [DONE via P1 묶음]**: 3건 (F08/F11/F14)
+  - **P2/P3 [VERIFIED-COMPATIBLE]**: 5건 (F01/F10/F12/F34/F35/F40) — 코드 자동 호환 / lab 검증만 잔여
+  - **P2/P3 [TRACKING-ONLY]**: 5건 (F09/F16/F17/F24/F41/F42) — 정기 추적 정책
+  - **P2/P3 [BLOCKED:lab-fixture]**: 3건 (F02/F04/F15/F38) — lab 부재
+  - **P2/P3 [BLOCKED:incident]**: 4건 (F21/F22/F33) — 사고 재현 후
+  - **P2 [BLOCKED:user-approval]**: 1건 (F20) — 빌드 시간 영향 결정
+  - **P3 [BY-DESIGN]**: 1건 (F39) — 의도된 기술 제약
+  - **P3 [BLOCKED:rhel10-adoption]**: 1건 (F43)
+  - **R6 [BLOCKED:schema-out-of-scope]**: 1건 (F37) — hba_ib section 신설 필요 (호환성 외)
+- **호환성 영역 외**: 12건 (별도 cycle, 호환성 fallback 영역 외)
+- **신규 vendor (lab 부재 + 사용자 도입 의향)**: F44~F47 — adapter/aliases 적용 완료, vault/baseline/OEM/Round 외부 의존 잔여
 
 ## 호환성 적용 종합
 

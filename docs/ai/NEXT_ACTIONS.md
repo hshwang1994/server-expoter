@@ -1,5 +1,47 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-01 (cycle-019 phase 3 — 잔여 ticket 상태 close)
+
+### 본 phase 완료 (사용자 명시 "남은 티켓 모두 수행")
+
+- **PROJECT_MAP drift 정정** (cycle-015 _grafana 제거 / cycle-019 +11 adapter 반영) — commit `9bf9d196`
+- **fixes/INDEX.md status 마커 추가** — 22 호환성 ticket 전수 분류:
+  - P1 [DONE]: 3건 (F05/F13/F23 — 이전 P1 follow-up)
+  - [VERIFIED-COMPATIBLE]: 5건 (F01/F10/F12/F34/F35/F40) — 코드 자동 호환
+  - [TRACKING-ONLY]: 5건 (F09/F16/F17/F24/F41/F42) — 정기 추적
+  - [BLOCKED:lab-fixture]: 4건 (F02/F04/F15/F38)
+  - [BLOCKED:incident]: 4건 (F21/F22/F33)
+  - [BLOCKED:user-approval]: 1건 (F20 — 빌드 시간 영향)
+  - [BLOCKED:schema-out-of-scope]: 1건 (F37)
+  - [BY-DESIGN]: 1건 (F39)
+- **분석 결과**: AI 자율 진행 가능 작업 0건 (모두 외부 의존)
+
+### 잔여 (외부 의존 — AI 환경 외 결정 필요)
+
+| 분류 | 건수 | 진입 조건 |
+|---|---|---|
+| lab fixture 캡처 후 코드 적용 | 4건 (F02/F04/F15/F38) | HPE iLO5 구 펌웨어 / Supermicro X9 / Dell Core CPU / Windows IB host |
+| 사고 재현 후 코드 적용 | 4건 (F21/F22/F33) | RHEL 9 ssh-rsa / WinRM TLS 1.3 / Session lockout |
+| 사용자 빌드 시간 결정 | 1건 (F20) | multi-account host당 +25s 영향 평가 |
+| RHEL 10 lab 도입 시 | 1건 (F43) | RHEL 10 운영 도입 결정 |
+| schema 신설 결정 | 1건 (F37) | hba_ib 섹션 신설 (호환성 외 영역) |
+| 정기 추적 (분기/연간) | 5건 | DMTF release / vendor EOL / CVE / community.vmware / errata |
+
+### 신규 vendor 4종 (F44~F47) 잔여
+
+- **vault 생성** — `vault/redfish/{huawei,inspur,fujitsu,quanta}.yml` (lab/사이트 도입 시 ansible-vault encrypt)
+- **baseline 생성** — `schema/baseline_v1/{vendor}_baseline.json` (lab 도입 시)
+- **사이트 fixture 캡처** — capture-site-fixture skill (도입 시)
+- **OEM tasks** — `redfish-gather/tasks/vendors/{vendor}/` (사이트 fixture 확보 후 OEM extraction 보강)
+- **Round 검증** — docs/13_redfish-live-validation.md
+
+### 다음 cycle 권장
+
+- harness-evolution-coordinator 정기 self-improvement (rule 28 측정 11종 drift 검사) — cycle-018 이후 공백
+- 사용자 사이트 신 generation BMC 도입 신호 시 → 해당 ticket 즉시 진입
+
+---
+
 ## 일자: 2026-05-01 (cycle-019 phase 2 — F44~F47 신규 vendor 4종 도입 완료)
 
 ### 본 phase 완료 (사용자 명시 "신규 밴더 추가 승인하겠다")
