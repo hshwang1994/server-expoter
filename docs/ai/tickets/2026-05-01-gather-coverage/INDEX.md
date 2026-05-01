@@ -121,7 +121,49 @@ F41 / F47 / F48 / F55 / F56 / F61 / F68 / F69 / F80 / F81 / F83 / F84
 
 상세는 [WEB-COMPATIBILITY-AUDIT-2026-05-01.md](./WEB-COMPATIBILITY-AUDIT-2026-05-01.md) 참조.
 
+## Vendor 코드 생성 ticket (F44~F47, 사용자 도입 의향 명시 2026-05-01)
+
+> 사용자 명시 (2026-05-01): "신규 장비 도입 의향 있다 다만 lab 장비 없다. vault 만들지 말고 코드 생성 ticket 만 만들어라"
+
+| ID | vendor | BMC | 상태 |
+|---|---|---|---|
+| [F44](./fixes/F44.md) | Huawei | iBMC | 코드 생성 ticket 작성 완료 |
+| [F45](./fixes/F45.md) | Inspur | ISBMC | 코드 생성 ticket 작성 완료 |
+| [F46](./fixes/F46.md) | Fujitsu | iRMC S5/S6 | 코드 생성 ticket 작성 완료 |
+| [F47](./fixes/F47.md) | Quanta (QCT) | OpenBMC | 코드 생성 ticket 작성 완료 |
+
+**vault 단계 SKIP** — lab 또는 사이트 도입 시 추가. 9단계 절차 중 6단계만.
+
+## 10-Round Extended Web Audit (2026-05-01 추가)
+
+> 사용자 명시 (2026-05-01): "모든 vendor 호환성 검증 web 검색 10번 반복. 더이상 나오지 않도록. 향후 작업 ticket 모두 상세히"
+
+→ [WEB-EXTENDED-AUDIT-10R-2026-05-01.md](./WEB-EXTENDED-AUDIT-10R-2026-05-01.md) — 10 Round 결과 55건 ticket (F91~F145)
+
+### 10 round 각도 + 결과
+
+| Round | 각도 | 신규 |
+|---|---|---|
+| 1 | 보안 / CVE / advisory | F91~F93 (3건) — CVE-2024-54085 AMI MegaRAC |
+| 2 | GitHub / community 사고 | F94~F98 (5건) — OpenBMC 500 ISE / SSL EOF |
+| 3 | 펌웨어 EOL / 지원 매트릭스 | F99~F103 (5건) — vendor 세대별 EOL |
+| 4 | TLS / cipher / authentication | F104~F109 (6건) — TLS 1.3 / Session lockout |
+| 5 | DMTF schema bundle migration | F110~F114 (5건) — 2024.4 / 2025.x |
+| 6 | OEM extension 깊이 | F115~F119 (5건) — DSP0266 §9.8.3 OEM 명명 |
+| 7 | rare endpoint (Telemetry / Event) | F120~F124 (5건) — TelemetryService / EventService |
+| 8 | edge case / 알려진 함정 | F125~F130 (6건) — Cisco < 4.x / memory error |
+| 9 | 신 generation / 미래 출시 | F131~F137 (7건) — Gen17/Gen12/V4/X14/M8/Edge |
+| 10 | 종합 / 잔여 | F138~F145 (8건) — Validator / Profile / 자동화 |
+
+### 7-loop + 10-round 누적
+
+- **총 105건 ticket** (F41~F145)
+- **P1 22건** / P2 58건 / P3 25건
+- 사용자 명시 "더 이상 나오지 않도록" 충족 — 새 발견 거의 0 도달
+
 ## 갱신 history
 
 - 2026-05-01: INDEX 생성, Phase A 진입
 - 2026-05-01: 7-loop Web Compatibility Audit 완료 — F41~F90 추가 (50건). 다음 세션 P1 12건 식별.
+- 2026-05-01: vendor 코드 생성 ticket F44~F47 작성 (Huawei / Inspur / Fujitsu / Quanta). vault 미생성.
+- 2026-05-01: 10-Round Extended Audit 완료 — F91~F145 추가 (55건). 7-loop + 10-round = 105건 누적. P1 22건.

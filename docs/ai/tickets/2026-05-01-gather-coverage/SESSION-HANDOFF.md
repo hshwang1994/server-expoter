@@ -185,7 +185,39 @@ Phase 3: F56 (XCC capabilities) → F80 (DMTF 매트릭스) → F88 → F89
 Phase 4: F74~F77 사용자 결정 후 9단계 절차 (rule 50 R2)
 ```
 
-## 14. 갱신 history
+## 14. 신규 vendor 코드 생성 ticket (F44~F47)
+
+사용자 명시 (2026-05-01): "신규 장비 도입 의향 있다 다만 lab 없다. vault 만들지 말고 코드 생성 ticket 만"
+
+| ID | vendor | adapter 파일 | vault 상태 |
+|---|---|---|---|
+| F44 | Huawei | adapters/redfish/huawei_ibmc.yml | not_created (사용자 명시) |
+| F45 | Inspur | adapters/redfish/inspur_isbmc.yml | not_created |
+| F46 | Fujitsu | adapters/redfish/fujitsu_irmc.yml | not_created |
+| F47 | Quanta (QCT) | adapters/redfish/quanta_qct_bmc.yml | not_created |
+
+각 ticket cold-start 가능 — 9단계 절차 중 6단계만 (vault / baseline / live-validation 제외).
+
+## 15. 10-Round Extended Audit 결과 (F91~F145, 55건)
+
+다음 세션 첫 우선순위 추가 P1 (10건):
+
+| ID | 영역 | 내용 |
+|---|---|---|
+| F91 | 보안 | CVE-2024-54085 AMI MegaRAC advisory 등재 |
+| F97 | TLS | SSL Unexpected EOF retry (Dell iDRAC issue #18) |
+| F104 | Auth | Session lockout 회피 (X-Auth-Token 도입 시) |
+| F105 | TLS | iDRAC9 TLS 1.3 권장 — F84 통합 |
+| F115 | OEM | DSP0266 §9.8.3 OEM 명명 spec 정확화 |
+| F125 | Cisco | CIMC < 4.x advisory + 펌웨어 검출 |
+| F126 | Memory | Cisco/Dell DIMM error 정보 vendor 차이 |
+| F138 | Validator | DMTF Redfish-Service-Validator 도입 검토 |
+
+**7-loop + 10-round 누적 105건 ticket** (F41~F145). P1 22건 / P2 58건 / P3 25건.
+
+## 16. 갱신 history
 
 - 2026-05-01: 초안 작성. 다음 세션 cold-start 가이드.
 - 2026-05-01: 7-loop Web Compatibility Audit 추가 — F41~F90 50건 ticket. P1 12건 다음 세션 첫 우선.
+- 2026-05-01: vendor 코드 생성 ticket F44~F47 작성 (Huawei / Inspur / Fujitsu / Quanta). vault 미생성.
+- 2026-05-01: 10-Round Extended Audit 완료 — F91~F145 (55건). 누적 105건. P1 22건.

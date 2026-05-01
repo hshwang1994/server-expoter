@@ -39,6 +39,25 @@
 - [F34](./F34.md) — Drive Protocol OEM enum 자동 통과 (검증만)
 - [F35](./F35.md) — Manager URI 변종 (이미 호환, 검증만)
 
+## 신규 vendor 코드 생성 ticket (F44~F47, 사용자 명시 2026-05-01)
+
+> "신규 장비 도입 의향 있다 다만 lab 장비 없다. vault 만들지 말고 코드 생성 ticket 만"
+
+- [F44](./F44.md) — Huawei iBMC adapter (vault 미생성)
+- [F45](./F45.md) — Inspur ISBMC adapter (vault 미생성)
+- [F46](./F46.md) — Fujitsu iRMC adapter (vault 미생성)
+- [F47](./F47.md) — Quanta QCT BMC adapter (vault 미생성)
+
+## audit 발견 ticket (F41~F145 — WEB-COMPATIBILITY-AUDIT + WEB-EXTENDED-AUDIT-10R 본문 참조)
+
+본 fixes/ 디렉터리는 P1/P2/P3 분류된 cold-start 가능 ticket 만 보관. F48~F90 / F91~F145 의 audit ID 는 audit 문서 본문 내부 ID.
+
+audit 문서:
+- [WEB-COMPATIBILITY-AUDIT-2026-05-01.md](../WEB-COMPATIBILITY-AUDIT-2026-05-01.md) — 7-loop F41~F90
+- [WEB-EXTENDED-AUDIT-10R-2026-05-01.md](../WEB-EXTENDED-AUDIT-10R-2026-05-01.md) — 10-round F91~F145
+
+신 vendor (F44~F47) 외의 audit 발견 항목은 다음 cycle 진입 시 본 INDEX 에 P1 각각 추가 fixes/F##.md 작성.
+
 ### R6 InfiniBand 호환성 (4건 신규)
 
 - [F37](./F37.md) — Linux IB 도구 부재 graceful (P3 / F07 묶음)
