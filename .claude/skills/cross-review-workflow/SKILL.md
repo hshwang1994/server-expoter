@@ -1,3 +1,8 @@
+---
+name: cross-review-workflow
+description: 단일 agent 작업 신뢰 안 함 — 다중 agent cross-review 강제 워크플로우. cycle 2026-05-01 사용자 명시 ("한 에이전트가 작업한 것을 다른 에이전트가 검수"). 호환성 fix / 큰 변경 / 하네스 자기개선 시 진입. 사용자가 "cross-review", "다중 검수" 요청 시.
+---
+
 # Cross-Review Workflow Skill
 
 > 단일 agent 작업 신뢰 안 함. 사용자 명시 (2026-05-01) cross-review 강제.

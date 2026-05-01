@@ -1,5 +1,55 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-01 (cycle-017 하네스 보강 — B1~B8 + D + E 일괄 적용)
+
+### 사용자 명시 (2026-05-01)
+1. "하네스 자기개선 루프도 넣어라" / "에이전트는 오푸스로" / "한 에이전트가 작업한 것을 다른 에이전트가 검수" (commit `a1a3bf6b` 진입 — 7 신규 agent + cross-review-workflow skill)
+2. "하네스 보강 작업 모두 수행해라 남겨두지말고 모두" (B/D/E 일괄)
+3. "하네스 전체 점검 하네스 작업을 마무리해라 묻지마라 전부해라" (commit + push 자율)
+
+### 적용 (B1~B8 + D + E 모두 [PASS])
+
+| Gap | 보강 | 위치 |
+|---|---|---|
+| B1 lab 한계 | rule 96 R1-A web sources 의무 | rule 96 본문 |
+| B2 reverse regression | rule 25 R7-A-1 사용자 실측 우선 | rule 25 본문 |
+| B3 새 JSON 키 자제 | rule 96 R1-B + envelope_change_check hook | rule 96 + scripts/ai/hooks/ |
+| B4 ticket cold-start | write-cold-start-ticket skill | .claude/skills/ |
+| B5 fallback 패턴 | `_endpoint_with_fallback` 헬퍼 | redfish_gather.py:567 |
+| B6 origin 주석 | adapter_origin_check hook | scripts/ai/hooks/ |
+| B7 사이트 fixture | capture-site-fixture skill | .claude/skills/ |
+| B8 cross-channel | cross_channel_consistency_check hook | scripts/ai/hooks/ |
+| D-A1 | web-evidence-collector agent (opus) | .claude/agents/ |
+| D-A3 | lab-tracker agent (opus) | .claude/agents/ |
+| D-S1 | web-evidence-fetch skill | .claude/skills/ |
+| D-S2 | lab-inventory-update skill | .claude/skills/ |
+| E | agent-permissions.yaml + ADR | .claude/policy + docs/ai/decisions |
+
+### 표면 카운트
+- agents: 57 → **59** (+2)
+- skills: 43 → **48** (+5)
+- hooks: 18 → **21** (+3)
+- rules: 28 (R7-A-1 / R1-A / R1-B 본문 신설)
+- decisions: ADR-2026-05-01-harness-reinforcement 신규
+
+### 검증
+- pytest 76/76 PASS / verify_harness_consistency PASS / verify_vendor_boundary PASS
+- output_schema_drift_check PASS / project_map_drift 0 (재baseline)
+- 3 신규 hook self-test PASS / commit_msg_check 5/5 PASS
+- redfish_gather.py AST PASS
+
+### 보고서
+- `docs/ai/harness/cycle-017.md` (cycle 보고서)
+- `docs/ai/decisions/ADR-2026-05-01-harness-reinforcement.md` (governance)
+- `docs/ai/tickets/2026-05-01-gather-coverage/HARNESS-RETROSPECTIVE.md` (G절 적용 결과)
+
+### 후속 (다음 세션)
+- harness-evolution-coordinator 6단계 정기 cycle 진입
+- gather-coverage P1 3건 (F5 / F13 / F23)
+- 사이트 fixture 첫 실 적용
+
+---
+
 ## 일자: 2026-04-30 (account_service dryrun OFF + Locked 보강 — 사용자 명시 승인, ADR-2026-04-30)
 
 ## 요약 (account_service 실 동작 전환 — 2026-04-30)

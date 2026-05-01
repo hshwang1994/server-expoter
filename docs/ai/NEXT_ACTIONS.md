@@ -1,5 +1,40 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-01 (하네스 보강 cycle 종료 — B1~B8 + D + E 모두 적용)
+
+### 본 cycle 완료 (사용자 명시 "하네스 보강 작업 모두 수행해라 남겨두지말고 모두")
+
+- **B1** rule 96 R1-A web sources 의무 신설 (lab 부재 영역 → 4종 sources 1개 이상)
+- **B2** rule 25 R7-A-1 사용자 실측 > spec 신설 (Lenovo XCC reverse regression 학습)
+- **B3** rule 96 R1-B envelope 13 필드 변경 자제 + envelope_change_check.py hook
+- **B4** write-cold-start-ticket skill (SESSION-HANDOFF + INDEX + coverage 자동 구성)
+- **B5** redfish_gather.py `_endpoint_with_fallback` 헬퍼 (Storage/Power/Thermal 패턴 추상화)
+- **B6** adapter_origin_check.py hook (rule 96 R1 자동 검증)
+- **B7** capture-site-fixture skill (사이트 사고 fixture sanitize 절차)
+- **B8** cross_channel_consistency_check.py hook (3채널 envelope shape 일관성)
+- **D-A1** web-evidence-collector agent (model: opus)
+- **D-A3** lab-tracker agent (model: opus)
+- **D-S1** web-evidence-fetch skill
+- **D-S2** lab-inventory-update skill
+
+### 표면 카운트 변동
+- agents: 57 → 59
+- skills: 43 → 48
+- hooks: 18 → 21
+- rules: 28 (본문 강화만)
+- policies: 10
+- decisions: ADR-2026-05-01-harness-full-permissions (cycle-011 시작 시점부터 존재)
+
+### 검증 PASS
+- verify_harness_consistency / verify_vendor_boundary / 3 신규 hook self-test / py AST 모두 PASS
+
+### 다음 cycle 권장
+- **harness-evolution-coordinator 6단계 정기 cycle 1회 진입** (observer → architect → reviewer → governor → updater → verifier) — cycle-016 이후 자기개선 cycle 공백
+- **gather-coverage P1 3건** 진행 (F5 power EnvironmentMetrics / F13 Cisco AccountService not_supported / F23 OS unsupported 분류 점진 전환)
+- **사이트 fixture 캡처** — capture-site-fixture skill 실 적용 (HPE Gen12 / Lenovo XCC3 / Dell iDRAC8 첫 적용)
+
+---
+
 ## 일자: 2026-05-01 (gather coverage 전수 조사 cycle — 25건 fix 후보 등재)
 
 ### 본 cycle 완료 (2026-05-01 사용자 명시 "검색-티켓저장 반복")

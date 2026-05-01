@@ -162,3 +162,27 @@
   4. `EXTERNAL_CONTRACTS.md`에 AMI Redfish 1.11.0 / TA-UNODE-G1 entry 추가
 - **상태**: **resolved (cycle-015 사용자 명시 결정)** — 두 호스트 모두 사내 lab 부재 확인. `inventory/lab/redfish.json` + `vault/.lab-credentials.yml`에서 제거. OPS-12 / OPS-13 closed.
 - **관련**: rule 96 R1 (외부 계약 origin 주석), rule 27 R3 (Vault 2단계 — 1단계가 본 drift 검출), rule 50 R1 (vendor 정규화 정본 vendor_aliases.yml), `tests/evidence/cycle-015/connectivity-2026-04-29.md`
+
+
+## DRIFT-012 (2026-05-01, resolved cycle-017)
+
+- **발견 위치**: `.claude/skills/cross-review-workflow.md` (단일 .md 파일 형식)
+- **분류**: skill 디렉터리 형식 일관성
+- **설명**: cycle 2026-05-01 중반 (commit `a1a3bf6b`) cross-review-workflow skill 을 단일 `.md` 파일로 추가. 기존 47 skill 은 모두 `<name>/SKILL.md` 디렉터리 형식. `verify_harness_consistency.py` 검증기는 디렉터리만 카운트해서 단일 파일은 누락. 일관성 깨짐.
+- **resolved (cycle-017)**:
+  - `.claude/skills/cross-review-workflow.md` → `.claude/skills/cross-review-workflow/SKILL.md` 디렉터리 변환
+  - frontmatter (name + description) 추가
+  - `verify_harness_consistency.py` 통과 (rules 28 / skills 48 / agents 59 / policies 10)
+- **관련**: rule 70 R5, `verify_harness_consistency.py:138-156` (SKILL.md frontmatter name ↔ 폴더명 일치 검사)
+
+## DRIFT-013 (2026-05-01, resolved cycle-017)
+
+- **발견 위치**: cycle 2026-04-30 Lenovo XCC 1.17.0 reverse regression
+- **분류**: 사용자 실측 vs spec drift
+- **설명**: cycle 2026-04-30 첫 fix (`Accept` + `OData-Version` + `User-Agent` 추가) 가 lab 검증 OK 였으나 사이트 BMC 펌웨어 1.17.0 reject. "표준 권장 = 모든 BMC 호환" 가정 실패. 사용자 명시 hotfix ("Accept만") 적용 후 정상화.
+- **resolved (cycle-017)**:
+  - rule 25 R7-A-1 신설 — "사용자 실측 > spec" 본문 화
+  - capture-site-fixture skill 신설 — 사이트 사고 fixture sanitize + commit
+  - lab-tracker agent (opus) — lab 보유/부재 추적
+  - web-evidence-collector agent (opus) + web-evidence-fetch skill — lab 부재 영역 web sources 의무 (rule 96 R1-A)
+- **관련**: rule 25 R7-A-1, rule 96 R1-A, ADR-2026-05-01-harness-reinforcement

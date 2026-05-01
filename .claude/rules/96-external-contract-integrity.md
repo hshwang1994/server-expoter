@@ -33,6 +33,45 @@ match:
 
 **재검토**: origin 자동 대조 CI job (Redfish probe로 실 펌웨어와 비교) 도입 시 주석 의무 완화.
 
+### R1-A. lab 부재 vendor / 펌웨어 → web sources 의무 (cycle 2026-05-01 신설)
+
+server-exporter lab 은 일부 vendor / 펌웨어 / 환경만 보유. 부재 영역 (Huawei iBMC / Inspur / NEC / iDRAC 7~8 / iLO 4~5 / XCC2~3 / Supermicro X9~X14 / InfiniBand / RHEL 10) 은 **web 검색 sources 명시 의무**:
+
+- **Default**: lab 부재 vendor / 펌웨어 / 외부 계약 (Redfish path / IPMI sensor / vSphere API) 반영 시 다음 4종 sources 중 1개 이상 origin 주석:
+  1. **vendor 공식 docs** — `developer.dell.com` / `pubs.lenovo.com` / `support.hpe.com` / `cisco.com/c/en/us/td/docs/...` / `supermicro.com/manuals` / `support.huawei.com`
+  2. **DMTF Redfish 표준** — `redfish.dmtf.org/schemas/v1/...` / DSP-NNNN spec PDF
+  3. **GitHub issue / 사용자 보고** — vendor 공식 repo 또는 community
+  4. **사용자 사이트 실측** — `tests/evidence/<날짜>-<vendor>.md` (rule 70 R3)
+
+- **주석 포맷**:
+  ```yaml
+  # adapters/redfish/huawei_ibmc.yml
+  # source: https://support.huawei.com/.../iBMC_Redfish_API_v1.30.pdf (확인 2026-05-01)
+  # source: https://redfish.dmtf.org/schemas/v1/Power.v1_8_0.json (PowerSubsystem 신schema 2020.4)
+  # lab: 부재 — 사용자 결정 시 추가
+  ```
+
+- **Allowed**: 사이트 실측 fixture 가 capture 됐고 evidence 가 있다면 web sources 생략 가능 (사용자 실측 우선 — rule 25 R7-A-1)
+- **Forbidden**:
+  - lab 부재 영역에 web sources 0건으로 adapter / vendor list 변경
+  - "추정 / likely" 만으로 외부 계약 반영 (rule 25 R7-B)
+- **Why**: lab 한계가 server-exporter 의 본질적 제약 (사용자 인정 cycle 2026-05-01). web sources 가 lab fixture 대체. sources 0 건 시 다음 작업자가 검증 불가
+- **재검토**: lab 보유 vendor 가 8 vendor 이상 도달 시 web sources 의무 완화
+
+### R1-B. envelope 13 필드 / 새 키 추가 자제 (cycle 2026-05-01 신설)
+
+cycle 2026-05-01 학습 — 사용자 의도 두 번 강조 후에야 정확히 이해. `diagnosis.details.detail` 신규 키 추가 → revert. 본 R1-B 는 호환성 fallback 와 새 데이터/섹션/키 추가를 **명시 분리**:
+
+- **Default**: 호환성 fix (사용자 사이트 사고 → fallback) 시 envelope 13 필드 / `data.<section>.<field>` 추가/삭제/리네임 **금지**. 기존 path 유지 + 새 환경 fallback path **추가만** (Additive only)
+- **Allowed**: 새 데이터 / 새 섹션 / 새 vendor 는 **별도 cycle** (호환성 cycle 외) — schema 변경 사용자 명시 승인 (rule 92 R5)
+- **Forbidden**:
+  - 호환성 cycle 에서 envelope 신규 키 추가 (예: `diagnosis.details.detail`, `data.power.thermal_score`)
+  - "더 풍부한 정보 제공" 명목의 schema 확장 (호환성 영역 외)
+  - 호출자 시스템 파싱 변경 유발하는 모든 변경
+- **검증**: `scripts/ai/hooks/envelope_change_check.py` (신규 cycle 2026-05-01) — PreToolUse 또는 post-edit 시 envelope shape 변경 검출 → 호환성 cycle 외 영역으로 분류 advisory
+- **Why**: 호출자 시스템 (Jenkins downstream / 모니터링 시스템) 은 envelope shape 가정으로 파싱. 신 키 추가는 파싱 변경 유발. 호환성 fix 와 schema 확장은 의도 분리 필요
+- **재검토**: envelope schema 정본 자동 검증 100% 도달 시 본 R1-B 자동화로 위임
+
 ### R2. 외부 연동 기능 디버깅 시 외부 계약 질의 우선
 
 - **Default**: 외부 시스템 연동 enum / 상수가 관여하는 버그 조사 시 **사용자에게 외부 계약 먼저 질의**. 코드만으로 추론 시작 금지

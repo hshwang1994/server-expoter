@@ -547,6 +547,54 @@ def _fetch_service_root(bmc_ip, username, password, timeout, verify_ssl):
     return root, errors
 
 
+def _endpoint_with_fallback(bmc_ip, primary_path, fallback_path, username,
+                            password, timeout, verify_ssl, section_name='generic'):
+    """primary endpoint 시도 → 404 / 미지원 시 fallback endpoint 시도.
+
+    cycle 2026-05-01 신설 (rule 22 R5 헬퍼 추상화 / HARNESS B5).
+    Storage→SimpleStorage / Power→PowerSubsystem / 향후 ThermalSubsystem 같은
+    DMTF 변천 호환 패턴을 재사용 가능한 단일 함수로 추상화.
+
+    Behavior:
+    - primary GET → 200 이면 (data, [], 'primary') 반환
+    - primary 404 → fallback GET → 200 이면 (data, [], 'fallback') 반환
+    - fallback 404 → ({}, [], 'not_supported') 반환 (호출자가 분류)
+    - 5xx / 401 / 403 / 그 외 → ({}, [error], 'failed')
+
+    호환성 fallback only — envelope 신 키 추가 안 함 (rule 96 R1-B Additive).
+
+    Args:
+        bmc_ip: BMC IP
+        primary_path: 우선 시도 path (예: /Chassis/{id}/Power)
+        fallback_path: 404 시 fallback path (예: /Chassis/{id}/PowerSubsystem)
+        username, password, timeout, verify_ssl: 표준 HTTP 옵션
+        section_name: error 분류 라벨 (envelope errors[] 의 stage)
+
+    Returns:
+        (data_dict, errors_list, source_label)
+        source_label: 'primary' | 'fallback' | 'not_supported' | 'failed'
+    """
+    errors = []
+    st, data, err = _get(bmc_ip, primary_path, username, password, timeout, verify_ssl)
+
+    if not err and st == 200:
+        return data, errors, 'primary'
+
+    if st == 404:
+        st_fb, data_fb, err_fb = _get(bmc_ip, fallback_path, username, password,
+                                      timeout, verify_ssl)
+        if not err_fb and st_fb == 200:
+            return data_fb, errors, 'fallback'
+        if st_fb == 404:
+            return {}, errors, 'not_supported'
+        errors.append(_err(section_name,
+                           f'fallback {fallback_path} 실패: {err_fb or st_fb}'))
+        return {}, errors, 'failed'
+
+    errors.append(_err(section_name, f'{primary_path} 실패: {err or st}'))
+    return {}, errors, 'failed'
+
+
 def _resolve_first_member_uri(bmc_ip, coll_uri, username, password, timeout, verify_ssl):
     """컬렉션 URI → 첫 번째 Member의 @odata.id 추출.
 

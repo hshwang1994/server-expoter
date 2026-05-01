@@ -59,6 +59,22 @@ Agent(description="vendor README", subagent_type="docs-sync-worker", prompt="...
 - **검증 3항목**: 파일 존재 / 내용 유효 / 실행 통과
 - **Forbidden**: Agent 보고만 믿고 다음 단계
 
+#### R7-A-1. 사용자 실측 > spec (cycle 2026-05-01 신설)
+
+- **Default**: 사용자 사이트 / 실 BMC / 실 OS 에서의 **실측 결과**가 vendor spec / DMTF 표준 / 다른 lab 결과보다 **항상 우선**
+- **사례**: cycle 2026-04-30 Lenovo XCC reverse regression — Accept + OData-Version + User-Agent 추가가 표준 권장이었으나 사이트 BMC 펌웨어 1.17.0 reject. "Accept만" 으로 hotfix
+- **Forbidden**:
+  - 사용자 실측 보고 ↔ spec 충돌 시 spec 따라가는 변경
+  - "표준 권장이라 모든 BMC 호환" 가정
+  - lab 1대 OK 로 사이트 N대 검증 대체
+- **검증 절차**:
+  1. 사용자 실측 결과 envelope / log 확보
+  2. 본 결과를 spec / DMTF 권고와 분리해서 기록 (rule 96 R1 origin)
+  3. 두 결과 충돌 시 사용자 측 hotfix 우선 + 다른 사이트 reverse regression 영향 사고 실험
+  4. fixture 캡처 (rule 70 / capture-site-fixture skill)
+- **Why**: lab은 단일 환경. 사이트 BMC 펌웨어 / OS 패치 / 네트워크 정책은 lab 보다 다양. 사이트 실측이 진실
+- **재검토**: 사이트 fixture 자동 회귀 적용 100% 도달 시 본 R7-A-1 advisory 격하 검토
+
 #### R7-B. 추정 → 실측 격상 금지
 
 - **Default**: Agent 출력에 "추정 / likely / probably / 정보 부족" 등 표현 있으면 "실측"으로 격상 금지. 사용자 확인 또는 추가 실측 후만 "확정"
@@ -71,6 +87,7 @@ Agent(description="vendor README", subagent_type="docs-sync-worker", prompt="...
 - Agent 호출 후 결과 통합 없이 다음 호출 — R5
 - Agent에 5개 이상 파일 수정 일괄 — R6
 - Agent 보고 실측 없이 신뢰 — R7-A
+- 사용자 실측 ↔ spec 충돌 시 spec 추종 — R7-A-1
 - 추정 결론을 실측으로 격상 — R7-B
 
 ## 리뷰 포인트

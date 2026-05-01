@@ -177,6 +177,60 @@
 | **404 = 미지원 vs 5xx = fail 분리 의무** | cycle 2026-05-01 |
 | **3채널 fragment 인프라가 호환성 표준** | OS/ESXi 점진 전환 가능 |
 
+## G. 보강 적용 결과 (2026-05-01 cycle 종료 시점 — 사용자 명시 "남겨두지말고 모두")
+
+### B 매핑 → 적용 [PASS]
+
+| Gap | 보강 | 적용 |
+|---|---|---|
+| B1 lab 한계 | rule 96 R1-A web sources 의무 | `[PASS]` rule 96 R1-A 신설 |
+| B2 reverse regression | rule 25 R7-A-1 사용자 실측 우선 | `[PASS]` rule 25 R7-A-1 신설 |
+| B3 새 JSON 키 자제 | rule 96 R1-B + envelope_change_check hook | `[PASS]` rule 96 R1-B + `scripts/ai/hooks/envelope_change_check.py` |
+| B4 ticket cold-start | write-cold-start-ticket skill | `[PASS]` `.claude/skills/write-cold-start-ticket/` |
+| B5 fallback 패턴 | _endpoint_with_fallback 헬퍼 | `[PASS]` `redfish_gather.py:567` |
+| B6 origin 주석 | adapter_origin_check hook | `[PASS]` `scripts/ai/hooks/adapter_origin_check.py` |
+| B7 사이트 fixture | capture-site-fixture skill | `[PASS]` `.claude/skills/capture-site-fixture/` |
+| B8 cross-channel | cross_channel_consistency_check hook | `[PASS]` `scripts/ai/hooks/cross_channel_consistency_check.py` |
+
+### D 신규 후보 → 적용 [PASS]
+
+| 후보 | 종류 | 적용 |
+|---|---|---|
+| envelope 13 필드 검출 | hook | `[PASS]` envelope_change_check |
+| adapter origin 검증 | hook | `[PASS]` adapter_origin_check |
+| cross-channel consistency | hook | `[PASS]` cross_channel_consistency_check |
+| /cold-start-handoff | skill | `[PASS]` write-cold-start-ticket (흡수) |
+| /web-evidence-fetch | skill | `[PASS]` `.claude/skills/web-evidence-fetch/` |
+| /lab-inventory-update | skill | `[PASS]` `.claude/skills/lab-inventory-update/` |
+| web-evidence-collector | agent | `[PASS]` `.claude/agents/web-evidence-collector.md` (model: opus) |
+| compatibility-detective | agent | `[PASS]` 이미 존재 (commit 이전) |
+| lab-tracker | agent | `[PASS]` `.claude/agents/lab-tracker.md` (model: opus) |
+
+### E 권한 완화 [PASS]
+
+- `.claude/policy/agent-permissions.yaml` `[PASS]` 이미 존재 (cycle 시작 시점)
+- `docs/ai/decisions/ADR-2026-05-01-harness-full-permissions.md` `[PASS]` 이미 존재
+
+### 검증 결과 [PASS]
+
+- `verify_harness_consistency.py` `[PASS]` rules 28 / skills 48 / agents 59 / policies 10
+- `verify_vendor_boundary.py` `[PASS]` vendor 하드코딩 0건
+- `envelope_change_check.py --self-test` `[PASS]` (diag + data 패턴 검출)
+- `adapter_origin_check.py --self-test` `[PASS]`
+- `cross_channel_consistency_check.py --self-test` `[PASS]`
+- `python -m ast` (`redfish_gather.py`) `[PASS]` 헬퍼 추가 후 syntax OK
+
+### 표면 카운트 변동 (cycle 2026-05-01 보강)
+
+| 항목 | 시작 | 종료 |
+|---|---|---|
+| agents | 57 | 59 (+2: web-evidence-collector / lab-tracker) |
+| skills | 43 | 48 (+5: cross-review-workflow / write-cold-start-ticket / capture-site-fixture / web-evidence-fetch / lab-inventory-update) |
+| hooks | 18 | 21 (+3: envelope_change / adapter_origin / cross_channel) |
+| rules | 28 | 28 (rule 25 R7-A-1 / rule 96 R1-A + R1-B 신설 — 본문 강화만) |
+| policies | 10 | 10 (agent-permissions cycle-011 / 본 cycle 보강) |
+
 ## 갱신 history
 
 - 2026-05-01: 2주간 회고 + B1~B8 부족 + agent 매트릭스 + 신규 hook/workflow 후보
+- 2026-05-01 종료: G절 추가 — B / D / E 모두 [PASS] 마킹
