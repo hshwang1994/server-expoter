@@ -46,6 +46,12 @@
 - [F39](./F39.md) — ESXi IB skip (의도된 기술 제약, P4)
 - [F40](./F40.md) — Redfish ConnectX VPI mode 호환 (이미 호환, 검증만 P3)
 
+### R7 추가 호환성 (3건 신규 — 2026-05-01 추가 검색)
+
+- [F41](./F41.md) — community.vmware 6.2.0 → 7.0.0 호환성 (P2)
+- [F42](./F42.md) — Redfish v2 path 향후 호환성 (P3 추적)
+- [F43](./F43.md) — RHEL 10 crypto policy SHA-1 호환 (P3 검증)
+
 ### 횡단 / 추적 (2건)
 
 - [F07](./F07.md) — lspci 부재 환경 'not_supported' (F23 묶음)
