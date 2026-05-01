@@ -19,13 +19,17 @@
 # 2026-04-29 fix B01: ProcessorType=='CPU' 필터링 — Dell r760 Tesla T4 같은 GPU/Accelerator/FPGA/DSP가
 # /Systems/.../Processors/ 컬렉션에 함께 노출되는 경우 cpu.summary.groups + cpu.sockets/cores 가 잘못
 # 합산되는 문제 방어. ProcessorType이 None/빈 값이면 legacy BMC 호환성을 위해 CPU 로 간주.
+#
+# F02 (cycle 2026-05-01): Redfish 2024.x 신 enum 'Core' (logical processor) 통과 추가.
+# source: redfish.dmtf.org/schemas/v1/Processor.v1_20_0.json — ProcessorType enum 확장.
+# Accelerator/GPU/FPGA/DSP 는 여전히 제외 (B01 의도 유지).
 - name: "redfish | normalize_standard | filter procs to CPU only (B01)"
   ansible.builtin.set_fact:
     _rf_d_cpus: >-
       {%- set out = [] -%}
       {%- for p in (_rf_d_procs | default([])) -%}
         {%- set ptype = (p.processor_type | default('') | string | trim | upper) -%}
-        {%- if ptype == 'CPU' or ptype == '' or ptype is none -%}
+        {%- if ptype in ('CPU', 'CORE', '') or ptype is none -%}
           {%- set _ = out.append(p) -%}
         {%- endif -%}
       {%- endfor -%}

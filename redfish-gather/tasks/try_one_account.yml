@@ -61,12 +61,15 @@
           vendor={{ _rf_attempt.vendor | default('?') }},
           first_error={{ (_rf_attempt.errors | default([]) | first | default({})).message | default('?') }}
 
-    # cycle 2026-04-30: BMC lockout 회피 — 실패 시 1초 backoff 후 다음 후보.
-    # 일부 BMC (HPE iLO, Dell iDRAC)가 연속 fail 시 source IP 일시 차단. transient 회피.
+    # F20 (cycle 2026-05-01): BMC lockout 회피 backoff 1초 → 5초.
+    # source: Dell iDRAC IPMI Lockout Policy (5회 fail / 5분), HPE iLO Account
+    # Lockout (3회 fail), Lenovo XCC Login Lockout (5회 fail) — vendor docs.
+    # multi-account vault (5 자격) × 5초 = 25초/host 추가 — Jenkins gather stage
+    # 60min timeout 대비 영향 미미.
     # site.yml strategy: free 와 호환되도록 pause 대신 controller-side sleep 사용
     # (pause 모듈은 free strategy 에서 host loop bypass 미지원 → 즉시 ERROR).
     - name: "redfish | try_account | backoff on failure"
       when: not (_rf_attempt_ok | bool)
-      ansible.builtin.command: sleep 1
+      ansible.builtin.command: sleep 5
       delegate_to: localhost
       changed_when: false

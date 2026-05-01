@@ -1,6 +1,51 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-01 (cycle-017 하네스 보강 — B1~B8 + D + E 일괄 적용)
+## 일자: 2026-05-01 (호환성 ticket 일괄 — F01~F43 22건 처리)
+
+### 사용자 명시 (2026-05-01 후속)
+- "호환성 티켓 모두 수행하세요"
+
+### 코드 변경 적용 (Additive only, rule 96 R1-B)
+
+| Fix | 영역 | 변경 위치 | 변경 |
+|---|---|---|---|
+| F05 | power | `redfish_gather.py:_gather_power_subsystem` | EnvironmentMetrics fallback (PowerWatts.Reading/RangeMin/Max → power_consumed/min/max_watts) — DMTF 2020.4 |
+| F02 | cpu | `redfish-gather/tasks/normalize_standard.yml` ProcessorType 필터 | 'CORE' enum 통과 (Redfish 2024.x logical processor) |
+| F13/F08 | users (provision) | `redfish_gather.py:account_service_provision` | Cisco 외 vendor도 404-only 응답 시 'not_supported' 분류 (Additive — Cisco 분기 + 일반 404 graceful) |
+| F20 | users (auth) | `redfish-gather/tasks/try_one_account.yml` | backoff `sleep 1`→`sleep 5` (BMC lockout 회피) |
+| F21 | OS Linux | `ansible.cfg [ssh_connection]` | RHEL 9+ paramiko 2.9.0+ 호환 — HostKeyAlgorithms/PubkeyAcceptedAlgorithms/KexAlgorithms +ssh-rsa append |
+
+### 검증/추적/lab 한계 보류 (코드 변경 없음)
+
+| Fix | 분류 | 사유 |
+|---|---|---|
+| F01, F09, F10, F12, F17, F22, F24, F34, F35, F40 | 이미 호환 / 검증만 | 코드 자동 호환 — 사이트/lab 검증 시 fixture 추가 |
+| F04, F11, F14, F15 | lab 한계 | HPE iLO 5 / Dell iDRAC 10 / Supermicro X9 fixture 부재 — 사이트 도입 시 별도 cycle |
+| F33 | P3 추적 | Session 인증 — Basic Auth 부하 미미, 사고 발생 시 적용 |
+| F23, F07, F37 | 이미 graceful | gather_hba_ib raw `[ -d ]` 검사 + failed_when:false. sub-section 단위 not_supported 분류는 schema 정의 외 — 사고 재현 후 |
+| F38 | lab 한계 | Windows IB host 부재 — 사이트 도입 시 |
+| F39 | 의도 skip | ESXi IB Ethernet 인식 — 기술 제약 |
+| F41, F42, F43 | 추적만 | community.vmware 7.0.0 / Redfish v2 / RHEL 10 — 도입 시점 추적 |
+| F16 | 추적만 | CVE-2024-54085 (AMI MegaRAC) 패치 매트릭스 |
+
+### 검증
+- pytest **234/234 PASS**
+- verify_harness_consistency PASS
+- verify_vendor_boundary PASS
+- output_schema_drift_check PASS (sections=10 fd_paths=65)
+- project_map_drift PASS (재baseline — redfish-gather hash)
+- python AST PASS (redfish_gather.py)
+- YAML PASS (normalize_standard.yml, try_one_account.yml)
+
+### 적용 원칙 (호환성 cycle, rule 96 R1-B)
+- envelope 13 필드 변경 0건
+- 새 데이터/섹션/키 추가 0건
+- 기존 path 유지 + 신 환경 fallback 추가만
+- web sources / DMTF spec / vendor docs origin 주석 (rule 96 R1-A)
+
+---
+
+## 이전: cycle-017 하네스 보강 — B1~B8 + D + E 일괄 적용
 
 ### 사용자 명시 (2026-05-01)
 1. "하네스 자기개선 루프도 넣어라" / "에이전트는 오푸스로" / "한 에이전트가 작업한 것을 다른 에이전트가 검수" (commit `a1a3bf6b` 진입 — 7 신규 agent + cross-review-workflow skill)

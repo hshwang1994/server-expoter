@@ -16,6 +16,35 @@
 
 ---
 
+## 2026-05-01 — 호환성 ticket 일괄 (F01~F43 22건)
+
+- 환경: Windows 11 호스트 (Bash on Windows / pytest 9.0.2 / Python 3.11.9)
+- 입력: 사용자 명시 "호환성 티켓 모두 수행하세요"
+- 적용 (코드 변경 5건):
+  - F05 `redfish_gather.py` — `_gather_power_subsystem` EnvironmentMetrics fallback (DMTF 2020.4)
+  - F02 `normalize_standard.yml` — ProcessorType 필터 'CORE' enum 통과
+  - F13/F08 `redfish_gather.py` — `account_service_provision` 404-only graceful 'not_supported' 분류
+  - F20 `try_one_account.yml` — backoff sleep 1→5 (BMC lockout 회피)
+  - F21 `ansible.cfg` — RHEL 9+ paramiko ssh-rsa legacy 호환
+- 보류/검증만 (17건):
+  - 이미 호환: F01, F09, F10, F12, F17, F22, F24, F34, F35, F40
+  - lab 한계: F04, F11, F14, F15, F38
+  - 추적: F33, F41, F42, F43, F16
+  - graceful: F23, F07, F37, F39
+- 명령:
+  - `python -m py_compile redfish-gather/library/redfish_gather.py` → PASS
+  - `python -c "import yaml; yaml.safe_load(...)"` (normalize_standard, try_one_account) → PASS
+  - `python -m pytest tests/ -x` → **234/234 PASS** (29.41s)
+  - `python scripts/ai/verify_harness_consistency.py` → PASS (rules:28 skills:48 agents:59 policies:10)
+  - `python scripts/ai/verify_vendor_boundary.py` → PASS
+  - `python scripts/ai/hooks/output_schema_drift_check.py` → PASS
+  - `python scripts/ai/check_project_map_drift.py --update` → PASS
+- 원칙: 호환성 cycle (rule 96 R1-B) — envelope 13 필드 변경 0건, Additive only
+- Baseline 갱신: 없음 (호환성 fallback path 추가, 기존 200 응답 영향 없음)
+- 후속: lab 한계 fix (F04/F11/F14/F15/F38) 사이트 fixture 확보 시 별도 cycle
+
+---
+
 ## 2026-04-29 — Dell Redfish 비판적 검증 + envelope 값 미채움 7건 fix
 
 - 환경: Windows 11 호스트 (Bash on Windows / pytest 9.0.2 / Python 3.11.9)

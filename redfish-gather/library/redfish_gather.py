@@ -1769,6 +1769,27 @@ def _gather_power_subsystem(bmc_ip, chassis_uri, username, password, timeout, ve
         'max_consumed_watts':    None,
     } if psus else None
 
+    # F05 (cycle 2026-05-01): DMTF 2020.4 EnvironmentMetrics fallback —
+    # PowerSubsystem 신 schema는 system-level metric을 EnvironmentMetrics 로 분리.
+    # source: redfish.dmtf.org/schemas/v1/EnvironmentMetrics.v1_3_0.json (2020.4)
+    # PowerWatts.Reading / ReadingRangeMin/Max 가 PowerControl 대응.
+    if power_control is not None:
+        em_path = _p(chassis_uri) + '/EnvironmentMetrics'
+        st_em, em_data, _err_em = _get(bmc_ip, em_path, username, password, timeout, verify_ssl)
+        if st_em == 200 and isinstance(em_data, dict):
+            pw = em_data.get('PowerWatts') if isinstance(em_data.get('PowerWatts'), dict) else None
+            if pw:
+                pc_consumed = _safe_int(pw.get('Reading'))
+                pc_min = _safe_int(pw.get('ReadingRangeMin'))
+                pc_max = _safe_int(pw.get('ReadingRangeMax'))
+                if pc_consumed is not None:
+                    power_control['power_consumed_watts'] = pc_consumed
+                if pc_min is not None:
+                    power_control['min_consumed_watts'] = pc_min
+                if pc_max is not None:
+                    power_control['max_consumed_watts'] = pc_max
+        # interval_in_min / avg_consumed_watts: EnvironmentMetrics 표준에 없음 — None 유지
+
     return {'power_supplies': psus, 'power_control': power_control}, errors
 
 
@@ -2056,9 +2077,10 @@ def account_service_provision(
     _, accounts, errs = account_service_get(
         bmc_ip, current_username, current_password, timeout, verify_ssl
     )
-    out['errors'].extend(errs)
 
-    # Cisco CIMC 등 표준 미지원 처리
+    # F13/F08 (cycle 2026-05-01): Cisco CIMC AccountService 표준 미지원 처리.
+    # vendor 분기는 Redfish OEM namespace 의존 (rule 96 R1 외부 계약 — Cisco BMC
+    # 일관 미지원).
     if vendor == 'cisco':                                                     # nosec rule12-r1
         out['method'] = 'not_supported'
         out['errors'].append(_err(
@@ -2066,6 +2088,21 @@ def account_service_provision(
             'Cisco CIMC AccountService 표준 미지원 — 운영자 수동 복구 필요',  # nosec rule12-r1
         ))
         return out
+
+    # F13 (cycle 2026-05-01): Cisco 외 vendor도 일부 펌웨어가 AccountService 404
+    # 응답 가능 (lab 부재 펌웨어 / 펌웨어 hot-fix 시 변동). errs가 404-only 시
+    # 'not_supported' 분류 + errors[]에 noise 안 만듦 (Additive — 기존 cisco
+    # 분기 + 일반 404 graceful).
+    # source: redfish.dmtf.org/schemas/v1/AccountService.json (선택적 endpoint)
+    if _is_404_only_error(errs):
+        out['method'] = 'not_supported'
+        out['errors'].append(_err(
+            'account_service',
+            f'AccountService 미지원 (vendor={vendor}, HTTP 404)',
+        ))
+        return out
+
+    out['errors'].extend(errs)
 
     # 2) 기존 사용자 검색
     existing = account_service_find_user(accounts, target_username)
