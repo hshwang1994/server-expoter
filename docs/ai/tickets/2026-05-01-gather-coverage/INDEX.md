@@ -97,6 +97,31 @@
 - rule 70 R1 (문서 갱신 매핑)
 - rule 13 R5 (envelope 13 필드 — sections enum 영향)
 
+## 7-loop Web Compatibility Audit (2026-05-01 추가)
+
+> 사용자 명시 (2026-05-01): "redfish 코드의 벤더, 모델, 버전 호환성 전수조사. web 검색 이용. 부족한점은 모두 티켓으로 다음 세션에서 작업. 루프 7번."
+
+→ [WEB-COMPATIBILITY-AUDIT-2026-05-01.md](./WEB-COMPATIBILITY-AUDIT-2026-05-01.md) — 7-loop Audit 결과 50건 티켓 (F41~F90)
+
+### 7 loop 결과 요약
+
+| Loop | 영역 | 신규 발견 |
+|---|---|---|
+| 1 | Dell iDRAC 7/8/9/10 | F41~F46 (6건) — **iDRAC10 / Gen11 PowerEdge 17G** |
+| 2 | HPE iLO 4/5/6/7 | F47~F54 (8건) — **iLO 7 / Gen12 / NetworkPorts deprecated** |
+| 3 | Lenovo XCC / XCC2 / XCC3 | F55~F60 (6건) — **XCC3 OpenBMC / ThinkSystem V4** |
+| 4 | Supermicro X9~X14 / H12~H14 | F61~F67 (7건) — **X12 / X13 / X14 adapter 부재** |
+| 5 | Cisco CIMC + UCS | F68~F73 (6건) — **M8 / UCS X-Series** |
+| 6 | 미보유 vendor | F74~F79 (6건) — Huawei / Inspur / Fujitsu / Quanta / NEC |
+| 7 | 횡단 (DMTF / Auth / TLS / Schema) | F80~F90 (11건) — **DMTF 2025.x / TLS 1.3 / GET-only** |
+
+### 다음 세션 P1 (12건)
+
+F41 / F47 / F48 / F55 / F56 / F61 / F68 / F69 / F80 / F81 / F83 / F84
+
+상세는 [WEB-COMPATIBILITY-AUDIT-2026-05-01.md](./WEB-COMPATIBILITY-AUDIT-2026-05-01.md) 참조.
+
 ## 갱신 history
 
 - 2026-05-01: INDEX 생성, Phase A 진입
+- 2026-05-01: 7-loop Web Compatibility Audit 완료 — F41~F90 추가 (50건). 다음 세션 P1 12건 식별.

@@ -149,6 +149,43 @@ F01 / F09 / F11 / F14 / F15 / F22 / F24 / F33~F36 / F40
 - `.claude/rules/` — 28 rule (rule 13 R5 envelope / rule 22 fragment / rule 92 R5 schema 변경 / rule 96 외부 계약)
 - `docs/01~19` — 운영 문서
 
-## 13. 갱신 history
+## 13. 7-Loop Web Compatibility Audit 결과 (2026-05-01 추가)
+
+**최우선 다음 세션 시작점**: [WEB-COMPATIBILITY-AUDIT-2026-05-01.md](./WEB-COMPATIBILITY-AUDIT-2026-05-01.md)
+
+50건 ticket 추가 (F41~F90). P1 12건:
+
+| ID | 영역 | 내용 |
+|---|---|---|
+| F41 | Dell | iDRAC10 adapter 신규 (PowerEdge 17G — R670/R770/R7715/R470) |
+| F47 | HPE | iLO 7 adapter 신규 (Gen12 — DL360/DL380 Gen12) |
+| F48 | HPE | NetworkPorts deprecated → EthernetInterface fallback |
+| F55 | Lenovo | XCC3 adapter 신규 (ThinkSystem V4) — OpenBMC 기반 |
+| F56 | Lenovo | XCC2 vs XCC3 capabilities 매트릭스 분리 |
+| F61 | Supermicro | X12 / X13 / X14 adapter 신규 (3개) |
+| F68 | Cisco | M5~M8 capabilities 매트릭스 확장 |
+| F69 | Cisco | UCS X-Series (X210c / X410c) standalone CIMC adapter |
+| F80 | DMTF | EXTERNAL_CONTRACTS.md DMTF 2024~2025 spec 매트릭스 |
+| F81 | 횡단 | ThermalSubsystem fallback (thermal 섹션 진입 시) |
+| F83 | 횡단 | redfish_gather.py "GET only" + If-Match 미사용 명시 |
+| F84 | 횡단 | SSLContext min/max version + TLS 1.3 회귀 |
+
+P2 26건 + P3 12건 — WEB-COMPATIBILITY-AUDIT 본문 참조.
+
+### 사용자 결정 대기 (다음 세션 첫 질의)
+
+- **F74~F77** Huawei / Inspur / Fujitsu / Quanta vendor 도입 의향 — lab 부재 + 운영 신호 없음
+
+### 권고 작업 순서 (Phase)
+
+```
+Phase 1: F83 (read-only 주석) → F84 (TLS 검증) → F48 (NetworkPorts fallback)
+Phase 2: F41 (iDRAC10) → F47 (iLO7) → F55 (XCC3) → F61 (X12-X14) → F68/F69
+Phase 3: F56 (XCC capabilities) → F80 (DMTF 매트릭스) → F88 → F89
+Phase 4: F74~F77 사용자 결정 후 9단계 절차 (rule 50 R2)
+```
+
+## 14. 갱신 history
 
 - 2026-05-01: 초안 작성. 다음 세션 cold-start 가이드.
+- 2026-05-01: 7-loop Web Compatibility Audit 추가 — F41~F90 50건 ticket. P1 12건 다음 세션 첫 우선.
