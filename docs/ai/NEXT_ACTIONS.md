@@ -1,5 +1,63 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-06 (cycle multi-session-compatibility — Session-0 ticket 작성 완료)
+
+### 본 phase 완료 (Session-0 = 메인 오케스트레이터)
+
+사용자 명시 (2026-05-06):
+> "lab 접속 가능 장비 없음 → 프로젝트 코드를 모든 vendor / 모든 장비에 호환되도록 작성. 실 검증은 향후. 다른 세션에서 작업하되 모두 상세 티켓화. 누락 0. 세션 간 동기화 가능하게."
+
+- **PROJECT_MAP fingerprint 갱신** (F49/F50 호환성 commit 4건 반영)
+- **사용자 9 작업 항목 → 24 ticket 분해** (cold-start 형식, 다음 세션 컨텍스트 0 진입 가능)
+- **ticket 디렉터리**: `docs/ai/tickets/2026-05-06-multi-session-compatibility/`
+  - INDEX.md (cycle 진입점)
+  - SESSION-HANDOFF.md (세션 종료/다음 첫 지시)
+  - DEPENDENCIES.md (의존성 그래프 + 진행 가능 ticket 식별)
+  - fixes/INDEX.md (24 ticket 분류 + 진행 상태)
+  - fixes/M-A1~M-G2.md (24 cold-start ticket)
+
+### 24 ticket 분류
+
+| 영역 | ticket | 사용자 의도 |
+|---|---|---|
+| **A. status 로직 검증** | M-A1~A4 (4) | "errors 있는데 success" 케이스 — 의도 vs 버그 식별 + 결정 |
+| **B. Redfish 공통계정** | M-B1~B3 (3) | F49/F50 5+4 vendor 매트릭스 검증 + 회귀 |
+| **C. Vault 자동 반영** | M-C1~C3 (3) | 패스워드 변경 시 자동 반영 메커니즘 검증 + 회귀 |
+| **D. 전 vendor 호환성 fallback** | M-D1~D4 (4) | 9 vendor × N gen × 10 sections 매트릭스 240 cell + fallback 추가 |
+| **E. HPE Superdome 추가** | M-E1~E6 (6) | rule 50 R2 9단계 + web 검색 (Flex / Flex 280 / 2 / X / Integrity) |
+| **F. JSON 스키마 의미 문서** | M-F1~F2 (2) | docs/20_json-schema-fields.md 신설 + 3채널 비교 |
+| **G. 하네스 학습** | M-G1~G2 (2) | cycle 학습 추출 + rule/skill/agent/hook 보강 |
+
+### 진행 가능 ticket (worker 세션 즉시 착수)
+
+DEPENDENCIES.md 참조. 의존 없는 6 ticket 동시 진행 가능 (서로 다른 파일 영역):
+- M-A1, M-B1, M-C1 (분석 read-only)
+- M-D1 (호환성 매트릭스 작성)
+- M-E1 (Superdome web 검색)
+- M-F1 (docs/20 신설)
+
+### 사용자 결정 필요
+
+| 결정 | ticket | 내용 |
+|---|---|---|
+| status 로직 의도 | M-A2 | "errors 있는데 success" → success / partial / success_with_warnings ? |
+| Superdome 분류 | M-E1 | (a) HPE sub-line / (b) 별도 vendor |
+| schema 변경 (있다면) | M-D / M-F | sections.yml + field_dictionary.yml 버전 결정 (rule 92 R5) |
+
+### 외부 의존 (lab 도입 시)
+
+- 모든 ticket 의 실 lab 검증 (mock fixture + 정적 검증으로 본 cycle 종료)
+- Round 검증 docs/13_redfish-live-validation.md
+- vault 실 회전 검증 (mock 시뮬만 cycle 내 진행)
+
+### 다음 cycle 권장
+
+- **worker 세션 1~6 진입** — DEPENDENCIES.md 의 진행 가능 ticket 부터 병렬
+- **Phase 1 (분석 — 6 ticket 동시)** → **Phase 2 (사용자 결정 M-A2)** → **Phase 3 (구현)** → **Phase 4 (회귀)** → **Phase 5 (cycle 종료 M-G1/G2)**
+- HARNESS-RETROSPECTIVE.md 작성 (cycle 종료 시 — M-G1 산출물)
+
+---
+
 ## 일자: 2026-05-01 (cycle-019 phase 3 — 잔여 ticket 상태 close)
 
 ### 본 phase 완료 (사용자 명시 "남은 티켓 모두 수행 / 더이상 작업할게없나")
