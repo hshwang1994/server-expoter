@@ -1,35 +1,46 @@
 # Session Handoff — 2026-05-06 Multi-Session Compatibility Cycle
 
-> **마지막 갱신**: Session-0 종료 시점 (티켓 24건 작성 완료)
+> **마지막 갱신**: Session-1 종료 시점 (M-A1 [DONE])
 
 ---
 
 ## 마지막 commit / 시점
 
-- **commit**: `abb41e59`
-- **메시지**: `docs: [SESSION-0 DONE] multi-session-compatibility cycle ticket 24건 작성`
+- **commit**: (Session-1 cycle commit — M-A1 분석 갱신)
+- **메시지**: `docs: [M-A1 DONE] status 로직 분석 — 시나리오 4 / errors trigger 26 / 사용자 결정 4 + AI default`
 - **시점**: 2026-05-06 (Asia/Seoul)
 - **branch**: `main` (사용자 명시 자율 push, rule 93 R1+R4)
-- **push 결과**: github + gitlab 동시 PASS (origin push URL 2개)
+- **push 결과**: github + gitlab 동시 (origin push URL 2개)
+
+### 이전 commit
+- `abb41e59` — Session-0 ticket 24건 작성
 
 ---
 
 ## 직전 세션 종료 상태
 
-### Session-0 (메인 오케스트레이터, 본 세션)
+### Session-1 (M-A1 분석)
+
+| 항목 | 결과 |
+|---|---|
+| build_status.yml 판정 로직 4 케이스 명시 | [DONE] |
+| errors[] trigger 전수 검색 (production 26 위치 + reset/가드 3) | [DONE] |
+| 시나리오 B 재현 fixture 식별 (저장소 0건 — 신규 필요) | [DONE] |
+| status_rules.yml DEAD CODE 처리 권고 (유지) | [DONE] |
+| 사용자 결정 4 포인트 + AI default 추천 | [DONE] |
+| M-A1.md 갱신 + commit | [DONE] |
+
+### Session-0 (메인 오케스트레이터)
 
 | 항목 | 결과 |
 |---|---|
 | 사용자 9 작업 항목 → 24 ticket 분해 | [DONE] |
-| INDEX.md / SESSION-HANDOFF.md / DEPENDENCIES.md 초안 | [DONE] |
+| INDEX/SESSION-HANDOFF/DEPENDENCIES 초안 | [DONE] |
 | 24 ticket cold-start 형식 작성 | [DONE] |
-| NEXT_ACTIONS.md 갱신 | [DONE] |
-| commit + push (github+gitlab 동시) | [DONE] |
-| 정적 검증 (verify_harness_consistency / pytest 108/108) | [DONE] |
 
 ### 다음 세션 시작 가능 여부
 
-- **YES** — 모든 ticket cold-start. DEPENDENCIES.md 의 진행 가능 ticket 부터 착수
+- **YES** — Session-2 (M-A2: status 의도 결정) 진입 가능. M-A1 분석 결과 + AI default 4건 입력 준비됨
 
 ---
 
@@ -110,11 +121,29 @@ DEPENDENCIES.md 참조. 의존성 없는 ticket:
 
 ## 현재 진행 중 ticket
 
-(없음 — Session-0 종료. worker 세션 진입 시 갱신)
+(없음 — Session-1 종료. Session-2 진입 시 갱신)
 
 | ticket | worker | 시작 시점 |
 |---|---|---|
 | — | — | — |
+
+## 다음 세션 (Session-2 / M-A2) 첫 지시
+
+```
+M-A2 status 의도 결정 진입.
+
+cold-start: SESSION-PROMPTS.md + fixes/M-A2.md + M-A1 분석 결과 ("분석 결과" 절)
+
+자율 진행 default (M-A1 분석 + AI 추천):
+- (1) B-1 (현재 동작 유지) — envelope shape 변경 없음
+- (2) (a) errors severity 유지
+- (3) (c) status_rules.yml 유지
+- (4) (a) 3 enum 유지
+
+근거: 본 cycle Additive only (rule 92 R2 + 사용자 명시) + rule 13 R5 + rule 96 R1-B (envelope shape 보존). 시나리오 B 는 명백한 의도된 동작 — 코드 주석 3 위치가 명시.
+
+작업: M-A2.md 의 4 결정 default 기록 + 근거 + M-A3 변경 spec 도출 (의도 주석 강화 only).
+```
 
 ---
 
