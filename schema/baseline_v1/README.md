@@ -12,19 +12,29 @@
 ## 파일 명명 규칙
 
 ```
-{vendor 또는 os}_baseline.json
+{vendor 또는 os}_baseline.json            ← 회귀 비교용 표준 JSON (수정 금지)
+{vendor 또는 os}_baseline_annotated.jsonc ← 같은 내용 + 라인별 한글 주석 (교육용 사본)
 ```
 
-| 파일 | 채널 | 검증 시 사용된 장비 |
-|------|------|--------------------|
-| `dell_baseline.json` | Redfish | Dell PowerEdge R740 (iDRAC 9 / FW 4.00) |
-| `hpe_baseline.json` | Redfish | HPE ProLiant DL380 Gen11 (iLO 6 / FW 1.73) |
-| `lenovo_baseline.json` | Redfish | Lenovo ThinkSystem SR650 V2 (XCC / FW 5.70) |
-| `cisco_baseline.json` | Redfish | Cisco TA-UNODE-G1 (CIMC) |
-| `esxi_baseline.json` | ESXi | ESXi 7.0.3 |
-| `ubuntu_baseline.json` | OS (Linux) | Ubuntu 24.04 |
-| `windows_baseline.json` | OS (Windows) | Windows Server |
-| `rhel810_raw_fallback_baseline.json` | OS (Linux) | RHEL 8.10 — Python raw fallback 경로 검증 |
+| 표준 JSON | 한글 주석본 | 채널 | 검증 시 사용된 장비 |
+|---|---|---|---|
+| `dell_baseline.json` | `dell_baseline_annotated.jsonc` | Redfish | Dell PowerEdge R740 (iDRAC 9 / FW 4.00) |
+| `hpe_baseline.json` | `hpe_baseline_annotated.jsonc` | Redfish | HPE ProLiant DL380 Gen11 (iLO 6 / FW 1.73) |
+| `lenovo_baseline.json` | `lenovo_baseline_annotated.jsonc` | Redfish | Lenovo ThinkSystem SR650 V2 (XCC / FW 5.70) |
+| `cisco_baseline.json` | `cisco_baseline_annotated.jsonc` | Redfish | Cisco TA-UNODE-G1 (CIMC) |
+| `esxi_baseline.json` | `esxi_baseline_annotated.jsonc` | ESXi | ESXi 7.0.3 |
+| `ubuntu_baseline.json` | `ubuntu_baseline_annotated.jsonc` | OS (Linux) | Ubuntu 24.04 |
+| `windows_baseline.json` | `windows_baseline_annotated.jsonc` | OS (Windows) | Windows 10 |
+| `rhel810_raw_fallback_baseline.json` | `rhel810_raw_fallback_baseline_annotated.jsonc` | OS (Linux) | RHEL 8.10 — Python raw fallback 경로 |
+
+### 한글 주석본을 보는 순서
+
+1. **`dell_baseline_annotated.jsonc` 부터 보세요.** Redfish 채널 전체 구조가 가장 자세히 설명되어 있습니다.
+2. 그 다음 `esxi` / `ubuntu` / `windows` — 채널이 다르면 어떻게 달라지는지 비교.
+3. `hpe` / `lenovo` / `cisco` — 같은 Redfish 채널 안에서 벤더별 차이점.
+4. `rhel810_raw_fallback` — Python 이 없는 환경의 raw 모드 fallback 결과.
+
+각 한글 주석본은 같은 폴더의 표준 JSON 과 1:1 대응합니다. JSON 표준은 주석을 허용하지 않아서 확장자가 `.jsonc` (JSON with Comments) 입니다. 운영 코드가 실제로 보내는 파일은 주석 없는 `.json` 입니다.
 
 ## 기준 시점
 

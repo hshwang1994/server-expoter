@@ -1,0 +1,133 @@
+// ============================================================
+// Cisco UCS C220 M4 (CIMC) — Redfish 채널 수집 결과
+// ============================================================
+// 원본은 같은 폴더의 cisco_baseline.json.
+//
+// dell_baseline_annotated.jsonc 와 같은 envelope 구조라
+// 본 파일은 **Cisco 만의 차이점** 만 짧게 주석.
+//
+// Cisco 의 특징:
+//   - bmc.name = "BMC" (다른 벤더와 달리 약자 안 씀)
+//   - bmc.firmware_version 형식이 "4.1(2g)" — 괄호 + 알파벳 (UCS 표기)
+//   - hostname 이 null (CIMC 가 fqdn 미보고)
+//   - hardware.sku 가 null (Cisco 는 SKU 보고 안 함)
+//   - oem 영역 거의 비어있음
+//   - hardware.health = "OK" 상태 잘 보고
+
+{
+  "status":           "success",                            // 주의: Cisco baseline 만 status 가 맨 위에 옴
+  "schema_version":   "1",                                  // (envelope 13 필드는 동일하지만 출력 순서가 다름)
+  "target_type":      "redfish",
+  "collection_method":"redfish_api",
+  "vendor":           "cisco",
+  "ip":               "10.100.15.2",
+  "hostname":         null,                                 // ← Cisco 특징! CIMC 가 fqdn 안 줌
+  "sections": {
+    "system":   "not_supported",
+    "hardware": "success",
+    "bmc":      "success",
+    "cpu":      "success",
+    "memory":   "success",
+    "storage":  "success",
+    "network":  "success",
+    "firmware": "success",
+    "users":    "not_supported",
+    "power":    "success"
+  },
+
+  "data": {
+
+    // === 시스템 (Cisco 는 fqdn 만 자체 형식으로 보고) ===
+    "system": {
+      "os_family":      null,
+      "distribution":   null,
+      "version":        null,
+      "kernel":         null,
+      "architecture":   null,
+      "uptime_seconds": null,
+      "selinux":        null,
+      "fqdn":           "C220-FCH2116V1V0"                  // ← Cisco 가 만들어내는 형식: "<모델>-<시리얼>"
+    },
+
+    // === 하드웨어 ===
+    "hardware": {
+      "vendor":       "Cisco Systems Inc",                  // BMC 가 보고한 원본
+      "model":        "TA-UNODE-G1",                        // Cisco 의 모델 코드 (UCS 시리즈)
+      "serial":       "FCH2116V1V0",                        // Cisco 시리얼 (FCH 시작 12자)
+      "uuid":         "B190019F-56CE-4ED4-A1DD-6571DAAEDAD7",
+      "sku":          null,                                  // ← Cisco 는 SKU 보고 안 함
+      "bios_version": "C220M4.4.1.2c.0.0202211901",
+      "bios_date":    null,
+      "power_state":  "On",
+      "health":       "OK",
+      "oem":          {}                                     // Cisco 는 OEM 영역 거의 안 씀
+    },
+
+    // === BMC ===
+    "bmc": {
+      "name":             "BMC",                            // ← Cisco 만 약자 안 씀 (Dell=iDRAC, HPE=iLO, Lenovo=XCC)
+      "firmware_version": "4.1(2g)",                        // ← Cisco 형식: "주.부(빌드)" — 괄호 + 알파벳
+                                                             //   다른 벤더와 형식이 완전히 다름
+      "model":            "TA-UNODE-G1",                    // BMC 모델 = 서버 모델 (Cisco 는 통합)
+      "manager_type":     "BMC",
+      "health":           "OK",
+      "ip":               "10.100.15.2",
+      "oem":              {}
+    },
+
+    // === CPU (구조는 dell 과 동일) ===
+    "cpu": {
+      "sockets":         2,
+      "cores_physical":  44,
+      "logical_threads": 44,                                // 이 케이스 HT 꺼져있음 (44 == 44)
+      "model":           "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+      "max_speed_mhz":   4000,
+      "architecture":    null,
+      "summary": {
+        "groups": [
+          { "model":            "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+            "sockets":          2,
+            "cores_per_socket": 22,
+            "total_cores":      44 }
+        ]
+      }
+    },
+
+    // === 메모리 (Cisco 는 DIMM slots 풍부하게 보고) ===
+    "memory": {
+      "total_mb":     1048576,                              // 1024 GB (1 TB)
+      "total_basis":  "physical_installed",
+      "installed_mb": 1048576,
+      "visible_mb":   null,
+      "free_mb":      null,
+      "slots": [
+        {
+          "id":           "1",
+          "name":         "DIMM_A1",                        // ← Cisco 의 DIMM 표기 (DIMM_A1 형식)
+          "capacity_mib": 65536,                            // 64 GiB
+          "type":         "DDR4",
+          "speed_mhz":    2400,
+          "manufacturer": "0xCE00",                         // ← Cisco 는 JEDEC vendor ID 를 hex 로 보고 (0xCE00 = Samsung)
+          "serial":       "88B56DFA",
+          "part_number":  "M386A8K40BM1-CRC    ",            // 끝에 공백 padding 있을 수 있음
+          "health":       "OK"
+        }
+        // ... 나머지 슬롯 생략
+      ]
+      // summary 도 dell 과 동일 구조
+    },
+
+    // === 나머지 (storage / network / power / firmware / users) 는 dell 과 동일 구조 ===
+    "storage":  { /* ... */ },
+    "network":  { /* ... */ },
+    "power":    { /* ... PSU + power_control */ },
+    "firmware": [ /* ... 펌웨어 목록 */ ],
+    "users":    []                                          // Redfish 채널 미지원
+  },
+
+  // === 진단 / 메타 / 상관관계 (구조 dell 동일) ===
+  "diagnosis":    { /* ... */ },
+  "meta":         { /* ... adapter_id = "redfish_cisco_cimc" */ },
+  "correlation":  { /* ... serial_number="FCH..." 형식 */ },
+  "errors":       []
+}

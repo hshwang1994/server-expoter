@@ -1,0 +1,221 @@
+// ============================================================
+// Ubuntu 24.04 (VM) — OS 채널 (Linux) 수집 결과
+// ============================================================
+// OS-gather 가 SSH + Python 모드로 수집한 결과의 한국어 주석본.
+// 원본은 같은 폴더의 ubuntu_baseline.json.
+//
+// Redfish (dell) / ESXi 채널과 비교 :
+//   - hardware / bmc / firmware / power = not_supported (OS 안에서는 BMC 안 봄)
+//   - users / system 이 풍부 (OS 채널만의 영역)
+//   - memory.total_basis = "os_visible" (커널이 보는 양)
+//   - vendor 필드가 null (OS 채널은 벤더 자동 감지 안 함)
+
+{
+  "target_type":      "os",
+  "collection_method":"agent",                              // SSH + Ansible setup/shell/command
+  "ip":               "10.100.64.166",
+  "hostname":         "jenkins-test-linux01.gooddi.lab",     // OS 가 보고한 fqdn
+  "vendor":           null,                                  // OS 채널은 BMC 안 봐서 vendor 정규화 없음
+
+  "status":           "success",
+  "sections": {
+    "system":   "success",
+    "hardware": "not_supported",  // OS 채널은 하드웨어 본체 정보 안 봄
+    "bmc":      "not_supported",  // OS 채널은 BMC 안 봄
+    "cpu":      "success",
+    "memory":   "success",
+    "storage":  "success",
+    "network":  "success",
+    "firmware": "not_supported",  // OS 채널은 펌웨어 인벤토리 안 봄
+    "users":    "success",        // ← OS 채널만의 영역
+    "power":    "not_supported"   // OS 채널은 PSU 안 봄
+  },
+
+  "diagnosis": {
+    "reachable":          true,
+    "port_open":          true,
+    "protocol_supported": true,
+    "auth_success":       true,
+    "failure_stage":      null,
+    "failure_reason":     null,
+    "details": {
+      "channel":           "os",
+      "adapter_candidate": "os_linux_generic",   // Linux 일반 adapter 매칭
+      "detected_os":       "linux",              // 포트 감지 결과 (SSH 22 → Linux)
+      "selected_port":     22,                    // SSH
+      "checked_ports":     [22]                   // OS 채널은 22 만 검사 (5986 은 Windows 일 때만)
+    }
+  },
+
+  "meta": {
+    "started_at":      "2026-04-01T04:35:59.914528Z",
+    "finished_at":     "2026-04-01T04:36:13.686183Z",
+    "duration_ms":     14000,                      // OS 채널은 보통 10~30초
+    "adapter_id":      "os_linux_generic",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+
+  "correlation": {
+    // VMware VM 이라 SMBIOS serial 이 "VMware-XX XX..." 형식
+    "serial_number": "VMware-42 04 87 42 3c 2b 35 00-b7 2a 78 db 36 48 f4 03",
+    "system_uuid":   "42870442-2b3c-0035-b72a-78db3648f403",
+    "bmc_ip":        null,                         // OS 채널은 BMC 정보 없음
+    "host_ip":       "10.100.64.166"
+  },
+
+  "errors": [],
+
+  "data": {
+
+    // === 시스템 (OS 정보 — OS 채널의 주력 영역) ===
+    "system": {
+      "os_family":      "Debian",                  // RedHat / Debian / SUSE / ...
+      "distribution":   "Ubuntu",
+      "version":        "24.04",
+      "kernel":         "6.8.0-100-generic",       // uname -r
+      "architecture":   "x86_64",                  // uname -m
+      "hosting_type":   "virtual",                 // virtual / baremetal / unknown
+                                                   // ← OEM vendor 인식으로 판정 (VMware 라 virtual)
+      "uptime_seconds": 1228133,                   // 약 14일
+      "selinux":        "disabled",                // enabled / disabled / null (Round 2 정규화)
+      "fqdn":           "jenkins-test-linux01.gooddi.lab",
+      "serial_number":  "VMware-42 04 87 42 3c 2b 35 00-b7 2a 78 db 36 48 f4 03",
+      "system_uuid":    "42870442-2b3c-0035-b72a-78db3648f403"
+    },
+
+    // === 메모리 ===
+    "memory": {
+      "total_mb":     3915,
+      "total_basis":  "os_visible",                // ← OS 채널 특징 (커널이 보는 양)
+      "installed_mb": null,                        // OS 는 DIMM 정보 직접 못 봄 (Redfish 영역)
+      "visible_mb":   3915,
+      "free_mb":      1325,                        // /proc/meminfo MemAvailable
+      "slots":        [],                          // OS 는 DIMM 슬롯별 정보 없음
+      "summary": {
+        "groups":         [],
+        "grand_total_gb": 3
+      }
+    },
+
+    "power":    null,    // OS 채널 미지원
+    "hardware": null,    // OS 채널 미지원
+    "bmc":      null,    // OS 채널 미지원
+    "firmware": [],      // OS 채널 미지원
+
+    // === 네트워크 (ip / route / DNS — OS 가 보는 그대로) ===
+    "network": {
+      "interfaces": [
+        {
+          "id":           "ens160",
+          "name":         "ens160",
+          "kind":         "os_nic",                // server_nic / os_nic / vmkernel
+          "mac":          "00:50:56:84:66:3b",
+          "mtu":          1500,
+          "speed_mbps":   10000,                   // ethtool ens160 의 Speed
+          "link_status":  "up",                    // up / down (OS 표기)
+          "is_primary":   true,                    // 기본 게이트웨이가 이 NIC 으로 잡혀있나
+          "addresses": [
+            { "family":        "ipv4",
+              "address":       "10.100.64.166",
+              "prefix_length": 24,
+              "subnet_mask":   "255.255.255.0",
+              "gateway":       "10.100.64.254" }
+          ]
+        }
+      ],
+
+      "dns_servers":      ["127.0.0.53"],          // /etc/resolv.conf (Ubuntu 는 systemd-resolved 가 127.0.0.53)
+      "default_gateways": [
+        { "family": "ipv4", "address": "10.100.64.254" }
+      ],
+
+      "summary": {
+        "groups": [
+          { "speed_mbps": 10000, "link_type": null, "quantity": 1, "link_up_count": 1 }
+        ]
+      }
+    },
+
+    // === CPU ===
+    "cpu": {
+      "sockets":         2,                        // VM 이라 가상 소켓 2
+      "cores_physical":  2,
+      "logical_threads": 2,                        // HT 없음 (VM)
+      "model":           "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+      "architecture":    "x86_64",
+      "summary": {
+        "groups": [
+          { "model":            "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+            "sockets":          2,
+            "cores_per_socket": 1,
+            "total_cores":      2 }
+        ]
+      }
+    },
+
+    // === 스토리지 (block device + 마운트된 파일시스템) ===
+    "storage": {
+      "datastores":      [],   // ESXi 채널 전용
+      "controllers":     [],   // Redfish 채널 전용
+      "logical_volumes": [],   // Redfish 채널 전용
+
+      // 물리 디스크 (lsblk 결과). VM 이면 "Virtual disk".
+      "physical_disks": [
+        {
+          "id":         "/dev/sda",
+          "device":     "/dev/sda",
+          "model":      "Virtual disk",
+          "total_mb":   102400,                    // 100 GB
+          "media_type": "HDD",                     // SSD / HDD (lsblk -d -o ROTA)
+          "protocol":   null,                      // SATA / SAS / NVMe (OS 가 모를 수 있음)
+          "health":     null                       // OS 는 SMART 안 봄
+        }
+      ],
+
+      // 마운트된 파일시스템 (df -P + /proc/mounts)
+      "filesystems": [
+        {
+          "device":        "/dev/sda2",
+          "mount_point":   "/",
+          "filesystem":    "ext4",                 // ext4 / xfs / btrfs / zfs ...
+          "total_mb":      100217.9,
+          "used_mb":       12596.7,
+          "available_mb":  87621.2,
+          "usage_percent": 12.6,
+          "status":        "mounted"
+        }
+      ],
+
+      "summary": {
+        "groups": [
+          { "unit_capacity_gb": 100, "media_type": "HDD", "protocol": null,
+            "quantity": 1, "group_total_gb": 100 }
+        ],
+        "grand_total_gb": 100
+      }
+    },
+
+    // === 사용자 계정 (OS 채널만의 영역) ===
+    // Linux: getent passwd + lastlog
+    // Windows: Get-LocalUser
+    "users": [
+      {
+        "name":             "root",
+        "uid":              "0",                   // Linux 는 정수 UID
+        "groups":           ["root"],
+        "home":             "/root",
+        "last_access_time": null                   // lastlog 결과 없음
+      },
+      {
+        "name":             "cloviradmin",
+        "uid":              "1000",
+        "groups":           ["cloviradmin", "adm", "cdrom", "sudo", "dip", "plugdev", "lxd"],
+        "home":             "/home/cloviradmin",
+        "last_access_time": "2026-04-01T04:35:59Z" // 마지막 로그인 시각 (lastlog)
+      }
+    ]
+  },
+
+  "schema_version": "1"
+}

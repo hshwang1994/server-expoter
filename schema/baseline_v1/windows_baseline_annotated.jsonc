@@ -1,0 +1,219 @@
+// ============================================================
+// Windows 10 (VM) — OS 채널 (Windows) 수집 결과
+// ============================================================
+// OS-gather 가 WinRM + PowerShell 로 수집한 결과의 한국어 주석본.
+// 원본은 같은 폴더의 windows_baseline.json.
+//
+// Linux baseline (ubuntu) 과 비교:
+//   - 같은 OS 채널이지만 detected_os = "windows" (포트 5985/5986 응답으로 판정)
+//   - users[].uid 가 SID 문자열 (Linux 는 정수 UID)
+//   - filesystem 이 NTFS, mount_point 가 "C:\" 형식
+//   - selinux 는 항상 null (Windows 영역 아님)
+
+{
+  "target_type":      "os",
+  "collection_method":"agent",                              // WinRM + Ansible win_* 모듈
+  "ip":               "10.100.64.120",
+  "hostname":         "DESKTOP-99237QP",
+  "vendor":           null,                                  // OS 채널은 vendor 정규화 없음
+
+  "status":           "success",
+  "sections": {
+    "system":   "success",
+    "hardware": "not_supported",
+    "bmc":      "not_supported",
+    "cpu":      "success",
+    "memory":   "success",
+    "storage":  "success",
+    "network":  "success",
+    "firmware": "not_supported",
+    "users":    "success",
+    "power":    "not_supported"
+  },
+
+  "diagnosis": {
+    "reachable":          true,
+    "port_open":          true,
+    "protocol_supported": true,
+    "auth_success":       true,
+    "failure_stage":      null,
+    "failure_reason":     null,
+    "details": {
+      "channel":           "os",
+      "adapter_candidate": "os_windows_generic",  // Windows 일반 adapter
+      "detected_os":       "windows",             // 포트 감지 (5985/5986 응답)
+      "selected_port":     "5985",                // 5985 = WinRM HTTP, 5986 = WinRM HTTPS
+      "checked_ports":     [5985, 5986]           // 둘 다 검사 후 응답하는 쪽 사용
+    }
+  },
+
+  "meta": {
+    "started_at":      "2026-04-01T04:36:21.655005Z",
+    "finished_at":     "2026-04-01T04:37:05.951081Z",
+    "duration_ms":     44000,                     // Windows 는 보통 30~60초 (PowerShell 가 느림)
+    "adapter_id":      "os_windows_generic",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+
+  "correlation": {
+    "serial_number": "VMware-42 04 cc cc 3a 70 bf 67-4d 8c be c6 fb 82 c2 65",
+    "system_uuid":   "CCCC0442-703A-67BF-4D8C-BEC6FB82C265",
+    "bmc_ip":        null,
+    "host_ip":       "10.100.64.120"
+  },
+
+  "errors": [],
+
+  "data": {
+
+    // === 시스템 ===
+    "system": {
+      "os_family":      "Windows",
+      "distribution":   "Microsoft Windows 10 Home",
+      "version":        "22H2",                   // Windows 릴리즈 (22H2 = 2022 하반기)
+      "kernel":         "19045",                  // Windows build number
+      "architecture":   "x86_64",
+      "hosting_type":   "virtual",                // VMware VM 이라 virtual
+      "uptime_seconds": 167596,                   // 약 2일
+      "selinux":        null,                     // Windows 는 SELinux 없음 (항상 null)
+      "fqdn":           "DESKTOP-99237QP",
+      "serial_number":  "VMware-42 04 cc cc 3a 70 bf 67-4d 8c be c6 fb 82 c2 65",
+      "system_uuid":    "CCCC0442-703A-67BF-4D8C-BEC6FB82C265"
+    },
+
+    // === 메모리 ===
+    "memory": {
+      "total_mb":     8192,
+      "total_basis":  "physical_installed",       // Windows 는 Get-CimInstance Win32_PhysicalMemory 사용
+                                                  // (Linux 와 달리 "physical" 값을 직접 줌)
+      "installed_mb": 8192,
+      "visible_mb":   8192,                       // OS 인식과 같음
+      "free_mb":      6576,
+      "slots":        [],
+      "summary": {
+        "groups":         [],
+        "grand_total_gb": 8
+      }
+    },
+
+    "power":    null,
+    "hardware": null,
+    "bmc":      null,
+    "firmware": [],
+
+    // === 네트워크 ===
+    "network": {
+      "interfaces": [
+        {
+          "id":           "vmxnet3 Ethernet Adapter",  // Get-NetAdapter InterfaceDescription
+          "name":         "Ethernet0 2",                // Windows 의 표시 이름
+          "kind":         "os_nic",
+          "mac":          "00-50-56-84-59-D0",          // Windows 는 dash 구분 (Linux 는 콜론)
+          "mtu":          1500,
+          "speed_mbps":   10000,
+          "link_status":  "up",
+          "is_primary":   true,
+          "addresses": [
+            { "family":        "ipv4",
+              "address":       "10.100.64.120",
+              "prefix_length": 24,
+              "subnet_mask":   null,                    // Windows 는 PrefixLength 만 보고 subnet_mask 미계산
+              "gateway":       "10.100.64.254" }
+          ]
+        }
+      ],
+      "dns_servers":      ["10.100.64.251"],
+      "default_gateways": [{ "family": "ipv4", "address": "10.100.64.254" }],
+      "summary": {
+        "groups": [
+          { "speed_mbps": 10000, "link_type": null, "quantity": 1, "link_up_count": 1 }
+        ]
+      }
+    },
+
+    // === CPU ===
+    "cpu": {
+      "sockets":         1,
+      "cores_physical":  2,
+      "logical_threads": 2,
+      "model":           "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+      "architecture":    "x86_64",
+      "summary": {
+        "groups": [
+          { "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+            "sockets": 1, "cores_per_socket": 2, "total_cores": 2 }
+        ]
+      }
+    },
+
+    // === 스토리지 ===
+    "storage": {
+      "datastores":      [],
+      "controllers":     [],
+      "logical_volumes": [],
+
+      // 물리 디스크 (Get-PhysicalDisk)
+      "physical_disks": [
+        {
+          "id":         "\\\\.\\PHYSICALDRIVE0",   // Windows 의 물리 디스크 path
+          "device":     "\\\\.\\PHYSICALDRIVE0",
+          "model":      "VMware Virtual disk SCSI Disk Device",
+          "total_mb":   61436,
+          "media_type": "HDD",                     // SSD/HDD enum 정규화 (Windows 영역 보강)
+          "protocol":   null,
+          "health":     null
+        }
+      ],
+
+      // 마운트된 파일시스템 (Get-Volume / Get-PSDrive)
+      "filesystems": [
+        {
+          "device":        "C:",
+          "mount_point":   "C:\\",                 // Windows 는 드라이브 letter
+          "filesystem":    "NTFS",                 // NTFS / ReFS / FAT32 / exFAT
+          "total_mb":      60747.5,
+          "used_mb":       32078.9,
+          "available_mb":  28668.6,
+          "usage_percent": 52.8,
+          "status":        "mounted"
+        }
+      ],
+
+      "summary": {
+        "groups": [
+          { "unit_capacity_gb": 59, "media_type": "HDD", "protocol": null,
+            "quantity": 1, "group_total_gb": 59 }
+        ],
+        "grand_total_gb": 59
+      }
+    },
+
+    // === 사용자 계정 (Windows 의 Get-LocalUser) ===
+    // Linux 와 차이:
+    //   - uid 가 SID 문자열 ("S-1-5-21-...-1001"). Linux 는 정수.
+    //   - groups 는 멤버십 list. 거의 다 "Administrators" 라면 권한 검토 필요.
+    //   - home 은 보통 null. 프로파일 디렉터리가 있는 경우만 채워짐.
+    //   - last_access_time 은 마지막 로그인 시각.
+    "users": [
+      {
+        "name":             "Administrator",
+        "uid":              "S-1-5-21-328893579-2286629357-2398190121-500",  // 마지막 -500 = 빌트인 Administrator
+        "groups":           ["Administrators"],
+        "home":             null,
+        "last_access_time": null
+      },
+      {
+        "name":             "gooddit",
+        "uid":              "S-1-5-21-328893579-2286629357-2398190121-1001",
+        "groups":           ["Administrators"],
+        "home":             "C:\\Users\\gooddit",
+        "last_access_time": "2026-04-01T04:36:58Z"
+      }
+      // ... 나머지 24개 계정 생략. 모두 같은 구조.
+      // 이 호스트는 테스트 VM 이라 Administrators 에 25명 — 운영 환경이면 권한 검토 대상.
+    ]
+  },
+
+  "schema_version": "1"
+}

@@ -1,0 +1,149 @@
+// ============================================================
+// Lenovo SR650 V2 (XCC) — Redfish 채널 수집 결과
+// ============================================================
+// 원본은 같은 폴더의 lenovo_baseline.json.
+//
+// dell_baseline_annotated.jsonc 와 같은 envelope 구조라
+// 본 파일은 **Lenovo 만의 차이점** 만 짧게 주석.
+//
+// Lenovo 의 특징:
+//   - bmc.name = "XCC" (XClarity Controller)
+//   - bmc.firmware_version 표기에 빌드코드 + 버전 + 빌드일 ("AFBT58B 5.70 2025-08-11")
+//   - hostname 으로 BMC 가 자기 이름 보고 ("XCC-7Z73-J30AF7LC" 형식)
+//   - NIC ID 가 의미 있는 이름 ("ToManager", "NIC1", "NIC2" — Dell 은 "NIC.Slot.7-1-1")
+//   - oem 영역이 거의 비어있음 (Lenovo 는 표준 Redfish 영역에 충실)
+//   - bmc.health 가 null 인 케이스 있음 (XCC 펌웨어 버전에 따라 미보고)
+
+{
+  "target_type":      "redfish",
+  "collection_method":"redfish_api",
+  "ip":               "10.50.11.232",
+  "hostname":         "XCC-7Z73-J30AF7LC",   // ← Lenovo 특징! BMC 가 자기 이름 보고
+                                              //   "XCC-<machine type>-<serial>" 형식
+  "vendor":           "lenovo",                // "Lenovo" 또는 "IBM" → "lenovo" 정규화
+
+  "status":           "success",
+  "sections": {
+    "system":   "not_supported",
+    "hardware": "success",
+    "bmc":      "success",
+    "cpu":      "success",
+    "memory":   "success",
+    "storage":  "success",
+    "network":  "success",
+    "firmware": "success",
+    "users":    "not_supported",
+    "power":    "success"
+  },
+
+  "diagnosis": {
+    "reachable": true, "port_open": true,
+    "protocol_supported": true, "auth_success": true,
+    "failure_stage": null, "failure_reason": null,
+    "details": {
+      "channel":           "redfish",
+      "adapter_candidate": "redfish_lenovo_xcc",
+      "checked_ports":     [443],
+      "selected_port":     443,
+      "redfish_version":   "1.15.0",            // Lenovo XCC 의 Redfish 스펙
+      "product":           null,                 // Lenovo 는 product 필드 안 줌 (manufacturer 만)
+      "systems_uri":       "/redfish/v1/Systems"
+    }
+  },
+
+  "meta": {
+    "started_at":      "2026-04-01T04:35:36.202440Z",
+    "finished_at":     "2026-04-01T04:37:22.257295Z",
+    "duration_ms":     106000,
+    "adapter_id":      "redfish_lenovo_xcc",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+
+  "correlation": {
+    "serial_number": "J30AF7LC",                       // Lenovo 시리얼 (8자, 알파+숫자)
+    "system_uuid":   "a394fe0c-327a-11ed-8222-3a68dd89594f",
+    "bmc_ip":        "10.50.11.232",
+    "host_ip":       "10.50.11.232"
+  },
+
+  "errors": [],
+
+  "data": {
+
+    // === BMC — Lenovo 의 XCC 표기 ===
+    "bmc": {
+      "name":             "XCC",                              // ← Lenovo XClarity Controller 약자
+      "firmware_version": "AFBT58B 5.70 2025-08-11",          // 빌드코드 + 버전 + 빌드일
+                                                               //   AFBT58B = 펌웨어 빌드 ID
+                                                               //   5.70    = 사용자 보는 버전
+                                                               //   날짜    = 빌드일
+      "model":            "Lenovo XClarity Controller",
+      "manager_type":     "BMC",
+      "health":           null,                                // XCC 일부 펌웨어에서 health 미보고
+      "ip":               "10.50.11.232",
+      "oem":              {}                                   // Lenovo 는 표준 영역 충실, OEM 거의 안 씀
+    },
+
+    // === 네트워크 — Lenovo 의 의미 있는 NIC ID ===
+    "network": {
+      "dns_servers":      [],
+      "interfaces": [
+        {
+          "id":           "ToManager",                         // ← BMC 내부 인터페이스 (관리망)
+          "name":         "Host Ethernet Interface",
+          "kind":         "server_nic",
+          "mac":          "3a:68:dd:89:59:4f",
+          "mtu":          null,
+          "speed_mbps":   100,
+          "link_status":  "linkup",
+          "is_primary":   false,
+          "addresses":    []
+        },
+        {
+          "id":           "NIC1",                              // ← 외부 NIC (server NIC 1번)
+          "name":         "External Ethernet Interface",
+          "kind":         "server_nic",
+          "mac":          "6C:FE:54:3C:EC:90",
+          "mtu":          null,
+          "speed_mbps":   null,
+          "link_status":  "linkdown",
+          "is_primary":   false,
+          "addresses":    []
+        }
+        // ... NIC2, NIC3 등 생략. 이름이 "NIC1/NIC2/..." 라서 사람이 읽기 좋음.
+        // (Dell: "NIC.Slot.7-1-1" 같은 BMC 내부 토큰)
+      ]
+    },
+
+    // === 하드웨어 ===
+    "hardware": {
+      "vendor": "Lenovo",                                       // 또는 "IBM" (구형) — vendor_aliases.yml 에서 둘 다 lenovo 로 정규화
+      "model":  "...",                                           // 예: "ThinkSystem SR650 V2"
+      // "oem": Lenovo 는 거의 비어있음 (표준 영역에 충실)
+      // ... 나머지 dell 과 동일 구조
+    },
+
+    // === 펌웨어 — Lenovo 의 component 형식 ===
+    "firmware": [
+      {
+        "id":         "...",
+        "name":       "BMC Firmware",
+        "version":    "5.70",
+        "updateable": true,
+        "component":  "BMC-AFBT-10"                              // ← Lenovo 형식 (Dell 은 숫자만, HPE 는 숫자/UUID)
+      }
+      // ... 펌웨어 목록 다수 생략
+    ],
+
+    // 나머지 (storage / cpu / memory / power / system) 는 dell 과 동일 구조라 생략
+    "memory":  { /* ... slots[] 풍부 */ },
+    "storage": { /* ... physical_disks / logical_volumes / controllers */ },
+    "cpu":     { /* ... */ },
+    "power":   { /* ... PSU + power_control */ },
+    "system":  { /* ... fqdn 만, 나머지 null */ },
+    "users":   []
+  },
+
+  "schema_version": "1"
+}

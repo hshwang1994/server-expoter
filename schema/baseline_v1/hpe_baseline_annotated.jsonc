@@ -1,0 +1,146 @@
+// ============================================================
+// HPE ProLiant DL380 Gen11 (iLO 6) — Redfish 채널 수집 결과
+// ============================================================
+// 원본은 같은 폴더의 hpe_baseline.json.
+//
+// 본 파일은 Dell baseline (dell_baseline_annotated.jsonc) 과 같은 envelope 구조라
+// 중복 설명은 생략하고, **HPE 만의 차이점** 위주로 주석을 단다.
+// 처음 보는 분은 dell_baseline_annotated.jsonc 를 먼저 읽고 오기를 권장.
+//
+// HPE 의 특징:
+//   - bmc.name = "iLO" (Dell=iDRAC, Lenovo=XCC, Cisco=CIMC)
+//   - bmc.firmware_version 표기에 "iLO 6 v1.73" 처럼 세대 + 버전 묶음
+//   - network.interfaces[].link_status 가 "none" 인 케이스 다수 (iLO 가 NIC 상태 미보고)
+//   - storage 컨트롤러 응답이 Dell 보다 단순 (StorageControllers 링크 별도 호출 — Gen11+ 차이)
+//   - oem 영역이 Dell 보다 작음 (HPE 는 표준 필드를 더 많이 채워줌)
+
+{
+  "target_type":      "redfish",
+  "collection_method":"redfish_api",
+  "ip":               "10.50.11.231",
+  "hostname":         "10.50.11.231",       // BMC 가 fqdn 안 줘서 ip fallback (정상)
+  "vendor":           "hpe",                 // "Hewlett Packard Enterprise" → "hpe" 정규화
+
+  "status":           "success",
+  "sections": {
+    "system":   "not_supported",
+    "hardware": "success",
+    "bmc":      "success",
+    "cpu":      "success",
+    "memory":   "success",
+    "storage":  "success",
+    "network":  "success",
+    "firmware": "success",
+    "users":    "not_supported",
+    "power":    "success"
+  },
+
+  "diagnosis": {
+    "reachable": true, "port_open": true,
+    "protocol_supported": true, "auth_success": true,
+    "failure_stage": null, "failure_reason": null,
+    "details": {
+      "channel":           "redfish",
+      "adapter_candidate": "redfish_hpe_ilo5",   // HPE iLO 5 adapter 매칭
+      "checked_ports":     [443],
+      "selected_port":     443,
+      "redfish_version":   "1.20.0",              // HPE iLO 6 의 Redfish 스펙 (Dell iDRAC9 는 1.6.0)
+      "product":           "ProLiant DL380 Gen11",
+      "systems_uri":       "/redfish/v1/Systems/"
+    }
+  },
+
+  "meta": {
+    "started_at":      "2026-04-01T04:35:36.211203Z",
+    "finished_at":     "2026-04-01T04:37:22.270254Z",
+    "duration_ms":     106000,
+    "adapter_id":      "redfish_hpe_ilo5",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+
+  "correlation": {
+    "serial_number": "SGH504HNZK",                     // HPE 시리얼 형식 (10자)
+    "system_uuid":   "35323550-3433-4753-4835-3034484E5A4B",
+    "bmc_ip":        "10.50.11.231",
+    "host_ip":       "10.50.11.231"
+  },
+
+  "errors": [],
+
+  "data": {
+
+    // === BMC — HPE 특징 ===
+    "bmc": {
+      "name":             "iLO",                     // ← Dell=iDRAC, Lenovo=XCC, Cisco=CIMC, HPE=iLO
+      "firmware_version": "iLO 6 v1.73",             // 세대명 + 버전 묶어서 보고
+      "model":            "iLO 6",
+      "manager_type":     "BMC",
+      "health":           "OK",
+      "ip":               "10.50.11.231",
+      "oem": {
+        "ilo_version":    null                        // HPE OEM 자체 키. 일부 펌웨어에서 채움.
+      }
+    },
+
+    // === 네트워크 — HPE 의 link_status "none" 패턴 ===
+    "network": {
+      "dns_servers":      [],
+      "default_gateways": [],
+      "interfaces": [
+        {
+          "id":           "9",                        // HPE 는 NIC ID 가 단순 정수 (Dell 은 "NIC.Slot.7-1-1")
+          "name":         "9",
+          "kind":         "server_nic",
+          "mac":          "8c:84:74:e9:be:84",
+          "mtu":          null,
+          "speed_mbps":   null,
+          "link_status":  "none",                     // ← HPE 특이점!
+                                                       // iLO 가 NIC 상태 정보를 안 줄 때 "none".
+                                                       // (linkdown 과 다름. 정보 없음 = 미보고)
+          "is_primary":   false,
+          "addresses":    []
+        }
+        // ... 다른 NIC 도 비슷한 패턴 (link_status="none" 다수)
+      ],
+      "summary": { "groups": [/* ... */] }
+    },
+
+    // === 메모리 — Dell 과 거의 동일. DIMM slots 풍부.
+    "memory": { /* ... 생략. 구조는 dell 과 동일. total_basis = physical_installed */ },
+
+    // === 하드웨어 ===
+    "hardware": {
+      "vendor":       "HPE",                          // BMC 가 보고한 원본 (HPE 는 짧게 보고)
+      "model":        "ProLiant DL380 Gen11",
+      // "sku":       HPE 는 파트 번호 (Dell=서비스 태그). 이 케이스는 null 일 수도.
+      // "oem":       Dell 처럼 chassis_service_tag 같은 풍부한 키 없음. HPE 는 표준 필드를 채움.
+      // ... 이하 dell 과 동일 구조
+    },
+
+    // === 스토리지 — HPE Gen11+ 의 차이 ===
+    // HPE Gen11 부터는 controllers[].drives 가 비어있고
+    // StorageControllers 링크를 따로 호출해야 한다.
+    // server-exporter 는 이를 자동 처리.
+    "storage": { /* ... 구조는 dell 과 동일. logical_volumes / physical_disks / controllers */ },
+
+    // === 펌웨어 — HPE 의 component 형식 ===
+    "firmware": [
+      {
+        "id":         "...",
+        "name":       "iLO 6",
+        "version":    "1.73",
+        "updateable": true,
+        "component":  "..."                            // HPE 는 숫자 또는 UUID (Dell 은 숫자만)
+      }
+      // ... 펌웨어 목록 다수 생략
+    ],
+
+    "system":   { /* fqdn 만 BMC 가 보고. 나머지 null */ },
+    "users":    [],   // Redfish 채널 미지원
+    "power":    { /* PSU + power_control. 구조는 dell 과 동일 */ },
+    "cpu":      { /* 구조는 dell 과 동일 */ }
+  },
+
+  "schema_version": "1"
+}
