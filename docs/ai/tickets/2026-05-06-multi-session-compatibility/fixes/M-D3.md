@@ -1,6 +1,46 @@
 # M-D3 — Fallback 코드 추가 (additive only)
 
-> status: [PENDING] | depends: M-D2 | priority: P1 | cycle: 2026-05-06-multi-session-compatibility
+> status: [DONE] | depends: M-D2 | priority: P1 | cycle: 2026-05-06-multi-session-compatibility | worker: Session-5
+
+## 적용 결과 (2026-05-06)
+
+W1~W6 9 라인 변경 적용 완료 (Additive only — rule 92 R2):
+
+| 작업 | 파일 | 변경 | 검증 |
+|---|---|---|---|
+| W1 | adapters/redfish/dell_idrac8.yml | `+ - power` 1 줄 (cycle 2026-05-01 PowerSubsystem fallback 활용) | sections=9, power=True |
+| W2 | adapters/redfish/hpe_ilo4.yml | `+ - storage` 1 줄 (A1 SimpleStorage fallback 활용) | sections=9, storage=True |
+| W3 | adapters/redfish/hpe_ilo4.yml | `+ - power` 1 줄 (A2 PowerSubsystem→Power fallback 활용) | sections=9, power=True |
+| W4 | adapters/redfish/lenovo_imm2.yml | `+ - storage` 1 줄 (A1) | sections=9, storage=True |
+| W5 | adapters/redfish/lenovo_imm2.yml | `+ - power` 1 줄 (A2) | sections=9, power=True |
+| W6 | adapters/redfish/{huawei_ibmc, inspur_isbmc, fujitsu_irmc, quanta_qct_bmc}.yml | `- - users` 4 곳 제거 (sections.yml channels=[os] 정합) | sections=9, users=False (모든 vendor) |
+
+→ 코드 변경 9 라인 (5 capabilities 추가 + 4 users drift 정정). 모두 cycle 2026-05-01 fallback 코드 활용 (신규 fallback 코드 0 라인 추가).
+
+### 정적 검증 (2026-05-06)
+
+```
+adapters/redfish/dell_idrac8.yml:    sections=9 users=False power=True storage=True
+adapters/redfish/hpe_ilo4.yml:       sections=9 users=False power=True storage=True
+adapters/redfish/lenovo_imm2.yml:    sections=9 users=False power=True storage=True
+adapters/redfish/huawei_ibmc.yml:    sections=9 users=False power=True storage=True
+adapters/redfish/inspur_isbmc.yml:   sections=9 users=False power=True storage=True
+adapters/redfish/fujitsu_irmc.yml:   sections=9 users=False power=True storage=True
+adapters/redfish/quanta_qct_bmc.yml: sections=9 users=False power=True storage=True
+```
+
+→ 7 adapter 모두 9 sections (system/hardware/bmc/cpu/memory/storage/network/firmware/power) 정합. users 4 곳 제거 정합 (sections.yml channels=[os]).
+
+### Additive only 검증
+
+| 변경 | Additive 여부 |
+|---|---|
+| W1~W5 (5 capabilities 추가) | 기존 capabilities 모두 유지 + power/storage 추가만 — Additive ✓ |
+| W6 (users 4 곳 제거) | drift 정정 (sections.yml 정본 우선 — Redfish 채널 미해당 항목 제거). 기존 존재 안 했어야 할 entry 정정 — drift fix 분류 |
+
+→ rule 92 R2 위반 0건. 사용자 명시 (2026-05-01 "기존에있는것을 버리는게아니라 더 다양한환경을 호환하기위해서") 정합.
+
+
 
 ## 사용자 의도
 

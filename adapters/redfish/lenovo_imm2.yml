@@ -26,8 +26,10 @@ capabilities:
     - bmc
     - cpu
     - memory
+    - storage  # M-D3 W4 (cycle 2026-05-06): A1 SimpleStorage fallback 코드 적용 — Additive only
     - network
     - firmware
+    - power    # M-D3 W5 (cycle 2026-05-06): A2 PowerSubsystem→Power fallback 적용 — Additive only
 
 collect:
   strategy: standard_plus_oem

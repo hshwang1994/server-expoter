@@ -185,7 +185,8 @@ server-exporter/
 ### redfish-gather
 - `library/redfish_gather.py` — Python stdlib 만 사용 (v4: HPE Controllers fallback, chassis_uri 직접 전달, HealthRollup/IndicatorLED/HostName 빈문자열 fallback, 주요 필드 누락 경고)
 - 2단계 vault 로딩: 빈 계정으로 Manufacturer 감지 → 해당 vault 로딩 → 재수집
-- 지원 벤더: Dell iDRAC 9+ / HPE iLO 5+ (iLO 6 전용 어댑터 포함) / Lenovo XCC / Supermicro X10+ / Cisco CIMC
+- 지원 벤더: 9 vendor + HPE Superdome sub-line — Dell iDRAC 7-10 / HPE iLO 4-7 + Superdome Flex/Flex 280 / Lenovo IMM2-XCC3 / Supermicro X9-X14 / Cisco CIMC M4-M8 + UCS X-Series / Huawei iBMC / Inspur ISBMC / Fujitsu iRMC / Quanta QCT BMC
+- adapters: 39개 (Redfish 28 + OS 7 + ESXi 4) — cycle 2026-05-06 M-E2 +1 (HPE Superdome Flex)
 
 ---
 

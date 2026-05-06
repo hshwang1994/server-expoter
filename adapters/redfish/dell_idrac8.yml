@@ -25,6 +25,7 @@ capabilities:
     - storage
     - network
     - firmware
+    - power  # M-D3 W1 (cycle 2026-05-06): cycle 2026-05-01 PowerSubsystem fallback 코드 적용 — Additive only
 
 collect:
   strategy: standard_plus_oem

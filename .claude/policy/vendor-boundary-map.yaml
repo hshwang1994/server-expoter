@@ -2,8 +2,8 @@
 # 각 벤더는 adapter YAML + (선택) OEM tasks + vault credential을 가진다.
 # common/ + 3-channel gather 코드는 vendor-agnostic.
 #
-# 갱신 일자: 2026-04-28 (full-sweep — 실디렉터리 기준 정합)
-# 검증: `find adapters -name "*.yml" -type f | wc -l` = 25, `ls redfish-gather/tasks/vendors/` = 4 (cisco 미존재)
+# 갱신 일자: 2026-05-06 (M-E2/M-E4 — HPE Superdome Flex sub-line 추가)
+# 검증: `find adapters -name "*.yml" -type f | wc -l` = 39 (38 + Superdome Flex)
 
 vendors:
   dell:
@@ -19,17 +19,35 @@ vendors:
     firmware_examples: ["3.x", "4.x", "5.x", "6.x", "7.x", "1.x (iDRAC10)"]
 
   hpe:
-    description: "HPE ProLiant / iLO4 / iLO5 / iLO6 / iLO7 (Gen12)"
+    description: "HPE ProLiant / iLO4 / iLO5 / iLO6 / iLO7 (Gen12) / Superdome Flex (M-E2)"
     adapters:
       - "adapters/redfish/hpe_ilo.yml"   # generic hpe (priority=10)
-      - "adapters/redfish/hpe_ilo4.yml"  # iLO4
-      - "adapters/redfish/hpe_ilo5.yml"  # iLO5 (priority=100)
+      - "adapters/redfish/hpe_ilo4.yml"  # iLO4 (priority=50)
+      - "adapters/redfish/hpe_ilo5.yml"  # iLO5 (priority=90)
+      - "adapters/redfish/hpe_superdome_flex.yml"  # Superdome Flex / Flex 280 (priority=95, M-E2 cycle 2026-05-06, lab 부재)
       - "adapters/redfish/hpe_ilo6.yml"  # iLO6 (priority=100)
       - "adapters/redfish/hpe_ilo7.yml"  # iLO7 Gen12 (priority=120, F47 cycle 2026-05-01)
-    oem_tasks: "redfish-gather/tasks/vendors/hpe/"
-    vault: "vault/redfish/hpe.yml"
-    aliases: ["HPE", "Hewlett Packard Enterprise", "Hewlett-Packard", "HP", "iLO"]
-    firmware_examples: ["2.x", "3.x", "1.12.00 (iLO7)"]
+    oem_tasks: "redfish-gather/tasks/vendors/hpe/"  # Superdome Flex 도 동일 OEM 재사용 (Oem.Hpe namespace)
+    vault: "vault/redfish/hpe.yml"  # Superdome Flex 도 동일 vault 재사용 (M-E1 결정 (a))
+    aliases: ["HPE", "Hewlett Packard Enterprise", "Hewlett-Packard", "HP", "iLO", "Superdome", "Superdome Flex"]
+    firmware_examples: ["2.x", "3.x", "1.12.00 (iLO7)", "RMC 2.x/3.x (Superdome Flex, lab 부재)"]
+    sub_lines:
+      superdome_flex:
+        description: "HPE Superdome Flex / Flex 280 (2017+ x86 Xeon SP)"
+        adapter: "adapters/redfish/hpe_superdome_flex.yml"
+        priority: 95
+        models: ["Superdome Flex 280", "Superdome Flex"]
+        legacy_models_fallback:
+          superdome_2: "redfish_generic.yml"  # Itanium / OA — Redfish 미지원
+          superdome_x: "hpe_ilo4.yml"         # x86 Xeon E7 + iLO 4
+          integrity_superdome: "redfish_generic.yml"  # Itanium legacy
+        special_handling:
+          multi_partition: "nPAR — Systems ID = Partition<N>. 첫 partition (Partition0) 만 수집"
+          dual_manager: "RMC + per-node iLO 5. RMC primary"
+          oem_namespace: "Oem.Hpe (기존 HPE OEM 재사용)"
+        lab_status: "부재 — web sources 14건 (rule 96 R1-A)"
+        sources_count: 14
+        added_cycle: "2026-05-06 (M-E1/M-E2)"
 
   lenovo:
     description: "Lenovo ThinkSystem / XCC1-XCC2 / XCC3 (V4 OpenBMC) / IMM2"

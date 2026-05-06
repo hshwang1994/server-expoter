@@ -366,3 +366,55 @@ ServiceRoot를 조회했으므로 chassis_uri를 함께 반환하면 HTTP 호출
 - Session Auth 방식 지원 검토 (이번 검증에서는 Basic Auth만 확인했다)
 - 다른 세대 장비 (Gen10, R640 등) 검증
 - 다중 Chassis member 처리 (이번 검증에서는 Members[0] 기준 동작만 확인했다)
+
+## 15. cycle 2026-05-06 — 무 lab 환경 호환성 cycle (M-cycle)
+
+### 15-1. 사용자 명시 (2026-05-06)
+
+> "lab 접속 가능 장비 없음 → 프로젝트 코드를 모든 vendor / 모든 장비에 호환되도록 작성. 실 검증은 향후."
+
+### 15-2. M-cycle 결과
+
+| 영역 | 결과 |
+|---|---|
+| status 로직 (M-A) | Case A 채택 (의도 주석 강화 only) — pytest 13건 추가 (총 294 PASS) |
+| account_service (M-B) | 9 vendor 매트릭스 25 row 정적 검증 — Gap 0, BLOCK 1 (Supermicro X9) |
+| vault 자동 반영 (M-C) | YES (다음 ansible run 부터) — cacheable 0 / fact_caching 0 / gather_facts: no |
+| 호환성 매트릭스 (M-D) | 240 cell 전수 분류 — OK 27 / OK★ 167 / FB 9 / GAP 7 / BLOCK 6 / N/A 24 |
+| Superdome 추가 (M-E) | hpe_superdome_flex.yml (priority=95, lab 부재 web sources 14건) |
+| docs/20 신설 (M-F) | envelope 13 + sections 10 + field_dictionary 65 정본 + 3채널 비교 |
+| 학습 추출 (M-G) | (cycle 종료 시) |
+
+### 15-3. M-D3 W1~W6 호환성 활성화 (2026-05-06)
+
+| 작업 | 영향 adapter | 변경 |
+|---|---|---|
+| W1 | dell_idrac8.yml | `+ power` capabilities 추가 (cycle 2026-05-01 PowerSubsystem fallback 활용) |
+| W2 | hpe_ilo4.yml | `+ storage` (A1 SimpleStorage fallback 활용) |
+| W3 | hpe_ilo4.yml | `+ power` (A2 PowerSubsystem→Power) |
+| W4 | lenovo_imm2.yml | `+ storage` (A1) |
+| W5 | lenovo_imm2.yml | `+ power` (A2) |
+| W6 | huawei/inspur/fujitsu/quanta_*.yml | `- users` 4 곳 제거 (sections.yml channels=[os] 정합) |
+
+→ **9 라인 변경 (Additive only — rule 92 R2)** + pytest 294/294 PASS + envelope 13 필드 변경 0.
+
+### 15-4. HPE Superdome Flex 추가 (M-E2)
+
+| 항목 | 내용 |
+|---|---|
+| 위치 | `adapters/redfish/hpe_superdome_flex.yml` (priority=95) |
+| 모델 | Superdome Flex 280 (2020+) / Superdome Flex (2017+) |
+| BMC | RMC + per-node iLO 5 (dual-manager) |
+| Multi-partition | nPAR — Systems ID = `Partition<N>`. 첫 partition (Partition0) 만 수집 |
+| OEM | Oem.Hpe (기존 HPE OEM 재사용) |
+| vault | hpe (별도 불필요) |
+| Legacy 처리 | Superdome 2/Integrity → `redfish_generic.yml`. Superdome X → `hpe_ilo4.yml` |
+| sources | vendor docs 6 + DMTF 2 + GitHub 6 = 14건 (rule 96 R1-A) |
+| lab | 부재 — 사이트 실측 시 정정 가능 |
+
+### 15-5. 후속 lab 도입 시 작업
+
+- Supermicro X9 6 cell BLOCK 해제 (capture-site-fixture skill)
+- Superdome Flex multi-partition 전수 수집 (별도 cycle)
+- Lenovo XCC v3 OpenBMC 1.17.0 reverse regression fixture (사이트 fixture)
+- Cisco UCS X-Series IMM 모드 (Intersight) 통합
