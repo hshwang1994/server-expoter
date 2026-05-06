@@ -2,6 +2,38 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-06 (F49 — Dell iDRAC9 AccountService PATCH 동작 매트릭스 추가)
+
+### Dell iDRAC9 AccountService 사이트 실측 (10.100.15.27 / 10.100.15.31, 펌웨어 7.10.70.00)
+
+> source: 사이트 실측 (rule 25 R7-A-1 사용자 실측 우선) + Dell SWC0296 응답 코드 + Security Strengthen Policy.
+
+| 동작 | 결과 | 시그니처 |
+|---|---|---|
+| GET /AccountService | 200 + 16 슬롯 collection | 표준 |
+| GET /AccountService/Accounts/1 | UserName='', Enabled=false, RoleId='None' | **anonymous reserved slot** |
+| GET /AccountService/Accounts/2 | UserName='root', Enabled=true | 기본 admin |
+| PATCH /Accounts/1 (UserName, Password) | HTTP 400 AccessDenied | slot 1 PATCH 거부 |
+| PATCH /Accounts/3 (UserName + Password 동시) | HTTP 200 OK | UserName set 됨 |
+| PATCH /Accounts/3 (Password=10자) | HTTP 200 OK + **silent fail** | password 미적용 (인증 401) |
+| PATCH /Accounts/3 (Password=15자) | HTTP 200 OK + 정상 | Security Strengthen Policy 통과 |
+| PATCH /Accounts/3 (RoleId only, 빈 슬롯) | HTTP 400 SWC0296 | "user name or password is blank" |
+| PATCH /Accounts/3 (Enabled+RoleId, password 미적용 상태) | HTTP 400 SWC0296 | password silent fail 의 후속 시그널 |
+
+### F49 server-exporter 대응
+
+- `account_service_find_empty_slot()` 에 `skip_slot_ids={'1'}` 적용 (Dell 한정)
+- Dell PATCH 후 `_get('Systems', target_user, target_pass)` 로 실 인증 verify
+- silent fail 감지 시 다음 빈 슬롯으로 자동 fallback (최대 3 슬롯)
+- vault `Passw0rd1!` (10자) → `Passw0rd1!Infra` (15자) 강화
+
+### 외부 계약 변동 trigger
+
+- Dell iDRAC 펌웨어 8.x 출시 시 Security Strengthen Policy 변경 가능
+- HPE iLO 7 / Lenovo XCC4 출시 시 password policy 표준화 가능
+
+---
+
 ## 일자: 2026-04-30 (vendor detection robustness — Lenovo XCC2/XCC3 namespace prefix + BMC product hints + TLS legacy 호환) / 2026-04-30 (probe HTTP status_code 정합 매트릭스 추가) / 2026-04-28 (cycle-006 + full-sweep)
 
 ## ServiceRoot vendor detection — DMTF 표준 + vendor 동작 (2026-04-30 추가)

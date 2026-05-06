@@ -2,6 +2,31 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-06 (cycle-020 — F49 redfish account_provision 호환성 강화)
+
+- 환경: 로컬 (Python 3.11.9 / pytest 9.0.2) + Jenkins agent 10.100.64.154 (Ansible 2.20.3)
+- 신규 회귀 7건: `tests/unit/test_account_provision_f49_vendor_compat.py`
+  - `test_provision_lenovo_400_retry_with_password_change_required` — XCC password policy retry
+  - `test_provision_hpe_third_retry_with_oem_privileges` — iLO Oem.Hpe.Privileges 3차 retry
+  - `test_provision_supermicro_first_attempt_success_no_retry` — supermicro 1차 성공
+  - `test_provision_lenovo_500_no_retry` — 500은 retry 트리거 아님
+  - `test_provision_dell_skip_reserved_slot1_and_retry` — slot 1 (anonymous) skip
+  - `test_provision_dell_silent_fail_verify_detects` — PATCH 200 silent fail 감지 + 다음 슬롯 retry
+  - `test_provision_dell_no_empty_slots_after_skip` — slot 1 skip 후 다른 슬롯 모두 차있음
+  - `test_provision_hpe_405_lenovo_retry_succeeds` — HPE Oem retry 까지 안 감
+- pytest 결과: **274/274 PASS**
+- 사이트 실측 (rule 25 R7-A-1):
+  - 10.100.15.27 / 10.100.15.31 (Dell iDRAC9 7.10.70.00) — slot 3 patch_empty_slot, vault 갱신 후 검증
+  - 10.50.11.231 (HPE iLO) — 이미 infraops primary, recovery 진입 안 함
+  - 10.50.11.232 (Lenovo XCC) — 이미 infraops primary
+  - 10.100.15.2 (Cisco CIMC) — not_supported graceful
+- vault 갱신: `vault/redfish/dell.yml` 의 primary password Passw0rd1! → Passw0rd1!Infra (15자)
+- Jenkins job 등록: `redfish-account-provision-verify` (10.100.64.152 master)
+- 자동화: `scripts/verify_account_provision.sh` (CLI 엔트리)
+- 정적 검증:
+  - py_compile redfish_gather.py PASS
+  - YAML 4 파일 syntax PASS
+
 ## 2026-05-01 (cycle-019 phase 2 — F44~F47 신규 vendor 4종)
 
 - 환경: 로컬 (Python 3.11.9 / pytest 9.0.2)

@@ -23,12 +23,22 @@
   ansible.builtin.set_fact:
     _rf_target_account: >-
       {{ (_rf_accounts | default([]) | selectattr('role', 'eq', 'primary') | list | first) | default({}) }}
-    # production-audit (2026-04-29): recovery 계정의 password를 _rf_accounts에서 lookup —
-    # 기존: ansible_user/_password 참조 (실제로 set되지 않음, 빈 creds로 401 받음)
+    # F49 (cycle 2026-05-01): label 매칭으로 lookup 정확도 강화.
+    # 기존: username 만으로 lookup → Dell root 4개 / HPE admin 2개 / Lenovo USERID 2개
+    #       시 첫 entry 잡혀 password mismatch (사이트 실측 사고).
+    # 신: label 우선 매칭 (try_one_account.yml 가 label 까지 promote) → 정확한 entry.
+    #     fallback: label 매칭 0건 시 username 매칭 (legacy_single 등 backward-compat).
     _rf_recovery_account_resolved: >-
-      {{ (_rf_accounts | default([])
-            | selectattr('username','eq', (_rf_used_account | default({})).username | default(''))
-            | list | first) | default({}) }}
+      {{ (
+           _rf_accounts | default([])
+             | selectattr('label','eq', (_rf_used_account | default({})).label | default(''))
+             | list | first
+         ) | default(
+           _rf_accounts | default([])
+             | selectattr('username','eq', (_rf_used_account | default({})).username | default(''))
+             | list | first,
+           true
+         ) | default({}) }}
     # cycle 2026-04-30: 사용자 명시 승인 — default false 로 전환 (실 동작)
     _rf_account_service_dryrun: "{{ _rf_account_service_dryrun | default(false) }}"
   no_log: true
@@ -53,13 +63,26 @@
           dryrun={{ _rf_account_service_dryrun }}
 
     # ── recovery 자격으로 AccountService 호출 ────────────────────────────
-    # production-audit: recovery 계정의 username/password를 _rf_recovery_account_resolved에서 직접 사용.
-    # 기존 ansible_user/_password는 set되지 않은 변수라 빈 string으로 evaluate되어 401 발생.
+    # F49 (cycle 2026-05-01): _rf_used_account_password (try_one_account.yml 가 직접 promote)
+    # 우선 사용. 없으면 _rf_recovery_account_resolved.password 로 fallback (label 매칭).
+    # Jinja2 if/else 표현 (괄호로 우선순위 명시 — `>` 와 `| ternary` 충돌 회피).
+    - name: "redfish | account_service | resolve recovery creds"
+      ansible.builtin.set_fact:
+        _rf_acct_recovery_user: >-
+          {{ ((_rf_used_account | default({})).username | default(''))
+             if ((_rf_used_account_password | default('')) | length > 0)
+             else (_rf_recovery_account_resolved.username | default('')) }}
+        _rf_acct_recovery_pass: >-
+          {{ (_rf_used_account_password | default(''))
+             if ((_rf_used_account_password | default('')) | length > 0)
+             else (_rf_recovery_account_resolved.password | default('')) }}
+      no_log: true
+
     - name: "redfish | account_service | invoke"
       redfish_gather:
         bmc_ip:          "{{ _rf_ip }}"
-        username:        "{{ _rf_recovery_account_resolved.username | default('') }}"
-        password:        "{{ _rf_recovery_account_resolved.password | default('') }}"
+        username:        "{{ _rf_acct_recovery_user }}"
+        password:        "{{ _rf_acct_recovery_pass }}"
         timeout:         "{{ _rf_timeout }}"
         verify_ssl:      false
         mode:            "account_provision"

@@ -1,5 +1,57 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-06 (cycle-020 — F49 redfish account_provision 호환성 강화)
+
+### 사용자 명시
+- "redfish 공통계정 생성이 안 되는 것 같다. 로직 + vault 확인 + 사이트 실측 + web 호환성 + 코드 개선 + 자동화 모두 진행."
+- "Jenkins 잡 생성해서 직접 테스트, curl 직접 검증."
+- "vault 비밀번호: Goodmit0802!"
+
+### Root cause (사용자 사이트 실측 — rule 25 R7-A-1)
+
+"공통계정 생성 안 됨" 사고의 진짜 원인은 **3중 누적**:
+
+1. **Vault label-mismatch (logic bug)** — `account_service.yml` 의 `_rf_recovery_account_resolved`
+   가 username 만으로 vault lookup. Dell vault 에 `root` 4개 (서로 다른 password) →
+   첫 entry (Dellidrac1!) 잡혀 password mismatch → AccountService GET 401 → recovered=False.
+2. **Dell slot 1 anonymous reserved (BMC 정책)** — UserName='', Enabled=false 인 placeholder.
+   기존 `_find_empty_slot()` 가 첫번째 빈 slot (=slot 1) 에 PATCH 시도 → 거부.
+3. **Dell silent password fail (펌웨어 정책)** — iDRAC9 7.10.70.00 Security Strengthen
+   Policy. `Passw0rd1!` (10자) PATCH 200 OK 응답이지만 실제 password 미적용 (silent skip).
+   `Passw0rd1!Infra` (15자) 부터 정상 적용.
+
+### F49 Fix 매트릭스
+
+| Fix | 파일 | 영향 |
+|---|---|---|
+| label 매칭 lookup | `redfish-gather/tasks/account_service.yml` | username 다중 password 시 정확한 entry |
+| `_rf_used_account_password` promote | `redfish-gather/tasks/try_one_account.yml` | account_service 가 vault re-lookup 안 함 |
+| Dell slot 1 skip + 다중 retry | `redfish-gather/library/redfish_gather.py` | slot 1 anonymous 회피 + 3 슬롯 retry |
+| PATCH 후 verify _get | 동상 | silent fail 감지 + 다음 슬롯 fallback |
+| Lenovo PasswordChangeRequired retry | 동상 | XCC 펌웨어 password policy |
+| HPE Oem.Hpe.Privileges 3차 retry | 동상 | iLO 일부 펌웨어 |
+| Dell vault password 강화 | `vault/redfish/dell.yml` | Passw0rd1! → Passw0rd1!Infra (15자) |
+| Jenkins job 등록 | `jenkins/jobs/redfish-account-provision-verify/config.xml` | DRYRUN/TARGET 파라미터 + agent 실행 |
+| 회귀 테스트 7건 | `tests/unit/test_account_provision_f49_vendor_compat.py` | 7종 시나리오 회귀 |
+
+### 검증 (사이트 실측)
+
+| BMC | Vendor | dryrun=true | dryrun=false 실 적용 |
+|---|---|---|---|
+| 10.100.15.27 | dell | PASS (slot 3 patch_empty_slot) | (vault 갱신 후 진행) |
+| 10.100.15.31 | dell | PASS (slot 3 patch_empty_slot) | (vault 갱신 후 진행) |
+| 10.50.11.231 | hpe | PASS (이미 infraops primary) | NOOP |
+| 10.50.11.232 | lenovo | PASS (이미 infraops primary) | NOOP |
+| 10.100.15.2 | cisco | PASS (not_supported graceful) | NOOP |
+
+### 검증 (자동화)
+
+- pytest **274/274 PASS** (12종 신 회귀 추가)
+- Jenkins job 등록: `redfish-account-provision-verify` (10.100.64.152 master)
+- 자동화 스크립트: `scripts/verify_account_provision.sh`
+
+---
+
 ## 일자: 2026-05-01 (cycle-019 phase 2 — F44~F47 신규 vendor 4종 도입)
 
 ### 사용자 명시 (phase 2)

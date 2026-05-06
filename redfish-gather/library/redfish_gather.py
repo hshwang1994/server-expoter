@@ -2078,12 +2078,40 @@ def account_service_find_user(accounts, target_username):
     return None
 
 
-def account_service_find_empty_slot(accounts):
-    """빈 사용자 슬롯 검색 (Dell PATCH 패턴). UserName='' 인 첫 슬롯 반환."""
+def account_service_find_empty_slot(accounts, skip_slot_ids=None):
+    """빈 사용자 슬롯 검색 (Dell PATCH 패턴). UserName='' 인 첫 슬롯 반환.
+
+    F49 (cycle 2026-05-01): skip_slot_ids 파라미터 추가 — vendor 별 reserved
+    slot 회피. Dell iDRAC9: slot 1 = anonymous reserved (UserName='', Enabled=false,
+    PATCH 거부 → recovered=False). 호출자가 ['1'] 전달 시 슬롯 1 건너뛰고 2..N 에서
+    빈 슬롯 검색. 다 차있으면 None.
+    source: dell.com/support/manuals/.../idrac9_*_redfishapiguide_pub/manageraccount
+            (slot 1 = User Account placeholder, 2..17 = actual user slots).
+    """
+    skip = set(skip_slot_ids or [])
     for acc in accounts:
+        if str(acc.get('id') or '') in skip:
+            continue
         if not (acc.get('username') or ''):
             return acc
     return None
+
+
+def account_service_find_all_empty_slots(accounts, skip_slot_ids=None):
+    """빈 슬롯 모두 (slot id 정렬). PATCH 1차 실패 시 다음 슬롯 retry 용."""
+    skip = set(skip_slot_ids or [])
+    empties = [
+        a for a in accounts
+        if str(a.get('id') or '') not in skip and not (a.get('username') or '')
+    ]
+    # id 가 숫자면 숫자 정렬, 아니면 문자열 정렬
+    def _key(a):
+        try:
+            return (0, int(a.get('id') or '0'))
+        except (ValueError, TypeError):
+            return (1, str(a.get('id') or ''))
+    empties.sort(key=_key)
+    return empties
 
 
 def account_service_provision(
@@ -2198,14 +2226,25 @@ def account_service_provision(
 
     # 3) 신규 생성 — vendor 분기 (Dell=slot PATCH, 그 외=POST)
     if vendor == 'dell':                                                      # nosec rule12-r1
-        empty = account_service_find_empty_slot(accounts)
-        if not empty:
+        # F49 (cycle 2026-05-06): Dell iDRAC9 사이트 실측 사고 매트릭스.
+        # 1. slot 1 = anonymous reserved (UserName='', Enabled=false). PATCH 거부.
+        # 2. UserName + Password + Enabled + RoleId 동시 PATCH 시 HTTP 200 응답
+        #    하지만 BMC 가 password 가 Security Strengthen Policy 미충족이면 silent
+        #    fail. Enabled/RoleId 도 'username or password is blank' 로 거부 (실제
+        #    password 미적용). 응답 코드만 보면 안 됨.
+        # 3. 따라서 PATCH 후 새 자격으로 실 인증 시도 → silent-fail 감지.
+        # source: 사이트 실측 (10.100.15.27 iDRAC9 7.10.70.00) + Dell SWC0296
+        #         "user name or password is blank" + Security Strengthen Policy.
+        empty_slots = account_service_find_all_empty_slots(
+            accounts, skip_slot_ids={'1'},
+        )
+        if not empty_slots:
             out['errors'].append(_err(
                 'account_service', 'Dell iDRAC 빈 슬롯 없음 — 사용자 정리 필요',  # nosec rule12-r1
             ))
             return out
         out['method']   = 'patch_empty_slot'
-        out['slot_uri'] = empty.get('slot_uri')
+        out['slot_uri'] = empty_slots[0].get('slot_uri')
         if dryrun:
             return out
         body = {
@@ -2214,43 +2253,132 @@ def account_service_provision(
             'Enabled':  True,
             'RoleId':   target_role,
         }
-        code, _, err = _patch(
-            bmc_ip, _p(empty['slot_uri']), body,
-            current_username, current_password, timeout, verify_ssl,
-        )
-        if code in (200, 204) and not err:
-            out['recovered'] = True
-        else:
+        last_err = None
+        last_code = 0
+        for slot in empty_slots[:3]:
+            code, _, err = _patch(
+                bmc_ip, _p(slot['slot_uri']), body,
+                current_username, current_password, timeout, verify_ssl,
+            )
+            if code not in (200, 204) or err:
+                last_err = err
+                last_code = code
+                out['errors'].append(_err(
+                    'account_service',
+                    f'Dell PATCH 빈 슬롯 실패 (slot={slot.get("id")}) — '            # nosec rule12-r1
+                    f'다음 빈 슬롯으로 retry',
+                    detail=err or f'HTTP {code}',
+                ))
+                continue
+            # PATCH 200 OK — 실 인증 검증 (Dell silent-fail 감지)
+            verify_code, _, verify_err = _get(
+                bmc_ip, 'Systems', target_username, target_password,
+                timeout, verify_ssl,
+            )
+            if verify_code == 200 and not verify_err:
+                out['recovered'] = True
+                out['slot_uri'] = slot.get('slot_uri')
+                break
+            # silent fail 감지 — slot cleanup (UserName 비우기) 후 다음 슬롯으로
             out['errors'].append(_err(
                 'account_service',
-                f'Dell PATCH 빈 슬롯 실패 (slot={empty.get("id")})',  # nosec rule12-r1
-                detail=err or f'HTTP {code}',
+                f'Dell PATCH 200 응답이지만 인증 실패 (slot={slot.get("id")}, '       # nosec rule12-r1
+                f'verify HTTP {verify_code}) — Password 가 Security Strengthen '
+                f'Policy 미충족 가능. vault password 강화 필요 (15자 이상 권장).',
+                detail=verify_err or f'verify HTTP {verify_code}',
+            ))
+            # cleanup 시도 (best-effort)
+            _patch(
+                bmc_ip, _p(slot['slot_uri']),
+                {'UserName': '', 'Enabled': False, 'RoleId': 'None'},
+                current_username, current_password, timeout, verify_ssl,
+            )
+            last_code = verify_code
+        if not out['recovered']:
+            out['errors'].append(_err(
+                'account_service',
+                f'Dell PATCH 모든 빈 슬롯 실패 (시도={len(empty_slots[:3])})',         # nosec rule12-r1
+                detail=last_err or f'HTTP {last_code}',
             ))
         return out
 
-    # HPE / Lenovo / Supermicro: POST 표준
+    # HPE / Lenovo / Supermicro: POST 표준 + vendor-specific fallback retries.
+    # F49 (cycle 2026-05-01): 펌웨어별 호환성 강화 (web research 2026-05-01).
+    # source: HPE iLO5/6 docs (Oem.Hpe.Privileges 가능, RoleId 만으로도 충분),
+    #   Lenovo XCC docs (PasswordChangeRequired 선택적, 미설정 시 default false),
+    #   Supermicro Redfish User Guide (RoleId Administrator/Operator/ReadOnly,
+    #   password complexity 매우 엄격 — POST 400 시 password policy 위반 시그널).
     out['method'] = 'post_new'
     if dryrun:
         return out
-    body = {
+    body_base = {
         'UserName': target_username,
         'Password': target_password,
         'Enabled':  True,
         'RoleId':   target_role,
     }
+    # 1차: 표준 body
     code, resp_data, err = _post(
-        bmc_ip, 'AccountService/Accounts', body,
+        bmc_ip, 'AccountService/Accounts', body_base,
         current_username, current_password, timeout, verify_ssl,
     )
     if code in (200, 201, 204) and not err:
         out['recovered'] = True
         out['slot_uri']  = _safe(resp_data, '@odata.id')
-    else:
-        out['errors'].append(_err(
-            'account_service',
-            'POST /AccountService/Accounts 실패',
-            detail=err or f'HTTP {code}',
-        ))
+        return out
+
+    # 2차 retry: 400/405 — Lenovo PasswordChangeRequired 명시 (일부 XCC 펌웨어 요구)
+    # source: pubs.lenovo.com/xcc-restapi/create_an_account_post (PasswordChangeRequired
+    #   default true → 호출자가 false 로 명시해야 즉시 사용 가능).
+    if code in (400, 405):                                                    # nosec rule12-r1
+        body_lenovo = dict(body_base, PasswordChangeRequired=False)
+        code2, resp2, err2 = _post(
+            bmc_ip, 'AccountService/Accounts', body_lenovo,
+            current_username, current_password, timeout, verify_ssl,
+        )
+        if code2 in (200, 201, 204) and not err2:
+            out['recovered'] = True
+            out['slot_uri']  = _safe(resp2, '@odata.id')
+            out['errors'].append(_err(
+                'account_service',
+                'POST 1차 실패 → PasswordChangeRequired:false 추가 후 retry 성공 '
+                '(Lenovo XCC password policy)',
+            ))
+            return out
+        # 3차 retry: HPE Oem.Hpe.Privileges (HPE iLO 일부 펌웨어가 RoleId 단독 거부 보고).
+        # source: HewlettPackard/ilo-rest-api-docs add_user_account.py.
+        if vendor == 'hpe':                                                   # nosec rule12-r1
+            body_hpe = dict(body_base)
+            body_hpe['Oem'] = {'Hpe': {'Privileges': {'LoginPriv': True,
+                                                      'RemoteConsolePriv': True,
+                                                      'UserConfigPriv': True,
+                                                      'VirtualMediaPriv': True,
+                                                      'VirtualPowerAndResetPriv': True,
+                                                      'iLOConfigPriv': True}}}
+            code3, resp3, err3 = _post(
+                bmc_ip, 'AccountService/Accounts', body_hpe,
+                current_username, current_password, timeout, verify_ssl,
+            )
+            if code3 in (200, 201, 204) and not err3:
+                out['recovered'] = True
+                out['slot_uri']  = _safe(resp3, '@odata.id')
+                out['errors'].append(_err(
+                    'account_service',
+                    'POST 1차 실패 → Oem.Hpe.Privileges 추가 후 retry 성공',
+                ))
+                return out
+            err = err3 or err
+            code = code3 or code
+        else:
+            err = err2 or err
+            code = code2 or code
+
+    # 모든 retry 실패
+    out['errors'].append(_err(
+        'account_service',
+        'POST /AccountService/Accounts 실패 (모든 vendor fallback 시도 후)',
+        detail=err or f'HTTP {code}',
+    ))
     return out
 
 
