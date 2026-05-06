@@ -6,8 +6,11 @@
 #               + pre_commit_jenkinsfile_guard
 #               + pre_commit_docs20_sync_check (rule 13 R7)
 #               + pre_commit_status_logic_check (rule 13 R8)
+#               + pre_commit_ticket_consistency (cold-start 6 절)
+#               + pre_commit_additive_only_check (rule 92 R2 / 96 R1-B)
 # - commit-msg: commit_msg_check (rule 90)
 # - post-commit: post_commit_measurement_trigger (rule 28)
+#                + post_commit_compatibility_matrix_check (rule 28 #12)
 # - post-merge: post_merge_gap_check + post_merge_incoming_review (rule 97)
 #
 # Usage:
@@ -65,13 +68,16 @@ write_hook "pre-commit" \
     "pre_commit_skill_guard.py" \
     "pre_commit_jenkinsfile_guard.py" \
     "pre_commit_docs20_sync_check.py" \
-    "pre_commit_status_logic_check.py"
+    "pre_commit_status_logic_check.py" \
+    "pre_commit_ticket_consistency.py" \
+    "pre_commit_additive_only_check.py"
 
 write_hook "commit-msg" \
     "commit_msg_check.py"
 
 write_hook "post-commit" \
-    "post_commit_measurement_trigger.py"
+    "post_commit_measurement_trigger.py" \
+    "post_commit_compatibility_matrix_check.py"
 
 write_hook "post-merge" \
     "post_merge_gap_check.py" \
@@ -87,5 +93,9 @@ echo "  DOCS20_SYNC_SKIP=1            — pre_commit_docs20_sync_check skip (rul
 echo "  DOCS20_SYNC_SKIP_COSMETIC=1   — cosmetic only commit (rule 13 R7 Allowed)"
 echo "  STATUS_LOGIC_SKIP=1           — pre_commit_status_logic_check skip (rule 13 R8)"
 echo "  STATUS_LOGIC_SKIP_COSMETIC=1  — cosmetic only commit (rule 13 R8 Allowed)"
+echo "  TICKET_CONSISTENCY_SKIP=1     — pre_commit_ticket_consistency skip (cold-start 6 절)"
+echo "  ADDITIVE_SKIP=1               — pre_commit_additive_only_check skip (rule 92 R2 / 96 R1-B)"
+echo "  ADDITIVE_SKIP_NEW_CYCLE=1     — 새 cycle (호환성 외) 명시 skip"
+echo "  COMPAT_MATRIX_CHECK_SKIP=1    — post_commit_compatibility_matrix_check skip (rule 28 #12)"
 echo "  POST_MERGE_GAP_SKIP=1         — post_merge_gap_check skip"
 echo "  INCOMING_REVIEW_SKIP=1        — post_merge_incoming_review skip"

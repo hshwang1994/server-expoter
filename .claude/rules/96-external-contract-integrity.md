@@ -58,6 +58,27 @@ server-exporter lab 은 일부 vendor / 펌웨어 / 환경만 보유. 부재 영
 - **Why**: lab 한계가 server-exporter 의 본질적 제약 (사용자 인정 cycle 2026-05-01). web sources 가 lab fixture 대체. sources 0 건 시 다음 작업자가 검증 불가
 - **재검토**: lab 보유 vendor 가 8 vendor 이상 도달 시 web sources 의무 완화
 
+### R1-C. lab 부재 vendor / 펌웨어 → NEXT_ACTIONS 자동 등록 (cycle 2026-05-06-post 학습 형식화)
+
+lab 부재 vendor / 펌웨어 추가 시 후속 작업 자동 추적 의무 (rule 50 R2 단계 10 과 연동):
+
+- **Default**: 다음 trigger 발생 시 `docs/ai/NEXT_ACTIONS.md` 의 "lab 도입 후 별도 cycle 권장" 절에 항목 추가
+  - 새 adapter YAML 추가 + lab 부재 명시 (`# lab: 부재` origin 주석)
+  - baseline JSON SKIP (실장비 검증 보류)
+  - vault SKIP 사용자 명시 승인 (placeholder 만)
+  - 사이트 실측 fixture 부재 (`capture-site-fixture` skill 미호출)
+- **NEXT_ACTIONS 등재 항목 4종**:
+  1. **사이트 fixture 캡처** — capture-site-fixture skill 적용 (Round 검증 후 회귀 회피)
+  2. **baseline 추가** — 실장비 검증 후 schema/baseline_v1/{vendor}_baseline.json (rule 13 R4)
+  3. **lab 도입 후 cycle** — 별도 round (`{vendor} lab 검증`)
+  4. **vault 결정** — 사용자 명시 승인 시점 (rule 27 R6 / docs/21)
+- **Allowed**: lab 부재 vendor 가 NEXT_ACTIONS 에 이미 등재된 경우 중복 등재 skip
+- **Forbidden**:
+  - lab 부재 vendor 추가 + NEXT_ACTIONS 등재 누락 (다음 작업자 / 다음 cycle 진입 시 추적 불가)
+  - "추후 처리" 만 명시하고 구체 항목 list 누락
+- **Why**: cycle 2026-05-01 4 신규 vendor + cycle 2026-05-06 Superdome Flex — lab 부재 영역이 본질적 제약. 후속 작업이 NEXT_ACTIONS 에 자동 등재되어야 다음 cycle 진입 시 우선 순위 식별 가능. 등재 누락 시 lab 도입 cycle 가 작업자 기억에만 의존
+- **재검토**: lab 도입 자동 감지 + NEXT_ACTIONS 자동 갱신 hook 도입 시 advisory → blocking 격상
+
 ### R1-B. envelope 13 필드 / 새 키 추가 자제 (cycle 2026-05-01 신설)
 
 cycle 2026-05-01 학습 — 사용자 의도 두 번 강조 후에야 정확히 이해. `diagnosis.details.detail` 신규 키 추가 → revert. 본 R1-B 는 호환성 fallback 와 새 데이터/섹션/키 추가를 **명시 분리**:

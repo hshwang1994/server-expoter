@@ -32,6 +32,7 @@
 | 9 | 브랜치 갭 (origin/main) | 세션 동안 | merge/pull/branch 전환 |
 | 10 | 벤더 경계 위반 | 커밋마다 | 커밋 |
 | 11 | 외부 시스템 계약 (Redfish path 등) | 90일 | 펌웨어 업그레이드 / API path 변경 |
+| 12 | COMPATIBILITY-MATRIX (vendor × gen × section) | 14일 | adapter capabilities 변경 / 새 vendor / 펌웨어 업그레이드 |
 
 ### R2. AI 실측 수행 절차
 

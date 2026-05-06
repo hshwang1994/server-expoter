@@ -111,6 +111,26 @@
 - **Why**: 다음 세션이 stale 정보로 시작 → 작업 중복 또는 충돌
 - **재검토**: 종료 hook으로 자동 갱신 시
 
+### R10. 다중 worker 4 정본 (cycle 2026-05-06 정착)
+
+다중 worker (N≥3) cycle 운영 시 다음 4 정본 파일 모두 의무:
+
+| # | 정본 파일 | 책임 | 정본 skill / agent |
+|---|---|---|---|
+| 1 | `INDEX.md` | cycle 진입점 + cold-start 가이드 + ticket 구조 | write-cold-start-ticket |
+| 2 | `SESSION-HANDOFF.md` | 직전 세션 종료 시점 + 다음 세션 첫 지시 | write-cold-start-ticket |
+| 3 | `DEPENDENCIES.md` | ticket 의존 그래프 (mermaid) + 진행 가능 ticket 식별 | cycle-orchestrator |
+| 4 | `SESSION-PROMPTS.md` | worker N별 진입 prompt 템플릿 | cycle-orchestrator |
+
+- **Default**: N≥3 worker cycle 진입 시 4 정본 모두 작성. fixes/INDEX.md (ticket 분류 + 진행 상태) 추가 권장
+- **Allowed**: N=1 (단일 worker / 호환성 cycle 1 worker) 시 DEPENDENCIES.md / SESSION-PROMPTS.md skip 가능. INDEX + SESSION-HANDOFF 만 의무
+- **Forbidden**:
+  - N≥3 worker + 4 정본 일부 누락 → worker 충돌 위험
+  - INDEX.md 없이 ticket 작업 시작 (다음 세션 진입점 부재)
+  - DEPENDENCIES 없는 다중 worker (진행 가능 ticket 식별 불가)
+- **Why**: cycle 2026-05-06 학습 — 24 ticket × 5 worker 운영 시 4 정본 부재로 worker 진입 어려움 발생 → DEPENDENCIES + SESSION-PROMPTS 추가 후 cold-start 0 진입 달성. 본 R10 으로 향후 cycle 재발 차단
+- **재검토**: 4 정본 자동 생성 도구 (cycle-orchestrator skill) 정착 시 advisory → blocking 격상
+
 ## 금지 패턴
 
 - 오너십 정의 없이 다중 세션 — R2
@@ -120,6 +140,7 @@
 - CONTINUATION.md 5 섹션 누락 — R6
 - 마커 없는 commit — R7
 - CONTINUATION 갱신 없이 종료 — R8
+- N≥3 worker + 4 정본 일부 누락 — R10
 
 ## 리뷰 포인트
 
@@ -127,8 +148,12 @@
 - [ ] 각 세션 commit에 [SUB-N] 태그
 - [ ] 공용 파일 충돌 없음
 - [ ] 세션 종료 전 CONTINUATION.md 갱신
+- [ ] N≥3 worker 시 4 정본 (INDEX/HANDOFF/DEPENDENCIES/SESSION-PROMPTS) 모두 — R10
 
 ## 관련
 
 - rule: `25-parallel-agents`, `93-branch-merge-gate`
-- 정본: `docs/ai/handoff/`
+- skill: `write-cold-start-ticket`, `cycle-orchestrator`
+- agent: `ticket-decomposer`
+- hook: `pre_commit_ticket_consistency.py` (cold-start 6 절 advisory)
+- 정본: `docs/ai/handoff/`, `docs/ai/tickets/2026-05-06-multi-session-compatibility/` (24 ticket × 5 worker 라이브러리)

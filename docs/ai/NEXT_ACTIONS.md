@@ -1,52 +1,42 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-05-06 (post-cycle P2 — pre_commit_docs20_sync_check hook 신설 [DONE])
+## 일자: 2026-05-06 (post-cycle P2/P3 batch — 22 P2/P3 후보 모두 [DONE])
 
-### 본 phase (M-G1 P2 후보 22건 중 1건 처리)
+### 본 phase 완료 (M-G1 P2/P3 후보 22 → 0 잔존)
 
-| 후보 | 상태 | 결과 |
+다음 5 묶음으로 일괄 처리:
+
+| 묶음 | 항목 | 상태 |
 |---|---|---|
-| **hook: pre_commit_docs20_sync_check.py** | **[DONE]** | rule 13 R7 advisory hook 신설 — pytest 11 테스트 PASS / self-test 6/6 PASS / install-git-hooks.sh chain 등록 / surface-counts hooks 21→22 |
+| **A. M-A status 로직** | rule 13 R8 / skill verify-status-logic / hook pre_commit_status_logic_check | **[DONE]** — 7건 self-test PASS |
+| **B. M-C vault** | rule 27 R6 / skill rotate-vault 보강 / docs/21_vault-operations.md | **[DONE]** — 3 단서 검증 정본화 |
+| **C. cycle 오케스트레이션** | skill cycle-orchestrator / skill add-vendor-no-lab / skill write-cold-start-ticket 보강 / agent ticket-decomposer / hook pre_commit_ticket_consistency | **[DONE]** — 5 항목 / 11건 self-test PASS |
+| **D. standalone rule** | rule 26 R10 / rule 50 R2 단계 10 / rule 96 R1-C / rule 28 #12 / rule 92 R2 보강 | **[DONE]** — 5 rule 보강 |
+| **E. 호환성 매트릭스** | hook post_commit_compatibility_matrix_check / hook pre_commit_additive_only_check / docs/22_compatibility-matrix.md / script measure_compatibility_matrix.py | **[DONE]** — 11건 self-test PASS / 270 cell 자동 측정 |
 
-### 다음 phase 권장 (M-G1 P2 후보 21건 잔존)
+### 통계
 
-순위 (운영 안정화 영향순):
-1. `hook: pre_commit_status_logic_check.py` — build_status.yml 변경 시 시나리오 mock (M-A 학습 직접 반영)
-2. `hook: pre_commit_ticket_consistency.py` — docs/ai/tickets/ 변경 시 cold-start 6 절 검증 (다음 cycle 자료 보전)
-3. `rule 13 R8` — status 로직 변경 시 시나리오 매트릭스 update (M-A 학습 형식화)
-4. `skill: verify-status-logic` — M-A 학습 lookup 표준화
+- rules: 28 → **28** (R8 / R6 / R10 / R2 단계 10 / R1-C / #12 / R2 Additive 절차 = 7 신/보강)
+- skills: 49 → **51** (verify-status-logic / cycle-orchestrator / add-vendor-no-lab 신설 + write-cold-start-ticket / rotate-vault 보강)
+- agents: 59 → **60** (ticket-decomposer 신설)
+- hooks: 22 → **26** (status_logic / ticket_consistency / additive_only / compatibility_matrix_check 신설)
+- docs: docs/20 → docs/22 (vault-operations / compatibility-matrix 신설)
+- scripts: measure_compatibility_matrix.py 신설
 
-### 잔존 후보 (이전 cycle 표 그대로 유지)
+### 다음 phase 권장 (P2/P3 후보 0 잔존)
 
-다음 21 후보 (rule 8 + skill 5 + agent 1 + hook 4 + docs 2 + script 1):
+1. **운영 안정화 1~2 cycle 관찰** — 신규 hook 4종 advisory 운영 / false-positive 0 / 정본 동반 의무 100% 준수 확인
+2. **blocking 격상 검토** — rule 13 R7 + R8 / rule 27 R6 / rule 28 #12 / rule 92 R2 의 자동 검증 hook 안정화 후
+3. **lab 도입 cycle** (외부 의존):
+   - 사이트 fixture 캡처 (capture-site-fixture skill) — Supermicro X9 / Lenovo XCC v3 / 신규 4 vendor / Superdome
+   - baseline 추가 (rule 13 R4) — 매트릭스 OK★ → OK 격상
+   - vault 결정 — 신규 4 vendor placeholder → 실제 자격증명
 
-| 후보 | 우선 | trigger |
-|---|---|---|
-| rule 26 R10 (다중 worker 4 정본) | P2 | 단일 cycle N-worker 패턴 정착 |
-| rule 50 R2 단계 10 (lab 부재 fixture trigger) | P2 | F44~F47 + Superdome lab 도입 후 |
-| rule 96 R1-C (lab 부재 NEXT_ACTIONS 자동 등록) | P2 | lab 부재 vendor 추가 후속 |
-| rule 13 R8 (status 로직 변경 시 시나리오 매트릭스 update) | P2 | M-A 학습 적용 |
-| rule 28 #12 (COMPATIBILITY-MATRIX TTL 14일) | P2 | 매트릭스 자동 측정 도입 시 |
-| rule 27 R6 (vault 자동 반영 단서 3개) | P3 | M-C 학습 적용 |
-| rule 92 R2 보강 (Additive 검증 절차) | P3 | 운영 안정화 후 |
-| skill: cycle-orchestrator | P2 | 다음 cycle orchestration 자동화 |
-| skill: add-vendor-no-lab | P2 | lab 부재 vendor 추가 자동화 |
-| skill: verify-status-logic | P2 | M-A 학습 |
-| skill: rotate-vault 보강 | P3 | M-C 학습 |
-| skill: write-cold-start-ticket 보강 | P3 | 본 cycle 24 ticket 라이브러리화 |
-| agent: ticket-decomposer | P2 | cycle-orchestrator sub |
-| hook: pre_commit_ticket_consistency.py | P2 | docs/ai/tickets/ 변경 시 cold-start 6 절 검증 |
-| hook: pre_commit_status_logic_check.py | P2 | build_status.yml 변경 시 시나리오 mock |
-| hook: post_commit_compatibility_matrix_check.py | P3 | adapter capabilities 변경 시 매트릭스 advisory |
-| hook: pre_commit_additive_only_check.py | P3 | 코드 변경 diff Additive 검증 |
-| docs/21_vault-operations.md | P2 | M-C 결과 정본화 |
-| docs/22_compatibility-matrix.md | P3 | M-D1 240 cell 정본화 |
-| script: scripts/ai/measure_compatibility_matrix.py | P3 | rule 28 #12 측정 자동화 |
+### 재검토 trigger 모니터링
 
-### rule 13 R7 재검토 trigger 모니터링
-
-- 본 hook 도입 → advisory 운영 1~2 cycle 관찰
-- false-positive 0 / 정본 4종 staged 시 docs/20 동반 의무 100% 준수 확인 시 **blocking 격상** 검토
+- 신규 hook 4종 advisory 운영 → false-positive 모니터링 1~2 cycle
+- compat-matrix 측정 270 cell 결과 ↔ docs/22 24 row × 10 col 매트릭스 정합 (170 cell 차이 — generation 분류 vs 파일명 raw 차이) → cycle-orchestrator 자동화 시 일치 검증 hook 도입 검토
+- ADR 작성 trigger (rule 70 R8) — 표면 카운트 변경 (skills 49→51 / agents 59→60 / hooks 22→26) 발생 → 본 cycle ADR 작성 검토
 
 ### lab 도입 후 별도 cycle 권장 (이전 그대로)
 

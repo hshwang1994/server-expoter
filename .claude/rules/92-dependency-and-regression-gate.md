@@ -16,11 +16,31 @@
   3. 영향 파일 범위
   4. 사용자에게 WHY + WHAT + IMPACT 질의
 
-### R2. Convention 위반 즉시 수정 금지
+### R2. Convention 위반 즉시 수정 금지 + Additive 검증 절차 (cycle 2026-05-06-post 학습 형식화)
 
 - **Default**: convention 위반 발견해도 기존 기능 정상 동작 중이면 즉시 제거 안 함
 - **Allowed**: 위반 기록 (CONVENTION_DRIFT) → 영향 분석 → 마이그레이션 계획 → 사용자 승인 → 단계적 전환
 - **Forbidden**: "convention 위반이니까 즉시 제거"
+
+#### Additive 검증 절차 (호환성 cycle 의무)
+
+호환성 cycle (사용자 사이트 사고 → fallback 도입) 시 Additive only 원칙 (rule 96 R1-B 와 연동) 의 검증 절차:
+
+| 단계 | 검증 항목 | 명령 / 도구 |
+|---|---|---|
+| 1 | envelope 13 필드 / `data.<section>.<field>` shape 변경 0 | `scripts/ai/hooks/envelope_change_check.py` |
+| 2 | 기존 path 유지 (수정 안 됨) — 새 path **추가만** | `git diff` 검토 — 삭제 line 0 / 추가 line만 |
+| 3 | sections 10 / field_dictionary 65 entries 의미 변경 0 | rule 13 R5 / R7 (docs/20 동기화) |
+| 4 | 호출자 시스템 파싱 변경 0 | docs/20 / baseline_v1 회귀 |
+| 5 | 회귀 fixture 추가 (호환성 fix 영역만) | `tests/fixtures/` mock 추가 |
+
+- **Forbidden** (Additive 위반):
+  - 기존 path 삭제 / 리네임 (호환성 cycle 외 영역)
+  - envelope shape 변경 (rule 13 R5 / rule 96 R1-B)
+  - 기존 sections / field_dictionary entries 의미 변경
+  - 호출자 시스템 파싱 변경 유발 (rule 96 R1-B)
+- **Why**: cycle 2026-05-06 학습 — 호환성 fix 9 라인 변경 (M-D2 W1~W6) 을 Additive only 검증 후 도입 → 호출자 영향 0. 본 검증 절차 누락 시 호환성 cycle 에서 schema 확장 발생 위험 (`diagnosis.details.detail` cycle 2026-05-01 사고 사례)
+- **재검토**: Additive 자동 검증 hook (`pre_commit_additive_only_check.py`) 도입 시 advisory → blocking 격상
 
 ### R3. 공통 영역 변경 회귀 체크리스트
 

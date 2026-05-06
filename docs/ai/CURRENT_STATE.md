@@ -1,5 +1,48 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-06 (post-cycle P2/P3 batch — 22 후보 일괄 처리 / 5 묶음 / ADR 작성)
+
+### 사용자 명시 (cycle 진입 — P2/P3 batch)
+- "남아있는 작업 남아있는 티켓 모두 진행하라" — M-G1 P2/P3 후보 22건 일괄
+
+### 적용 변경 (5 묶음)
+
+| 묶음 | 항목 수 | 산출물 |
+|---|---|---|
+| **A. M-A status 로직** | 3 | rule 13 R8 / skill verify-status-logic / hook pre_commit_status_logic_check |
+| **B. M-C vault** | 3 | rule 27 R6 / skill rotate-vault 보강 / docs/21_vault-operations.md |
+| **C. cycle 오케스트레이션** | 5 | skill cycle-orchestrator / skill add-vendor-no-lab / skill write-cold-start-ticket 보강 / agent ticket-decomposer / hook pre_commit_ticket_consistency |
+| **D. standalone rule** | 5 | rule 26 R10 / rule 50 R2 단계 10 / rule 96 R1-C / rule 28 #12 / rule 92 R2 Additive 절차 |
+| **E. 호환성 매트릭스** | 4 | hook post_commit_compatibility_matrix_check / hook pre_commit_additive_only_check / docs/22_compatibility-matrix.md / script measure_compatibility_matrix.py |
+
+### 표면 카운트 변경
+
+| 영역 | 이전 | 이후 | 변동 |
+|---|---|---|---|
+| rules | 28 | 28 | 신규 0 (보강 7: R8/R10/R6/R2-10/R1-C/#12/R2) |
+| skills | 49 | 51 | +2 (3 신설 / 2 보강) |
+| agents | 59 | 60 | +1 (ticket-decomposer) |
+| hooks | 22 | 26 | +4 |
+| docs | 21 | 22 | +1 (docs/21 + docs/22 신설) |
+
+### ADR
+
+- `ADR-2026-05-06-cycle-p2p3-batch.md` — rule 70 R8 #2 trigger (표면 카운트 변경)
+
+### 검증
+
+- self-test: 신규 hook 4종 + script 1종 ~30건 PASS
+- verify_harness_consistency.py: PASS (rules 28 / skills 51 / agents 60 / policies 10)
+- envelope shape 변경 0 (rule 96 R1-B 보존)
+
+### 후속 작업 (NEXT_ACTIONS)
+
+- P2/P3 후보 0 잔존
+- 운영 안정화 1~2 cycle 관찰
+- blocking 격상 검토 / lab 도입 cycle (외부 의존)
+
+---
+
 ## 일자: 2026-05-06 (post-cycle P2 — pre_commit_docs20_sync_check hook 신설 / rule 13 R7 자동화)
 
 ### 사용자 명시 (cycle 진입)

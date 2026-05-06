@@ -34,7 +34,7 @@
 - **Why**: alias 변형이 펌웨어/모델별로 다양 (mark dot 누락 등). 정규화 정본 1곳에서 관리해야 신뢰
 - **재검토**: BMC 표준 manufacturer 표기 합의 시
 
-### R2. 새 vendor 추가 9단계
+### R2. 새 vendor 추가 9단계 (+ 단계 10 — lab 부재 시)
 
 - **Default**: 새 vendor 추가는 정확히 9단계
   1. `common/vars/vendor_aliases.yml` 매핑 추가
@@ -46,14 +46,25 @@
   7. `.claude/policy/vendor-boundary-map.yaml` 갱신
   8. `docs/13_redfish-live-validation.md` Round 갱신
   9. `docs/19_decision-log.md` 추가
-- **Allowed**: site.yml 수정 불필요 (adapter_loader가 동적 감지)
+- **단계 10 (lab 부재 vendor 시 의무 — cycle 2026-05-01 / 2026-05-06 학습 형식화)**:
+  - lab 부재 시 (사용자 사이트 외 lab 환경에 vendor 장비 없음) 다음 trigger 발생 → NEXT_ACTIONS.md 자동 등록 의무 (rule 96 R1-C 와 연동)
+    - `tests/baseline_v1/{vendor}_baseline.json` SKIP (단계 5)
+    - `docs/13_redfish-live-validation.md` Round = "lab 부재 — web sources" (단계 8)
+    - `vault/redfish/{vendor}.yml` SKIP 사용자 명시 승인 (단계 4)
+  - NEXT_ACTIONS.md 등재 항목:
+    1. 사이트 fixture 캡처 (capture-site-fixture skill)
+    2. baseline JSON 추가 (실장비 검증 후 — rule 13 R4)
+    3. lab 도입 후 별도 cycle (`{vendor} lab 검증` round)
+    4. vault 결정 (사용자 명시 승인 시점)
+- **Allowed**: site.yml 수정 불필요 (adapter_loader가 동적 감지). lab 부재 vendor 는 단계 10 등재로 단계 4 / 5 / 8 SKIP 승인
 - **Forbidden**:
-  - 9단계 일부 skip
+  - 9단계 일부 skip (단계 10 등재 없는 SKIP)
   - site.yml에 vendor 분기 추가
   - vendor_aliases.yml 누락 후 adapter만 추가
   - adapter 없이 OEM tasks만 추가
-- **Why**: 단계 일부 skip 시 vendor 감지/매칭/회귀 중 하나가 깨짐. 일관 경로로만 추가해야 안정
-- **재검토**: vendor 추가 자동화 도구 도입 시
+  - lab 부재 vendor 추가 + NEXT_ACTIONS 등재 누락 (단계 10 정본 위반)
+- **Why**: cycle 2026-05-01 4 신규 vendor (Huawei/Inspur/Fujitsu/Quanta) + cycle 2026-05-06 Superdome Flex — 모두 lab 부재 → web sources 로 추가 (rule 96 R1-A). 본 단계 10 으로 lab 부재 vendor 의 후속 작업 자동 추적
+- **재검토**: vendor 추가 자동화 도구 (cycle-orchestrator + add-vendor-no-lab skill) 정착 시 단계 10 자동 등재 hook 검토
 
 ### R3. Adapter 점수 일관성
 
