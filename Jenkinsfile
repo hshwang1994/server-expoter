@@ -54,8 +54,6 @@ pipeline {
         INVENTORY_JSON = "${params.inventory_json}"
         REPO_ROOT      = "${WORKSPACE}"
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
-        // TEMP DEBUG 2026-05-07: json_only callback 우회로 verbose 출력 보이게 (검증 후 원복)
-        ANSIBLE_STDOUT_CALLBACK = "default"
     }
 
     options {
@@ -169,8 +167,7 @@ pipeline {
                                     inventory   : inventory,
                                     installation: 'ansible',
                                     colorized   : true,
-                                    // TEMP DEBUG 2026-05-07: -vv + callback 우회 (검증 후 원복)
-                                    extras      : "--vault-password-file=${vaultPassFile} -vv",
+                                    extras      : "--vault-password-file=${vaultPassFile}",
                                 )
                             } finally {
                                 sh "rm -f ${vaultPassFile} || true"
