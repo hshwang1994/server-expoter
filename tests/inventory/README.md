@@ -1,5 +1,9 @@
 # Test Inventory
 
+> **이 폴더는** 회귀 테스트용 인벤토리 정책을 정리합니다.
+> "기준선이 되는 baseline 장비" 와 "추가 검증용 supplemental 장비" 를 분리해서 관리하는 이유와 방법을 설명합니다.
+> baseline 의 자격증명 / IP 변경은 회귀 의미를 깨뜨리므로 신중히 다룹니다.
+
 ## baseline vs supplemental 분리 원칙
 
 ### Baseline 장비 (기준선)

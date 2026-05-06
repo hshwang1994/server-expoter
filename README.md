@@ -5,12 +5,22 @@
 
 > 검증 기준 환경 및 최소 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md) 참조.
 
+## 이 문서는
+
+- 처음 보는 분이 5분 안에 "이 시스템이 무엇을 하는지" 파악할 수 있게 정리한 페이지다.
+- 운영자가 실제 호출/실행하는 절차는 `docs/01_jenkins-setup.md` 부터 순서대로.
+- 새 벤더/섹션 추가 같은 개발 작업은 `docs/14_add-new-gather.md` 참조.
+
+## 한 줄 요약
+
+호출자가 IP만 알려주면, 이 파이프라인이 **OS / VMware ESXi / 서버 BMC** 세 경로 중 하나로 접근해서 표준 JSON으로 정보를 돌려준다.
+
 ---
 
 ## 원칙
 
 **계정은 vault 에서 관리한다.** 호출자가 전달하는 것은 `ip` 와 `target_type` 뿐이다.
-OS 타입과 벤더를 모르는 상태로 시작하며, gather 가 직접 감지하여 분기한다.
+OS 타입과 벤더(Dell/HPE/Lenovo 등)를 모르는 상태로 시작하며, gather 가 직접 감지하여 분기한다.
 
 ```
 호출자 → inventory_json = [{"service_ip": "10.x.x.1"}]  (os/esxi)
@@ -183,10 +193,16 @@ server-exporter/
 - `vmware_datastore_info` — 데이터스토어 상세
 
 ### redfish-gather
-- `library/redfish_gather.py` — Python stdlib 만 사용 (v4: HPE Controllers fallback, chassis_uri 직접 전달, HealthRollup/IndicatorLED/HostName 빈문자열 fallback, 주요 필드 누락 경고)
-- 2단계 vault 로딩: 빈 계정으로 Manufacturer 감지 → 해당 vault 로딩 → 재수집
-- 지원 벤더: 9 vendor + HPE Superdome sub-line — Dell iDRAC 7-10 / HPE iLO 4-7 + Superdome Flex/Flex 280 / Lenovo IMM2-XCC3 / Supermicro X9-X14 / Cisco CIMC M4-M8 + UCS X-Series / Huawei iBMC / Inspur ISBMC / Fujitsu iRMC / Quanta QCT BMC
-- adapters: 39개 (Redfish 28 + OS 7 + ESXi 4) — cycle 2026-05-06 M-E2 +1 (HPE Superdome Flex)
+- `library/redfish_gather.py` — Python 표준 라이브러리만 사용 (외부 패키지 의존 없음).
+- BMC 인증을 2단계로 처리: 빈 계정으로 제조사(Manufacturer) 감지 → 해당 벤더 vault 로딩 → 재수집.
+- 지원 벤더 (9개 + HPE Superdome 서브라인):
+  - Dell iDRAC 7~10
+  - HPE iLO 4~7 + Superdome Flex / Flex 280
+  - Lenovo IMM2 ~ XCC3
+  - Supermicro X9 ~ X14
+  - Cisco CIMC M4 ~ M8 + UCS X-Series
+  - Huawei iBMC, Inspur ISBMC, Fujitsu iRMC, Quanta QCT BMC
+- adapter YAML: 39개 (Redfish 28 + OS 7 + ESXi 4)
 
 ---
 
@@ -205,3 +221,17 @@ server-exporter/
 ## Agent 의존성
 
 최소 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md) 4절, 설치 절차는 [docs/03_agent-setup.md](docs/03_agent-setup.md) 참조.
+
+---
+
+## 다음에 읽을 문서
+
+처음 들어오시는 분께 권장하는 순서:
+
+| 역할 | 우선 읽을 문서 |
+|------|---------------|
+| 운영자 (Jenkins / 인프라 담당) | `docs/01_jenkins-setup.md` → `docs/03_agent-setup.md` → `docs/04_job-registration.md` → `docs/21_vault-operations.md` |
+| 호출자 (Jenkins Job을 트리거하는 외부 시스템) | `docs/05_inventory-json-spec.md` → `docs/09_output-examples.md` → `docs/20_json-schema-fields.md` |
+| 개발자 (새 벤더/섹션 추가) | `docs/06_gather-structure.md` → `docs/07_normalize-flow.md` → `docs/10_adapter-system.md` → `docs/14_add-new-gather.md` |
+| 검증 담당 | `docs/13_redfish-live-validation.md` → `docs/22_compatibility-matrix.md` |
+| 결정 이력 (왜 지금 이 모습인지) | `docs/19_decision-log.md` |

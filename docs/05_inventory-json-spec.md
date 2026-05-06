@@ -1,5 +1,10 @@
 # 05. inventory_json 필드 명세
 
+> **이 문서는** Jenkins Job 을 외부에서 트리거하는 호출자(포털)가 보내야 하는 `inventory_json` 입력 형식을 설명한다.
+>
+> **핵심 약속**: 호출자는 IP 만 전달한다. 계정 / 호스트명 / 벤더는 보내지 않는다.
+> 그쪽은 server-exporter 가 vault 와 자동 감지로 알아서 처리한다.
+
 포털이 Jenkins Job 트리거 시 전달하는 `inventory_json` 파라미터 명세.
 
 ---

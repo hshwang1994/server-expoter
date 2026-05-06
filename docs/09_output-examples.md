@@ -1,5 +1,11 @@
 # 09. 출력 JSON 예시
 
+> **이 문서는** server-exporter 가 호출자에게 돌려주는 표준 JSON 의 실제 모양을 보여준다.
+> 호출자(포털) 개발자가 "내가 받을 JSON 이 어떻게 생겼는지" 빠르게 이해할 때 가장 유용하다.
+>
+> 채널별 (Linux / Windows / ESXi / Redfish) 한 건씩 대표 예시를 수록한다.
+> 모든 예시는 `schema_version: "1"` 과 일치하며, 전체 baseline 은 `schema/baseline_v1/` 디렉터리에 있다.
+
 모든 예시는 표준 스키마(`schema_version: "1"`)와 일치한다.
 채널별 대표 1건씩 수록하며, 전체 baseline은 `schema/baseline_v1/` 참조.
 

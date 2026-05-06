@@ -1,5 +1,13 @@
 # 03. Agent 노드 구성
 
+> **이 문서는** Jenkins Agent 노드(실제 ansible-playbook 을 실행하는 머신)를 새로 만들 때 따라가는 가이드다.
+> 가상머신 사양 산정부터, OS 패키지, Python 가상환경, ansible / pywinrm / pyvmomi 설치, Jenkins 마스터 등록까지 한 번에 다룬다.
+>
+> **언제 이 문서를 보는가?**
+> - 새 사이트 (이천 / 청주 / 용인 등) 에 Agent 를 처음 구축할 때
+> - 기존 Agent 가 노후화/장애로 재구축이 필요할 때
+> - ansible / 컬렉션을 업그레이드해야 할 때
+
 > **검증 기준 환경**: Ubuntu 24.04, Python 3.12, ansible-core 2.20, Java 21
 > (10.100.64.154에서 2026-03-27 확인)
 

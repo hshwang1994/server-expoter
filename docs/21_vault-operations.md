@@ -1,11 +1,14 @@
 # Vault 운영 가이드
 
-> 정본 — M-C 학습 형식화 (cycle 2026-05-06-post). vault 자동 반영 메커니즘 + 회전 절차 + 검증 명령.
+> **이 문서는** server-exporter 의 자격증명(vault) 을 운영자가 안전하게 다루기 위한 가이드다.
 >
-> 관련 rule: rule 27 R6 (vault 자동 반영 단서 3개), rule 50 R2 (vendor 추가 9단계)
-> 관련 skill: rotate-vault, debug-precheck-failure
-> 정본 코드: `redfish-gather/tasks/load_vault.yml` (88 lines)
-> 회귀: M-C3 commit (9건 mock — vault rekey / vault edit / vendor 추가 시나리오)
+> **무엇을 다루는가?**
+> - vault 가 변경되면 다음 ansible-playbook 실행에서 정말 자동으로 반영되는지
+> - 패스워드 회전(rotate) 절차
+> - 새 벤더 추가 시 vault 작성 방법
+> - 검증/디버깅 명령
+>
+> 운영 중 "이 vault 가 정말 반영됐는가?" 가 의심될 때 본 문서 1절 (자동 반영 메커니즘) 을 먼저 본다.
 
 ---
 

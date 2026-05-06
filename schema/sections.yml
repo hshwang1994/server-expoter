@@ -1,10 +1,20 @@
 ---
 # ==============================================================================
-# sections.yml — 수집 섹션 정의
+# sections.yml — 수집 섹션 정의 (server-exporter)
 # ==============================================================================
-# Output JSON의 data 및 sections 필드에 포함되는 9+1개 섹션을 정의합니다.
+# 이 파일은 server-exporter 가 수집할 수 있는 "섹션" 10종을 정의합니다.
+# 출력 JSON 의 `sections` 와 `data` 필드는 본 정의를 기반으로 만들어집니다.
 #
-# 각 섹션의 key, 표시 이름, 지원 채널, 비어있을 때의 기본값을 정의합니다.
+# 각 섹션 항목이 담는 정보:
+#   - key          : 출력 JSON 의 키 이름 (변경 금지 — 호출자 계약)
+#   - display_name : 운영자 / 사용자에게 보여주는 한국어 라벨
+#   - description  : 어떤 데이터가 들어가는지 한 줄 설명
+#   - channels     : 이 섹션이 지원되는 채널 (os / esxi / redfish 중)
+#   - empty_value  : 수집은 됐으나 데이터가 비었을 때의 기본값
+#                    (null 이면 "섹션 자체가 미수집",
+#                     {} / [] 이면 "수집은 시도했으나 결과가 비어있음")
+#
+# 새 섹션 추가 시 작업 흐름은 docs/14_add-new-gather.md 의 "7단계 체크리스트" 참조.
 # ==============================================================================
 
 sections:
@@ -54,10 +64,10 @@ sections:
       datastores: []
       controllers: []
       logical_volumes: []
-      # P4 (cycle 2026-04-29): NIC/HBA/InfiniBand 깊이
+      # 스토리지 어댑터 깊이
       hbas: []
       infiniband: []
-      # P3 (cycle 2026-04-29): group summary
+      # 그룹 합계 요약 (벤더 / 컨트롤러 / 풀 단위)
       summary: { groups: [], grand_total_gb: 0 }
 
   network:
@@ -69,13 +79,13 @@ sections:
       dns_servers: []
       default_gateways: []
       interfaces: []
-      # P4 (cycle 2026-04-29): NIC 카드 / port-level / vSwitch / driver-map
+      # NIC 카드 단위 / 포트 단위 / 가상 스위치 / 드라이버 매핑
       adapters: []
       ports: []
       virtual_switches: []
       portgroups: []
       driver_map: []
-      # P3 (cycle 2026-04-29): group summary
+      # 그룹 합계 요약 (NIC 카드 / 포트 그룹 단위)
       summary: { groups: [] }
 
   firmware:

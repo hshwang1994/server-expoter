@@ -1,5 +1,10 @@
 # 16. OS / ESXi raw → normalize → output 매핑 표
 
+> **이 문서는** OS (Linux / Windows) 와 ESXi 채널에서 원본(raw) 데이터가 표준 JSON 의 어느 필드로 들어가는지를 한 줄씩 매핑한 참조표다.
+>
+> 새 필드를 추가하거나, 어떤 raw 소스가 어떤 output 필드를 만드는지 추적할 때 이 표를 검색한다.
+> "어떤 ansible facts / shell 명령 / WMI 쿼리 결과가 무엇으로 변환되는지" 가 한눈에 보인다.
+
 ---
 
 ### Linux (Ubuntu)

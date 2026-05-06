@@ -1,8 +1,9 @@
 # 20. JSON 출력 스키마 키 의미
 
-> server-exporter 의 표준 JSON envelope (13 필드) + sections (10) + field_dictionary (39 Must + 20 Nice + 6 Skip = 65 entries) 의 모든 키가 어떤 의미인지 명시하는 정본 reference 문서.
+> **이 문서는** server-exporter 가 호출자에게 돌려주는 표준 JSON 의 **모든 키 하나하나가 무슨 뜻인지** 정의하는 사전이다.
 >
-> 호출자 / 신규 작업자 / AI 가 envelope 키 의미 파악 시 본 문서 우선 참조.
+> envelope 의 최상위 13 필드, 그 안의 sections (10개), 그리고 65개 세부 필드 (필수 39 + 권장 20 + 자명 6) 의 의미를 한 페이지에서 찾을 수 있다.
+> 호출자 시스템 개발자가 "이 필드 null 은 뭐고, 빈 배열은 뭐고, 숫자 0 은 뭔지" 헷갈릴 때 가장 먼저 보는 곳이다.
 
 ## 정본 정합
 

@@ -1,6 +1,9 @@
 # tests/e2e_browser — Playwright Browser E2E
 
-> 도입: 2026-04-29 cycle-014. server-exporter의 호출자 / Jenkins UI / Grafana 적재 결과를 브라우저에서 검증.
+> **이 폴더는** Jenkins / BMC 같은 외부 시스템의 웹 UI 까지 포함해서 server-exporter 가 정상 동작하는지 브라우저로 직접 확인하는 E2E (end-to-end) 테스트 모음입니다.
+>
+> 백엔드 JSON 응답만 검증하는 회귀 테스트(`tests/e2e/`)와 다르게, 본 폴더는 실제 사람이 보는 웹 화면까지 검증합니다.
+> Playwright (Chromium) 으로 자동화되어 있고, lab 자격증명이 없으면 자동으로 skip 됩니다.
 
 ## 사전 조건
 

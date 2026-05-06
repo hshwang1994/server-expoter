@@ -1,5 +1,9 @@
 # 04. Jenkins Job 등록
 
+> **이 문서는** server-exporter 의 3 채널 (OS / ESXi / Redfish) 수집 Job 을 Jenkins 에 등록할 때 참고한다.
+> Job 이름 규칙, SCM 연결, target_type 파라미터 매핑까지 다룬다.
+> 신규 Jenkins 환경을 구축한 직후, 또는 새 채널이 추가됐을 때 들어와 본다.
+
 경로: Jenkins → New Item → Pipeline 선택
 
 ---

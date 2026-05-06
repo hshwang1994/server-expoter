@@ -1,5 +1,11 @@
 # 12. 진단 출력 (diagnosis / meta / correlation)
 
+> **이 문서는** 표준 JSON 의 `diagnosis` / `meta` / `correlation` 세 필드가 무엇을 담는지 설명한다.
+>
+> 이 세 필드는 호출자가 "이 응답이 언제, 어디서, 어떤 경로로 만들어졌는지" 추적할 때 쓴다.
+> 운영 장애 분석, 회귀 비교, 호출자 시스템에서 trace ID 매칭 등에 활용된다.
+> envelope 의 다른 필드 (status / sections / data / errors) 는 변경 없이 유지된다 — 하위 호환 보장.
+
 ## 개요
 
 output JSON에는 diagnosis, meta, correlation 3개 필드가 포함된다.

@@ -1,5 +1,12 @@
 # Test Fixtures — Redfish 실장비 응답
 
+> **이 폴더는** 실제 BMC 장비에서 받아온 Redfish API 의 raw JSON 응답을 모아둔 테스트 입력 자료입니다.
+> 회귀 테스트(pytest)와 어댑터 동작 검증의 입력으로 사용합니다.
+>
+> 회귀 비교의 "정답지" (= 정규화된 출력) 는 본 폴더가 아니라 `schema/baseline_v1/` 에 있습니다.
+> - tests/fixtures = "이런 raw 응답이 들어올 때"
+> - schema/baseline_v1 = "이렇게 표준 JSON 으로 나와야 한다"
+
 > 수집일: 2026-03-18 | 수집 방식: Python urllib + Basic Auth
 
 ## 1. 디렉토리 구조

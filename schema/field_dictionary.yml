@@ -3,56 +3,41 @@
 # field_dictionary.yml — 출력 JSON 필드 설명 사전
 # ==============================================================================
 #
-# 목적:
-#   server-exporter의 gather 출력 JSON 필드에 대한 해석 가이드.
-#   운영자가 각 필드의 의미, 단위, null 의미, 채널 간 차이를 이해할 수 있도록
-#   한국어/영어 설명을 제공합니다.
+# 이 파일은 server-exporter 가 만들어내는 표준 JSON 의 모든 필드에 대한
+# "해석 가이드" 입니다. 호출자 / 운영자 / 개발자가 같은 필드를 보고 같은 의미로
+# 이해하도록 한국어 + 영어 설명을 한 곳에 모았습니다.
 #
-# 설계 원칙:
-#   - 출력 JSON에는 help를 삽입하지 않음 (JSON 크기 불변)
-#   - 이 파일을 별도로 참조하여 필드를 해석
-#   - 새 필드 추가 시 이 파일에 1항목 추가
+# 왜 출력 JSON 자체에 설명을 넣지 않고 별도 파일에 두는가?
+#   - 출력 JSON 의 크기가 변하지 않게 하기 위해 (호출자 시스템 부담 감소)
+#   - 외부 시스템이 이 파일을 1회 로드해서 필드 lookup 으로 활용 가능
+#   - 코드 변경 없이 설명만 갱신 가능
 #
-# 역할 정의:
-#   - 문서용 참조 자산 (운영자/개발자가 필드 의미를 이해할 때 사용)
-#   - UI lookup 메타데이터 (외부 시스템이 이 파일을 로드하여 필드 설명 표시)
-#   - schema reference (출력 JSON 필드의 타입/enum/null 의미 정의)
-#   - 검증: tests/validate_field_dictionary.py로 무결성 검사 가능
+# 누가 이 파일을 사용하나?
+#   - 외부 시스템(포털 등): 필드명 기반 lookup → 사용자에게 한국어 설명 노출
+#   - 운영자: "이 필드 null 은 뭔지" 검색
+#   - 개발자: 새 필드 추가 시 본 파일에 1 항목 추가
 #
-# Path 표기 규칙:
-#   - "hardware.health"       → data.hardware.health (점 구분자 = 중첩 객체 경로)
-#   - "physical_disks[]"      → data.storage.physical_disks 배열 자체에 대한 설명
-#   - "physical_disks[].serial" → 배열 각 item 내부의 serial 필드
-#   - "sections.*"            → sections 객체의 모든 값 (와일드카드)
-#   - "status"                → top-level status 필드 (data 하위가 아닌 최상위)
-#   - "bmc.ip"                → data.bmc.ip
-#   - "correlation.host_ip"   → correlation.host_ip (top-level)
+# Path(키 경로) 표기 규칙
+#   "hardware.health"          → data.hardware.health (중첩 객체 경로)
+#   "physical_disks[]"         → 배열 자체에 대한 설명
+#   "physical_disks[].serial"  → 배열 각 항목의 serial 필드
+#   "sections.*"               → sections 객체의 모든 값 (와일드카드)
+#   "status"                   → 최상위 status 필드 (data 하위 아님)
+#   "correlation.host_ip"      → correlation.host_ip (최상위)
 #
-#   매칭 방법:
-#     외부 시스템에서 output JSON의 필드를 이 dictionary에서 찾을 때:
-#     1. 정확한 path로 먼저 검색 (예: "hardware.health")
-#     2. 배열 item 필드는 "physical_disks[].serial" 형태로 검색
-#     3. 와일드카드 path는 "sections.*"로 검색
+# 우선순위(priority) 의미
+#   must — 호출자가 반드시 의미를 알아야 하는 필드 (혼동 가능성 높음)
+#   nice — 설명이 있으면 좋고 없어도 사용에 지장 없음
+#   skip — 의미가 자명해서 본 사전에 등록하지 않음 (예: hostname)
 #
-# 사용 방법:
-#   1. 외부 시스템: 이 파일을 1회 로드하여 필드명 기반 lookup
-#      예) fieldDict["memory.total_basis"].help_ko
-#   2. 운영자: 출력 JSON의 특정 필드가 무엇인지 이 파일에서 검색
-#   3. 개발자: 새 필드 추가 시 코드 반영 후 이 파일에 설명 추가
+# 등록 현황 (2026-04-29 기준): Must 39 / Nice 20 / Skip 6 = 총 65 entries
 #
-# 등록 현황: Must 39 / Nice 20 / Skip 6 = 65 entries (cycle 2026-04-29 production-audit: +8 must envelope top-level)
-#
-# 분류:
-#   priority: must    — 해석이 반드시 필요한 필드 (혼동 가능성 높음)
-#   priority: nice    — 설명이 있으면 좋지만 없어도 사용 가능
-#   priority: skip    — 의미가 자명하여 설명 불필요 (등록하지 않음)
-#
-# Validation 규칙 (수동 검증 시):
-#   1. 모든 entry에 help_ko, help_en이 둘 다 존재하는지
-#   2. path가 실제 output JSON 또는 schema/examples와 대응되는지
-#   3. 중복 key가 없는지
-#   4. priority 값이 must/nice/skip 중 하나인지
-#   5. channel 배열이 [redfish, os, esxi] 범위 안에 있는지
+# 검증 (수동): tests/validate_field_dictionary.py 가 다음 5가지를 검사합니다.
+#   1) 모든 entry 에 help_ko, help_en 이 함께 있는지
+#   2) path 가 실제 output JSON / schema/examples 와 대응되는지
+#   3) 중복 키가 없는지
+#   4) priority 값이 must / nice / skip 중 하나인지
+#   5) channel 배열이 [redfish, os, esxi] 안에 있는지
 # ==============================================================================
 
 fields:

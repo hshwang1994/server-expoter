@@ -1,7 +1,19 @@
 # REQUIREMENTS — Server Exporter Gather Pipeline
 
-gather 플레이북 실행을 위한 **대상 서버 / Agent / 포털** 각각의 최소 요구사항이다.
-여기에 명시된 버전보다 낮으면 수집이 실패하거나 일부 필드가 `null` 로 반환된다.
+수집을 시도하기 전에 "이 환경에서 정말 동작할까?" 를 빠르게 확인하기 위한 문서다.
+**대상 서버 / Jenkins Agent / 호출자(포털)** 측에 각각 무엇이 필요한지 표로 정리한다.
+
+여기에 명시된 버전보다 낮으면 두 가지 결과 중 하나가 나온다.
+
+- 수집 자체가 실패한다 (`status: failed`)
+- 수집은 성공하지만 일부 필드가 `null` 로 반환된다 (필드 단위 graceful degradation)
+
+각 항목의 "미충족 시 동작" 컬럼을 보면 어느 쪽인지 알 수 있다.
+
+> **함께 읽으면 좋은 문서**:
+> - 설치 절차: `docs/01_jenkins-setup.md` (Jenkins 마스터) / `docs/03_agent-setup.md` (Agent 노드)
+> - 입력 형식: `docs/05_inventory-json-spec.md`
+> - 출력 형식: `docs/09_output-examples.md`
 
 ---
 

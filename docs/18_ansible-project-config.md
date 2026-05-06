@@ -1,5 +1,11 @@
 # Ansible 프로젝트 설정
 
+> **이 문서는** server-exporter 저장소가 사용하는 Ansible 의 프로젝트 고유 설정을 정리한다.
+> ansible.cfg 의 의미, 커스텀 플러그인 경로, 환경변수, vault 사용 방법, 로컬 실행 예시 등을 다룬다.
+>
+> Agent 노드 자체의 설치 / 컬렉션 / Python 패키지 절차는 본 문서가 아니라 `docs/03_agent-setup.md` 5절을 참고한다.
+> 버전 요건은 `REQUIREMENTS.md` 4절.
+
 > Python 패키지, Ansible 컬렉션, 기본 설치 절차는 `docs/03_agent-setup.md` 5절 참조.
 > Agent 공통 요구사항(버전 요건)은 `REQUIREMENTS.md` 4절 참조.
 > 이 문서는 **프로젝트 고유 설정** (ansible.cfg, 플러그인 경로, 환경변수, vault, 실행 예시)을 정의한다.

@@ -1,10 +1,11 @@
 # 호환성 매트릭스 (Compatibility Matrix)
 
-> 정본 — cycle 2026-05-06 M-D1 240 cell 매트릭스 형식화. 9 vendor × N generation × 10 sections.
+> **이 문서는** server-exporter 가 어떤 벤더 / 어떤 세대 / 어떤 섹션을 어디까지 지원하는지를 한 장 표로 정리한 reference 다.
 >
-> 관련 rule: rule 28 #12 (COMPATIBILITY-MATRIX TTL 14일), rule 50 R2 (vendor 추가 9단계 + 단계 10), rule 96 R1-A (web sources 의무)
-> 관련 skill: cycle-orchestrator (Phase 1 매트릭스 작성), add-vendor-no-lab (lab 부재 vendor)
-> 관련 script: scripts/ai/measure_compatibility_matrix.py (P3 자동 측정)
+> 호출자 / 신규 작업자가 "Dell iDRAC 8 세대도 storage 수집 되는가?" 같은 질문을 빠르게 해소할 때 본다.
+> 9개 벤더 × 여러 세대 × 10 섹션 조합 (총 240 셀 규모) 을 한눈에 비교할 수 있다.
+>
+> 매트릭스는 어댑터의 `capabilities` 와 실장비 baseline 결과를 기준으로 작성된다.
 
 ## 1. 목적
 

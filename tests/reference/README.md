@@ -1,8 +1,14 @@
 # tests/reference/ — 실장비 종합 참조 데이터
 
-> **목적**: 실장비에서 도달 가능한 모든 raw 정보를 수집해 향후 schema 추가 / 매핑 검증 / 새 vendor 온보딩 / 회귀 비교의 reference 자산으로 보존.
+> **이 폴더는** 실장비 한 대에서 가능한 모든 raw 정보 (Redfish 전체 endpoint, OS 명령 결과, ESXi pyvmomi dump 등) 를 한 번에 긁어와 보관하는 "참조용 자료실" 입니다.
 >
-> 본 디렉터리는 **참조용**이지 회귀 input이 아니다. 회귀 input은 `tests/fixtures/` + `schema/baseline_v1/`.
+> 회귀 테스트의 입력으로 직접 사용되지는 않습니다 — 회귀 입력은 `tests/fixtures/`, 기준선은 `schema/baseline_v1/` 입니다.
+>
+> **언제 이 폴더를 보는가?**
+> - 새 벤더 / 새 펌웨어가 들어왔을 때 "어떤 endpoint 가 응답하는지" 전수 비교
+> - 새 schema 필드 후보를 검토할 때 "그 정보가 raw 어디에 있는지" 추적
+> - 펌웨어 업그레이드 후 응답 변경 비교 (회귀 분석)
+> - 정상 시점의 raw 응답을 보존해뒀다가 장애 시점과 비교
 
 생성: 2026-04-28 (Round 11 reference collection)
 

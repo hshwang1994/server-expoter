@@ -1,7 +1,12 @@
 # 02. Redis 설치 및 설정
 
-Ansible `gather_facts` 결과를 Redis 에 캐싱하여 반복 실행 성능을 높인다.
-Redis 는 Jenkins 마스터 노드에 설치하며, Agent 가 마스터의 Redis 에 접속하는 구조다.
+> **이 문서는** Jenkins 마스터에 Redis 를 올리고, Agent 들이 안전하게 접속하도록 설정하는 절차다.
+>
+> **왜 Redis 가 필요한가?**
+> Ansible 의 `gather_facts` 결과를 Redis 에 캐싱하면 같은 호스트에 대한 반복 실행이 빨라진다.
+> 캐싱이 없으면 매 실행마다 SSH/WinRM 으로 다시 정보를 긁어와야 한다.
+>
+> **구조**: Redis 는 Jenkins 마스터에 1대만 설치하고, 모든 Agent 가 마스터의 Redis 에 붙는다.
 
 > 모든 명령은 **root** 또는 **sudo** 로 실행한다.
 
