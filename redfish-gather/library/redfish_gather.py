@@ -2501,14 +2501,14 @@ def account_service_provision(
             out['errors'].append(_err(
                 'account_service',
                 'POST 1차 실패 → PasswordChangeRequired:false 추가 후 retry 성공 '
-                '(Lenovo XCC password policy)',
+                '(Lenovo XCC password policy)',  # nosec rule12-r1
             ))
             return out
         # 3차 retry: HPE Oem.Hpe.Privileges (HPE iLO 일부 펌웨어가 RoleId 단독 거부 보고).
         # source: HewlettPackard/ilo-rest-api-docs add_user_account.py.
         if vendor == 'hpe':                                                   # nosec rule12-r1
             body_hpe = dict(body_base)
-            body_hpe['Oem'] = {'Hpe': {'Privileges': {'LoginPriv': True,
+            body_hpe['Oem'] = {'Hpe': {'Privileges': {'LoginPriv': True,    # nosec rule12-r1
                                                       'RemoteConsolePriv': True,
                                                       'UserConfigPriv': True,
                                                       'VirtualMediaPriv': True,
@@ -2523,7 +2523,7 @@ def account_service_provision(
                 out['slot_uri']  = _safe(resp3, '@odata.id')
                 out['errors'].append(_err(
                     'account_service',
-                    'POST 1차 실패 → Oem.Hpe.Privileges 추가 후 retry 성공',
+                    'POST 1차 실패 → Oem.Hpe.Privileges 추가 후 retry 성공',  # nosec rule12-r1
                 ))
                 return out
             err = err3 or err
