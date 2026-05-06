@@ -1,5 +1,57 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-06 (post-cycle P2 — pre_commit_docs20_sync_check hook 신설 / rule 13 R7 자동화)
+
+### 사용자 명시 (cycle 진입)
+- 이전 cycle (multi-session-compatibility 24/24 [DONE/SKIP]) 종료 후 P2 후보 단일 ticket 권장 진행
+- 권장: `pre_commit_docs20_sync_check.py` 신설 (rule 13 R7 advisory hook)
+
+### 적용 변경
+
+| 파일 | 변경 | 의도 |
+|---|---|---|
+| `scripts/ai/hooks/pre_commit_docs20_sync_check.py` | 신규 (152 라인) | rule 13 R7 정본 4종 ↔ docs/20 동기화 advisory 검증 |
+| `scripts/ai/hooks/install-git-hooks.sh` | +5 / -3 | pre-commit chain 추가 + 비활성화 환경변수 안내 |
+| `tests/unit/test_pre_commit_docs20_sync_check.py` | 신규 (11 테스트) | detect_violation 함수 단위 + main() SKIP env / subprocess self-test |
+| `.claude/policy/surface-counts.yaml` | hooks 21 → 22 | 신규 hook 카운트 반영 |
+
+### 정본 4종 (rule 13 R7)
+
+검출 대상 (변경 시 docs/20 동반 staged 의무):
+- `common/tasks/normalize/build_output.yml` (envelope 13 필드)
+- `common/tasks/normalize/build_status.yml` (status 판정 규칙)
+- `schema/sections.yml` (sections 10)
+- `schema/field_dictionary.yml` (Must/Nice/Skip 65 entries)
+
+### 비활성화 환경변수
+
+| 변수 | 용도 |
+|---|---|
+| `DOCS20_SYNC_SKIP=1` | 강제 skip |
+| `DOCS20_SYNC_SKIP_COSMETIC=1` | cosmetic only commit (rule 13 R7 Allowed) |
+
+### 검증
+
+- pytest **335/335 PASS** (이전 324 + 신규 11)
+- self-test 6/6 PASS (정본 1/2/4종 변경 케이스 + Windows path 정규화 + 빈 staged)
+- verify_harness_consistency PASS (rules:28 / skills:48 / agents:59 / policies:10)
+- 기존 commit flow 영향 0 (advisory exit 0)
+
+### rule 13 R7 재검토 트리거
+
+> 본문: "docs/20 자동 동기화 hook (`pre_commit_docs20_sync_check.py`) 도입 시 advisory → blocking 격상"
+
+본 cycle 은 hook 도입 단계. **advisory 유지** — 실 운영 1~2 cycle 관찰 후 false-positive 0건이면 다음 cycle 에서 blocking 격상 검토.
+
+### 후속 의무 (rule 70 R8 trigger 검사)
+
+- trigger 1 rule 본문 의미 변경: NO
+- trigger 2 표면 카운트 변경: NO (rule 70 R8 trigger 2 는 **rules / skills / agents / policies** 만 명시. hooks 21 → 22 는 trigger 해당 외)
+- trigger 3 보호 경로 정책 변경: NO
+- → ADR 작성 의무 없음. 이전 ADR (`ADR-2026-05-06-rule13-r7-docs20-sync.md`) 의 명시 후속 (hook 도입) 실행 영역. NEXT_ACTIONS 에서 M-G1 P2 후보 1건 처리 표시
+
+---
+
 ## 일자: 2026-05-06 (multi-session-compatibility cycle Session-3 — M-A3 status 의도 주석 강화 / Case A)
 
 ### 사용자 명시 (cycle 진입)

@@ -4,6 +4,7 @@
 # 설치 항목:
 # - pre-commit: pre_commit_harness_drift + pre_commit_skill_guard
 #               + pre_commit_jenkinsfile_guard
+#               + pre_commit_docs20_sync_check (rule 13 R7)
 # - commit-msg: commit_msg_check (rule 90)
 # - post-commit: post_commit_measurement_trigger (rule 28)
 # - post-merge: post_merge_gap_check + post_merge_incoming_review (rule 97)
@@ -61,7 +62,8 @@ echo "Installing git hooks..."
 write_hook "pre-commit" \
     "pre_commit_harness_drift.py" \
     "pre_commit_skill_guard.py" \
-    "pre_commit_jenkinsfile_guard.py"
+    "pre_commit_jenkinsfile_guard.py" \
+    "pre_commit_docs20_sync_check.py"
 
 write_hook "commit-msg" \
     "commit_msg_check.py"
@@ -76,8 +78,10 @@ write_hook "post-merge" \
 echo "Done. PYTHON=${PYTHON} (override with: PYTHON=python3 bash $0)"
 echo ""
 echo "비활성화 환경변수:"
-echo "  HARNESS_DRIFT_SKIP=1     — pre_commit_harness_drift skip"
-echo "  SKILL_GUARD_SKIP=1       — pre_commit_skill_guard skip"
-echo "  JENKINSFILE_GUARD_SKIP=1 — pre_commit_jenkinsfile_guard skip"
-echo "  POST_MERGE_GAP_SKIP=1    — post_merge_gap_check skip"
-echo "  INCOMING_REVIEW_SKIP=1   — post_merge_incoming_review skip"
+echo "  HARNESS_DRIFT_SKIP=1          — pre_commit_harness_drift skip"
+echo "  SKILL_GUARD_SKIP=1            — pre_commit_skill_guard skip"
+echo "  JENKINSFILE_GUARD_SKIP=1      — pre_commit_jenkinsfile_guard skip"
+echo "  DOCS20_SYNC_SKIP=1            — pre_commit_docs20_sync_check skip (rule 13 R7)"
+echo "  DOCS20_SYNC_SKIP_COSMETIC=1   — cosmetic only commit (rule 13 R7 Allowed)"
+echo "  POST_MERGE_GAP_SKIP=1         — post_merge_gap_check skip"
+echo "  INCOMING_REVIEW_SKIP=1        — post_merge_incoming_review skip"
