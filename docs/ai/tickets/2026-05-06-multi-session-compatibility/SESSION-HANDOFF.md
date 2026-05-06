@@ -1,22 +1,39 @@
 # Session Handoff — 2026-05-06 Multi-Session Compatibility Cycle
 
-> **마지막 갱신**: Session-4 종료 시점 (M-B1/C1/D1/E1 [DONE] 병렬 4 ticket / M-F1 [PENDING] agent 산출물 누락)
+> **마지막 갱신**: Session-4 최종 (5/5 ticket [DONE] — M-B1/C1/D1/E1/F1 모두 완료)
 
 ---
 
 ## 마지막 commit / 시점
 
-- **commit**: `23b1f49b`
-- **메시지**: `docs: [M-B1/C1/D1/E1 DONE] 4 ticket 병렬 분석 완료`
+- **commit**: `a93406b9`
+- **메시지**: `docs: [M-F1 DONE] docs/20_json-schema-fields.md 신설`
 - **시점**: 2026-05-06 (Asia/Seoul)
 - **branch**: `main` (사용자 명시 자율 push, rule 93 R1+R4)
 - **push 결과**: github + gitlab 동시 (origin push URL 2개)
 
 ### 이전 commit
+- `c8e4cb7f` — Session-4 SESSION-HANDOFF 갱신
+- `23b1f49b` — Session-4 M-B1/C1/D1/E1 [DONE] 4 ticket 병렬 분석
 - `78611714` — Session-3 M-A3 [DONE] / status Case A 의도 주석 강화 + 회귀 13건
 - `c23c7f27` — Session-2 M-A2 결정 [DONE] / Case A 채택
 - `ba003b2f` — Session-1 M-A1 분석 [DONE]
 - `abb41e59` — Session-0 ticket 24건 작성
+
+### Session-4 최종 (M-F1 직접 작성)
+
+| 항목 | 결과 |
+|---|---|
+| docs/20_json-schema-fields.md 신설 (625줄) | [DONE] |
+| envelope 13 필드 정본 인용 (build_output.yml) | [DONE] |
+| sections 10 정의 (sections.yml 정본) | [DONE] |
+| field_dictionary 65 entries 전수 (Must 39 + Nice 20 + Skip 6) | [DONE] |
+| status 4 시나리오 매트릭스 (M-A3 정본 인용) | [DONE] |
+| 3채널 예시 (Redfish dell / OS rhel810 raw / ESXi) | [DONE] |
+| 호환성 정책 (rule 96 R1-B + rule 92 R5) | [DONE] |
+| pytest 294/294 PASS | [DONE] |
+| verify_harness_consistency PASS | [DONE] |
+| commit `a93406b9` + push (github + gitlab) | [DONE] |
 
 ### Session-4 (병렬 4 ticket — 본 세션)
 
