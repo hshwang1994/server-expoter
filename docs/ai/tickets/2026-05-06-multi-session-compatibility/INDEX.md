@@ -40,13 +40,20 @@
 
 ---
 
+## 운영 모드 (사용자 명시 2026-05-06 갱신)
+
+**단일 세션 순차 진행 + 각 ticket 끝나면 `/clear` → 다음 프롬프트 복붙 + 부가 작업 자율 진행**
+
+→ 본 cycle 은 다중 worker 동시 진행이 아닌 **단일 세션 순차 모드**. 24 cold-start 프롬프트는 `SESSION-PROMPTS.md` 참조.
+
 ## cold-start 가이드 (다음 세션 처음 읽을 순서)
 
-1. **본 INDEX.md** — cycle 전체 그림
-2. **SESSION-HANDOFF.md** — 직전 세션 종료 시점 + 첫 지시 템플릿
-3. **DEPENDENCIES.md** — ticket 간 의존성 + 진행 가능 여부
-4. **fixes/INDEX.md** — 개별 ticket 분류 (M-A1~M-G2 / 24 ticket)
-5. **착수할 ticket 본문** — fixes/M-X##.md (cold-start 형식: 의도 / 위치 / 변경 / 회귀 / 검증 / risk)
+1. **SESSION-PROMPTS.md** — 24 세션별 진입 프롬프트 + 자율 진행 권한 정책
+2. **본 INDEX.md** — cycle 전체 그림
+3. **SESSION-HANDOFF.md** — 직전 세션 종료 시점 + 첫 지시 템플릿
+4. **DEPENDENCIES.md** — ticket 간 의존성 + 진행 가능 여부
+5. **fixes/INDEX.md** — 개별 ticket 분류 (M-A1~M-G2 / 24 ticket)
+6. **착수할 ticket 본문** — fixes/M-X##.md (cold-start 형식: 의도 / 위치 / 변경 / 회귀 / 검증 / risk)
 
 ---
 
@@ -55,6 +62,7 @@
 ```
 docs/ai/tickets/2026-05-06-multi-session-compatibility/
 ├── INDEX.md                # 본 파일 — 진입점
+├── SESSION-PROMPTS.md      # 24 세션별 cold-start 프롬프트 + 자율 진행 권한
 ├── SESSION-HANDOFF.md      # 세션 종료 시점 + 다음 세션 첫 지시
 ├── DEPENDENCIES.md         # 의존성 그래프 + 진행 가능 ticket 식별
 ├── COMPATIBILITY-MATRIX.md # 9 vendor × N gen × 9 sections 매트릭스 (M-D1 산출물)
