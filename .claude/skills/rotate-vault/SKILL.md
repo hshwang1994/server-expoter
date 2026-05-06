@@ -74,13 +74,46 @@ ansible-vault create vault/redfish/huawei.yml
 | 자격증명 (BMC / Linux / Windows / ESXi) | 반기 또는 사고 시 |
 | 새 vendor vault | 추가 시점 (rule 50 R2 9단계) |
 
+## 자동 반영 메커니즘 (M-C 학습 / rule 27 R6)
+
+vault/redfish/{vendor}.yml 변경 시 **다음 ansible 실행에서 자동 반영**. 회전 후 별도 캐시 무효화 작업 불필요.
+
+### 자동 반영 보장 3 단서 (rule 27 R6 정본)
+
+| # | 단서 | 검증 명령 | 기대 결과 |
+|---|---|---|---|
+| 1 | include_vars cacheable 부재 | `grep -rn 'cacheable' redfish-gather/tasks/load_vault.yml` | 0 결과 |
+| 2 | host facts 미등록 | `grep -rn 'cacheable' redfish-gather/tasks/load_vault.yml common/tasks/normalize/` | 0 결과 |
+| 3 | vault decrypt 캐시 부재 | `grep -rn 'vault_password_file\|VAULT_PASSWORD_FILE' ansible.cfg` | password file 만 (decrypt 캐시 옵션 없음) |
+
+### 회전 후 다음 run 자동 반영 흐름
+
+```
+1. vault edit / rekey 후 vault/redfish/dell.yml 변경
+2. 다음 ansible-playbook 실행 시:
+   - include_vars 가 vault file 디스크에서 새로 read (캐시 없음)
+   - ansible-vault decrypt 매번 수행 (캐시 없음)
+   - _rf_vault_data → _rf_accounts (task scope, host facts 영역 아님)
+   - try_one_account.yml 이 새 password 로 BMC 인증
+3. 결과: 새 password 자동 반영 (별도 작업 불필요)
+```
+
+### 단일 run 내 vault 변경 (반영 안 됨)
+
+- 한 run 시작 후 vault 파일을 mid-run 변경해도 같은 run 내에는 반영 안 됨 (이미 include_vars 한 후 task 변수 캐시)
+- 다음 run 부터 반영
+- → **회전은 ansible-playbook 종료 후 수행 권장**
+
 ## 검증 절차
 
 1. `ansible-vault view <vault>` — 새 password로 read 가능
 2. dry-run: `ansible-playbook --syntax-check`
-3. 실장비 1대 대상 본 수집 시도 (target_type별)
-4. callback 결과 envelope의 `meta.vendor` 정상
-5. console log에 평문 password 노출 없음 확인 (rule 60)
+3. **자동 반영 3 단서 검증** (rule 27 R6):
+   - `grep -rn 'cacheable' redfish-gather/tasks/load_vault.yml common/tasks/normalize/` 0 결과
+   - `ansible.cfg` 에 vault decrypt 캐시 옵션 없음 (vault_password_file 만)
+4. 실장비 1대 대상 본 수집 시도 (target_type별)
+5. callback 결과 envelope의 `meta.vendor` 정상
+6. console log에 평문 password 노출 없음 확인
 
 ## 보안 주의 (rule 60)
 
@@ -104,12 +137,15 @@ ansible-vault create vault/redfish/huawei.yml
 ## 적용 rule / 관련
 
 - (cycle-011: rule 60 보안 정책 해제. 본 skill은 운영 절차 가이드로만 유효)
+- **rule 27 R6** (vault 자동 반영 단서 3개 — M-C 학습 형식화)
 - rule 50 R2 (새 vendor 추가 시 vault 9단계)
 - rule 70 (docs-and-evidence) — evidence 기록
 - skill: `add-new-vendor`, `debug-precheck-failure` (auth 실패 시)
 - agent: 본 skill의 운영 실행자는 사용자 (cycle-011: vault-rotator + security-reviewer agent 제거)
-- 정본: `docs/03_agent-setup.md` 보안 부분
+- 정본 코드: `redfish-gather/tasks/load_vault.yml`
+- 정본 docs: `docs/03_agent-setup.md` 보안 부분, `docs/21_vault-operations.md` (M-C 결과 정본)
 - reference: `docs/ai/references/ansible/ansible-vault.md`
+- 회귀 fixture: M-C3 commit (9건 mock — vault rekey / vault edit / vendor 추가 시나리오)
 
 ## Forbidden
 

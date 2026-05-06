@@ -11,4 +11,4 @@ module_utils: 32d2047adc60
 os-gather: 60cb3a5ab846
 redfish-gather: 612f1757e71c
 schema: ab4cbf1f681d
-tests: 8861c53fde26
+tests: 4163f081d2ce
