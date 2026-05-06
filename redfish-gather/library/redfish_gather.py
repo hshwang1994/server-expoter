@@ -169,6 +169,30 @@ def _post(bmc_ip, path, body, username, password, timeout, verify_ssl):
     except (OSError, ValueError) as e:
         return 0, {}, f'Unexpected: {type(e).__name__}: {e}'
 
+def _delete(bmc_ip, path, username, password, timeout, verify_ssl):
+    """F50 phase 4 (cycle 2026-05-06): DELETE method 추가 — Lenovo XCC 권한 cache 손상 시
+    DELETE + POST 재생성 fallback. Dell iDRAC 는 DELETE 미지원 (PATCH-only)."""
+    url = f'https://{bmc_ip}/redfish/v1/{path.lstrip("/")}'
+    req = urlreq.Request(url, method='DELETE', headers={
+        'Authorization': _auth(username, password),
+        'Accept': 'application/json',
+        'OData-Version': '4.0',
+    })
+    try:
+        with urlreq.urlopen(req, context=_ctx(verify_ssl), timeout=timeout) as resp:
+            return resp.status, {}, None
+    except urlerr.HTTPError as e:
+        try:    body_err = json.loads(e.read().decode('utf-8', errors='replace'))
+        except (json.JSONDecodeError, ValueError, UnicodeDecodeError): body_err = {}
+        return e.code, body_err, f'HTTP {e.code}: {e.reason}'
+    except urlerr.URLError as e:
+        return 0, {}, f'URLError: {e.reason}'
+    except socket.timeout:
+        return 0, {}, f'Timeout after {timeout}s'
+    except (OSError, ValueError) as e:
+        return 0, {}, f'Unexpected: {type(e).__name__}: {e}'
+
+
 def _patch(bmc_ip, path, body, username, password, timeout, verify_ssl):
     """P2 (cycle 2026-04-28): AccountService 계정 update (PATCH /Accounts/{id})."""
     url = f'https://{bmc_ip}/redfish/v1/{path.lstrip("/")}'
@@ -2202,9 +2226,11 @@ def account_service_provision(
         out['slot_uri'] = existing.get('slot_uri')
         if dryrun:
             return out
-        # 비밀번호 + Enabled + RoleId + Locked 갱신
-        # cycle 2026-04-30: 명세 "있는데 사용을 못하면 enable" — Locked: False 명시 추가.
-        # disabled (Enabled=False) + locked (consecutive failed login) 둘 다 풀어 사용 가능 상태로.
+        # F50 phase 4 (cycle 2026-05-06): full body PATCH 의무 (Password + Enabled +
+        # Locked + RoleId 항상 함께). 사이트 실측 (10.50.11.232 Lenovo XCC):
+        # password 단독 PATCH 시 권한 cache 손상 (RoleId='Administrator' 표시되지만
+        # /Managers AccessDenied). full body PATCH 시 권한 유지 정상.
+        # source: 사이트 실측 + Lenovo XCC ManagerAccount.v1_8_1 동작.
         body_full = {
             'Password': target_password,
             'Enabled':  True,
@@ -2227,13 +2253,78 @@ def account_service_provision(
                     'account_service',
                     'Locked 필드 PATCH 거부 — Locked 빼고 retry 성공 (BMC 펌웨어가 Locked read-only)',
                 ))
-        if code in (200, 204) and not err:
-            out['recovered'] = True
-        else:
+        if code not in (200, 204) or err:
             out['errors'].append(_err(
                 'account_service',
                 f'PATCH 기존 사용자 실패 (slot={existing.get("id")})',
                 detail=err or f'HTTP {code}',
+            ))
+            return out
+        # F50 phase 4: PATCH 후 실 인증 verify — silent fail / 권한 cache 손상 감지.
+        # 1차 verify: 새 자격으로 /Systems GET. 401 이면 권한 손상.
+        # fallback: DELETE + POST 재생성 (Lenovo XCC 권한 cache 클린 상태 보장).
+        verify_code, _, verify_err = _get(
+            bmc_ip, 'Systems', target_username, target_password,
+            timeout, verify_ssl,
+        )
+        if verify_code == 200 and not verify_err:
+            out['recovered'] = True
+            return out
+        # 권한 손상 감지 — 운영 안전 위해 best-effort fallback.
+        # vendor='dell' 은 PATCH-only (POST 미지원) → fallback 불가, errors[] 만 기록.
+        # 그 외 vendor (Lenovo/HPE/Supermicro/Cisco/Huawei/Inspur/Fujitsu/Quanta):
+        # DELETE + POST 재생성 시도.
+        out['errors'].append(_err(
+            'account_service',
+            f'PATCH 200 후 verify {verify_code} (권한 cache 손상 의심) — '
+            f'DELETE+POST 재생성 fallback 시도 (slot={existing.get("id")})',
+            detail=verify_err or f'verify HTTP {verify_code}',
+        ))
+        if vendor == 'dell':                                                   # nosec rule12-r1
+            # Dell PATCH-only — DELETE + POST 미지원
+            out['errors'].append(_err(
+                'account_service',
+                'Dell iDRAC PATCH-only — DELETE+POST fallback 미지원 (수동 복구 필요)',  # nosec rule12-r1
+            ))
+            return out
+        # DELETE 시도
+        del_code, _, del_err = _delete(
+            bmc_ip, _p(existing['slot_uri']),
+            current_username, current_password, timeout, verify_ssl,
+        )
+        if del_code not in (200, 204) or del_err:
+            out['errors'].append(_err(
+                'account_service',
+                f'DELETE 실패 (slot={existing.get("id")}) — fallback 불가',
+                detail=del_err or f'HTTP {del_code}',
+            ))
+            return out
+        # POST 재생성 (Cisco vendor 분기는 위에서 따로 처리되었지만 PATCH existing 만
+        # 도달했으니 여기서 표준 POST + Cisco 분기 모두 처리 — 코드 단순화 위해 표준만).
+        body_post = {
+            'UserName': target_username,
+            'Password': target_password,
+            'Enabled':  True,
+            'RoleId':   target_role,
+        }
+        if vendor == 'cisco':                                                  # nosec rule12-r1
+            cisco_role_map = {'Administrator': 'admin', 'Operator': 'user',
+                              'ReadOnly': 'readonly'}
+            body_post['RoleId'] = cisco_role_map.get(target_role, 'admin')
+            body_post['Id'] = existing.get('id') or '2'
+        post_code, post_data, post_err = _post(
+            bmc_ip, 'AccountService/Accounts', body_post,
+            current_username, current_password, timeout, verify_ssl,
+        )
+        if post_code in (200, 201, 204) and not post_err:
+            out['method']   = 'delete_repost'
+            out['slot_uri'] = _safe(post_data, '@odata.id') or existing.get('slot_uri')
+            out['recovered'] = True
+        else:
+            out['errors'].append(_err(
+                'account_service',
+                'DELETE+POST 재생성 실패',
+                detail=post_err or f'HTTP {post_code}',
             ))
         return out
 

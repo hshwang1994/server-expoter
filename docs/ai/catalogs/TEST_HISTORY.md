@@ -2,6 +2,28 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-06 (cycle-020 phase 4 — Lenovo XCC 권한 cache 손상 fix + verify-fallback)
+
+- 환경: 사이트 실측 (10.50.11.232 Lenovo XCC SR650 V2)
+- Lenovo XCC 권한 이슈 root cause:
+  - `infraops` RoleId='Administrator' + Enabled=true + Locked=false (정상 표시)
+  - 그러나 ServiceRoot 외 모든 endpoint AccessDenied — 모든 권한 박탈
+  - 사이트 실험: Strategy 1 Enabled 토글 → 401, Strategy 2 RoleId 토글 → 401, Strategy 3 DELETE+POST → 200
+  - 핵심: PATCH password-only 가 권한 cache 손상. PATCH full body (Password+RoleId+Enabled+Locked 함께) → 권한 유지
+- 코드 fix (redfish_gather.py):
+  - PATCH existing user 후 `_get('Systems', target_user, target_pass)` verify
+  - verify 401 = 권한 cache 손상 감지 → DELETE + POST 재생성 fallback
+  - Dell vendor: PATCH-only (DELETE 미지원) → fallback 안 함 + errors[] 명시
+  - 신규 `_delete()` helper 함수 추가
+- 신규 회귀 2건:
+  - `test_provision_lenovo_patch_silent_fail_delete_repost_fallback`
+  - `test_provision_dell_patch_silent_fail_no_delete_fallback`
+- pytest 결과: **281/281 PASS** (cycle-020 phase 3 279 → 281)
+- 5 BMC × 4 endpoint 권한 매트릭스 (전수):
+  - Systems / Chassis / Managers / AccountService 모두 HTTP 200
+  - Lenovo XCC infraops 권한 정상 복원 확인
+- Jenkins build #2: SUCCESS (5/5 BMC `used_role=primary` — recovery 진입 없음)
+
 ## 2026-05-06 (cycle-020 phase 3 — 전 vendor 호환성 + Dell BMC OEM 추출)
 
 - 환경: 5 BMC + web sources (9 vendor)

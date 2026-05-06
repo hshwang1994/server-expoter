@@ -203,6 +203,80 @@ def test_provision_dell_skip_reserved_slot1_and_retry(monkeypatch):
     assert out["slot_uri"] == "/redfish/v1/AccountService/Accounts/3"
 
 
+def test_provision_lenovo_patch_silent_fail_delete_repost_fallback(monkeypatch):
+    """F50 phase 4 (cycle 2026-05-06): Lenovo PATCH 200 + verify 401 (권한 cache 손상)
+    → DELETE + POST 재생성 fallback. 사이트 실측 (10.50.11.232 XCC SR650).
+    """
+    accounts = [
+        {'slot_uri': '/redfish/v1/AccountService/Accounts/4',
+         'id': '4', 'username': 'infraops', 'role_id': 'Administrator', 'enabled': True},
+    ]
+
+    def fake_acct_get(bmc_ip, u, p, t, v):
+        return {}, accounts, []
+
+    monkeypatch.setattr(rg, "account_service_get", fake_acct_get)
+    monkeypatch.setattr(rg, "_patch", lambda *a, **kw: (200, {}, None))
+    # verify 401 (권한 cache 손상 시뮬)
+    monkeypatch.setattr(rg, "_get", lambda *a, **kw: (401, {}, "HTTP 401"))
+    deleted = []
+    posted = []
+
+    def fake_delete(bmc_ip, path, u, p, t, v):
+        deleted.append(path)
+        return 204, {}, None
+
+    def fake_post(bmc_ip, path, body, u, p, t, v):
+        posted.append(dict(body))
+        return 201, {'@odata.id': '/redfish/v1/AccountService/Accounts/4'}, None
+
+    monkeypatch.setattr(rg, "_delete", fake_delete)
+    monkeypatch.setattr(rg, "_post", fake_post)
+
+    out = rg.account_service_provision(
+        bmc_ip='10.50.11.232', vendor='lenovo',
+        current_username='USERID', current_password='VMware1!',
+        target_username='infraops', target_password='Passw0rd1!Infra',
+        target_role='Administrator',
+        timeout=30, verify_ssl=False, dryrun=False,
+    )
+    # PATCH 1회 + verify _get + DELETE + POST 재생성 → recovered=True, method='delete_repost'
+    assert len(deleted) == 1
+    assert len(posted) == 1
+    assert posted[0]['UserName'] == 'infraops'
+    assert out['recovered'] is True
+    assert out['method'] == 'delete_repost'
+    msgs = ' '.join(e.get('message', '') for e in out['errors'])
+    assert '권한 cache 손상' in msgs
+
+
+def test_provision_dell_patch_silent_fail_no_delete_fallback(monkeypatch):
+    """F50 phase 4: Dell PATCH-only (POST 미지원) → DELETE+POST fallback 미지원.
+    PATCH 200 후 verify 401 시 errors[] 만 emit, recovered=False."""
+    accounts = [
+        {'slot_uri': '/redfish/v1/AccountService/Accounts/3',
+         'id': '3', 'username': 'infraops', 'role_id': 'Administrator', 'enabled': True},
+    ]
+    monkeypatch.setattr(rg, "account_service_get", lambda *a, **k: ({}, accounts, []))
+    monkeypatch.setattr(rg, "_patch", lambda *a, **k: (200, {}, None))
+    monkeypatch.setattr(rg, "_get", lambda *a, **k: (401, {}, "HTTP 401"))
+    deleted_calls = []
+    monkeypatch.setattr(rg, "_delete", lambda *a, **k: (deleted_calls.append(a), (204, {}, None))[1])
+
+    out = rg.account_service_provision(
+        bmc_ip='10.100.15.27', vendor='dell',
+        current_username='root', current_password='Goodmit0802!',
+        target_username='infraops', target_password='Passw0rd1!Infra',
+        target_role='Administrator',
+        timeout=30, verify_ssl=False, dryrun=False,
+    )
+    # Dell 분기: DELETE 호출 안 됨
+    assert len(deleted_calls) == 0
+    assert out['recovered'] is False
+    msgs = ' '.join(e.get('message', '') for e in out['errors'])
+    assert 'Dell iDRAC PATCH-only' in msgs
+
+
 def test_provision_dell_silent_fail_verify_detects(monkeypatch):
     """vendor='dell' + PATCH 200 OK 이지만 verify 401 (silent fail) → 다음 슬롯 retry."""
     accounts = [
