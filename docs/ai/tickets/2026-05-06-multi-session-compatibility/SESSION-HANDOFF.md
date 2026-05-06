@@ -6,7 +6,7 @@
 
 ## 마지막 commit / 시점
 
-- **commit**: (Session-3 신규 — 본 세션 commit 직후 sha 기록)
+- **commit**: `78611714`
 - **메시지**: `feat: [M-A3 DONE] status Case A 의도 주석 강화 + 회귀 13건`
 - **시점**: 2026-05-06 (Asia/Seoul)
 - **branch**: `main` (사용자 명시 자율 push, rule 93 R1+R4)
