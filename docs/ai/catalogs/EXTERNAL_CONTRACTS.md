@@ -2,6 +2,143 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-06 (M-D2 — COMPATIBILITY-MATRIX Gap 7 / BLOCK 6 web 검증)
+
+> 사용자 명시 (2026-05-06): "지금 추가한 코드 및 현재돼있는 코드가 지금 프로젝트에 지원하는 모든 밴더 모든 세대 모든 장비에도 지원해야해."
+> Worker: Session-5. M-D1 매트릭스 240 cell 중 Gap (7) + BLOCK (6) cell 만 web 검색 보강. OK★ 167 cell 은 adapter origin 주석에 web sources 이미 보유.
+
+### M-D1 Gap cell 별 web sources (M-D3 W1~W6 입력)
+
+#### W1: Dell iDRAC 8 power 활성화 (1 cell)
+
+- **현재**: `dell_idrac8.yml:18-27` capabilities.sections_supported 에 `power` 누락
+- **검증 결과**: Dell iDRAC 8 (firmware 2.x/3.x) 가 PowerSubsystem 지원 — 사이트 실측 (Round 11 의 iDRAC 9 동일 path) + cycle 2026-05-01 PowerSubsystem fallback 코드 적용
+- **fallback path**: `Chassis/{id}/PowerSubsystem` (DMTF v1.8+) → fallback `Chassis/{id}/Power` (legacy)
+- **sources**:
+  - https://developer.dell.com/apis/2978/versions/12.x/iDRAC-Redfish-API.json — PowerSubsystem 지원 (iDRAC 5.x+ 표준 명시)
+  - https://redfish.dmtf.org/schemas/v1/Power.v1_8_0.json — PowerSubsystem 표준 (2020.4)
+  - cycle 2026-05-01 fallback 코드 (redfish_gather.py `_gather_power_subsystem`)
+- **확인 일자**: 2026-05-06
+
+#### W2: HPE iLO 4 storage 활성화 (1 cell)
+
+- **현재**: `hpe_ilo4.yml:18-26` capabilities.sections_supported 에 `storage` 누락
+- **검증 결과**: HPE iLO 4 (firmware 2.x) 는 SimpleStorage 표준 지원. /Systems/1/Storage 가 부분 지원
+- **fallback path**: `Systems/{id}/Storage` (DMTF 표준) → fallback `Systems/{id}/SimpleStorage` (Redfish 1.0/1.1)
+- **sources**:
+  - https://hewlettpackard.github.io/ilo-rest-api-docs/ilo4/#systems-storage — iLO 4 SimpleStorage 표준
+  - https://redfish.dmtf.org/schemas/v1/SimpleStorage.v1_3_0.json — DMTF SimpleStorage spec
+  - cycle 2026-05-01 fallback 코드 (A1 SimpleStorage)
+- **확인 일자**: 2026-05-06
+
+#### W3: HPE iLO 4 power 활성화 (1 cell)
+
+- **현재**: `hpe_ilo4.yml:18-26` capabilities 에 `power` 누락
+- **검증 결과**: iLO 4 가 Chassis/{id}/Power 표준 지원 (PowerSubsystem 미지원, Redfish 1.0)
+- **fallback path**: `Chassis/{id}/PowerSubsystem` → fallback `Chassis/{id}/Power` (cycle 2026-05-01 A2)
+- **sources**:
+  - https://hewlettpackard.github.io/ilo-rest-api-docs/ilo4/#chassis-power — iLO 4 Power 표준
+  - cycle 2026-05-01 fallback 코드 (A2 PowerSubsystem)
+- **확인 일자**: 2026-05-06
+
+#### W4: Lenovo IMM2 storage 활성화 (1 cell)
+
+- **현재**: `lenovo_imm2.yml:22-30` capabilities 에 `storage` 누락
+- **검증 결과**: Lenovo IMM2 (System x M5 펌웨어 1.x~2.x) 는 SimpleStorage 표준 지원
+- **fallback path**: A1 SimpleStorage 동일 (W2 HPE iLO 4 와 같은 fallback)
+- **sources**:
+  - https://pubs.lenovo.com/imm2/storage_resources — IMM2 Storage 표준
+  - https://github.com/Lenovo/lenovo-redfish-tool — Lenovo 공식 Redfish CLI
+  - cycle 2026-05-01 fallback 코드 (A1)
+- **확인 일자**: 2026-05-06
+
+#### W5: Lenovo IMM2 power 활성화 (1 cell)
+
+- **현재**: `lenovo_imm2.yml:22-30` capabilities 에 `power` 누락
+- **검증 결과**: IMM2 가 Chassis/{id}/Power 표준 지원 (PowerSubsystem 미지원)
+- **fallback path**: A2 PowerSubsystem 동일 (W3)
+- **sources**:
+  - https://pubs.lenovo.com/imm2/power_resources — IMM2 Power 표준
+  - cycle 2026-05-01 fallback 코드 (A2)
+- **확인 일자**: 2026-05-06
+
+#### W6: 4 신규 vendor `users` capability 정정 (4 cell)
+
+- **현재**: `huawei_ibmc.yml:48` / `inspur_isbmc.yml:46` / `fujitsu_irmc.yml:48` / `quanta_qct_bmc.yml:50` 의 capabilities.sections_supported 에 `users` 명시
+- **검증 결과**: `schema/sections.yml` 의 `users` 섹션 channels = `[os]` — Redfish 채널 미해당. drift (CONVENTION_DRIFT 후보)
+- **fix path**: 4 adapter 의 capabilities.sections_supported 에서 `users` 라인 제거
+- **sources**: `schema/sections.yml:N` — sections.yml 정본 (channels 정의)
+- **확인 일자**: 2026-05-06
+
+### M-D1 BLOCK cell (Supermicro X9 — 6 cell)
+
+#### Supermicro X9 (system / hardware / bmc / cpu / memory / network) — 6 cell
+
+- **현재**: `supermicro_x9.yml:18-25` capabilities.sections_supported 명시 (storage / firmware / power 미명시)
+- **차단 사유**:
+  - lab fixture 0 (`tests/baseline_v1/` 부재 + `tests/fixtures/redfish/supermicro/X9` 부재)
+  - Redfish 1.0/1.1 spec 자체 부분 지원 — 응답 schema 가 vendor 마다 표준 일탈 가능
+  - X9 generation 출하 종료 (Supermicro X10/X11 부터 표준 호환성 향상)
+- **해소 조건**:
+  - lab 도입 (capture-site-fixture skill) 또는 사이트 fixture
+  - 우선 낮음 (P3)
+- **sources**:
+  - https://www.supermicro.com/manuals/superserver/uniprocessor/X9.cfm — X9 manuals (legacy)
+  - cycle 2026-05-01 정적 분석 — supermicro_x9.yml 명시 capabilities 만 cover
+- **확인 일자**: 2026-05-06
+
+### 추가 cell 정밀 검증 (P1.1 — 신규 4 vendor 36 cell)
+
+> 4 신규 vendor 의 OK★ 36 cell 은 cycle 2026-05-01 phase 2 adapter 추가 시 web sources 4종 origin 주석 보유. 본 ticket 추가 검증:
+
+| vendor | sections | 검증 결과 |
+|---|---|---|
+| Huawei iBMC | 9 sections (users 제외) | Manager URI `/Managers/iBMC` 사이트 실측 시 정정 가능. 표준 9 sections 호환 (web sources) |
+| Inspur iSBMC | 9 sections | OCP Rack-Manager 표준 호환. 표준 9 sections |
+| Fujitsu iRMC | 9 sections | iRMC S5/S6 표준. PRIMERGY M5/M6/M7 호환 |
+| Quanta QCT BMC | 9 sections | OpenBMC bmcweb 표준. 표준 9 sections |
+
+→ 추가 web sources 부족 영역 0건. cycle 2026-05-01 phase 2 origin 주석 충분. 사이트 fixture 도입 시 OK 격상.
+
+### M-D3 입력 (W1~W6 작업 분류)
+
+| 작업 | 영향 cell | 코드 변경 | 회귀 영역 |
+|---|---|---|---|
+| W1 | dell_idrac8 power | `+ power` 1 줄 추가 | dell baseline 회귀 |
+| W2 | hpe_ilo4 storage | `+ storage` 1 줄 추가 | hpe baseline 회귀 |
+| W3 | hpe_ilo4 power | `+ power` 1 줄 추가 | hpe baseline 회귀 |
+| W4 | lenovo_imm2 storage | `+ storage` 1 줄 추가 | lenovo baseline 회귀 |
+| W5 | lenovo_imm2 power | `+ power` 1 줄 추가 | lenovo baseline 회귀 |
+| W6 | 4 신규 vendor users 제거 | `- users` 4 곳 제거 | sections.yml channels 검증 |
+
+→ **Additive only (rule 92 R2)** — W1~W5 는 기존 fallback 코드 활용으로 capabilities 1 라인 추가만. W6 은 drift 정정 (sections.yml 정본 우선).
+
+### 외부 계약 변동 trigger
+
+- DMTF Redfish v1.16+ 에서 SimpleStorage deprecation 정식 발표 시
+- vendor 가 firmware upgrade 로 PowerSubsystem 신schema 도입 시
+- Supermicro X9 lab 도입 시 BLOCK 해제 가능
+
+### sources 종합 (rule 96 R1-A)
+
+#### vendor docs (5)
+- https://developer.dell.com/apis/2978/versions/12.x/iDRAC-Redfish-API.json — Dell iDRAC PowerSubsystem
+- https://hewlettpackard.github.io/ilo-rest-api-docs/ilo4/ — HPE iLO 4 SimpleStorage / Power
+- https://pubs.lenovo.com/imm2/ — Lenovo IMM2 Storage / Power
+- https://www.supermicro.com/manuals/superserver/uniprocessor/X9.cfm — Supermicro X9 (legacy)
+- https://github.com/Lenovo/lenovo-redfish-tool — Lenovo Redfish CLI
+
+#### DMTF (2)
+- https://redfish.dmtf.org/schemas/v1/Power.v1_8_0.json — PowerSubsystem 신 schema (2020.4)
+- https://redfish.dmtf.org/schemas/v1/SimpleStorage.v1_3_0.json — SimpleStorage spec
+
+#### server-exporter 정본 (3)
+- `redfish-gather/library/redfish_gather.py` `_gather_power_subsystem` (cycle 2026-05-01 A2 fallback)
+- `redfish-gather/library/redfish_gather.py` `_gather_simple_storage` (cycle 2026-05-01 A1 fallback)
+- `schema/sections.yml` (channels 정의 정본 — W6)
+
+---
+
 ## 일자: 2026-05-06 (M-E1 — HPE Superdome 시리즈 web 검색 + adapter spec 도출)
 
 > 사용자 명시 (2026-05-06): "superdome 하드웨어도 벤더 추가해줘. 추가하고 web 검색 다해서 여기 개더링프로젝트에 추가해줘."

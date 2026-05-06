@@ -612,6 +612,195 @@
 
 ---
 
+## 11. 3채널 (Redfish/OS/ESXi) JSON 키 비교 (M-F2 — 2026-05-06)
+
+> envelope 13 필드는 모든 채널 동일. **sections / data / errors / diagnosis 의 구체 키와 의미가 채널 별 차이**. 본 절은 그 차이를 매트릭스로 정리.
+
+### 11.1 채널별 sections 매트릭스 (10 sections × 4 채널)
+
+| section | Redfish | OS Linux | OS Windows | ESXi |
+|---|---|---|---|---|
+| `system` | ServiceRoot + Systems | `/etc/os-release` + `uname` (raw or facts) | `systeminfo` / WMI `Win32_OperatingSystem` | `esxcli system version` |
+| `hardware` | Chassis | dmidecode (raw or facts) | `Get-CimInstance Win32_ComputerSystemProduct` | `esxcli hardware platform` |
+| `bmc` | Managers | n/a (`not_supported`) | n/a (`not_supported`) | n/a (`not_supported`) |
+| `cpu` | Systems.Processors | `/proc/cpuinfo` | `Win32_Processor` | `esxcli hardware cpu list` |
+| `memory` | Systems.Memory | `/proc/meminfo` + dmidecode | `Win32_PhysicalMemory` | `esxcli hardware memory get` |
+| `storage` | Systems.Storage + Volumes + Drives | `lsblk` + `lsscsi` + `df` | `Get-Disk` + `Get-PhysicalDisk` | `esxcli storage core device list` |
+| `network` | Systems.EthernetInterfaces | `ip` / `ethtool` / `nmcli` | `Get-NetAdapter` + `Get-NetIPAddress` | `esxcli network nic list` |
+| `firmware` | UpdateService | n/a (`not_supported`) | (한정) `Get-WindowsDriver` | `esxcli software vib list` |
+| `users` | n/a (`not_supported`) | `getent passwd` (raw or facts) | `Get-LocalUser` | n/a (`not_supported`) |
+| `power` | Chassis.Power / PowerSubsystem | n/a (`not_supported`) | n/a (`not_supported`) | n/a (`not_supported`) |
+
+> 채널 별 source 차이 — 같은 envelope 키 의미는 동일 (Field Dictionary 정합).
+
+### 11.2 같은 키 다른 source (주의 — 정규화 후 의미 동일)
+
+| envelope 키 | Redfish source | OS Linux source | OS Windows source | ESXi source |
+|---|---|---|---|---|
+| `data.cpu.model` | `Systems.Processors[0].Model` | `/proc/cpuinfo` "model name" | `Win32_Processor.Name` | `esxcli hardware cpu list` Brand |
+| `data.cpu.cores_total` | sum(Processors[].TotalCores) | `/proc/cpuinfo` "cpu cores" × sockets | `Win32_Processor.NumberOfCores` × sockets | esxcli cpu count |
+| `data.memory.total_gb` | sum(Memory.CapacityMiB) / 1024 | dmidecode `physical_installed` (raw mode) | sum(`Win32_PhysicalMemory.Capacity`) | `esxcli hardware memory get` |
+| `data.storage.physical_disks[].media_type` | `Drives[].MediaType` (HDD/SSD/NVMe enum) | `lsblk` + `smartctl` 추정 | `Get-PhysicalDisk.MediaType` (HDD/SSD/Unspecified — Windows 정규화 cycle 2026-04-29) | `esxcli storage core device list` IsSSD |
+| `data.network.interfaces[].mac` | `EthernetInterfaces[].MACAddress` | `ip link` MAC | `NetAdapter.MacAddress` | `esxcli network nic list` MAC |
+| `data.system.hostname` | `Systems.HostName` | `hostname` 명령 | `Win32_OperatingSystem.CSName` | `esxcli system hostname get` |
+
+### 11.3 채널 고유 키 (다른 채널은 `not_supported`)
+
+#### Redfish only
+
+| 키 | 의미 |
+|---|---|
+| `data.bmc.firmware_version` | BMC (iDRAC/iLO/XCC/CIMC) 펌웨어 버전 |
+| `data.bmc.network_protocols` | SSH / WinRM / Redfish enabled 상태 dict |
+| `data.bmc.oem.idrac_*` | Dell DelliDRACCard 4 필드 (F50 phase 3) |
+| `data.firmware[].component` | UpdateService 의 firmware list 각 entry |
+| `data.power.psus[]` | Chassis.Power.PowerSupplies (legacy) 또는 PowerSubsystem.PowerSupplies |
+| `data.power.psu_redundancy` | Chassis.Power.Redundancy |
+| `data.hardware.serial` | Chassis 또는 Systems.SerialNumber |
+
+#### OS Linux only
+
+| 키 | 의미 |
+|---|---|
+| `data.system.python_mode` | `python_ok` / `python_missing` / `python_incompatible` / `raw_forced` (preflight.yml 산출) |
+| `data.system.selinux_status` | `enabled` / `disabled` (raw 정규화 — Round 2 fix) |
+| `data.system.kernel_release` | `uname -r` |
+| `data.network.interfaces[].kind` | `ethernet` / `bond` / `bridge` / `vlan` / `container` / `lo` (raw 정규화) |
+| `data.storage.logical_volumes[]` | LVM2 lv list (raw) |
+| `diagnosis.details.gather_mode` | `python_ok` / `raw_forced` 등 |
+
+#### OS Windows only
+
+| 키 | 의미 |
+|---|---|
+| `data.system.runtime_swap` | namespace pattern (cycle 2026-04-29 Jinja2 loop scoping fix) |
+| `data.network.interfaces[].interface_index` | `Win32_NetworkAdapter.InterfaceIndex` 기반 grouping |
+| `data.storage.physical_disks[].media_type` | `HDD`/`SSD`/`Unspecified` enum (cycle 2026-04-29 정규화) |
+
+#### ESXi only
+
+| 키 | 의미 |
+|---|---|
+| `data.system.vsphere_version` | ESXi build / version |
+| `data.system.auth_success` | 인증 성공 boolean (cycle 2026-04-29 정규화 — vendor_aliases 적용 후) |
+| `data.network.dns_servers[]` | DNS dict-level drill-in (cycle 2026-04-29 fix) |
+| `data.network.interfaces[].netmask_bits` | /22, /26, /28 netmask bit 카운팅 (cycle 2026-04-29) |
+| `data.storage.datastores[]` | ESXi datastore list (vSphere API) |
+| `data.network.virtual_switches[]` | vSwitch / portgroup |
+
+### 11.4 정규화 규칙 차이 (같은 envelope 키, 다른 가공)
+
+```
+envelope: data.cpu.cores_total
+
+Redfish:  sum(Systems.Processors[].TotalCores)
+          → 표준 Redfish enum int
+
+Linux:    /proc/cpuinfo "cpu cores" × sockets
+          → set_fact + multiply (raw mode 시 dmidecode 보강)
+
+Windows:  Win32_Processor.NumberOfCores × sockets
+          → WMI count
+
+ESXi:     esxcli hardware cpu list | wc -l (정규화)
+          → vSphere API count
+```
+
+```
+envelope: data.memory.total_gb
+
+Redfish:  sum(Systems.Memory[].CapacityMiB) / 1024
+          → MiB → GB 변환
+
+Linux:    dmidecode physical_installed (raw mode 정밀)
+          또는 /proc/meminfo MemTotal (Python mode)
+
+Windows:  sum(Win32_PhysicalMemory.Capacity) / 1024^3
+          → byte → GB 변환
+
+ESXi:     esxcli hardware memory get
+          → MB → GB 변환
+```
+
+```
+envelope: data.storage.physical_disks[].media_type
+
+Redfish:  Drives[].MediaType
+          → 'HDD' / 'SSD' / 'NVMe' (DMTF enum)
+
+Linux:    lsblk + smartctl 추정
+          → 'HDD' / 'SSD' (Round 4 정규화)
+
+Windows:  Get-PhysicalDisk.MediaType
+          → 'HDD' / 'SSD' / 'Unspecified' (cycle 2026-04-29 정규화 — SSD/HDD enum)
+
+ESXi:     esxcli storage core device list IsSSD bool
+          → True → 'SSD', False → 'HDD'
+```
+
+### 11.5 status 판정 차이 (not_supported 케이스)
+
+| 채널 | not_supported 케이스 | 사례 |
+|---|---|---|
+| Redfish | endpoint 404 → not_supported (DMTF 표준 변천 fallback 후) | iDRAC 7 의 PowerSubsystem 부재 → Power fallback → 둘 다 부재 시 not_supported |
+| Redfish | 채널 자체 미지원 | system / users 섹션은 항상 not_supported |
+| OS Linux | 명령 출력 없음 / Python 미설치 / WSL 환경 | Python 3.6 환경 → raw_forced fallback. raw 도 실패 시 not_supported |
+| OS Linux | 채널 자체 미지원 | hardware / bmc / firmware / power = not_supported |
+| OS Windows | WMI 조회 실패 / WinRM 미연결 | network adapter 부재 시 not_supported |
+| OS Windows | 채널 자체 미지원 | hardware / bmc / firmware / power = not_supported |
+| ESXi | esxcli 명령 실패 / vSphere 응답 없음 | datastore 부재 환경 → not_supported |
+| ESXi | 채널 자체 미지원 | bmc / firmware / users / power = not_supported |
+
+### 11.6 errors[] 형식 (3채널 동일)
+
+```json
+{
+  "category": "<섹션명>",      // 예: "cpu", "storage", "account_service"
+  "message": "<요약 메시지>",   // 사용자 친화 (한국어 / 영어 혼용)
+  "detail": "<원인 detail>"    // 선택 — HTTP code / errno / vendor 메시지
+}
+```
+
+→ rule 13 R5 / rule 96 R1-B — `errors[]` 의 dict shape 는 3채널 모두 동일.
+
+### 11.7 diagnosis 형식 차이
+
+```
+Redfish: {
+  precheck: {ping, port, protocol, auth},
+  vendor_detected: <vendor>,
+  details: {adapter_id, account_service_*, ...}
+}
+
+OS Linux: {
+  precheck: {ping, port, protocol},
+  details: {gather_mode, python_version, selinux_*}
+}
+
+OS Windows: {
+  precheck: {ping, port, protocol, auth},
+  details: {winrm_transport, namespace_pattern}
+}
+
+ESXi: {
+  precheck: {ping, port, protocol, auth},
+  details: {vsphere_version, datastore_count, ...}
+}
+```
+
+→ details dict shape 는 채널 별로 다른 키 (channel-specific). top-level 4 키 (precheck / vendor_detected / details / [기타]) 는 동일.
+
+### 11.8 채널 간 envelope 호환성 검증
+
+```bash
+# 모든 채널 baseline 의 envelope 13 필드 동일성 검증
+python scripts/ai/hooks/output_schema_drift_check.py
+```
+
+→ Jenkins Stage 3 (Validate Schema) 정합. 본 매트릭스 변경 시 동기화 의무 (rule 13 R1).
+
+---
+
 ## 관련
 
 - rule 13 R5 — envelope 13 필드 정본
@@ -622,4 +811,4 @@
 - 정본 코드: `common/tasks/normalize/build_output.yml`, `common/tasks/normalize/build_status.yml`
 - 정본 schema: `schema/sections.yml`, `schema/field_dictionary.yml`
 - baseline: `schema/baseline_v1/<vendor>_baseline.json`
-- 관련 문서: `docs/09_output-examples.md`, `docs/07_normalize-flow.md`, `docs/10_adapter-system.md`, `docs/12_diagnosis-output.md`
+- 관련 문서: `docs/09_output-examples.md`, `docs/07_normalize-flow.md`, `docs/10_adapter-system.md`, `docs/12_diagnosis-output.md`, `docs/16_os-esxi-mapping.md`

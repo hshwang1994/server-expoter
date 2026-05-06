@@ -378,6 +378,12 @@ _BMC_PRODUCT_HINTS = {
     'isbmc': 'inspur',                                                      # nosec rule12-r1
     'irmc': 'fujitsu', 'primergy': 'fujitsu',                               # nosec rule12-r1
     'quantagrid': 'quanta', 'quantaplex': 'quanta',                         # nosec rule12-r1
+    # 2026-05-06 M-E2 (HPE Superdome Flex / Flex 280 web 검색 — lab 부재):
+    # Superdome Flex 의 RMC (Rack Management Controller) host 가 ServiceRoot.Product 에
+    # "Superdome Flex" 또는 "iLO 5" 로 응답 — hpe sub-line. Manufacturer 시그니처
+    # 부재 펌웨어 환경에서 BMC 제품명으로 정규화 강건성 향상.
+    # source: HPE Superdome Flex Server Admin Guide + sdflexutils GitHub
+    'superdome': 'hpe', 'superdome flex': 'hpe',                            # nosec rule12-r1
 }
 
 
