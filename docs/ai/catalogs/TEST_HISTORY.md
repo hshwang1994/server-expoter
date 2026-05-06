@@ -2,6 +2,25 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-06 (cycle-020 phase 2 — F50 Cisco 표준 지원 + infraops 통일)
+
+- 환경: Jenkins agent 10.100.64.154 + 5 BMC 매트릭스
+- 사이트 실측 (rule 25 R7-A-1):
+  - **Cisco 10.100.15.2**: POST /Accounts {Id:'2', RoleId:'admin'} → HTTP 201
+    + 인증 200. **이전 not_supported 결론 정정**.
+  - HPE 10.50.11.231: PATCH /Accounts/3 password → 200 (slot 3 = infraops)
+  - Lenovo 10.50.11.232: PATCH /Accounts/4 password → 200 (slot 4 = infraops)
+  - 5 BMC 모두 infraops/Passw0rd1!Infra HTTP 200 통일 검증
+- vault 4종 통일: hpe / lenovo / cisco / supermicro
+  - primary password Passw0rd1! → Passw0rd1!Infra (Dell 1차 cycle 2026-05-06 와 동기)
+- 코드 변경: vendor='cisco' early-return 제거 + POST 변형 분기
+  (Id 자동 검색 + RoleId mapping)
+- 신규 회귀 3건:
+  - `test_provision_cisco_post_with_id_field_succeeds`
+  - `test_provision_cisco_dryrun_no_post_call`
+  - `test_provision_cisco_no_empty_id_returns_error`
+- pytest 결과: **276/276 PASS** (cycle-020 phase 1 274 → 276, +2 net — F13 cisco_returns_not_supported 제거 + F50 3건 추가)
+
 ## 2026-05-06 (cycle-020 — F49 redfish account_provision 호환성 강화)
 
 - 환경: 로컬 (Python 3.11.9 / pytest 9.0.2) + Jenkins agent 10.100.64.154 (Ansible 2.20.3)

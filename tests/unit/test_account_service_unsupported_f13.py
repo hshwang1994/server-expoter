@@ -35,31 +35,88 @@ sys.modules.setdefault("ansible.module_utils.basic", _stub_basic)
 import redfish_gather as rg  # noqa: E402
 
 
-def test_provision_cisco_returns_not_supported(monkeypatch):
-    """vendor='cisco' → AccountService GET 호출 자체 skip + method='not_supported'."""
-    # cisco 분기는 GET 전에 early-return — _get 호출 안 일어나야 함.
-    call_log = []
+def test_provision_cisco_post_with_id_field_succeeds(monkeypatch):
+    """F50 (cycle 2026-05-06): vendor='cisco' POST 표준 지원 확인 (사이트 실측 10.100.15.2).
+
+    Cisco 변형:
+      - POST /Accounts 가 'Id' 필드 (1-15) 필수
+      - RoleId 표준 'Administrator' 거부 → 'admin'/'user'/'readonly' enum
+      - 빈 Id 자동 검색 (slot 1=admin reserved, 2..15 후보)
+    """
+    accounts = [
+        {'slot_uri': '/redfish/v1/AccountService/Accounts/1',
+         'id': '1', 'username': 'admin', 'role_id': 'admin', 'enabled': True},
+    ]
 
     def fake_acct_get(bmc_ip, u, p, t, v):
-        call_log.append('acct_get')
-        return None, [], []
+        return {}, accounts, []
 
     monkeypatch.setattr(rg, 'account_service_get', fake_acct_get)
 
+    posted_bodies = []
+
+    def fake_post(bmc_ip, path, body, u, p, t, v):
+        posted_bodies.append(dict(body))
+        return 201, {'@odata.id': f'/redfish/v1/AccountService/Accounts/{body.get("Id")}'}, None
+
+    monkeypatch.setattr(rg, '_post', fake_post)
+
     out = rg.account_service_provision(
-        bmc_ip='10.0.0.1', vendor='cisco',
-        current_username='admin', current_password='pw',
-        target_username='infraops', target_password='Top!Secret',
+        bmc_ip='10.100.15.2', vendor='cisco',
+        current_username='admin', current_password='Goodmit1!',
+        target_username='infraops', target_password='Passw0rd1!Infra',
+        target_role='Administrator',
+        timeout=30, verify_ssl=False, dryrun=False,
+    )
+    assert out['recovered'] is True
+    assert out['method'] == 'post_new'
+    # 1번 호출됐고 Id=2 + RoleId='admin' (Cisco enum mapping)
+    assert len(posted_bodies) == 1
+    assert posted_bodies[0]['Id'] == '2'
+    assert posted_bodies[0]['RoleId'] == 'admin'
+    assert posted_bodies[0]['UserName'] == 'infraops'
+
+
+def test_provision_cisco_dryrun_no_post_call(monkeypatch):
+    """vendor='cisco' + dryrun=True → POST 호출 안 함."""
+    monkeypatch.setattr(rg, 'account_service_get', lambda *a, **k: ({}, [
+        {'slot_uri': '/redfish/v1/AccountService/Accounts/1', 'id': '1',
+         'username': 'admin', 'role_id': 'admin', 'enabled': True}
+    ], []))
+    posted = []
+    monkeypatch.setattr(rg, '_post', lambda *a, **k: (posted.append(a), (201, {}, None))[1])
+
+    out = rg.account_service_provision(
+        bmc_ip='10.100.15.2', vendor='cisco',
+        current_username='admin', current_password='Goodmit1!',
+        target_username='infraops', target_password='Passw0rd1!Infra',
         target_role='Administrator',
         timeout=30, verify_ssl=False, dryrun=True,
     )
-    # 사실 cisco 분기는 account_service_get 을 호출 한 후 vendor 분기로 not_supported 판단.
-    # 호출되더라도 결과적으로 method='not_supported' 가 반환되어야 함 (early-return).
-    assert out['method'] == 'not_supported'
+    assert out['method'] == 'post_new'
     assert out['recovered'] is False
-    # errors[]에 명확한 메시지 1건
-    msgs = [e.get('message') for e in out['errors']]
-    assert any('Cisco CIMC AccountService' in m for m in msgs)
+    assert len(posted) == 0
+
+
+def test_provision_cisco_no_empty_id_returns_error(monkeypatch):
+    """vendor='cisco' + slot 2..15 모두 사용중 → '빈 Id 없음' 에러."""
+    accounts = [
+        {'slot_uri': f'/redfish/v1/AccountService/Accounts/{i}',
+         'id': str(i), 'username': f'user{i}', 'role_id': 'admin', 'enabled': True}
+        for i in range(1, 16)
+    ]
+    monkeypatch.setattr(rg, 'account_service_get', lambda *a, **k: ({}, accounts, []))
+
+    out = rg.account_service_provision(
+        bmc_ip='10.100.15.2', vendor='cisco',
+        current_username='admin', current_password='Goodmit1!',
+        target_username='infraops', target_password='Passw0rd1!Infra',
+        target_role='Administrator',
+        timeout=30, verify_ssl=False, dryrun=False,
+    )
+    assert out['recovered'] is False
+    msgs = ' '.join(e.get('message', '') for e in out['errors'])
+    assert '빈 Account Id' in msgs
 
 
 def test_provision_hpe_404_returns_not_supported(monkeypatch):

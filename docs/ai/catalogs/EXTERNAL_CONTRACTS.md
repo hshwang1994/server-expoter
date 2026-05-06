@@ -2,6 +2,41 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-06 (F50 — Cisco CIMC AccountService 표준 지원 확인 + infraops 통일)
+
+### Cisco CIMC AccountService 사이트 실측 (10.100.15.2, AccountService.v1_6_0)
+
+> source: 사이트 실측. 이전 cycle 의 'not_supported' 결론 정정 — Members=1 만 보고 잘못 분류했었음.
+
+| 동작 | 결과 | 시그니처 |
+|---|---|---|
+| GET /AccountService | 200 + AccountService.v1_6_0 | 표준 |
+| GET /Accounts | 200 + Members 1 (admin) | 표준 |
+| POST /Accounts (표준 body) | HTTP 400 | 'Id' 필드 1-15 필수 (vendor-specific) |
+| POST /Accounts (Id='2' + RoleId='Administrator') | HTTP 400 | 'Administrator' Cisco enum 거부 |
+| POST /Accounts (Id='2' + RoleId='admin') | **HTTP 201** | 정상 생성 |
+| auth as new infraops/Passw0rd1!Infra | HTTP 200 | 인증 통과 |
+| GET /AccountService/Roles | 200 + admin/user/readonly/SNMPOnly | Cisco enum |
+
+### F50 server-exporter 대응
+
+- vendor='cisco' 분기에 `Id` 필드 자동 추가 (slot 2-15 빈 Id 자동 검색)
+- RoleId mapping: Administrator → admin / Operator → user / ReadOnly → readonly
+- 이전 not_supported early-return 제거
+
+### infraops 공통계정 password 통일 (사용자 명시)
+
+5 vault 모두 `Passw0rd1!Infra` (15자, Dell Strengthen Policy 호환):
+- vault/redfish/dell.yml (cycle 2026-05-06 1차 갱신)
+- vault/redfish/hpe.yml (cycle 2026-05-06 2차)
+- vault/redfish/lenovo.yml (cycle 2026-05-06 2차)
+- vault/redfish/cisco.yml (cycle 2026-05-06 2차)
+- vault/redfish/supermicro.yml (cycle 2026-05-06 2차)
+
+5 BMC 모두 infraops/Passw0rd1!Infra HTTP 200 검증 완료.
+
+---
+
 ## 일자: 2026-05-06 (F49 — Dell iDRAC9 AccountService PATCH 동작 매트릭스 추가)
 
 ### Dell iDRAC9 AccountService 사이트 실측 (10.100.15.27 / 10.100.15.31, 펌웨어 7.10.70.00)

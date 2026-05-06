@@ -1,5 +1,53 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-06 (cycle-020 phase 2 — F50 Cisco 표준 지원 + infraops 통일)
+
+### 사용자 명시
+- "cisco는 왜 안되는거임? 되는데 안된다고 적혀있어서 안되는게아닌지? web 검색 필요"
+- "redfish 공통계정은 모두 동일해야함 (패스워드도)"
+- "vault 값이 달라졌다면 다른 모든 서버들에게도 infraops 패스워드 동기화"
+
+### Cisco 결론 정정 (사이트 실측 → web search 결합)
+
+이전 결론 "Cisco AccountService 표준 미지원" = **잘못된 분류**. 사이트 실측 확인:
+- AccountService.v1_6_0 정상 응답
+- POST /Accounts 지원하나 vendor-specific:
+  1. `Id` 필드 1-15 필수
+  2. RoleId enum: `admin`/`user`/`readonly`/`SNMPOnly` (표준 'Administrator' 거부)
+- 정정 후: POST {Id:'2', RoleId:'admin'} → HTTP 201 + 인증 200 OK
+
+### infraops 공통계정 password 통일
+
+5 vault primary password 통일 → `Passw0rd1!Infra` (Dell Strengthen Policy 호환 = 가장 엄격):
+
+| vault | 이전 | 신 (cycle 2026-05-06) |
+|---|---|---|
+| dell.yml | Passw0rd1! | **Passw0rd1!Infra** (phase 1) |
+| hpe.yml | Passw0rd1! | **Passw0rd1!Infra** (phase 2) |
+| lenovo.yml | Passw0rd1! | **Passw0rd1!Infra** (phase 2) |
+| cisco.yml | Passw0rd1! | **Passw0rd1!Infra** (phase 2) |
+| supermicro.yml | Passw0rd1! | **Passw0rd1!Infra** (phase 2) |
+
+### BMC 동기화 (실 적용)
+
+| BMC | Vendor | 작업 | 결과 |
+|---|---|---|---|
+| 10.100.15.27 | dell | slot 3 PATCH (phase 1 적용) | 인증 200 |
+| 10.100.15.31 | dell | slot 3 PATCH (phase 1 적용) | 인증 200 |
+| 10.50.11.231 | hpe | slot 3 PATCH password 갱신 | 인증 200 |
+| 10.50.11.232 | lenovo | slot 4 PATCH password 갱신 | 인증 200 |
+| 10.100.15.2 | cisco | slot 2 POST 생성 | 인증 200 |
+
+**5/5 BMC 모두 `infraops/Passw0rd1!Infra` HTTP 200 통일 검증 완료**.
+
+### 검증
+
+- pytest **276/276 PASS** (F50 신규 3건 + F13 cisco_not_supported 제거)
+- 5 BMC 직접 curl 검증
+- Jenkins job 재실행 가능 (다음 build 에서 used_role=primary 확인 예정)
+
+---
+
 ## 일자: 2026-05-06 (cycle-020 — F49 redfish account_provision 호환성 강화)
 
 ### 사용자 명시

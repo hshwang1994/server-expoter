@@ -2155,16 +2155,13 @@ def account_service_provision(
         bmc_ip, current_username, current_password, timeout, verify_ssl
     )
 
-    # F13/F08 (cycle 2026-05-01): Cisco CIMC AccountService 표준 미지원 처리.
-    # vendor 분기는 Redfish OEM namespace 의존 (rule 96 R1 외부 계약 — Cisco BMC
-    # 일관 미지원).
-    if vendor == 'cisco':                                                     # nosec rule12-r1
-        out['method'] = 'not_supported'
-        out['errors'].append(_err(
-            'account_service',
-            'Cisco CIMC AccountService 표준 미지원 — 운영자 수동 복구 필요',  # nosec rule12-r1
-        ))
-        return out
+    # F50 (cycle 2026-05-06): Cisco AccountService 실 지원 확인 (10.100.15.2 사이트 실측).
+    # 이전: not_supported 분기 (cycle 2026-04-29 잘못된 결론 — Members=1 만 보고 미지원 분류).
+    # 신: 표준 POST 지원하나 Id 필드 명시 필수 (1-15) + RoleId Cisco-specific enum
+    #     ('admin'/'user'/'readonly'/'SNMPOnly' — 'Administrator' 거부).
+    # source: 사이트 실측 (10.100.15.2 CIMC AccountService.v1_6_0,
+    #         POST /Accounts {Id:'2', RoleId:'admin'} → HTTP 201 + 인증 200).
+    # cisco 분기는 아래 신규 생성 단계에서 POST body 변형으로 처리.
 
     # F13 (cycle 2026-05-01): Cisco 외 vendor도 일부 펌웨어가 AccountService 404
     # 응답 가능 (lab 부재 펌웨어 / 펌웨어 hot-fix 시 변동). errs가 404-only 시
@@ -2299,6 +2296,55 @@ def account_service_provision(
                 'account_service',
                 f'Dell PATCH 모든 빈 슬롯 실패 (시도={len(empty_slots[:3])})',         # nosec rule12-r1
                 detail=last_err or f'HTTP {last_code}',
+            ))
+        return out
+
+    # F50 (cycle 2026-05-06): Cisco CIMC POST 변형 — Id 필드 + RoleId enum mapping.
+    # source: 사이트 실측 — POST /Accounts 가 'Id' 1-15 필수 (BadRequest if absent),
+    #   RoleId 표준 enum 'Administrator' 거부 → Cisco enum 'admin'/'user'/'readonly'.
+    if vendor == 'cisco':                                                     # nosec rule12-r1
+        out['method'] = 'post_new'
+        if dryrun:
+            return out
+        # Cisco RoleId mapping
+        cisco_role_map = {
+            'Administrator': 'admin', 'admin': 'admin',
+            'Operator': 'user',       'user': 'user',
+            'ReadOnly': 'readonly',   'readonly': 'readonly',
+        }
+        cisco_role = cisco_role_map.get(target_role, 'admin')
+        # 빈 Id 찾기 (2..15 — slot 1 은 admin reserved)
+        used_ids = {str(a.get('id') or '') for a in accounts}
+        target_id = None
+        for candidate_id in range(2, 16):
+            if str(candidate_id) not in used_ids:
+                target_id = str(candidate_id)
+                break
+        if target_id is None:
+            out['errors'].append(_err(
+                'account_service',
+                'Cisco CIMC: 빈 Account Id (2-15) 없음 — 사용자 정리 필요',  # nosec rule12-r1
+            ))
+            return out
+        body_cisco = {
+            'Id':       target_id,
+            'UserName': target_username,
+            'Password': target_password,
+            'Enabled':  True,
+            'RoleId':   cisco_role,
+        }
+        code, resp_data, err = _post(
+            bmc_ip, 'AccountService/Accounts', body_cisco,
+            current_username, current_password, timeout, verify_ssl,
+        )
+        if code in (200, 201, 204) and not err:
+            out['recovered'] = True
+            out['slot_uri']  = _safe(resp_data, '@odata.id') or f'/redfish/v1/AccountService/Accounts/{target_id}'
+        else:
+            out['errors'].append(_err(
+                'account_service',
+                f'Cisco POST /AccountService/Accounts 실패 (Id={target_id})',  # nosec rule12-r1
+                detail=err or f'HTTP {code}',
             ))
         return out
 
