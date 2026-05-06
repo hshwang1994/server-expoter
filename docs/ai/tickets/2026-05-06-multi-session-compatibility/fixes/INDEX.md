@@ -9,7 +9,7 @@
 | ticket | 영역 | 우선 | 의존 | status | worker | commit |
 |---|---|---|---|---|---|---|
 | **M-A1** | status 로직 분석 (read-only) | P1 | — | [DONE] | Session-1 | `ba003b2f` |
-| **M-A2** | status 의도 결정 (사용자) | P1 | M-A1 | [DONE] | Session-2 | (commit 후 갱신) |
+| **M-A2** | status 의도 결정 (사용자) | P1 | M-A1 | [DONE] | Session-2 | `c23c7f27` |
 | **M-A3** | status 코드 변경 + 회귀 (Case A) | P1 | M-A2 | [PENDING] | — | — |
 | **M-A4** | status ADR (rule 70 R8 trigger 시) | P2 | M-A3 | [PENDING] | — | — |
 | **M-B1** | account_provision flow 분석 | P1 | — | [PENDING] | — | — |

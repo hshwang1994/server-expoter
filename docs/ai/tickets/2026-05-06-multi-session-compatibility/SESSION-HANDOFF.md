@@ -6,8 +6,8 @@
 
 ## 마지막 commit / 시점
 
-- **commit**: (Session-2 commit 후 sha 기록)
-- **메시지**: `docs: [M-A2 DONE] status 의도 결정 — Case A (B-1+a+c+a) / M-A3 spec 도출`
+- **commit**: `c23c7f27`
+- **메시지**: `docs: [M-A2 DONE] status 의도 결정 — Case A 채택`
 - **시점**: 2026-05-06 (Asia/Seoul)
 - **branch**: `main` (사용자 명시 자율 push, rule 93 R1+R4)
 - **push 결과**: github + gitlab 동시 (origin push URL 2개)
