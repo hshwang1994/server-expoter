@@ -68,6 +68,18 @@
   - set_fact로만 변수 생성 (다른 task의 결과를 직접 참조 안 함)
 - **Forbidden**: 빌더 안에서 외부 시스템 호출 (gather에서 이미 끝남)
 
+### R7. envelope 정본 변경 시 docs/20 갱신 의무
+
+- **Default**: 다음 정본 변경 시 `docs/20_json-schema-fields.md` 동기화 갱신 의무 (cycle 2026-05-06 M-G2 추가)
+  - `common/tasks/normalize/build_output.yml` (envelope 13 필드 정본)
+  - `schema/sections.yml` (sections 10 정의)
+  - `schema/field_dictionary.yml` (Must/Nice/Skip 분류)
+  - `common/tasks/normalize/build_status.yml` (status 판정 규칙 — M-A3 정본)
+- **Allowed**: 변경이 cosmetic (주석 / 들여쓰기) 시 docs/20 갱신 skip 가능. 단 commit 메시지 명시 ("docs/20 동기화 불필요 — cosmetic only")
+- **Forbidden**: envelope 13 필드 / sections 10 / field_dictionary 65 의 의미 변경 + docs/20 갱신 누락
+- **Why**: 호출자 시스템이 docs/20 을 정본 reference 로 사용. 정본 코드 변경 시 docs/20 stale → 호출자 파싱 오류 + 사용자 의심 (cycle 2026-05-06 M-A 사용자 질문 — "errors success 모순" 의심 발생)
+- **재검토**: docs/20 자동 동기화 hook (`pre_commit_docs20_sync_check.py`) 도입 시 advisory → blocking 격상
+
 ## 금지 패턴
 
 - 3종 중 일부만 갱신 — R1
@@ -76,6 +88,7 @@
 - 실측 없이 baseline 수정 — R4
 - envelope 6 필드 변경 — R5
 - 빌더에서 외부 호출 — R6
+- envelope 정본 변경 + docs/20 갱신 누락 — R7
 
 ## 리뷰 포인트
 
@@ -84,6 +97,7 @@
 - [ ] schema 버전 사용자 승인
 - [ ] baseline 갱신이 실측 기반인가 (evidence 첨부)
 - [ ] envelope 6 필드 유지
+- [ ] envelope 정본 변경 시 docs/20 동기화 (R7)
 
 ## 테스트 포인트
 

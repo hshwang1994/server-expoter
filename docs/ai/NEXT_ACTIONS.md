@@ -1,5 +1,71 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-06 (cycle multi-session-compatibility — Session-5 종료, **24/24 ticket [DONE/SKIP]**)
+
+### cycle 종료 — 23 ticket [DONE] + 1 [SKIP]
+
+| 영역 | 진행 | 결과 |
+|---|---|---|
+| A. status 로직 | M-A1/A2/A3 [DONE], M-A4 [SKIP] (rule 70 R8 trigger NO) | Case A — 의도 주석 강화 + pytest 13건 추가 |
+| B. account_service | M-B1/B2/B3 [DONE] | 9 vendor 매트릭스 + Gap 0 / BLOCK 1 + mock 8건 |
+| C. vault 자동 반영 | M-C1/C2/C3 [DONE] | YES (다음 run 부터) — cacheable 0 / fact_caching 0 + mock 9건 |
+| D. 호환성 매트릭스 | M-D1/D2/D3/D4 [DONE] | 240 cell 매트릭스 + W1~W6 9 라인 변경 (Additive only) + 회귀 PASS |
+| E. Superdome 추가 | M-E1/E2/E3/E4/E5/E6 [DONE] | hpe_superdome_flex.yml (priority=95, lab 부재) + ai-context + boundary-map + docs + 회귀 13건 |
+| F. JSON 스키마 docs | M-F1/F2 [DONE] | docs/20 신설 (825 라인) — envelope 13 + sections 10 + field_dictionary 65 + 3채널 비교 |
+| G. 하네스 학습 | M-G1/G2 [DONE] | HARNESS-RETROSPECTIVE 8 학습 + rule 13 R7 신설 + ADR + 22 후보 다음 cycle 권장 |
+
+### cycle 통계
+
+- pytest: 108 → **324 PASS** (+30 본 cycle: M-B3 8 + M-C3 9 + M-E6 13)
+- adapter: 38 → **39** (+1 hpe_superdome_flex)
+- docs/20: 신설 825 라인
+- rule: 28 → **28** (R7 신설 1, ADR 작성)
+- commit: 11건 (Session-0~5)
+
+### M-G2 P1 적용 완료
+
+- **rule 13 R7 신설**: envelope 정본 변경 시 docs/20 갱신 의무 → **ADR-2026-05-06-rule13-r7-docs20-sync.md** 작성
+
+### M-G1 P2/P3 후속 cycle 권장 (다음 cycle)
+
+다음 22 후보 (rule 8 + skill 5 + agent 1 + hook 5 + docs 2 + script 1):
+
+| 후보 | 우선 | trigger |
+|---|---|---|
+| rule 26 R10 (다중 worker 4 정본) | P2 | 단일 cycle N-worker 패턴 정착 |
+| rule 50 R2 단계 10 (lab 부재 fixture trigger) | P2 | F44~F47 + Superdome lab 도입 후 |
+| rule 96 R1-C (lab 부재 NEXT_ACTIONS 자동 등록) | P2 | lab 부재 vendor 추가 후속 |
+| rule 13 R8 (status 로직 변경 시 시나리오 매트릭스 update) | P2 | M-A 학습 적용 |
+| rule 28 #12 (COMPATIBILITY-MATRIX TTL 14일) | P2 | 매트릭스 자동 측정 도입 시 |
+| rule 27 R6 (vault 자동 반영 단서 3개) | P3 | M-C 학습 적용 |
+| rule 92 R2 보강 (Additive 검증 절차) | P3 | 운영 안정화 후 |
+| skill: cycle-orchestrator | P2 | 다음 cycle orchestration 자동화 |
+| skill: add-vendor-no-lab | P2 | lab 부재 vendor 추가 자동화 |
+| skill: verify-status-logic | P2 | M-A 학습 |
+| skill: rotate-vault 보강 | P3 | M-C 학습 |
+| skill: write-cold-start-ticket 보강 | P3 | 본 cycle 24 ticket 라이브러리화 |
+| agent: ticket-decomposer | P2 | cycle-orchestrator sub |
+| hook: pre_commit_ticket_consistency.py | P2 | docs/ai/tickets/ 변경 시 cold-start 6 절 검증 |
+| hook: pre_commit_status_logic_check.py | P2 | build_status.yml 변경 시 시나리오 mock |
+| hook: pre_commit_docs20_sync_check.py | P2 | rule 13 R7 자동 검증 |
+| hook: post_commit_compatibility_matrix_check.py | P3 | adapter capabilities 변경 시 매트릭스 advisory |
+| hook: pre_commit_additive_only_check.py | P3 | 코드 변경 diff Additive 검증 |
+| docs/21_vault-operations.md | P2 | M-C 결과 정본화 |
+| docs/22_compatibility-matrix.md | P3 | M-D1 240 cell 정본화 |
+| script: scripts/ai/measure_compatibility_matrix.py | P3 | rule 28 #12 측정 자동화 |
+
+### lab 도입 후 별도 cycle 권장
+
+1. **사이트 fixture 캡처**: capture-site-fixture skill 적용
+   - Supermicro X9 6 cell BLOCK 해소
+   - Lenovo XCC v3 OpenBMC 1.17.0 reverse regression fixture
+   - Superdome Flex multi-partition 전수 수집 (Systems Members[0] 단일 진입 패턴 확장)
+   - 신규 4 vendor 사이트 실측 fixture (Huawei/Inspur/Fujitsu/Quanta)
+2. **자동화 cycle**: rule 28 #12 + COMPATIBILITY-MATRIX 자동 측정 도구
+3. **호출자 계약 안정성**: docs/20 정본화 후 호출자 시스템 통합 가이드
+
+### 이전 cycle 작업 (참고)
+
 ## 일자: 2026-05-06 (cycle multi-session-compatibility — Session-0 ticket 작성 완료)
 
 ### 본 phase 완료 (Session-0 = 메인 오케스트레이터)

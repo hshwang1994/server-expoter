@@ -13,25 +13,25 @@
 | **M-A3** | status 코드 변경 + 회귀 (Case A) | P1 | M-A2 | [DONE] | Session-3 | `78611714` |
 | **M-A4** | status ADR (rule 70 R8 trigger 시) | P2 | M-A3 | [SKIP] | — | rule 본문 변경 없음 / 표면 카운트 변동 없음 → trigger NO |
 | **M-B1** | account_provision flow 분석 | P1 | — | [DONE] | Session-B1 | (메인 통합 commit) |
-| **M-B2** | F49/F50 5 vendor 매트릭스 검증 | P1 | M-B1 | [PENDING] | — | — |
-| **M-B3** | 공통계정 회귀 mock fixture | P1 | M-B2 | [PENDING] | — | — |
+| **M-B2** | F49/F50 9 vendor 매트릭스 검증 | P1 | M-B1 | [DONE] | Session-5 | `5d904420` |
+| **M-B3** | 공통계정 회귀 mock fixture | P1 | M-B2 | [DONE] | Session-5 | `430ca790` |
 | **M-C1** | vault 동적 로딩 분석 | P1 | — | [DONE] | Session-C1 | (메인 통합 commit) |
-| **M-C2** | cache invalidation 메커니즘 | P1 | M-C1 | [PENDING] | — | — |
-| **M-C3** | vault 자동 반영 회귀 mock | P1 | M-C2 | [PENDING] | — | — |
+| **M-C2** | cache invalidation 메커니즘 | P1 | M-C1 | [DONE] | Session-5 | `5d904420` |
+| **M-C3** | vault 자동 반영 회귀 mock | P1 | M-C2 | [DONE] | Session-5 | `430ca790` |
 | **M-D1** | 9 vendor × N gen × 9 sections 매트릭스 | P1 | — | [DONE] | Session-D1 | (메인 통합 commit) |
-| **M-D2** | web 검색 gap 영역 (DMTF / vendor docs) | P1 | M-D1 | [PENDING] | — | — |
-| **M-D3** | fallback 코드 추가 (additive only) | P1 | M-D2 | [PENDING] | — | — |
-| **M-D4** | 전 vendor 호환성 회귀 | P1 | M-D3 | [PENDING] | — | — |
+| **M-D2** | web 검색 gap 영역 (DMTF / vendor docs) | P1 | M-D1 | [DONE] | Session-5 | `5d904420` |
+| **M-D3** | fallback 코드 추가 (additive only) | P1 | M-D2 | [DONE] | Session-5 | `430ca790` (W1~W6 9 라인) |
+| **M-D4** | 전 vendor 호환성 회귀 | P1 | M-D3 | [DONE] | Session-5 | `430ca790` (pytest 324/324) |
 | **M-E1** | Superdome web 검색 (Flex / Flex 280 / 2 / X / Integrity) | P1 | — | [DONE] | Session-E1 | (메인 통합 commit) |
-| **M-E2** | Superdome adapter (priority=80, lab 부재) | P1 | M-E1 | [PENDING] | — | — |
-| **M-E3** | ai-context vendors/superdome.md | P2 | M-E1 | [PENDING] | — | — |
-| **M-E4** | vendor-boundary-map.yaml 갱신 | P2 | M-E2 | [PENDING] | — | — |
-| **M-E5** | README / docs 갱신 | P2 | M-E2 | [PENDING] | — | — |
-| **M-E6** | Superdome pytest 회귀 mock | P1 | M-E5 | [PENDING] | — | — |
+| **M-E2** | Superdome adapter (priority=95, lab 부재) | P1 | M-E1 | [DONE] | Session-5 | `5d904420` |
+| **M-E3** | ai-context vendors/hpe.md (Superdome 절) | P2 | M-E1 | [DONE] | Session-5 | `5d904420` |
+| **M-E4** | vendor-boundary-map.yaml 갱신 | P2 | M-E2 | [DONE] | Session-5 | `430ca790` |
+| **M-E5** | README / docs/13 §15 갱신 | P2 | M-E2 | [DONE] | Session-5 | `430ca790` |
+| **M-E6** | Superdome pytest 회귀 mock | P1 | M-E5 | [DONE] | Session-5 | `430ca790` (13 테스트 PASS) |
 | **M-F1** | docs/20_json-schema-fields.md 신설 | P2 | — | [DONE] | Session-4-direct | (메인 통합 commit) |
-| **M-F2** | 3채널 (Redfish/OS/ESXi) JSON 키 비교 | P2 | M-F1 | [PENDING] | — | — |
-| **M-G1** | 본 cycle 학습 추출 | P3 | A~F all | [PENDING] | — | — |
-| **M-G2** | rule/skill/agent 후보 정리 | P3 | M-G1 | [PENDING] | — | — |
+| **M-F2** | 3채널 (Redfish/OS/ESXi) JSON 키 비교 | P2 | M-F1 | [DONE] | Session-5 | `5d904420` |
+| **M-G1** | 본 cycle 학습 추출 | P3 | A~F all | [DONE] | Session-5 | (Session-5 종료 commit) |
+| **M-G2** | rule/skill/agent 후보 정리 | P3 | M-G1 | [DONE] | Session-5 | (Session-5 종료 commit) |
 
 총 **24 ticket**.
 

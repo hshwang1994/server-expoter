@@ -1,6 +1,54 @@
 # M-G2 — rule / skill / agent / hook 후보 정리 + 적용
 
-> status: [PENDING] | depends: M-G1 | priority: P3 | cycle: 2026-05-06-multi-session-compatibility
+> status: [DONE] | depends: M-G1 | priority: P3 | cycle: 2026-05-06-multi-session-compatibility | worker: Session-5
+
+## 적용 결과 (2026-05-06)
+
+### P1 (즉시 적용) — 1건
+
+| 후보 | 적용 위치 | ADR | 상태 |
+|---|---|---|---|
+| rule 13 R7 신설 (envelope 정본 변경 시 docs/20 갱신 의무) | `.claude/rules/13-output-schema-fields.md` | ADR-2026-05-06-rule13-r7-docs20-sync.md | [DONE] |
+
+→ rule 본문 의미 변경 (rule 70 R8 trigger 1) → ADR 작성 의무 충족.
+
+### P2/P3 (다음 cycle 권장) — 21건
+
+M-G1 학습 8건 + 보강 22 후보 중 P1 1건 적용 외 21건은 NEXT_ACTIONS.md 등재. 다음 cycle 학습 적용 권장.
+
+| 카테고리 | 후보 수 | 본 cycle 적용 | 다음 cycle 권장 |
+|---|---|---|---|
+| rule 보강 | 8 | 1 (rule 13 R7) | 7 (rule 26 R10 / rule 50 R2 단계 10 / rule 96 R1-C / rule 13 R8 / rule 28 #12 / rule 27 R6 / rule 92 R2 보강) |
+| skill 신규/갱신 | 5 | 0 | 5 (cycle-orchestrator / add-vendor-no-lab / verify-status-logic / rotate-vault 보강 / write-cold-start-ticket 보강) |
+| agent 신규 | 1 | 0 | 1 (ticket-decomposer) |
+| hook 신규 | 5 | 0 | 5 (pre_commit_ticket_consistency / pre_commit_status_logic_check / pre_commit_docs20_sync_check / post_commit_compatibility_matrix_check / pre_commit_additive_only_check) |
+| docs 신규 | 2 | 0 | 2 (docs/21_vault-operations / docs/22_compatibility-matrix) |
+| script 신규 | 1 | 0 | 1 (scripts/ai/measure_compatibility_matrix.py) |
+| **합계** | **22** | **1** | **21** |
+
+→ 다음 cycle 우선 권장: rule 13 R8 (M-A 학습 직접 활용) + hook pre_commit_docs20_sync_check.py (rule 13 R7 자동 검증) + skill cycle-orchestrator (다음 cycle 자동화).
+
+### 표면 카운트
+
+| 항목 | 이전 | 본 cycle | 비고 |
+|---|---|---|---|
+| rules | 28 | 28 | R7 절 추가 (본문 변경) — 카운트 변동 없음 |
+| skills | 48 | 48 | 본 cycle 신규 0 |
+| agents | 59 | 59 | 본 cycle 신규 0 |
+| policies | 10 | 10 | vendor-boundary-map.yaml superdome_flex sub_line 추가 (entry 변경) |
+
+→ surface-counts.yaml 갱신 불필요 (카운트 변동 0).
+
+### 검증
+
+| 검증 | 결과 |
+|---|---|
+| `verify_harness_consistency.py` | PASS (rules:28 / skills:48 / agents:59 / policies:10) |
+| pytest 전체 | 324/324 PASS |
+| ADR 4 섹션 정합성 | PASS — 컨텍스트 / 결정 / 결과 / 대안 비교 |
+| rule 13 R7 본문 정합 | PASS — Default / Allowed / Forbidden + Why + 재검토 3단 구조 |
+
+
 
 ## 사용자 의도
 
