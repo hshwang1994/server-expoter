@@ -6,7 +6,7 @@
 
 ## 마지막 commit / 시점
 
-- **commit**: (Session-1 cycle commit — M-A1 분석 갱신)
+- **commit**: `ba003b2f`
 - **메시지**: `docs: [M-A1 DONE] status 로직 분석 — 시나리오 4 / errors trigger 26 / 사용자 결정 4 + AI default`
 - **시점**: 2026-05-06 (Asia/Seoul)
 - **branch**: `main` (사용자 명시 자율 push, rule 93 R1+R4)
