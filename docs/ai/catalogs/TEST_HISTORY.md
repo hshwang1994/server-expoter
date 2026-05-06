@@ -2,6 +2,25 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-06 (cycle-020 phase 3 — 전 vendor 호환성 + Dell BMC OEM 추출)
+
+- 환경: 5 BMC + web sources (9 vendor)
+- 신규 회귀 3건: `tests/unit/test_bmc_oem_dell_extraction_f50.py`
+  - `test_bmc_oem_dell_idrac_card_extracted`
+  - `test_bmc_oem_dell_missing_oem_returns_none_fields`
+  - `test_bmc_oem_cisco_no_extraction`
+- pytest 결과: **279/279 PASS** (cycle-020 phase 2 276 → 279, +3)
+- 사이트 실측 (rule 25 R7-A-1):
+  - 10.100.15.27 (Dell iDRAC9 7.10): Manager.Oem.Dell.DelliDRACCard 4 필드 추출 envelope 확인
+  - 10.50.11.231 (HPE iLO 6 v1.73): Oem.Hpe 39 keys (이미 추출 — ilo_version)
+  - 10.50.11.232 (Lenovo XCC SR650): Oem.Lenovo 21 keys (release_name 추출)
+  - 10.100.15.2 (Cisco CIMC 4.1.2g): Oem={} (정상 — 표준 필드만)
+- web 검증 (lab 부재 4 vendor):
+  - Huawei iBMC: 표준 POST (Huawei 공식 docs)
+  - Inspur ISBMC: 표준 POST (OCP)
+  - Fujitsu iRMC: 표준 POST (mmurayama 블로그 + GitHub)
+  - Quanta QCT: 표준 POST (knusbaum.org 실측 인용)
+
 ## 2026-05-06 (cycle-020 phase 2 — F50 Cisco 표준 지원 + infraops 통일)
 
 - 환경: Jenkins agent 10.100.64.154 + 5 BMC 매트릭스

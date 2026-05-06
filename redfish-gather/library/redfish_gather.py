@@ -1175,6 +1175,22 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
         # 실측 (XCC SR650 V2, 2026-04-28): release_name="whitley_gp_23-5".
         oem = _safe(data, 'Oem', 'Lenovo') or {}                              # nosec rule12-r1
         result['oem'] = {'release_name': _safe(oem, 'release_name')}
+    elif vendor == 'dell':                                                    # nosec rule12-r1
+        # F50 (cycle 2026-05-06): Dell Manager.Oem.Dell.DelliDRACCard 추가.
+        # 사이트 실측 (10.100.15.27 iDRAC9 7.10.70.00): IPMIVersion / LastUpdateTime
+        # / LastSystemInventoryTime / URLString 풍부.
+        # source: dell.com/support/manuals/.../idrac9_*_redfishapiguide_pub
+        #         (DellManager.v1_4_0 + DelliDRACCard.v1_1_0).
+        oem_dell = _safe(data, 'Oem', 'Dell', 'DelliDRACCard') or {}          # nosec rule12-r1
+        result['oem'] = {
+            'idrac_ipmi_version':            _safe(oem_dell, 'IPMIVersion'),
+            'idrac_last_inventory_time':     _safe(oem_dell, 'LastSystemInventoryTime'),
+            'idrac_last_update_time':        _safe(oem_dell, 'LastUpdateTime'),
+            'idrac_url':                     _safe(oem_dell, 'URLString'),
+        }
+    # cisco: Manager.Oem 는 BMC 펌웨어별 부재 (10.100.15.2 CIMC 4.1(2g) 실측 — Oem={}).
+    #        표준 필드 (ManagerType / FirmwareVersion / DateTime / UUID) 만으로 충분.
+    # 신규 vendor (huawei/inspur/fujitsu/quanta) — 추가 OEM 추출은 사이트 fixture 수신 후 도입.
 
     return result, errors
 

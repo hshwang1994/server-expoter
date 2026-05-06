@@ -2,6 +2,56 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-06 (F50 phase 3 — 전 vendor 호환성 매트릭스 + Dell BMC OEM 추출)
+
+### AccountService POST/PATCH vendor 매트릭스 (web sources + 사이트 실측)
+
+> 사용자 지적: "되는데 안된다고 적혀있어서 안되는게 더 있는지 확인". 전 9 vendor 점검.
+
+| Vendor | 패턴 | 비고 | source |
+|---|---|---|---|
+| Dell iDRAC | PATCH-only (slot 1-17) | POST 미지원, slot 1 anonymous | dell.com manageraccount + 사이트 실측 |
+| HPE iLO | 표준 POST + Oem.Hpe.Privileges retry | RoleId 충분 | servermanagementportal.ext.hpe.com |
+| Lenovo XCC | 표준 POST + PasswordChangeRequired retry | XCC 권한 분리 (note 1) | pubs.lenovo.com/xcc-restapi |
+| Supermicro | 표준 POST | password complexity 엄격 | supermicro.com Redfish User Guide |
+| Cisco CIMC | POST with `Id` (1-15) | RoleId enum: admin/user/readonly/SNMPOnly | cisco.com REST API guide + 실측 |
+| Huawei iBMC | 표준 POST | OEM extension 가능 | support.huawei.com creating-a-user |
+| Inspur ISBMC | 표준 POST | OCP Rack-Manager 참여 | github.com/opencomputeproject/Rack-Manager |
+| Fujitsu iRMC | 표준 POST | PRIMERGY 표준 | github.com/fujitsu/iRMCtools |
+| Quanta QCT | 표준 POST | knusbaum.org "tested on Quanta" | knusbaum.org Redfish Idiosyncrasies |
+
+> note 1: Lenovo XCC 의 Administrator role 이라도 OemPrivileges (Supervisor) 미부여 시
+> /Managers AccessDenied 발생 가능. ManagerAccount level OemPrivileges PATCH 거부됨
+> (`PropertyUnknown` — Role level 만 정의). 운영 시 USERID 우회 또는 별도 권한 부여.
+
+### "되는데 안 된다고 분류" 정정 매트릭스
+
+| 케이스 | 이전 분류 | 정정 후 | 영향 |
+|---|---|---|---|
+| Cisco AccountService POST | not_supported | 지원 (Id + RoleId enum) | F50 phase 1 코드 fix |
+| Dell Manager.Oem.Dell.DelliDRACCard | gather_bmc 미추출 | oem.idrac_* 4 필드 emit | F50 phase 3 코드 fix |
+| 신규 vendor 4종 표준 POST | unverified | 표준 POST 가정 명시 | adapter metadata |
+
+### Dell Manager.Oem.Dell.DelliDRACCard 구조 (사이트 실측 10.100.15.27 iDRAC9 7.10.70.00)
+
+```json
+{
+  "@odata.type": "#DellManager.v1_4_0.DellManager",
+  "DelliDRACCard": {
+    "@odata.type": "#DelliDRACCard.v1_1_0.DelliDRACCard",
+    "IPMIVersion": "2.0",
+    "LastSystemInventoryTime": "2025-12-07T10:47:13+00:00",
+    "LastUpdateTime": "2026-05-06T08:18:46+00:00",
+    "URLString": "https://10.100.15.27:443"
+  },
+  "RemoteSystemLogs": {...}
+}
+```
+
+server-exporter envelope: `data.bmc.oem.{idrac_ipmi_version, idrac_last_inventory_time, idrac_last_update_time, idrac_url}`
+
+---
+
 ## 일자: 2026-05-06 (F50 — Cisco CIMC AccountService 표준 지원 확인 + infraops 통일)
 
 ### Cisco CIMC AccountService 사이트 실측 (10.100.15.2, AccountService.v1_6_0)
