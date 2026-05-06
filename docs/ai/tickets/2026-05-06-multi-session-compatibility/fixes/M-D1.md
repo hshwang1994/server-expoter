@@ -1,6 +1,11 @@
 # M-D1 — 9 vendor × N gen × 9 sections 호환성 매트릭스 작성
 
-> status: [PENDING] | depends: — | priority: P1 | cycle: 2026-05-06-multi-session-compatibility
+> status: [DONE] | depends: — | priority: P1 | cycle: 2026-05-06-multi-session-compatibility
+>
+> 산출물: `docs/ai/tickets/2026-05-06-multi-session-compatibility/COMPATIBILITY-MATRIX.md` (24 row × 10 col = 240 cell 전수 판정).
+> 분포: OK 27 / OK★ 167 / FB 9 / GAP 7 / BLOCK 6 / ? 0 / N/A 24.
+> Gap 우선 list: P1 43 cell (즉시 M-D3 진입) / P2 63 cell (사이트 fixture 도입 후 OK 격상) / P3 15 cell (lab 도입 대기).
+> M-D3 작업 후보 6건 (W1~W6) — adapter capabilities 추가 / drift 정정.
 
 ## 사용자 의도
 

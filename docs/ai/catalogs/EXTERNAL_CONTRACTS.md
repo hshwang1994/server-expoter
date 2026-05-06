@@ -2,6 +2,80 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-06 (M-E1 — HPE Superdome 시리즈 web 검색 + adapter spec 도출)
+
+> 사용자 명시 (2026-05-06): "superdome 하드웨어도 벤더 추가해줘. 추가하고 web 검색 다해서 여기 개더링프로젝트에 추가해줘."
+> Worker: Session-E1 (web-evidence-collector / opus). Lab: 부재 — web sources 14건 (rule 96 R1-A). 사이트 실측 시 정정 가능 (rule 25 R7-A-1).
+
+### HPE Superdome 시리즈 매트릭스
+
+| 모델 | 출시 | 아키텍처 | management | Redfish | server-exporter adapter |
+|---|---|---|---|---|---|
+| Superdome Flex 280 | 2020+ | x86 (Intel Xeon SP) | RMC + iLO 5 (per node) | YES (RMC host, 표준) | M-E2 신규 `hpe_superdome_flex.yml` (priority=95) |
+| Superdome Flex | 2017+ | x86 (Intel Xeon SP) | eRMC/RMC + iLO 5 (per compute module) | YES (RMC host, 표준) | M-E2 동일 adapter cover |
+| Superdome 2 | 2010~2017 | Itanium / IA-64 | OA (Onboard Administrator) | NO (legacy) | `redfish_generic.yml` fallback |
+| Superdome X | 2014~ | x86 (Xeon E7) | iLO 4 + OA | 부분 (iLO 4) | `hpe_ilo4.yml` (priority=50) fallback |
+| Integrity Superdome | ~2010 | Itanium | OA only | NO | `redfish_generic.yml` (N/A) |
+
+### Superdome Flex Redfish endpoint 매트릭스
+
+| Endpoint | 일반 iLO 5 (ProLiant) | Superdome Flex | 시그니처 / 비고 |
+|---|---|---|---|
+| ServiceRoot | `/redfish/v1/` | `/redfish/v1/` (RMC host) | RMC IP = redfish_address |
+| Systems collection | `/redfish/v1/Systems/1` (단일) | `/redfish/v1/Systems/Partition0`, `Partition1`, ... | **Multi-partition (nPAR)** — sdflexutils 실측 |
+| Chassis | `/redfish/v1/Chassis/1` | `/redfish/v1/Chassis/<chassis_id>` | Base + Expansion (최대 8 chassis) |
+| Managers | `/redfish/v1/Managers/1` | `/redfish/v1/Managers/<RMC_id>` + per-node iLO 5 | **Dual-manager** — RMC primary |
+| FirmwareInventory | 표준 | 표준 + complex/nPar firmware bundles | sdflex-ironic-driver wiki 명시 |
+| OEM 키 | `Oem.Hpe` | `Oem.Hpe` | HPE 표준 namespace 재사용 |
+
+### Manufacturer / Vendor 시그니처 (추정 — lab 부재)
+
+| 위치 | 값 | 근거 |
+|---|---|---|
+| ServiceRoot.Vendor (v1.5+ 표준) | `"HPE"` (추정 — 일반 iLO 5 동일) | sdflexutils PyPI 표기 |
+| ServiceRoot.Product (v1.3+ 표준) | `"iLO 5"` 또는 `"Superdome Flex"` (RMC 응답 시) | 펌웨어 별 차이 — 사이트 실측 시 확정 |
+| Chassis.Manufacturer | `"HPE"` 또는 `"Hewlett Packard Enterprise"` | sdflexutils 명시 |
+
+→ 기존 `common/vars/vendor_aliases.yml` HPE 매핑 (`["HPE", "Hewlett Packard Enterprise", "Hewlett-Packard", "HP"]`) 으로 정규화 정상 동작 예상. 별도 alias 추가 불필요.
+
+### M-E1 결론
+
+- **결정 (F)**: **(a) HPE sub-line** — `adapters/redfish/hpe_superdome_flex.yml` 신규 (priority=95, iLO 5 90 < Superdome Flex 95 < iLO 6 100)
+- **별도 vendor 거절 사유**: Manufacturer string 충돌 + vendor_aliases 정규화 모호 (rule 12 R1 위반 위험)
+- **OEM 재사용**: `redfish-gather/tasks/vendors/hpe/` 그대로 (Oem.Hpe 동일 namespace)
+- **vault 재사용**: `vault/redfish/hpe.yml` 그대로 (별도 vault 불필요)
+- **한계**: Multi-partition 시 첫 partition (`Partition0`) 만 수집. 전체 partition 수집은 별도 cycle (server-exporter 현재 Systems Members[0] 단일 진입 패턴).
+
+### 외부 계약 변동 trigger
+
+- HPE 가 Superdome Flex 후속 모델 출시 시 (Superdome Flex Gen11 등 — 향후)
+- Superdome Flex 의 ServiceRoot.Vendor / Product 값이 펌웨어 별 차이 사이트 실측 발견 시
+- nPAR / Partition 전용 OEM extension (Oem.Hpe.Partition*) 키 식별 시
+
+### sources (rule 96 R1-A — 14건)
+
+#### vendor docs (6)
+- https://support.hpe.com/hpesc/public/docDisplay?docId=a00119177en_us — Remote management with Redfish (Superdome Flex)
+- https://support.hpe.com/hpesc/public/docDisplay?docId=sf000075513en_us — Superdome Flex Redfish API
+- https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/ — iLO 5 API reference
+- https://www.hpe.com/us/en/collaterals/collateral.a00026242enw.html — Superdome Flex QuickSpecs
+- https://itpfdoc.hitachi.co.jp/manuals/rv3000/hard/SDF/Server/SDF280/P06150-401a.pdf — Admin Guide PDF
+- https://servermanagementportal.ext.hpe.com/docs/concepts/gettingstarted — HPE Server Management Portal
+
+#### DMTF (2)
+- https://redfish.dmtf.org/schemas/DSP0266_1.15.0.html — Specification v1.15
+- http://redfish.dmtf.org/schemas/DSP0266_1.5.0.html — Specification v1.5 (Vendor 표준화 시점)
+
+#### GitHub / Community (6)
+- https://github.com/HewlettPackard/sdflexutils — HPE 공식 라이브러리
+- https://github.com/HewlettPackard/sdflex-ironic-driver — OpenStack Ironic driver
+- https://github.com/HewlettPackard/sdflex-ironic-driver/wiki — Wiki (Partition0 명시)
+- https://pypi.org/project/sdflexutils/ — sdflexutils 1.5.1 (2022-11-29)
+- https://thelinuxcluster.com/2020/05/06/upgrading-firmware-for-super-dome-flex/ — RMC firmware 3.10.164 release
+- https://github.com/HewlettPackard/ilo-rest-api-docs/blob/master/source/includes/_ilo5_adaptation.md — iLO 5 adaptation
+
+---
+
 ## 일자: 2026-05-06 (F50 phase 3 — 전 vendor 호환성 매트릭스 + Dell BMC OEM 추출)
 
 ### AccountService POST/PATCH vendor 매트릭스 (web sources + 사이트 실측)
