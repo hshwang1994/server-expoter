@@ -167,7 +167,8 @@ pipeline {
                                     inventory   : inventory,
                                     installation: 'ansible',
                                     colorized   : true,
-                                    extras      : "--vault-password-file=${vaultPassFile}",
+                                    // TEMP DEBUG 2026-05-07: -vv 추가 (사용자 요청, 사이트 검증 후 원복)
+                                    extras      : "--vault-password-file=${vaultPassFile} -vv",
                                 )
                             } finally {
                                 sh "rm -f ${vaultPassFile} || true"
