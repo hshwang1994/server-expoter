@@ -1,6 +1,6 @@
 # M-F1 — docs/20_json-schema-fields.md 신설
 
-> status: [PENDING] | depends: — | priority: P2 | cycle: 2026-05-06-multi-session-compatibility
+> status: [DONE] | depends: — | priority: P2 | cycle: 2026-05-06-multi-session-compatibility | worker: Session-4-direct (agent 우회)
 
 ## 사용자 의도
 

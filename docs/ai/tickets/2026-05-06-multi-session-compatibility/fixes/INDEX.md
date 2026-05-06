@@ -28,7 +28,7 @@
 | **M-E4** | vendor-boundary-map.yaml 갱신 | P2 | M-E2 | [PENDING] | — | — |
 | **M-E5** | README / docs 갱신 | P2 | M-E2 | [PENDING] | — | — |
 | **M-E6** | Superdome pytest 회귀 mock | P1 | M-E5 | [PENDING] | — | — |
-| **M-F1** | docs/20_json-schema-fields.md 신설 | P2 | — | [PENDING] | — | — |
+| **M-F1** | docs/20_json-schema-fields.md 신설 | P2 | — | [DONE] | Session-4-direct | (메인 통합 commit) |
 | **M-F2** | 3채널 (Redfish/OS/ESXi) JSON 키 비교 | P2 | M-F1 | [PENDING] | — | — |
 | **M-G1** | 본 cycle 학습 추출 | P3 | A~F all | [PENDING] | — | — |
 | **M-G2** | rule/skill/agent 후보 정리 | P3 | M-G1 | [PENDING] | — | — |
