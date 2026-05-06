@@ -121,3 +121,13 @@
 | **Redfish** | not_supported | success | success | success | success | success | success | success | not_supported | success |
 | **OS** | success | not_supported | not_supported | success | success | success | success | not_supported | success | not_supported |
 | **ESXi** | success | success | not_supported | success | success | success | success | not_supported | not_supported | not_supported |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| envelope 13 필드 + 65 field 의미 | [20_json-schema-fields.md](20_json-schema-fields.md) |
+| 채널별 실제 응답 예시 | [09_output-examples.md](09_output-examples.md) |
+| OS / ESXi 환경 요건 | [REQUIREMENTS.md](../REQUIREMENTS.md) |

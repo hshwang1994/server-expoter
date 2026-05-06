@@ -129,7 +129,17 @@ assert dell_sys['Model'] == 'PowerEdge R740'
 
 ## 7. 주의사항
 
-- Fixture 파일에는 **실제 시리얼 넘버, MAC 주소** 등이 포함됨
-- 외부 공개 시 민감 정보 마스킹 필요
-- JSON 파일은 pretty-printed (indent=2)
-- 수집 시점: 2026-03-18 — BMC 펌웨어 업데이트 후 응답 구조가 변경될 수 있음
+- Fixture 파일에는 **실제 시리얼 넘버, MAC 주소** 등이 포함됩니다.
+- 외부 공개 시 민감 정보 마스킹 필요.
+- JSON 파일은 pretty-printed (indent=2).
+- 수집 시점: 2026-03-18 — BMC 펌웨어 업데이트 후 응답 구조가 변경될 수 있습니다.
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 회귀 기준선 (정답지) | [`schema/baseline_v1/`](../../schema/baseline_v1/) |
+| 새 벤더 fixture 추가 | [docs/14_add-new-gather.md](../../docs/14_add-new-gather.md) |
+| 실장비 검증 라운드 | [docs/13_redfish-live-validation.md](../../docs/13_redfish-live-validation.md) |

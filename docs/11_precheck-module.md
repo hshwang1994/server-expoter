@@ -96,3 +96,20 @@
 | `common/library/precheck_bundle.py` | 커스텀 모듈 (controller에서 실행) |
 | `common/tasks/precheck/run_precheck.yml` | precheck 호출 태스크 |
 | `filter_plugins/diagnosis_mapper.py` | 결과 → diagnosis 변환 필터 |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 4단계 진단 결과 envelope 의 어디에 들어가는지 | [12_diagnosis-output.md](12_diagnosis-output.md) |
+| precheck 실패 시 호출자 처리 | [08_failure-handling.md](08_failure-handling.md) |
+
+## 자주 헷갈리는 점
+
+| 질문 | 답 |
+|------|----|
+| ping 이 막혔는데 port 는 응답해도 되나? | 가능. ICMP 가 차단된 환경이 흔해서 port_open 만으로도 진행할 수 있음. ping 실패는 진단 정보일 뿐 차단 사유 아님. |
+| 인증은 됐는데 protocol_supported 가 false? | Redfish 가 아닌 BMC (구형 IPMI 전용) 에서 자주 발생. failure_stage 가 protocol 로 기록됨. |
+| auth_success 는 true 인데 본 수집이 실패? | precheck 는 ServiceRoot 만 검증. 일부 endpoint 의 권한이 별도일 수 있음 — errors[] 에서 어느 섹션이 실패인지 확인. |

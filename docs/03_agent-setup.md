@@ -1,19 +1,21 @@
 # 03. Agent 노드 구성
 
-> **이 문서는** Jenkins Agent 노드(실제 ansible-playbook 을 실행하는 머신)를 새로 만들 때 따라가는 가이드다.
-> 가상머신 사양 산정부터, OS 패키지, Python 가상환경, ansible / pywinrm / pyvmomi 설치, Jenkins 마스터 등록까지 한 번에 다룬다.
+> **이 문서는** Jenkins Agent 노드(실제로 ansible-playbook 이 실행되는 머신) 를 새로 구축할 때 따라가는 단계별 가이드입니다.
+> VM 사양 산정 → OS 패키지 → Python venv → Ansible / pywinrm / pyvmomi 설치 → Jenkins 마스터 등록까지 한 번에 다룹니다.
 >
 > **언제 이 문서를 보는가?**
 > - 새 사이트 (이천 / 청주 / 용인 등) 에 Agent 를 처음 구축할 때
-> - 기존 Agent 가 노후화/장애로 재구축이 필요할 때
+> - 기존 Agent 가 노후화 / 장애로 재구축이 필요할 때
 > - ansible / 컬렉션을 업그레이드해야 할 때
 
-> **검증 기준 환경**: Ubuntu 24.04, Python 3.12, ansible-core 2.20, Java 21
-> (10.100.64.154에서 2026-03-27 확인)
+> **사전 준비**
+> - 본 절차를 시작하기 전 [01_jenkins-setup.md](01_jenkins-setup.md) (마스터 설치) + [02_redis-install.md](02_redis-install.md) 가 완료되어야 합니다.
+> - Agent 노드는 마스터와 같은 사내망에 있어야 하며, 마스터로의 8080/tcp + Redis 6379/tcp 양방향이 필요합니다.
 
-Jenkins Agent 는 로케이션(이천 / 청주 / 용인)별로 구성하며,
-개발 / 운영 마스터 각각에 연결된 Agent 가 분리되어 있다.
-아래 절차를 각 Agent 노드마다 반복 수행한다.
+> **검증 기준 환경 (참고)**: Ubuntu 24.04, Python 3.12, ansible-core 2.20, Java 21 (10.100.64.154 에서 2026-03-27 확인)
+
+Jenkins Agent 는 로케이션 (이천 / 청주 / 용인) 별로 구성하며, 개발 / 운영 마스터 각각에 연결된 Agent 가 분리되어 있습니다.
+아래 절차를 각 Agent 노드마다 반복 수행합니다.
 
 ---
 
@@ -288,17 +290,34 @@ Jenkinsfile 의 `agent { label "${params.loc}" }` 기준:
 
 ## 10. Redis 연결 테스트
 
-02_redis-install.md 의 마스터 Redis 설정이 완료된 상태에서 실행한다.
+[02_redis-install.md](02_redis-install.md) 의 마스터 Redis 설정이 완료된 상태에서 실행합니다.
 
 ```bash
 # Agent 에서 마스터 Redis 접속 확인
 redis-cli -h {Jenkins_마스터_IP} -a {Redis비밀번호} ping
-# 응답: PONG
+# 기대 응답: PONG
 
-# Ansible fact caching 동작 확인 (json_only 는 프로젝트 전용 콜백이므로 테스트 시 default 로 우회)
+# Ansible fact caching 동작 확인 (json_only 는 본 프로젝트 전용 콜백이므로 default 로 우회)
 ANSIBLE_STDOUT_CALLBACK=default /opt/ansible-env/bin/ansible -m setup localhost | head -5
 redis-cli -h {Jenkins_마스터_IP} -a {Redis비밀번호} DBSIZE
-# 응답: (integer) 1 이상
+# 기대 응답: (integer) 1 이상  ← Redis 에 facts 가 저장됨
 ```
 
-> 연결 실패 시 마스터의 `bind`, `requirepass`, 방화벽(6379) 설정을 재확인한다.
+연결이 실패하면 다음을 차례로 확인합니다.
+
+| 점검 항목 | 위치 |
+|----------|------|
+| 마스터 `bind` 설정에 마스터 실제 IP 가 포함됐는지 | 마스터 `/etc/redis.conf` |
+| `requirepass` 설정 및 비밀번호 일치 | 마스터 `/etc/redis.conf` |
+| 6379 방화벽 통과 | 마스터 `firewall-cmd` / `ufw` |
+| Agent 측 `ansible.cfg` 의 fact_caching_connection | Agent 의 server-exporter 저장소 루트 |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Jenkins Job 등록 | [04_job-registration.md](04_job-registration.md) |
+| Vault 운영 / 패스워드 회전 | [21_vault-operations.md](21_vault-operations.md) |
+| Ansible 프로젝트 설정 (ansible.cfg / 환경변수) | [18_ansible-project-config.md](18_ansible-project-config.md) |

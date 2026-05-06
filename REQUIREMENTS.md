@@ -1,19 +1,45 @@
-# REQUIREMENTS — Server Exporter Gather Pipeline
+# REQUIREMENTS — Server Exporter 환경 요건
 
-수집을 시도하기 전에 "이 환경에서 정말 동작할까?" 를 빠르게 확인하기 위한 문서다.
-**대상 서버 / Jenkins Agent / 호출자(포털)** 측에 각각 무엇이 필요한지 표로 정리한다.
+> **이 문서를 보는 이유**
+> 수집을 시도하기 전에 "내 환경에서 정말 동작할까?" 를 빠르게 확인하기 위함이다.
+> **대상 서버 / Jenkins Agent / 네트워크** 세 측면에서 무엇이 필요한지 표로 정리한다.
 
-여기에 명시된 버전보다 낮으면 두 가지 결과 중 하나가 나온다.
+## 표를 읽는 법
 
-- 수집 자체가 실패한다 (`status: failed`)
-- 수집은 성공하지만 일부 필드가 `null` 로 반환된다 (필드 단위 graceful degradation)
+각 절의 표는 다음 3가지 정보를 한 줄에 담는다.
 
-각 항목의 "미충족 시 동작" 컬럼을 보면 어느 쪽인지 알 수 있다.
+| 컬럼 | 의미 |
+|------|------|
+| 최소 요구사항 | 이 값보다 낮으면 수집이 실패하거나 일부 필드가 `null` |
+| 검증 기준 (선택 컬럼) | 프로젝트 측이 실제로 검증한 환경 — "권장 운영" 의 의미 |
+| 미충족 시 동작 | 위반했을 때 호출자가 받게 될 결과 |
 
-> **함께 읽으면 좋은 문서**:
-> - 설치 절차: `docs/01_jenkins-setup.md` (Jenkins 마스터) / `docs/03_agent-setup.md` (Agent 노드)
-> - 입력 형식: `docs/05_inventory-json-spec.md`
-> - 출력 형식: `docs/09_output-examples.md`
+"미충족 시 동작" 은 보통 두 가지 중 하나다.
+
+1. **수집 자체 실패** — envelope `status: failed`. 호출자는 errors[] 만 받고 data 는 비어 있음.
+2. **부분 미수집** — 수집은 성공하지만 해당 필드가 `null`. 호출자는 다른 필드는 정상 사용 가능.
+
+## 약어 풀이
+
+| 약어 | 풀이 |
+|------|------|
+| BMC | Baseboard Management Controller (서버 관리 컨트롤러) |
+| iDRAC | Dell 의 BMC 브랜드 |
+| iLO | HPE 의 BMC 브랜드 |
+| XCC | Lenovo XClarity Controller |
+| CIMC | Cisco Integrated Management Controller |
+| WinRM | Windows Remote Management |
+| WMI / CIM | Windows Management Instrumentation / Common Information Model |
+| DMI | Desktop Management Interface (메인보드 시리얼 / UUID 등) |
+| DMTF | Distributed Management Task Force (Redfish 표준 단체) |
+
+---
+
+## 함께 읽으면 좋은 문서
+
+- 설치 절차: [docs/01_jenkins-setup.md](docs/01_jenkins-setup.md) (Jenkins 마스터) / [docs/03_agent-setup.md](docs/03_agent-setup.md) (Agent 노드)
+- 호출자 입력 형식: [docs/05_inventory-json-spec.md](docs/05_inventory-json-spec.md)
+- 호출자 출력 형식: [docs/09_output-examples.md](docs/09_output-examples.md)
 
 ---
 
@@ -284,48 +310,70 @@ OS 채널은 `system.hosting_type` 필드를 제공한다.
 
 ---
 
-## 7. OS 채널 식별자 및 엔티티 연결 정책
+## 7. 식별자 수집 정책 (호출자 cross-channel 매칭용)
 
-### 7-1. 식별자 필드
+호출자 시스템이 같은 물리 서버를 OS 채널 응답과 Redfish 채널 응답에서 매칭하려면 식별자가 필요하다. 본 절은 그 식별자가 어떤 조건에서 채워지는지 정리한다.
 
-- OS 채널은 `system.serial_number`와 `system.system_uuid`를 제공할 수 있다.
-- 값이 없거나 의미없는 센티널 값(NA, Not Specified 등)은 `null`로 정규화한다.
-- Linux에서 정확한 DMI 식별자 수집을 위해 `become` 권한 사용을 권장한다.
+### 7-1. 채널별 식별자 필드
 
-### 7-2. Cross-channel 연결 정책
+| 채널 | 필드 | 출처 | 권한 |
+|------|------|------|------|
+| OS (Linux) | `system.serial_number`, `system.system_uuid` | `/sys/class/dmi/id/` | sudo / become 권장 |
+| OS (Windows) | `system.serial_number`, `system.system_uuid` | WMI Win32_BIOS / Win32_ComputerSystemProduct | 관리자 권장 |
+| Redfish | `data.hardware.serial`, `data.system.uuid` | Redfish ComputerSystem | BMC 인증 |
+| ESXi | `data.hardware.serial` | vSphere API host facts | ESXi 관리자 권장 |
 
-- `system_uuid`가 존재하면 cross-channel 엔티티 연결의 우선 키로 사용할 수 있다.
-- `serial_number`는 채널 및 벤더에 따라 의미가 다를 수 있으므로, direct match 시 추가 검증이 필요하다.
-- `hosting_type`이 `virtual`이면 물리 Redfish와 직접 매칭하지 않는다.
-- 물리 서버에 직접 설치된 OS는, 그 위에서 KVM/Hyper-V host 역할을 하더라도 `baremetal`로 분류한다.
+### 7-2. 매칭 권장 키
 
-### 7-3. 식별자 수집 권한 정책
+호출자가 같은 서버를 두 채널에서 매칭할 때 이 순서로 시도한다.
 
-- 권한 부족 또는 source 값 부재 시 식별자는 null로 반환한다.
-- 식별자 미수집은 gather 실패가 아니며, 수집은 계속 진행된다 (non-fatal).
-- 미수집 원인은 non-fatal diagnostic으로 errors 배열에 기록할 수 있다 (status/sections 판정에 무영향).
-  - `insufficient_privilege`: 권한 부족으로 DMI/WMI 접근 불가
-  - `identifier_not_available`: source가 유효한 값을 제공하지 않음
-- 정확한 식별자 수집을 위해 `become_password` 제공을 권장한다.
+1. `system_uuid` 우선 (OS ↔ Redfish 가장 신뢰 가능)
+2. `serial_number` (벤더 / 채널별 의미 차이가 있어 보조 키)
+3. `hosting_type == "virtual"` 인 OS 응답은 물리 Redfish 와 매칭 시도하지 않음
 
-> 수집 우선순위, fallback 동작, baseline 기준 등 구현 상세는 [docs/16_os-esxi-mapping.md](docs/16_os-esxi-mapping.md) "식별자 수집 경로" 절 참조.
+### 7-3. 권한 부족 시의 동작
+
+- 식별자 미수집은 gather 실패가 아니다. 수집 자체는 계속 진행된다 (non-fatal).
+- 식별자 필드는 `null` 로 반환되고, errors[] 에는 사유가 추가될 수 있다.
+  - `insufficient_privilege` — 권한 부족으로 DMI / WMI 접근 불가
+  - `identifier_not_available` — 출처 자체가 유효한 값을 제공하지 않음
+- envelope 의 `status` / `sections` 판정에는 영향 없음.
+
+### 7-4. 권장
+
+정확한 식별자 수집을 위해 다음 중 하나를 vault 에 포함하는 것을 권장한다.
+
+- Linux: `become_password` (sudo 권한)
+- Windows: 관리자 계정 비밀번호
+
+상세 구현 (수집 우선순위 / fallback / baseline 기준) 은 [docs/16_os-esxi-mapping.md](docs/16_os-esxi-mapping.md) "식별자 수집 경로" 절 참조.
 
 ---
 
-## 8. 미지원 환경 요약
+## 8. 한눈에 보는 차단 사유
 
-| 환경 | 이유 |
-|------|------|
+**완전 미지원** (수집 시도 자체 실패):
+
+| 환경 | 차단 사유 |
+|------|----------|
 | Windows Server 2008 / 2008 R2 | WinRM NTLM 불안정, PowerShell 2.0, CIM 미지원 |
-| Windows Server 2012 / 2012 R2 | 레거시 제한 지원. `Get-LocalUser` 없음 (`last_access_time: null`), `Get-Volume` 없음 (볼륨 수집 제한) |
-| ESXi 6.0 이하 | `community.vmware` 모듈 미지원 |
-| ESXi Free 라이선스 | API write access 없음 |
-| Dell iDRAC 7 / 8 | Redfish API 미성숙 (일부 엔드포인트 없음) |
-| HPE iLO 4 이하 | `Oem.Hpe` 구조 없음 (`Oem.Hp` — OEM 수집 제한) |
-| Lenovo ThinkServer | Redfish 미지원 |
+| ESXi 6.0 이하 | community.vmware 컬렉션 호환성 부재 |
+| ESXi Free 라이선스 | vSphere API write access 없음 |
+| Dell iDRAC 7 / 8 | Redfish API 미성숙 — 일부 endpoint 자체가 응답 안 함 |
+| HPE iLO 4 이하 | OEM 영역이 옛 `Oem.Hp` 구조 (현재는 `Oem.Hpe`) |
+| Lenovo ThinkServer | Redfish 자체 미지원 (ThinkSystem 만 지원) |
 | Supermicro X9 이하 | Redfish 미지원 |
 | Cisco UCS C-Series M3 이하 | Redfish 미지원 |
-| Python 3.11 이하 (Agent) | ansible-core 2.20.x control node는 Python 3.12+ 사용. 프로젝트 검증 기준: 3.12.3 |
-| Python 3.8 이하 (타겟 Linux 서버) | ansible-core 2.20 모듈 실행 불가. RHEL 8 기본 Python 3.6 해당 → python39 설치 필요 |
-| Linux: sudo 권한 없는 계정 | DMI 정보(serial_number, system_uuid) 수집 불가 → `null` 반환. 기본 수집은 가능 |
-| Windows: 비관리자 계정 | `Get-LocalUser`, 디스크 상세, serial_number 등 수집 불가 → `null` 반환. 기본 수집은 가능 |
+| Python 3.8 이하 (타겟 Linux) | ansible-core 2.20 모듈 실행 불가 |
+| Python 3.11 이하 (Agent) | 프로젝트 검증 기준 외 |
+
+**제한 지원** (수집은 되지만 일부 필드 `null`):
+
+| 환경 | 어떤 필드가 빠지나 |
+|------|------------------|
+| Windows Server 2012 / 2012 R2 | `last_access_time` (Get-LocalUser 부재), 일부 볼륨 정보 (Get-Volume 부재) |
+| ESXi 6.5 | 일부 vSphere API 항목 |
+| Linux 에서 sudo 권한 없는 계정 | `serial_number`, `system_uuid` 등 DMI 정보 |
+| Windows 에서 비관리자 계정 | `serial_number`, 디스크 상세, 로컬 사용자 일부 |
+
+이 표의 "차단" 환경은 호출자에게 `status: failed` 가 반환되고, "제한 지원" 환경은 정상 응답 안에서 일부 필드만 `null` 로 보인다.

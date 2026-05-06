@@ -119,5 +119,21 @@ sudo ufw allow 6379/tcp
 
 ## 4. Agent 측 설정
 
-> Agent 측 Redis 연동(`pip install redis`, `ansible.cfg` 의 `fact_caching`, 연결 테스트)은
-> **03_agent-setup.md** 에서 Ansible 가상환경 설치와 함께 수행한다.
+Agent 가 마스터의 Redis 에 어떻게 붙는지는 별도 문서에서 다룹니다 (모든 Agent 노드에 공통 적용).
+
+| 작업 | 문서 |
+|------|------|
+| `pip install redis` | [03_agent-setup.md](03_agent-setup.md) 5절 (Python venv 와 함께) |
+| `ansible.cfg` 의 `fact_caching` 설정 | [18_ansible-project-config.md](18_ansible-project-config.md) |
+| 연결 테스트 (`redis-cli -h MASTER_IP -a PASS ping`) | [03_agent-setup.md](03_agent-setup.md) 끝부분 |
+
+---
+
+## 자주 막히는 곳
+
+| 증상 | 원인 / 해결 |
+|------|------------|
+| Agent → 마스터 Redis 연결 거부 | 마스터 `bind` 에 마스터 실제 IP 가 누락됨 |
+| `NOAUTH Authentication required` | Agent 측 `ansible.cfg` 의 `fact_caching_connection` 에 `requirepass` 누락 |
+| 마스터에서 ping 은 OK 인데 Agent 에서 실패 | 6379 방화벽 차단 — 마스터 firewall-cmd / ufw 확인 |
+| `protected-mode no` 상태로 외부 노출 | requirepass 설정 후 `protected-mode yes` 로 되돌리고 Redis 재시작 |

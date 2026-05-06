@@ -424,3 +424,22 @@ ServiceRoot를 조회했으므로 chassis_uri를 함께 반환하면 HTTP 호출
 - Superdome Flex multi-partition 전수 수집 (별도 cycle)
 - Lenovo XCC v3 OpenBMC 1.17.0 reverse regression fixture (사이트 fixture)
 - Cisco UCS X-Series IMM 모드 (Intersight) 통합
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 새 어댑터 추가 | [14_add-new-gather.md](14_add-new-gather.md) |
+| 호환성 매트릭스 | [22_compatibility-matrix.md](22_compatibility-matrix.md) |
+| Adapter 시스템 (점수 계산) | [10_adapter-system.md](10_adapter-system.md) |
+| 결정 추적 | [19_decision-log.md](19_decision-log.md) |
+
+## 자주 헷갈리는 점
+
+| 질문 | 답 |
+|------|----|
+| 검증 결과가 baseline 과 다른데? | 펌웨어 / 모델 변경으로 응답이 달라졌는지 먼저 확인. 변경이 정당하면 baseline_v2/ 로 새 정답지 도입 (rule 13 R4). |
+| 새 펌웨어는 어디서 raw 응답을 캡처? | `tests/redfish-probe/probe_redfish.py` 또는 `deep_probe_redfish.py` 로 endpoint 별 응답 수집. |
+| 미검증 벤더의 어댑터를 도입해도 되나? | 가능하지만 호환성 매트릭스에 "미검증" 으로 표시 필요. 실장비 검증 후 baseline 업데이트 권장. |

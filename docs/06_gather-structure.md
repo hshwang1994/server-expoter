@@ -1,30 +1,51 @@
 # 06. Gather 구조 설명
 
-> **이 문서는** server-exporter 가 어떤 구조로 정보를 수집하는지 개발자에게 설명한다.
-> "왜 gather 가 여러 파일로 쪼개져 있는지", "fragment 라는 게 정확히 무엇인지" 가 궁금할 때 읽는다.
+> **이 문서는** server-exporter 가 어떤 구조로 정보를 수집하는지 개발자 시야에서 설명합니다.
+> "왜 gather 가 여러 파일로 쪼개져 있는지", "fragment 가 정확히 무엇인지" 가 궁금할 때 보세요.
 >
-> 새 섹션 / 새 채널을 추가하기 전에 본 문서 한 번을 정독하면 후속 PR 시간이 크게 줄어든다.
+> 새 섹션 / 새 채널을 추가하기 전에 본 문서를 한 번 정독하면 후속 PR 시간이 크게 줄어듭니다.
+
+---
+
+## 한 단락 요약
+
+각 gather 파일은 **전체 JSON 을 만들지 않습니다.** 자기 역할의 작은 조각 (fragment) 만 만든 뒤, 공통 정규화 엔진(merge_fragment.yml + build_*.yml) 이 그 조각들을 모아 최종 JSON envelope 을 조립합니다.
+
+이렇게 분리하는 이유:
+- 새 섹션 추가가 site.yml 한 줄로 끝납니다.
+- 한 gather 의 실패가 다른 gather 의 결과를 오염시키지 않습니다.
+- 같은 정규화 엔진이 3 채널을 모두 처리하므로 출력 형식이 자동으로 일관됩니다.
 
 ## Fragment 기반 수집 철학
 
-각 gather_*.yml / normalize_*.yml 은 전체 JSON 을 만들지 않는다.
-자기 역할에 해당하는 **fragment** 만 생성하고, `merge_fragment.yml` 을 호출한다.
-공통 builder 가 fragment 들을 병합해 최종 JSON 을 만든다.
-
 ```
-raw collect
-→ normalize (gather별)
-→ fragment 생성 (_data_fragment + _sections_*_fragment + _errors_fragment)
-→ merge_fragment.yml 호출 (누적 병합)
-→ build_sections / build_status / build_errors / build_output (공통)
-→ schema_version 주입
-→ OUTPUT
+raw 수집  (벤더 / OS / API 별 원본 데이터)
+   ↓
+정규화    (gather 별로 자기 섹션 변환)
+   ↓
+Fragment 생성     ─┐
+  _data_fragment   │
+  _sections_*       │  ← 각 gather 가 만들어내는 5종 변수
+  _errors_fragment ─┘
+   ↓
+merge_fragment.yml  (누적 변수에 병합 — 자기 영역만 덧붙임)
+   ↓
+build_sections / build_status / build_errors / build_meta / build_correlation
+   ↓
+build_output.yml  (envelope 13 필드 조립)
+   ↓
+schema_version 주입
+   ↓
+OUTPUT 태스크 → callback plugin 캡처 → 호출자
 ```
 
-**새 수집 항목 추가 방법:**
-1. 새 `gather_xxx.yml` 작성 → fragment 생성 → `merge_fragment.yml` 호출
-2. `site.yml` 에 `include_tasks` 한 줄 추가
-3. `site.yml`, `build_output.yml` 전체를 수정할 필요 없음
+### 새 수집 항목 추가 방법 (한 줄 정리)
+
+1. 새 `gather_xxx.yml` 작성 → fragment 변수 5종 set_fact → `merge_fragment.yml` 호출
+2. `site.yml` 에 `include_tasks: tasks/gather_xxx.yml` 한 줄 추가
+3. 끝. (`site.yml` / `build_output.yml` 전체 수정은 필요 없음)
+
+상세 절차와 7단계 체크리스트는 [14_add-new-gather.md](14_add-new-gather.md).
 
 ---
 
@@ -150,7 +171,28 @@ dell, hpe, lenovo, supermicro, cisco (5개 벤더)
 
 ## inventory.sh
 
-- 우선순위: ① `INVENTORY_JSON` 환경변수 → ② `.inventory_input.json` 파일 (Jenkinsfile `writeFile` 생성)
-- Jenkins `ansiblePlaybook` 플러그인은 `environment` 블록의 멀티라인 환경변수를 전달하지 못하므로 파일 fallback 필수
-- `inventory_hostname = ip`
-- 계정 정보 없음 (vault 에서 자동 로딩)
+각 채널 (`os-gather/`, `esxi-gather/`, `redfish-gather/`) 에 같은 동작의 inventory.sh 가 있습니다.
+
+| 동작 | 설명 |
+|------|------|
+| 우선순위 1 | `INVENTORY_JSON` 환경변수에서 읽음 |
+| 우선순위 2 | `.inventory_input.json` 파일에서 읽음 (Jenkinsfile 의 `writeFile` 이 생성) |
+| 결과 | Ansible 가 이해할 수 있는 동적 인벤토리 출력 |
+
+> 왜 두 가지 경로가 필요한가?
+> Jenkins 의 `ansiblePlaybook` 플러그인이 `environment` 블록의 멀티라인 환경변수를 그대로 전달하지 못하는 경우가 있어서, 파일 fallback 을 함께 둡니다.
+
+다른 약속:
+- `inventory_hostname = ip` 로 통일 (호스트명 사전 등록 필요 없음)
+- 자격증명 정보는 inventory 에 들어가지 않음 (vault 에서 자동 로딩)
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Fragment 가 정규화 엔진을 거쳐 envelope 이 되는 흐름 | [07_normalize-flow.md](07_normalize-flow.md) |
+| 실패 처리 패턴 (block / rescue / always) | [08_failure-handling.md](08_failure-handling.md) |
+| 새 섹션 추가 7단계 체크리스트 | [14_add-new-gather.md](14_add-new-gather.md) |
+| Adapter 시스템 (벤더 자동 감지 점수 계산) | [10_adapter-system.md](10_adapter-system.md) |

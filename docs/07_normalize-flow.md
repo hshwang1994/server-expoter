@@ -201,3 +201,21 @@ vendors/{vendor}/collect_oem + normalize_oem:
 
 build_sections / build_status → partial 자동 판정
 ```
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 새 섹션 추가 7단계 체크리스트 | [14_add-new-gather.md](14_add-new-gather.md) |
+| 실패 시에도 envelope 일관성 유지하는 패턴 | [08_failure-handling.md](08_failure-handling.md) |
+| 출력 envelope 13 필드 의미 사전 | [20_json-schema-fields.md](20_json-schema-fields.md) |
+
+## 자주 헷갈리는 점
+
+| 질문 | 답 |
+|------|---|
+| `_data_fragment` 와 `_merged_data` 의 차이? | 각 gather 가 만드는 것이 fragment, 모든 gather 가 합쳐진 결과가 누적 변수. gather 는 누적 변수를 직접 수정하지 않는다. |
+| 같은 섹션을 두 gather 가 만들면? | 정의되어 있지 않은 동작 — 각 gather 는 자기 섹션만 만든다. (Fragment 철학 위반) |
+| `not_supported` 와 `failed` 의 차이? | `not_supported` 는 "이 채널/벤더에서 원래 수집 불가", `failed` 는 "지원하는데 이번에 실패". |

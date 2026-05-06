@@ -99,3 +99,13 @@ ansible-playbook os-gather/site.yml -i os-gather/inventory.sh
 # ESXi gather
 ansible-playbook esxi-gather/site.yml -i esxi-gather/inventory.sh
 ```
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Agent 노드 자체 설치 | [03_agent-setup.md](03_agent-setup.md) |
+| 환경 요건 | [REQUIREMENTS.md](../REQUIREMENTS.md) |
+| Vault 운영 | [21_vault-operations.md](21_vault-operations.md) |

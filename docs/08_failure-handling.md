@@ -134,3 +134,26 @@ rescue:
   }
 }
 ```
+
+---
+
+## 호출자 처리 가이드
+
+호출자(외부 시스템) 가 envelope 를 받았을 때 status 별로 어떻게 처리하면 되는지 정리합니다.
+
+| status | 호출자 처리 권장 |
+|--------|----------------|
+| `success` | data 의 모든 섹션을 정상 사용 |
+| `partial` | data 의 `success` 섹션만 사용 + errors[] 로그 (사용자 알림 가능) |
+| `failed` | data 무시 + errors[] / diagnosis 로 원인 파악 + 재시도 또는 운영자 통보 |
+
+`status: partial` 은 호출자에게 "쓸 수 있는 데이터가 일부 있다" 는 신호이고, `status: failed` 는 "수집 자체 실패" 신호입니다.
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| envelope 6 필드 + 65 field 의미 사전 | [20_json-schema-fields.md](20_json-schema-fields.md) |
+| 채널별 실제 success / partial / failed 응답 예시 | [09_output-examples.md](09_output-examples.md) |
+| precheck 4단계 진단 결과 해석 | [11_precheck-module.md](11_precheck-module.md) |
+| diagnosis / meta / correlation 필드 | [12_diagnosis-output.md](12_diagnosis-output.md) |

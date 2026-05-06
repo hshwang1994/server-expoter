@@ -38,6 +38,16 @@ ansible-playbook redfish-gather/site.yml -i tests/inventory/local/supplemental.i
 ```
 
 ### 주의사항
-- repo tracked 파일에 평문 credential을 넣지 말 것
-- Dell R760 credential이 Dell baseline과 다르다고 해서 세대별 vault 분리를 채택하면 안 됨
-- supplemental 장비는 baseline 정책을 변경하는 근거가 아닌, 추가 evidence 수집용
+- 저장소에 commit 되는 파일에 평문 자격증명을 넣지 마세요.
+- Dell R760 자격증명이 Dell baseline 과 다르다고 해서 세대별로 vault 를 쪼개면 안 됩니다 (baseline 의 의미가 깨짐).
+- supplemental 장비는 baseline 정책을 변경하는 근거가 아니라, 추가 evidence 수집용입니다.
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 정답지 (baseline) | [`schema/baseline_v1/`](../../schema/baseline_v1/) |
+| Vault 운영 (회전 / 검증) | [docs/21_vault-operations.md](../../docs/21_vault-operations.md) |
+| 실장비 검증 절차 | [docs/13_redfish-live-validation.md](../../docs/13_redfish-live-validation.md) |

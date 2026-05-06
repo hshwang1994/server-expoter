@@ -60,4 +60,37 @@ Jenkinsfile 은 루트에 1개만 존재한다. 3개 Job 모두 동일한 Script
 | `day1/{작업명}/{타입}/Jenkinsfile` | Day-1 작업 |
 | `day2/{작업명}/{타입}/Jenkinsfile` | Day-2 작업 |
 
-> 인프라 자동화 프로젝트는 별도 저장소에서 관리한다.
+> 인프라 자동화 프로젝트는 별도 저장소에서 관리합니다.
+
+---
+
+## Job 별 파라미터 (호출자 입력)
+
+3개 server-exporter Job 모두 동일한 파라미터 3종을 받습니다.
+
+| 파라미터 | 필수 | 설명 |
+|---------|------|------|
+| `loc` | 필수 | 어느 사이트 Agent 에서 실행할지 (`ich` / `chj` / `yi`) |
+| `target_type` | 자동 (Job 별 기본값) | `os` / `esxi` / `redfish` |
+| `inventory_json` | 필수 | 대상 IP 배열 — 형식은 [05_inventory-json-spec.md](05_inventory-json-spec.md) 참조 |
+
+`target_type` 은 Job 정의에 기본값이 박혀 있어 호출자가 매번 보내지 않아도 됩니다.
+다만 외부 호출 시 명시적으로 보내는 것을 권장합니다.
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 호출자 입력 형식 자세히 | [05_inventory-json-spec.md](05_inventory-json-spec.md) |
+| 파이프라인 4-Stage 동작 이해 | [17_jenkins-pipeline.md](17_jenkins-pipeline.md) |
+| Job 동작 검증 | [13_redfish-live-validation.md](13_redfish-live-validation.md) |
+
+## 자주 막히는 곳
+
+| 증상 | 원인 / 해결 |
+|------|------------|
+| Job 빌드 시 "Workspace not found" | Pipeline SCM 설정에서 Branch 가 `*/main` 인지 확인 |
+| RBAC 권한이 적용되지 않음 | Job 이름이 `server-exporter.os-gather` 같은 패턴과 일치하는지 확인 |
+| 같은 Jenkinsfile 인데 동작이 다름 | 각 Job 의 `target_type` 기본값이 다르기 때문에 정상 |

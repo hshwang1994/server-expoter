@@ -253,3 +253,21 @@ python3 tests/validate_field_dictionary.py
 
 > **partial/failed 예시**: `schema/baseline_v1/` 및 `schema/examples/` 참조.
 > partial은 일부 섹션만 failed, failed는 모든 supported 섹션이 failed.
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 모든 필드 의미 사전 (envelope 13 + sections 10 + field 65) | [20_json-schema-fields.md](20_json-schema-fields.md) |
+| 호출자 입력 형식 | [05_inventory-json-spec.md](05_inventory-json-spec.md) |
+| 실패 시 envelope 동작 | [08_failure-handling.md](08_failure-handling.md) |
+
+## 자주 헷갈리는 점
+
+| 질문 | 답 |
+|------|----|
+| `data.bmc.ip` 와 envelope 의 `ip` 가 다를 수 있나요? | 네. envelope 의 `ip` 는 호출자가 보낸 IP (보통 BMC IP), `data.bmc.ip` 는 BMC 가 자체 보고하는 IP 로 같은 의미지만 출처가 다름. |
+| `vendor` 가 `null` 인 이유? | OS / ESXi 채널은 보통 vendor 가 envelope 최상위에 채워지지 않음. Redfish 채널만 자동 감지. |
+| `status: success` 인데 errors[] 에 메시지가 있어요 | 정상. 비치명 경고 (예: dmidecode fallback 사용) 가 errors[] 에 기록될 수 있음 — sections 가 모두 success 면 envelope status 는 success. |

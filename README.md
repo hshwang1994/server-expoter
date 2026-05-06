@@ -1,61 +1,64 @@
 # server-exporter — 서버 정보 수집 파이프라인
 
-서버의 하드웨어/OS 정보를 수집한다.
-호출자 → Jenkins → Ansible → JSON 결과 흐름으로 동작한다.
+> **한 줄 요약**
+> 호출자가 IP만 알려주면, 이 파이프라인이 OS / VMware ESXi / 서버 BMC 세 경로 중 하나로 접근해 표준 JSON 으로 정보를 돌려준다.
 
 > 검증 기준 환경 및 최소 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md) 참조.
 
-## 이 문서는
+---
 
-- 처음 보는 분이 5분 안에 "이 시스템이 무엇을 하는지" 파악할 수 있게 정리한 페이지다.
-- 운영자가 실제 호출/실행하는 절차는 `docs/01_jenkins-setup.md` 부터 순서대로.
-- 새 벤더/섹션 추가 같은 개발 작업은 `docs/14_add-new-gather.md` 참조.
+## 이 문서는 누가 읽나
 
-## 한 줄 요약
+| 역할 | 이 문서로 얻는 것 |
+|------|------------------|
+| 처음 들어온 사람 | 5분 안에 "이 시스템이 뭘 하는지" 파악 |
+| 호출자 시스템 개발자 | "내가 무엇을 보내고, 무엇을 받는지" 윤곽 |
+| 운영자 | 어디서부터 설치 문서를 읽어야 하는지 안내 |
+| 새 개발자 | 디렉터리 구조와 책임 분리의 큰 그림 |
 
-호출자가 IP만 알려주면, 이 파이프라인이 **OS / VMware ESXi / 서버 BMC** 세 경로 중 하나로 접근해서 표준 JSON으로 정보를 돌려준다.
+상세 절차는 본 문서 끝 ["다음에 읽을 문서"](#다음에-읽을-문서) 표에서 역할별로 안내한다.
 
 ---
 
-## 원칙
-
-**계정은 vault 에서 관리한다.** 호출자가 전달하는 것은 `ip` 와 `target_type` 뿐이다.
-OS 타입과 벤더(Dell/HPE/Lenovo 등)를 모르는 상태로 시작하며, gather 가 직접 감지하여 분기한다.
+## 5분 빠른 이해
 
 ```
-호출자 → inventory_json = [{"service_ip": "10.x.x.1"}]  (os/esxi)
-       → inventory_json = [{"bmc_ip": "10.x.x.1"}]     (redfish)
-       → Jenkins (target_type: os|esxi|redfish)
-          → 포트 감지 / Manufacturer 감지
-          → vault 자동 로딩 → 수집 → OUTPUT JSON (schema_version: "1")
+호출자 시스템 (포털 / 백엔드)
+  │
+  │  HTTPS 443 으로 Jenkins Job 트리거
+  │  파라미터: loc, target_type, inventory_json
+  ▼
+Jenkins Job (server-exporter.{os,esxi,redfish}-gather)
+  │
+  │  4-Stage 파이프라인:
+  │   Stage 1  Validate         입력값 검증
+  │   Stage 2  Gather           ansible-playbook 실행
+  │   Stage 3  Validate Schema  필드 정합성 검증 (FAIL 게이트)
+  │   Stage 4  E2E Regression   기준선 회귀 테스트 (FAIL 게이트)
+  ▼
+표준 JSON envelope (schema_version: "1")
+  - 13 필드 (target_type / status / sections / data / errors / diagnosis ...)
+  - 3 채널 모두 동일한 형식
 ```
 
-**Fragment 기반 수집 구조:**
-각 gather 태스크는 전체 JSON 을 만들지 않고 자기 역할의 fragment 만 생성한다.
-공통 builder (`common/tasks/normalize/`) 가 fragment 들을 병합해 최종 JSON 을 만든다.
-새 수집 항목이 생기면 새 yml 추가 + fragment 생성 + `merge_fragment.yml` 호출만으로 확장된다.
+3 채널이 같은 JSON 형식을 돌려준다는 점이 핵심이다.
+호출자 시스템은 한 가지 파서로 OS, ESXi, BMC 응답을 모두 처리할 수 있다.
 
 ---
 
-## 전체 실행 흐름
+## 핵심 약속
 
-```
-호출자
- └─ Jenkins Job 트리거 (HTTPS 443)
-      ├─ Validate  : ip 필드 검증
-      └─ Gather    : Ansible Playbook 실행
-           ├─ os-gather/site.yml
-           │    Play1: SSH(22) / WinRM(5985/5986) 포트 감지
-           │    Play2: Linux  → vault/linux.yml → tasks/linux/*
-           │    Play3: Windows → vault/windows.yml → tasks/windows/*
-           │         └─ tasks/normalize/build_output.yml → OUTPUT
-           ├─ esxi-gather/site.yml
-           │    vault/esxi.yml → vmware_host_facts → OUTPUT
-           └─ redfish-gather/site.yml
-                Step1: Manufacturer 자동 감지
-                Step2: vault/redfish/{vendor}.yml 로딩
-                Step3: 전체 재수집 → OUTPUT
-```
+server-exporter 는 다음 3가지를 호출자에게 약속한다.
+
+1. **호출자는 IP 만 보낸다.** 자격증명 / 호스트명 / 벤더 정보는 호출자 책임이 아니다.
+   계정은 vault 에 보관되고, OS 종류와 BMC 제조사(Manufacturer) 는 파이프라인이 자동으로 감지한다.
+
+2. **응답 형식은 어떤 상황에도 동일하다.** 네트워크 단절 / 인증 실패 / 일부 섹션 실패 같은
+   모든 실패 상황에서도 `schema_version: "1"` 을 가진 같은 envelope 가 반환된다.
+   호출자는 envelope 의 `status` 와 `errors` 만 보고 처리하면 된다.
+
+3. **새 벤더 / 새 세대 추가는 코드 수정 없이 가능하다.** Adapter YAML 1~3개 추가만으로 끝난다.
+   site.yml, Python 코드, callback 은 모두 vendor-agnostic 으로 유지된다.
 
 ---
 
@@ -63,175 +66,168 @@ OS 타입과 벤더(Dell/HPE/Lenovo 등)를 모르는 상태로 시작하며, ga
 
 ```
 server-exporter/
-  Jenkinsfile / ansible.cfg
-  vault/                        ← 인증 정보 (linux, windows, esxi, redfish/{vendor})
-  common/tasks/normalize/       ← Fragment 병합·정규화 (3채널 공통)
-  os-gather/                    ← Linux/Windows 수집 (3-Play: 포트감지→Linux→Windows)
-  esxi-gather/                  ← ESXi 수집 (vmware_host_facts 기반)
-  redfish-gather/               ← BMC 수집 (Redfish API, 벤더 자동 감지)
-  adapters/                     ← 벤더/세대별 Adapter YAML
-  schema/                       ← 출력 스키마, baseline, field_dictionary
-  docs/                         ← 설치·운영·개발 문서
+├── Jenkinsfile              파이프라인 정의 (호출자 진입점)
+├── Jenkinsfile_portal       포털 callback 전용 파이프라인
+├── ansible.cfg              프로젝트 Ansible 설정
+│
+├── vault/                   인증 정보 (ansible-vault 로 암호화)
+│   ├── linux.yml / windows.yml / esxi.yml
+│   └── redfish/{vendor}.yml 벤더별 BMC 계정
+│
+├── common/tasks/normalize/  Fragment 병합·정규화 (3 채널 공통 로직)
+├── common/library/          Python 모듈 (precheck 등)
+│
+├── os-gather/               Linux / Windows 수집
+├── esxi-gather/             VMware ESXi 수집 (vSphere API)
+├── redfish-gather/          서버 BMC 수집 (Redfish API)
+│
+├── adapters/                벤더 / 세대별 어댑터 YAML
+│   ├── redfish/             28개 (Dell / HPE / Lenovo / Supermicro / Cisco / Huawei / Inspur / Fujitsu / Quanta + HPE Superdome)
+│   ├── os/                  7개 (Linux / Windows 변형)
+│   └── esxi/                4개 (ESXi 6.x / 7.x / 8.x)
+│
+├── schema/                  표준 JSON 스키마
+│   ├── sections.yml         10 섹션 정의
+│   ├── field_dictionary.yml 65 필드 사전 (호출자 reference)
+│   ├── fields/              채널별 필드 정의
+│   ├── examples/            success / partial / failed 예시
+│   └── baseline_v1/         실장비 회귀 기준선 JSON
+│
+├── tests/                   회귀 / 검증
+│   ├── fixtures/            실장비 raw 응답
+│   ├── e2e/, e2e_browser/   백엔드·브라우저 E2E
+│   └── reference/           실장비 종합 자료
+│
+└── docs/                    설치 / 운영 / 개발 문서 (01~22)
 ```
 
-파일 수준 상세 구조는 [CLAUDE.md](CLAUDE.md) 파일 구조 섹션 참조.
+이렇게 나눈 이유:
+- **gather 채널 분리** — Linux 이슈가 ESXi 수집에 영향을 주지 않게 한다.
+- **common 분리** — 3 채널이 같은 JSON 을 만들도록 정규화 로직을 한 곳에 둔다.
+- **adapters 분리** — 벤더 변경이 gather 코드에 침입하지 않게 한다.
+- **schema 분리** — 호출자 계약(필드 의미)이 코드와 독립적으로 보존된다.
 
 ---
 
-## Input Parameters
+## 호출자 입력 (Input)
 
 | 파라미터 | 필수 | 설명 |
 |---------|------|------|
-| `loc` | 필수 | Jenkins agent label: `ich` / `chj` / `yi` |
-| `target_type` | 필수 | `os` / `esxi` / `redfish` |
-| `inventory_json` | 필수 | os/esxi: `[{"service_ip": "10.x.x.1"}]`, redfish: `[{"bmc_ip": "10.x.x.1"}]` |
+| `loc` | 필수 | 어느 사이트 Agent 에서 실행할지 (예: `ich`, `chj`, `yi`) |
+| `target_type` | 필수 | `os` / `esxi` / `redfish` 중 하나 |
+| `inventory_json` | 필수 | 대상 IP 배열 (아래 예시 참조) |
+
+```jsonc
+// target_type: os 또는 esxi
+[{"service_ip": "10.x.x.1"}, {"service_ip": "10.x.x.2"}]
+
+// target_type: redfish (BMC 관리 IP)
+[{"bmc_ip": "10.x.x.201"}, {"bmc_ip": "10.x.x.202"}]
+```
+
+호출자는 호스트명 / 자격증명 / 벤더를 보내지 않는다.
+상세 명세는 [docs/05_inventory-json-spec.md](docs/05_inventory-json-spec.md).
 
 ---
 
-## inventory_json 형식
+## 표준 응답 (Output)
 
-상세 명세는 [docs/05_inventory-json-spec.md](docs/05_inventory-json-spec.md) 참조. 호출자는 ip만 전달하며, 계정 정보는 포함하지 않는다.
+호출자는 다음 13 필드의 JSON envelope 를 받는다. 어떤 채널이든, 어떤 결과든 형식은 같다.
 
----
-
-## 표준 Output JSON 스키마
-
-> **필드 설명 사전**: 각 필드의 상세 의미, null 해석, 채널 간 차이는
-> `schema/field_dictionary.yml`을 참조하세요. 외부 시스템에서 필드명 기반 lookup으로 사용합니다.
-
-### 최상위 구조 (3개 gather 공통)
-
-```json
+```jsonc
 {
+  "schema_version":    "1",
   "target_type":       "os | esxi | redfish",
   "collection_method": "agent | vsphere_api | redfish_api",
-  "ip":       "10.x.x.1",
-  "hostname": "10.x.x.1",
-  "vendor":   "dell | hpe | lenovo | supermicro | cisco | null",
-  "status":   "success | partial | failed",
-  "sections": {
-    "system":   "success | failed | not_supported",
-    "hardware": "success | failed | not_supported",
-    "cpu":      "success | failed | not_supported",
-    "memory":   "success | failed | not_supported",
-    "storage":  "success | failed | not_supported",
-    "network":  "success | failed | not_supported",
-    "bmc":      "success | failed | not_supported",
-    "firmware": "success | failed | not_supported",
-    "users":    "success | failed | not_supported",
-    "power":    "success | failed | not_supported"
-  },
-  "errors": [{"section": "...", "message": "...", "detail": null}],
-  "data": { ... }
+  "ip":                "10.x.x.1",
+  "hostname":          "10.x.x.1",
+  "vendor":            "dell | hpe | lenovo | supermicro | cisco | huawei | inspur | fujitsu | quanta | null",
+  "status":            "success | partial | failed",
+  "sections":          { "system": "success", "cpu": "success", ... },
+  "diagnosis":         { "precheck": {...}, "details": [...] },
+  "meta":              { "loc": "ich", "duration_ms": 1234, ... },
+  "correlation":       { "host_ip": "...", "request_id": "..." },
+  "errors":            [ ... ],
+  "data":              { "system": {...}, "cpu": {...}, ... }
 }
 ```
 
-### sections 값 의미
+- 각 필드 의미: [docs/20_json-schema-fields.md](docs/20_json-schema-fields.md) (정본 사전)
+- 채널별 실제 예시: [docs/09_output-examples.md](docs/09_output-examples.md)
+- 필드 단위 lookup 메타데이터: `schema/field_dictionary.yml`
+
+### sections 값의 의미
+
+| 값 | 뜻 | 호출자 처리 |
+|----|-----|------------|
+| `success` | 그 섹션이 정상 수집됨 | data.<section> 사용 |
+| `failed` | 지원 채널인데 이번에 실패 | errors[] 확인 후 재시도 또는 알림 |
+| `not_supported` | 이 채널/벤더에서는 원래 수집 불가 | 누락이 아닌 정상 |
+
+### data.memory.total_basis 처럼 의미가 미묘한 enum
 
 | 값 | 의미 |
 |----|------|
-| `success` | 수집 성공 |
-| `failed` | 지원하지만 이번에 실패 |
-| `not_supported` | 이 gather 타입에서 원래 수집 불가 |
+| `physical_installed` | 물리 메모리 (dmidecode / Win32_PhysicalMemory / Redfish DIMM) |
+| `os_visible` | OS 가 인식한 메모리 (Linux 의 일부 환경 fallback) |
+| `hypervisor_visible` | 하이퍼바이저가 인식한 메모리 (ESXi) |
 
-### data.memory.total_basis
-
-| 값 | 의미 |
-|----|------|
-| `physical_installed` | dmidecode / Win32_Physical / Redfish DIMM |
-| `os_visible` | OS 인식 메모리 (fallback) |
-| `hypervisor_visible` | 하이퍼바이저 인식 (ESXi) |
-
-### data.network 구조
-
-```json
-"network": {
-  "dns_servers": ["8.8.8.8"],
-  "default_gateways": [{"family": "ipv4", "address": "10.x.x.254"}],
-  "interfaces": [{
-    "id": "eth0", "name": "eth0",
-    "kind": "os_nic | vmkernel | server_nic",
-    "mac": "...", "mtu": 1500, "speed_mbps": 1000,
-    "link_status": "up", "is_primary": true,
-    "addresses": [{"family": "ipv4", "address": "10.x.x.1",
-                   "prefix_length": 24, "subnet_mask": "255.255.255.0",
-                   "gateway": "10.x.x.254"}]
-  }]
-}
-```
-
-### data.storage 구조
-
-```json
-"storage": {
-  "filesystems":     [{"device", "mount_point", "filesystem",
-                       "total_mb", "used_mb", "available_mb", "usage_percent"}],
-  "physical_disks":  [{"id", "device", "model", "total_mb", "media_type", "protocol",
-                       "health", "serial", "failure_predicted", "predicted_life_percent"}],
-  "logical_volumes": [{"id", "name", "controller_id", "member_drive_ids",
-                       "raid_level", "total_mb", "health", "state", "boot_volume"}],
-  "datastores":      [{"name", "type", "total_mb", "free_mb", "used_mb", "usage_percent"}],
-  "controllers":     [{"id", "name", "health", "drives"}]
-}
-```
+전체 enum / null 의미는 `schema/field_dictionary.yml` 참조.
 
 ---
 
-## 각 Playbook 역할
+## 실패 상황별 동작
 
-### os-gather (include_tasks 분리 구조)
-- `tasks/linux/gather_memory.yml` — dmidecode 물리 메모리, /proc/meminfo fallback
-- `tasks/linux/gather_storage.yml` — lsblk 물리 디스크 + ansible_mounts 파일시스템
-- `tasks/linux/gather_network.yml` — is_primary, gateway, dns, speed 포함
-- `tasks/linux/gather_users.yml` — getent group 멤버십, lastlog→last→utmpdump 3단계
-- `tasks/windows/*` — Win32_PhysicalMemory, Get-LocalUser→WMI fallback
-- `tasks/normalize/build_output.yml` — 확정 스키마로 조립
+호출자가 받게 될 envelope 의 모양을 정리한다.
 
-### esxi-gather
-- `vmware_host_facts` — 기본 facts
-- `vmware_host_config_info` — Gateway/DNS
-- `vmware_datastore_info` — 데이터스토어 상세
+| 상황 | status | sections | errors |
+|------|--------|----------|--------|
+| SSH / WinRM 응답 없음 (포트 닫힘) | `failed` | 모두 `failed` | precheck 단계 메시지 |
+| 인증 실패 | `failed` | 모두 `failed` | auth_failed |
+| OS 수집 일부만 실패 (예: storage 권한 부족) | `partial` | 일부 `failed` | 해당 섹션 메시지 |
+| Redfish 연결 실패 | `failed` | 모두 `failed` | network 또는 protocol |
+| Redfish 일부 섹션 미지원 | `success` 또는 `partial` | 미지원은 `not_supported` | 비어있을 수 있음 |
+| ESXi API 라이선스 부족 (Free) | `failed` | 모두 `failed` | api_unavailable |
 
-### redfish-gather
-- `library/redfish_gather.py` — Python 표준 라이브러리만 사용 (외부 패키지 의존 없음).
-- BMC 인증을 2단계로 처리: 빈 계정으로 제조사(Manufacturer) 감지 → 해당 벤더 vault 로딩 → 재수집.
-- 지원 벤더 (9개 + HPE Superdome 서브라인):
-  - Dell iDRAC 7~10
-  - HPE iLO 4~7 + Superdome Flex / Flex 280
+상세 로직은 [docs/08_failure-handling.md](docs/08_failure-handling.md).
+
+---
+
+## 채널별 가져오는 정보 요약
+
+### OS 채널 (Linux / Windows)
+- Linux: SSH 22 → `dmidecode`(메모리 / 시리얼) / `lsblk` / `ip addr` / `getent` / `lastlog`
+- Windows: WinRM 5985/5986 → `Get-CimInstance` / `Get-LocalUser` / `Get-Volume`
+- Linux 는 Python 미설치 / 구버전 환경을 위한 raw fallback 경로 보유
+
+### ESXi 채널 (VMware)
+- vSphere API 443 (HTTPS)
+- `vmware_host_facts`, `vmware_host_config_info`, `vmware_datastore_info`
+
+### Redfish 채널 (BMC)
+- 표준 라이브러리만 사용 (외부 패키지 의존 없음)
+- BMC 인증을 2단계로 처리: 무인증 ServiceRoot 호출 → 제조사 확인 → 해당 벤더 vault 로딩 → 재수집
+- 지원 벤더 (9개 + 서브라인):
+  - Dell iDRAC 7 ~ 10
+  - HPE iLO 4 ~ 7 + Superdome Flex / Flex 280
   - Lenovo IMM2 ~ XCC3
   - Supermicro X9 ~ X14
   - Cisco CIMC M4 ~ M8 + UCS X-Series
   - Huawei iBMC, Inspur ISBMC, Fujitsu iRMC, Quanta QCT BMC
-- adapter YAML: 39개 (Redfish 28 + OS 7 + ESXi 4)
 
----
-
-## 실패 시 동작
-
-| 상황 | 동작 |
-|------|------|
-| SSH/WinRM 응답 없음 | `status: failed`, sections 전체 `failed` |
-| gather_facts 실패 | raw 명령 fallback |
-| Redfish 연결 실패 | `status: failed`, errors 에 기록 |
-| Redfish 일부 섹션 실패 | `status: partial`, 성공 섹션 포함 |
-| ESXi API 실패 | rescue → `status: failed` |
-
----
-
-## Agent 의존성
-
-최소 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md) 4절, 설치 절차는 [docs/03_agent-setup.md](docs/03_agent-setup.md) 참조.
+(약어 풀이: BMC = Baseboard Management Controller / iDRAC = Integrated Dell Remote Access Controller / iLO = Integrated Lights-Out / XCC = Lenovo XClarity Controller / CIMC = Cisco Integrated Management Controller)
 
 ---
 
 ## 다음에 읽을 문서
 
-처음 들어오시는 분께 권장하는 순서:
+| 역할 | 권장 순서 |
+|------|----------|
+| 운영자 (Jenkins / 인프라) | [01](docs/01_jenkins-setup.md) → [03](docs/03_agent-setup.md) → [04](docs/04_job-registration.md) → [21](docs/21_vault-operations.md) |
+| 호출자 (외부 시스템) | [05](docs/05_inventory-json-spec.md) → [09](docs/09_output-examples.md) → [20](docs/20_json-schema-fields.md) |
+| 개발자 (새 벤더 / 섹션 추가) | [06](docs/06_gather-structure.md) → [07](docs/07_normalize-flow.md) → [10](docs/10_adapter-system.md) → [14](docs/14_add-new-gather.md) |
+| 검증 담당 | [13](docs/13_redfish-live-validation.md) → [22](docs/22_compatibility-matrix.md) |
+| 결정 추적 (왜 지금 이 모습?) | [19](docs/19_decision-log.md) |
+| 환경 사전 점검 | [REQUIREMENTS.md](REQUIREMENTS.md) |
 
-| 역할 | 우선 읽을 문서 |
-|------|---------------|
-| 운영자 (Jenkins / 인프라 담당) | `docs/01_jenkins-setup.md` → `docs/03_agent-setup.md` → `docs/04_job-registration.md` → `docs/21_vault-operations.md` |
-| 호출자 (Jenkins Job을 트리거하는 외부 시스템) | `docs/05_inventory-json-spec.md` → `docs/09_output-examples.md` → `docs/20_json-schema-fields.md` |
-| 개발자 (새 벤더/섹션 추가) | `docs/06_gather-structure.md` → `docs/07_normalize-flow.md` → `docs/10_adapter-system.md` → `docs/14_add-new-gather.md` |
-| 검증 담당 | `docs/13_redfish-live-validation.md` → `docs/22_compatibility-matrix.md` |
-| 결정 이력 (왜 지금 이 모습인지) | `docs/19_decision-log.md` |
+파일 단위 상세 구조와 AI 협업 정책은 [CLAUDE.md](CLAUDE.md) 의 "파일 구조" 와 "AI 하네스 운영" 절 참조.

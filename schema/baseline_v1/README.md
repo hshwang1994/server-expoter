@@ -39,3 +39,15 @@
 4. 회귀 비교 도구의 기준 폴더를 `baseline_v1` → `baseline_v2` 로 점진 전환한다.
 
 본 폴더의 파일은 절대 in-place 로 덮어쓰지 않는다는 점이 핵심입니다 — 그래야만 회귀의 의미가 보존됩니다.
+
+---
+
+## 함께 보면 좋은 자료
+
+| 자료 | 용도 |
+|------|------|
+| `tests/fixtures/` | 회귀 테스트의 입력 (raw 응답) |
+| `tests/evidence/` | Round 단위 검증 결과 |
+| [`../../docs/09_output-examples.md`](../../docs/09_output-examples.md) | 채널별 응답 실제 예시 |
+| [`../../docs/13_redfish-live-validation.md`](../../docs/13_redfish-live-validation.md) | 실장비 검증 라운드 |
+| [`../../docs/20_json-schema-fields.md`](../../docs/20_json-schema-fields.md) | envelope 13 필드 + 65 필드 의미 사전 |

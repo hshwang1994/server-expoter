@@ -813,3 +813,24 @@ python scripts/ai/hooks/output_schema_drift_check.py
 - 정본 schema: `schema/sections.yml`, `schema/field_dictionary.yml`
 - baseline: `schema/baseline_v1/<vendor>_baseline.json`
 - 관련 문서: `docs/09_output-examples.md`, `docs/07_normalize-flow.md`, `docs/10_adapter-system.md`, `docs/12_diagnosis-output.md`, `docs/16_os-esxi-mapping.md`
+
+---
+
+## 본 문서를 빠르게 읽는 법
+
+| 알고 싶은 것 | 어느 절을 보면 되나 |
+|--------------|---------------------|
+| envelope 최상위에 어떤 필드가 있는가 | "1. Envelope 13 필드" |
+| sections 가 success / failed / not_supported 어떤 의미인가 | "sections 값의 의미" |
+| 특정 필드가 null 인 이유 | 해당 필드의 "정규화 규칙" 절 |
+| status 가 success 인데 errors[] 에 뭐가 있는 이유 | "status 판정 규칙" 의 시나리오 B |
+| 새 필드를 추가하면 어디를 갱신해야 하나 | rule 13 R7 (envelope 변경 시 docs/20 동기화 의무) |
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 채널별 응답 실제 예시 | [09_output-examples.md](09_output-examples.md) |
+| OS / ESXi 필드 매핑 표 | [16_os-esxi-mapping.md](16_os-esxi-mapping.md) |
+| 호환성 매트릭스 (어느 벤더에서 어느 섹션이 되는지) | [22_compatibility-matrix.md](22_compatibility-matrix.md) |
+| 호출자 입력 형식 | [05_inventory-json-spec.md](05_inventory-json-spec.md) |

@@ -1,39 +1,54 @@
-# 05. inventory_json 필드 명세
+# 05. inventory_json 입력 형식 (호출자 명세)
 
-> **이 문서는** Jenkins Job 을 외부에서 트리거하는 호출자(포털)가 보내야 하는 `inventory_json` 입력 형식을 설명한다.
+> **이 문서는** Jenkins Job 을 외부에서 트리거하는 호출자 (포털 / 백엔드 서비스) 가 보내야 하는 `inventory_json` 파라미터의 형식을 정의합니다.
 >
-> **핵심 약속**: 호출자는 IP 만 전달한다. 계정 / 호스트명 / 벤더는 보내지 않는다.
-> 그쪽은 server-exporter 가 vault 와 자동 감지로 알아서 처리한다.
+> **핵심 약속 (꼭 기억해 주세요)**: 호출자는 **IP 만** 전달합니다. 호스트명 / 자격증명 / 벤더는 보내지 않습니다.
+> 자격증명은 vault 에서 자동 로딩되고, OS 종류 / BMC 제조사 / 벤더는 server-exporter 가 자동으로 감지합니다.
 
-포털이 Jenkins Job 트리거 시 전달하는 `inventory_json` 파라미터 명세.
+## 5초 요약
+
+| target_type | 보내야 할 형식 |
+|-------------|---------------|
+| `os` (Linux 또는 Windows 자동 분기) | `[{"service_ip": "10.x.x.1"}]` |
+| `esxi` | `[{"service_ip": "10.x.x.1"}]` |
+| `redfish` (서버 BMC) | `[{"bmc_ip": "10.x.x.201"}]` |
 
 ---
 
-## 형식
+## 1. 표준 형식
 
-target_type 에 따라 IP 필드명이 다르다:
+target_type 에 따라 IP 필드명이 다릅니다.
 
-```json
-// os / esxi
+```jsonc
+// os 또는 esxi 채널
 [{"service_ip": "10.x.x.1"}, {"service_ip": "10.x.x.2"}]
 
-// redfish
+// redfish 채널 — BMC 관리 IP 를 보냄 (서비스 IP 와 별개)
 [{"bmc_ip": "10.x.x.201"}, {"bmc_ip": "10.x.x.202"}]
 
-// fallback (하위 호환)
+// 하위 호환: 혹시 모를 경우 ip 키도 받아줌
 [{"ip": "10.x.x.1"}]
 ```
 
-## 전달 필드
+## 2. 필드 이름이 다른 이유
 
-| target_type | 1순위 필드 | fallback | 설명 |
-|-------------|-----------|----------|------|
-| `os` | `service_ip` | `ip` | 서버 서비스 IP |
-| `esxi` | `service_ip` | `ip` | 서버 서비스 IP |
-| `redfish` | `bmc_ip` | `ip` | BMC 관리 IP |
+| target_type | 필드 | 왜 다른가 |
+|-------------|------|----------|
+| `os` / `esxi` | `service_ip` | OS / 하이퍼바이저가 직접 응답하는 서비스 IP |
+| `redfish` | `bmc_ip` | 서버 BMC 의 별도 관리 IP (서비스 IP 와 다른 경우가 많음) |
 
-hostname / username / password / vendor 는 전달하지 않는다.
-계정은 vault 에서 자동 로딩하며, OS 타입/벤더는 gather 가 자동 감지한다.
+호출자가 "어느 IP 를 사용해야 하는지" 헷갈리지 않도록 필드 이름으로 의도를 표현합니다.
+
+## 3. 보내지 않는 것
+
+호출자가 다음 항목을 보내면 무시되거나 보안 정책상 거부됩니다.
+
+| 항목 | 왜 보내지 않는가 |
+|------|----------------|
+| `username`, `password` | vault 에 저장됨 — 호출자에게 노출 금지 |
+| `hostname` | 등록 전 서버일 수 있어 의미 없음. envelope 의 hostname 필드는 IP 로 채워짐 |
+| `vendor` | Redfish 의 경우 무인증 ServiceRoot 호출로 자동 감지 |
+| `os_family` (linux / windows) | OS 채널은 SSH 22 / WinRM 5985-5986 포트 감지로 자동 분기 |
 
 ---
 
@@ -128,13 +143,24 @@ vars_files:
 
 ---
 
-## 기존 문서와의 차이
+## 기존 명세에서 변경된 사항 (참고)
 
-이전 명세에서 변경된 사항:
+이전 버전의 호출자 명세에 익숙하다면 다음 표를 보세요.
 
 | 항목 | 이전 | 현재 |
 |------|------|------|
-| inventory_json 필드 | ip, hostname, username, password | **ip 만** |
+| inventory_json 필드 | ip, hostname, username, password | **IP 만** |
 | 계정 전달 방식 | inventory_json 에 포함 | vault 자동 로딩 |
-| hostname 처리 | 포털이 전달 | 없음 (ip 사용) |
+| hostname 처리 | 포털이 전달 | 없음 (IP 그대로 사용) |
 | vendor 처리 | 포털이 전달 (선택) | 없음 (자동 감지) |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 받게 될 응답 형식 | [09_output-examples.md](09_output-examples.md) |
+| 응답 필드 의미 사전 | [20_json-schema-fields.md](20_json-schema-fields.md) |
+| 실패 시 호출자 처리 | [08_failure-handling.md](08_failure-handling.md) |
+| Jenkins Job 자체 호출 절차 | [04_job-registration.md](04_job-registration.md) |

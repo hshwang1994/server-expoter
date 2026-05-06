@@ -237,3 +237,22 @@ accounts:
 | `redfish-gather/tasks/load_vault.yml` | vault 로딩 정본 코드 |
 | `docs/03_agent-setup.md` | Agent 보안 설정 |
 | `docs/ai/references/ansible/ansible-vault.md` | ansible-vault 명령 reference |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Jenkins 마스터의 vault credential 등록 | [01_jenkins-setup.md](01_jenkins-setup.md) §7 |
+| Agent 노드 설치 (vault 패스워드 파일 배치) | [03_agent-setup.md](03_agent-setup.md) |
+| precheck 4단계 (인증 실패 단계 진단) | [11_precheck-module.md](11_precheck-module.md) |
+
+## 자주 막히는 곳
+
+| 증상 | 원인 / 해결 |
+|------|------------|
+| 새로 만든 vault 가 반영 안 됨 | `cacheable: yes` / fact_caching 충돌 의심 — rule 27 R6 단서 3개 검증 |
+| `Decryption failed` | `.vault_pass` 파일의 패스워드와 vault 가 일치하지 않음 |
+| `Could not find credentials entry` | Jenkins Credentials 에 `server-gather-vault-password` 미등록 |
+| ansible-vault edit 실패 | 파일이 이미 평문이거나 다른 vault password 로 암호화됨 |

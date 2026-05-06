@@ -89,3 +89,20 @@ output JSON에는 diagnosis, meta, correlation 3개 필드가 포함된다.
 | `common/tasks/normalize/build_meta.yml` | meta 딕셔너리 생성 |
 | `common/tasks/normalize/build_correlation.yml` | correlation 딕셔너리 생성 |
 | `common/tasks/normalize/init_fragments.yml` | _started_at 타임스탬프 초기화 |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| precheck 4단계 의미 | [11_precheck-module.md](11_precheck-module.md) |
+| envelope 13 필드 사전 (diagnosis 포함) | [20_json-schema-fields.md](20_json-schema-fields.md) |
+
+## 자주 헷갈리는 점
+
+| 질문 | 답 |
+|------|----|
+| `meta.duration_ms` 와 `correlation` 은 호출자가 꼭 사용해야 하나? | 필수는 아님. trace 분석 / 회귀 / 사용자 알림에 활용. |
+| `correlation.host_ip` 가 envelope `ip` 와 다를 수 있나? | OS 채널은 동일. Redfish 는 BMC IP 가 envelope `ip`, 서버의 host IP 가 별도 (수집 가능 시 채워짐). |
+| diagnosis.details 가 비어 있어도 정상? | success 인 경우 보통 비어 있음. partial / failed 시 단계별 메시지가 들어감. |

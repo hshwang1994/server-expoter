@@ -163,53 +163,61 @@ GitLab 레포지토리 checkout 에 사용하는 계정.
 2. Scopes: `api` 체크
 3. Create → 발급된 토큰을 Password 에 입력
 
-### server-gather-vault-password (P0 — vault encrypt 도입)
+### server-gather-vault-password (vault 복호화용)
 
-`vault/*.yml` 은 ansible-vault 로 암호화된 상태로 commit 된다 (cycle 2026-04-28 결정).
-Jenkins Pipeline 의 `withCredentials([file(...)])` 가 본 credential 을 받아
-`ansible-playbook --vault-password-file=$VAULT_PASSWORD_FILE` 로 주입한다.
+저장소의 `vault/*.yml` 파일들은 ansible-vault 로 암호화된 상태로 commit 됩니다.
+Jenkins 가 ansible-playbook 을 실행할 때 이 credential 로 vault 를 복호화합니다.
 
 | 항목 | 값 |
 |------|----|
 | Kind | **Secret file** |
-| File | vault 부트스트랩에 사용한 `.vault_pass` 파일 (단일 라인 plaintext password) |
-| ID   | `server-gather-vault-password` |
+| File | `.vault_pass` 파일 (단일 라인 평문 패스워드) |
+| ID | `server-gather-vault-password` |
 
 **등록 절차**
 
-1. 운영자(인프라 담당)가 vault 마스터 password 결정
-2. 로컬에서 `.vault_pass` 파일 생성 후 `bash scripts/bootstrap_vault_encrypt.sh`
-   실행하여 vault/*.yml 을 일괄 encrypt → commit
-3. 같은 `.vault_pass` 파일을 본 절차로 Jenkins credentials store 에 등록
-4. `.vault_pass` 는 `.gitignore` 에 의해 절대 commit 되지 않는다 — Jenkins 에만 보관
+1. 운영자가 vault 마스터 패스워드를 결정한다.
+2. 로컬 작업자 PC 에서 그 패스워드를 한 줄짜리 `.vault_pass` 파일로 만든다.
+3. `bash scripts/bootstrap_vault_encrypt.sh` 로 `vault/*.yml` 을 일괄 encrypt 후 commit.
+4. 같은 `.vault_pass` 파일을 본 절차로 Jenkins credentials store 에 Secret file 형태로 등록한다.
+5. `.vault_pass` 는 `.gitignore` 에 의해 절대 commit 되지 않는다 — Jenkins 와 운영자 PC 에만 존재.
 
-**검증**
+**Jenkins 빌드 동작**
+
+`withCredentials([file(credentialsId: 'server-gather-vault-password', variable: 'VAULT_PASSWORD_FILE')])`
+가 `$VAULT_PASSWORD_FILE` 환경변수를 주입하고, Pipeline 안에서 패스워드 값 자체는
+콘솔 로그에 노출되지 않도록 자동 마스킹됩니다.
+
+**검증 (로컬)**
 
 ```bash
 # 로컬에서 ansible-playbook 단독 실행 시
 ansible-playbook --vault-password-file=.vault_pass redfish-gather/site.yml -i ...
 ```
 
-Jenkins 빌드 시 `withCredentials` 로 `$VAULT_PASSWORD_FILE` 주입.
-Pipeline 안에서 password 자체는 마스킹되며 console log 에 노출되지 않는다.
+**[CRIT] 본 credential 미등록 시 발생하는 오류**
 
-**주의**: 본 credential 이 등록되지 않은 Jenkins 환경에서 P0 머지 후 빌드를
-실행하면 위 등록 절차 미수행으로 인한
-오류가 발생한다 (`Could not find credentials entry with ID 'server-gather-vault-password'`).
-P0 머지 전 본 절차 수행 필수.
+이 credential 이 Jenkins 에 등록되지 않은 상태에서 빌드를 실행하면
+다음 오류로 빌드가 즉시 실패합니다.
 
-**cycle-012 결정 (2026-04-29)**:
-- vault password = `Goodmit0802!` (운영자 결정)
-- Jenkins credential ID = `server-gather-vault-password` (운영자 결정)
-- 8개 vault 파일 (`vault/{linux,windows,esxi}.yml` + `vault/redfish/{dell,hpe,lenovo,supermicro,cisco}.yml`)
-  ansible-vault encrypt 적용 완료 (commit 별도)
+```
+Could not find credentials entry with ID 'server-gather-vault-password'
+```
+
+새 Jenkins 환경 초기 셋업 시 본 절차를 가장 먼저 수행하세요.
 
 ---
 
 ## 8. RBAC 권한 설정
 
-Role Strategy Plugin 으로 Job 단위 접근 권한을 제어한다.
-Job 이름이 Pattern 과 일치하면 권한이 자동 적용되므로 신규 Job 추가 시 별도 권한 설정 불필요.
+Role Strategy Plugin 으로 Job 단위 접근 권한을 제어합니다.
+Job 이름이 패턴과 일치하면 권한이 자동 적용되므로, 신규 Job 추가 시 별도 권한 설정이 필요 없습니다.
+
+### RBAC 가 하는 일 (한 줄 요약)
+
+- 포털 서비스 계정은 server-exporter 의 Job 만 보고/실행할 수 있다.
+- 인프라 엔지니어 계정은 인프라 자동화 Job 만 보고/실행할 수 있다.
+- admin 계정만 Jenkins 시스템 전체를 관리한다.
 
 ### Global Roles
 
@@ -232,3 +240,23 @@ Job 이름이 Pattern 과 일치하면 권한이 자동 적용되므로 신규 J
 
 - `engineer` 계정 로그인 시 `server-exporter.*` Job 이 보이지 않아야 함
 - `portal` 계정 로그인 시 `infra-automation.*` Job 이 보이지 않아야 함
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Redis 설치 (마스터에 함께) | [02_redis-install.md](02_redis-install.md) |
+| Agent 노드 구성 | [03_agent-setup.md](03_agent-setup.md) |
+| Jenkins Job 등록 | [04_job-registration.md](04_job-registration.md) |
+| Vault 운영 (회전 / 검증) | [21_vault-operations.md](21_vault-operations.md) |
+
+## 자주 막히는 곳
+
+| 증상 | 원인 / 해결 |
+|------|------------|
+| Jenkins 가 시작은 되는데 Pipeline 빌드가 실패 | `Ansible installations` 등록 누락 — 6절 "Ansible 플러그인 경로 설정" 다시 확인 |
+| `Could not find credentials entry with ID 'server-gather-vault-password'` | 7절 vault credential 등록 안 됨 |
+| Job 은 보이는데 Build 버튼이 없음 | RBAC 의 Item Role pattern 미스매치 — 8절 |
+| GitLab checkout 실패 | gitlab-credentials 의 Password 자리에 비밀번호 대신 Access Token 입력 필요 |

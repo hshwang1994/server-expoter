@@ -600,3 +600,19 @@ kernel sysfs > POSIX 명령 > /proc > /etc
 
 - rule 13 (output-schema-fields), 21 (output-baseline-fixtures), 70 (docs-and-evidence-policy), 96 (external-contract-integrity)
 - 정본: `tests/reference/README.md`, `tests/reference/INDEX.md`, `tests/evidence/2026-04-28-reference-collection.md`
+
+---
+
+## 다음에 읽을 문서
+
+| 다음 작업 | 문서 |
+|---|---|
+| 검증 라운드 결과 누적 | [13_redfish-live-validation.md](13_redfish-live-validation.md) |
+| Adapter 시스템 (점수 / 새 벤더 추가) | [10_adapter-system.md](10_adapter-system.md) |
+| envelope 13 필드 의미 사전 | [20_json-schema-fields.md](20_json-schema-fields.md) |
+
+## 본 문서를 보는 법
+
+- 시간 역순으로 누적됩니다 (최신 결정이 위쪽).
+- 각 결정은 "사용자 의심 / 분석 / 결정 / 영향 / 회귀" 5절 구조를 따릅니다.
+- 결정의 "왜" 가 본문이고, "무엇을 했는지" 는 git log / commit 메시지로 보완됩니다.

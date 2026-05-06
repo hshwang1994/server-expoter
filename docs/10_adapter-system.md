@@ -197,3 +197,22 @@ diagnosis:
 | `lookup_plugins/adapter_loader.py` | Ansible lookup plugin (adapter 스캔+선택) |
 | `common/vars/vendor_aliases.yml` | 벤더명 정규화 매핑 |
 | `adapters/registry.yml` | 마스터 인덱스 |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| 새 벤더 / 새 세대 어댑터 추가 절차 | [14_add-new-gather.md](14_add-new-gather.md) |
+| 벤더별 호환성 매트릭스 | [22_compatibility-matrix.md](22_compatibility-matrix.md) |
+| 실장비 검증 절차 | [13_redfish-live-validation.md](13_redfish-live-validation.md) |
+
+## 자주 헷갈리는 점
+
+| 질문 | 답 |
+|------|----|
+| 어떤 어댑터가 선택됐는지 어떻게 확인? | ansible-playbook 의 `-vvv` 옵션 + `grep "Selected adapter"` 또는 envelope `meta.adapter_id` 확인 |
+| 같은 점수의 어댑터가 둘 이상이면? | 정의되지 않은 동작 — 점수 충돌은 어댑터 작성자가 priority / specificity 로 명확히 구분해야 함 |
+| 어댑터를 추가했는데 선택되지 않음 | match 의 manufacturer / model 패턴이 실제 BMC 응답과 일치하는지 raw fixture 로 비교 |
+| OEM 필드가 누락됐는데? | 표준 필드만으로 충분한 경우 OEM 은 placeholder 유지가 정상. 사용자 요구가 발생하면 추가 |

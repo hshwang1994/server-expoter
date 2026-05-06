@@ -160,3 +160,13 @@ post {
 4. Jenkins credentials에 vault-pass 등록
 5. `ansible-galaxy collection install` 실행
 6. 테스트 빌드 실행 (redfish-gather, single host)
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Jenkins Job 등록 | [04_job-registration.md](04_job-registration.md) |
+| 호출자 입력 형식 | [05_inventory-json-spec.md](05_inventory-json-spec.md) |
+| 실패 처리 정책 | [08_failure-handling.md](08_failure-handling.md) |

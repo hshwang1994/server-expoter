@@ -10,7 +10,7 @@
 > - 펌웨어 업그레이드 후 응답 변경 비교 (회귀 분석)
 > - 정상 시점의 raw 응답을 보존해뒀다가 장애 시점과 비교
 
-생성: 2026-04-28 (Round 11 reference collection)
+최초 수집: 2026-04-28 (Round 11 검증 단위)
 
 ---
 
@@ -107,7 +107,10 @@ wsl python3 tests/reference/scripts/gather_agent_env.py --skip-existing
 
 ## 관련
 
-- rule 13 (output-schema-fields), 21 (output-baseline-fixtures), 96 (external-contract-integrity)
-- skill: `add-new-vendor`, `update-vendor-baseline`, `probe-redfish-vendor`, `update-output-schema-evidence`
-- 정본: `tests/fixtures/` (회귀 input) / `schema/baseline_v1/` (회귀 기준선)
-- evidence: `tests/evidence/2026-04-28-reference-collection.md`
+| 자료 | 용도 |
+|------|------|
+| `tests/fixtures/` | 회귀 테스트의 input (raw 응답) |
+| `schema/baseline_v1/` | 회귀 테스트의 기준선 (정답지) |
+| `tests/evidence/` | Round 단위 검증 결과 (`tests/evidence/2026-04-28-reference-collection.md` 등) |
+| [docs/13_redfish-live-validation.md](../../docs/13_redfish-live-validation.md) | 검증 라운드 누적 |
+| [docs/14_add-new-gather.md](../../docs/14_add-new-gather.md) | 새 gather / 새 벤더 추가 절차 |

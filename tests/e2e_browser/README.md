@@ -44,7 +44,7 @@ pytest tests/e2e_browser/ -v --tracing on
 | 파일 | 시나리오 | 상태 |
 |---|---|---|
 | `test_jenkins_master.py` | 마스터 dashboard 도달 | [PASS] 활성 |
-| `test_jenkins_master.py` | 로그인 + jobs list | [PASS] 활성 (cycle-015 cloviradmin/Goodmit0802!) |
+| `test_jenkins_master.py` | 로그인 + jobs list | [PASS] 활성 |
 
 ## Marker 정의
 
@@ -64,4 +64,14 @@ Jenkins agent (10.100.64.154/155)에서 실행 시:
 ## 비고
 
 - 본 디렉터리는 기존 `tests/e2e/` (pytest baseline E2E)와 별개. 기존은 backend JSON 검증 / 본 디렉터리는 Browser UI.
-- 사용자 권한 부여 (cycle-015): SSH 사용자 (cloviradmin) = Jenkins UI 사용자. Browser E2E login 활성.
+- 사용자 권한 부여 후: SSH 사용자 = Jenkins UI 사용자. Browser E2E 로그인 활성.
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Jenkins 마스터 자체 설치 | [docs/01_jenkins-setup.md](../../docs/01_jenkins-setup.md) |
+| 회귀 테스트 (백엔드 JSON) | `tests/e2e/` |
+| 호환성 매트릭스 | [docs/22_compatibility-matrix.md](../../docs/22_compatibility-matrix.md) |

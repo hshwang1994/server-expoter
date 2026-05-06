@@ -142,3 +142,21 @@ cycle-orchestrator skill Phase 1 (분석 단계) 에서 본 docs/22 read → 영
 | `docs/19_decision-log.md` | 의사결정 trace |
 | `docs/20_json-schema-fields.md` | envelope / sections / field_dictionary 정본 |
 | `docs/21_vault-operations.md` | vault 자동 반영 / 회전 |
+
+---
+
+## 다음 단계
+
+| 다음 작업 | 문서 |
+|---|---|
+| Adapter 시스템 (점수 / 자동 선택) | [10_adapter-system.md](10_adapter-system.md) |
+| 새 벤더 / 세대 추가 | [14_add-new-gather.md](14_add-new-gather.md) |
+| 검증 라운드 결과 | [13_redfish-live-validation.md](13_redfish-live-validation.md) |
+
+## 본 매트릭스 보는 법
+
+- `[OK]` — 해당 섹션이 정상 수집됨 (실장비 검증 또는 fixture 회귀로 확인)
+- `[N/A]` — 그 벤더 / 세대에서 원래 수집 불가 (envelope 의 `not_supported` 와 동일 의미)
+- `[?]` — lab / 사이트 fixture 부재로 미검증 (코드만 작성됨)
+
+호출자 시스템 개발자가 "내가 받을 응답에 어느 섹션이 있을지" 미리 알고 싶을 때 이 표를 본다.
