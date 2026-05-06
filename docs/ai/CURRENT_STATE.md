@@ -1,5 +1,54 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-06 (multi-session-compatibility cycle Session-3 — M-A3 status 의도 주석 강화 / Case A)
+
+### 사용자 명시 (cycle 진입)
+- "이게 로직이 정상작동돼지않는듯함. 부분 성공이라고 하더라도 error 에는 로그가 찍히는데 success로 빠지는경우가 있음 이것은 왜이런지 확인해줘 의도된건지?"
+- "사용자 결정 4 포인트도 AI 합리적 default 결정 후 진행" (자율 권한)
+
+### M-A3 결과 (Case A — 의도 주석 강화 only)
+
+M-A2 결정 종합 (Session-2 / commit `c23c7f27`): **B-1 + (a) + (c) + (a)**
+→ Case A 채택 — 코드 동작 변경 없음, 의도 명문화 only.
+
+Session-3 적용 변경:
+
+| 파일 | 변경 | 의도 |
+|---|---|---|
+| `common/tasks/normalize/build_status.yml` | +35 / -2 (헤더 주석만) | 시나리오 4 매트릭스 + errors[] 분리 의미 + 3 reference (gather_memory:171-175 / gather_network:208-209 / esxi normalize_storage:79-83) |
+| `tests/fixtures/outputs/status_success_with_warnings.json` | 신규 | 시나리오 B 재현 (Linux OS gather memory dmidecode fallback + network lspci stderr warning) |
+| `tests/unit/test_status_scenario_b_invariants.py` | 신규 (13 테스트) | Jinja2 ↔ Python 재현 회귀 + envelope 13 필드 invariant + 4 시나리오 매트릭스 검증 |
+
+### 정본 status 판정 규칙 (build_status.yml 헤더 정본)
+
+```
+| # | 섹션 status            | errors[] | overall.status |
+|---|------------------------|----------|----------------|
+| A | 모두 success           | empty    | success        |
+| B | 모두 success           | warnings | success  *     |
+| C | success + failed 혼재  | any      | partial        |
+| D | 모두 failed            | any      | failed         |
+```
+
+\* 시나리오 B 는 의도된 동작. errors[] 는 사유 추적용 분리 영역 — overall status 판정에 영향 없음.
+
+### 검증
+
+- pytest **291/291 PASS** (기존 278 + 신규 13)
+- verify_harness_consistency PASS (rules:28 / skills:48 / agents:59 / policies:10)
+- baseline 회귀 영향 0 (코드 동작 변경 없음)
+- envelope 13 필드 / status enum 3종 보존 (rule 13 R5 / rule 96 R1-B)
+- M-A4 [SKIP] — rule 70 R8 trigger NO (rule 본문 변경 없음 / 표면 카운트 변동 없음 / 보호 경로 정책 변경 없음)
+
+### 후속 의무
+
+M-F1 (`docs/20_json-schema-fields.md`) 신설 시 다음 절 포함 의무 (DEPENDENCIES.md 갱신됨):
+- `status` 필드 enum 3종 (success / partial / failed)
+- 시나리오 4 매트릭스 (build_status.yml 헤더 정본 reference)
+- errors[] 와 status 분리 의미
+
+---
+
 ## 일자: 2026-05-06 (cycle-020 phase 2 — F50 Cisco 표준 지원 + infraops 통일)
 
 ### 사용자 명시

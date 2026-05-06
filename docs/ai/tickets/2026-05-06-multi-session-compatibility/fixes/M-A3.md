@@ -1,6 +1,6 @@
 # M-A3 — status 코드 변경 + 회귀
 
-> status: [PENDING] | depends: M-A2 | priority: P1 | cycle: 2026-05-06-multi-session-compatibility
+> status: [DONE] | depends: M-A2 | priority: P1 | cycle: 2026-05-06-multi-session-compatibility | session: Session-3 (2026-05-06)
 
 ## 사용자 의도
 
@@ -93,14 +93,51 @@ M-A2 [DONE] (Session-2, 2026-05-06) — 결정 결과:
 
 ## 완료 조건
 
-- [ ] M-A2 결정 결과 확인
-- [ ] 변경 spec 적용 (build_status.yml + 결정에 따른 보조 파일)
-- [ ] mock fixture 신규 추가
-- [ ] pytest 108/108 + 신규 fixture 회귀 PASS
-- [ ] verify_harness_consistency / output_schema_drift_check PASS
-- [ ] CURRENT_STATE.md 갱신
-- [ ] commit: `<type>: [M-A3 DONE] status <Case A/B/C> 적용 + 회귀 N건`
-- [ ] SESSION-HANDOFF.md / fixes/INDEX.md 갱신
+- [x] M-A2 결정 결과 확인 (Case A — B-1+a+c+a)
+- [x] 변경 spec 적용
+  - [x] `common/tasks/normalize/build_status.yml` 헤더 주석 강화 (시나리오 4 매트릭스 + 의도된 설계 + 3 reference)
+  - [x] `status_rules.yml` 변경 0 (DEAD CODE 명시 주석 + collection_result 절 build_status 인라인과 동등 정합 확인)
+- [x] mock fixture 신규 추가: `tests/fixtures/outputs/status_success_with_warnings.json` (시나리오 B 재현)
+- [x] 회귀 pytest 신규: `tests/unit/test_status_scenario_b_invariants.py` 13 테스트
+- [x] pytest 291/291 PASS (기존 278 + 신규 13, 회귀 0)
+- [x] verify_harness_consistency PASS (rules:28 / skills:48 / agents:59 / policies:10)
+- [x] verify_vendor_boundary 사전 위반 3건 — 본 cycle M-A3 변경과 무관 (redfish_gather.py OEM Lenovo/HPE pre-existing)
+- [x] YAML / JSON / Python AST PASS
+- [x] baseline 회귀 영향 0 (코드 동작 변경 없음)
+- [x] CURRENT_STATE.md 갱신
+- [x] commit: `feat: [M-A3 DONE] status Case A 의도 주석 강화 + 회귀 13건`
+- [x] SESSION-HANDOFF.md / fixes/INDEX.md / DEPENDENCIES.md 갱신
+
+## 변경 사항 요약 (Session-3 / 2026-05-06)
+
+### 변경 파일
+
+| 파일 | 변경 | 의도 |
+|---|---|---|
+| `common/tasks/normalize/build_status.yml` | +35 / -2 (헤더 주석만) | 시나리오 4 매트릭스 + errors[] 분리 의미 + 3 reference 명문화 |
+| `tests/fixtures/outputs/status_success_with_warnings.json` | 신규 | 시나리오 B 재현 (Linux OS gather memory dmidecode fallback + network lspci stderr) |
+| `tests/unit/test_status_scenario_b_invariants.py` | 신규 | Jinja2 ↔ Python 재현 회귀 + invariants 13 테스트 |
+
+### 코드 동작 변경
+
+- 0 (의도 주석만 추가). envelope 13 필드 / status enum / sections / errors / data 모두 변경 없음
+- rule 13 R5 envelope shape 보존 / rule 96 R1-B 호환성 외 schema 확장 회피
+
+### 신규 회귀 테스트 13건
+
+1. `test_fixture_exists_and_loads` — fixture 존재
+2. `test_envelope_has_13_fields` — rule 13 R5 envelope 13 필드 invariant
+3. `test_overall_status_is_success` — 시나리오 B 정본
+4. `test_errors_non_empty_with_warnings` — errors[] non-empty
+5. `test_errors_have_section_and_message` — errors[] schema (rule 22 R8)
+6. `test_memory_warning_pattern_present` — gather_memory.yml:171-175 dmidecode fallback 패턴
+7. `test_supported_sections_all_success` — supported 섹션 = success
+8. `test_recomputed_status_matches_envelope` — Jinja2 ↔ Python 재현 일치
+9. `test_errors_do_not_change_status` — errors 변동이 status 영향 없음
+10. `test_scenario_a_clean_success` — 시나리오 A
+11. `test_scenario_c_partial` — 시나리오 C
+12. `test_scenario_d_all_failed` — 시나리오 D
+13. `test_no_supported_sections_failed` — 엣지 (모두 not_supported)
 
 ## 다음 세션 첫 지시 템플릿
 

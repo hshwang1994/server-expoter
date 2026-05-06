@@ -1,24 +1,40 @@
 # Session Handoff — 2026-05-06 Multi-Session Compatibility Cycle
 
-> **마지막 갱신**: Session-2 종료 시점 (M-A2 [DONE])
+> **마지막 갱신**: Session-3 종료 시점 (M-A3 [DONE] + M-A4 [SKIP])
 
 ---
 
 ## 마지막 commit / 시점
 
-- **commit**: `c23c7f27`
-- **메시지**: `docs: [M-A2 DONE] status 의도 결정 — Case A 채택`
+- **commit**: (Session-3 신규 — 본 세션 commit 직후 sha 기록)
+- **메시지**: `feat: [M-A3 DONE] status Case A 의도 주석 강화 + 회귀 13건`
 - **시점**: 2026-05-06 (Asia/Seoul)
 - **branch**: `main` (사용자 명시 자율 push, rule 93 R1+R4)
 - **push 결과**: github + gitlab 동시 (origin push URL 2개)
 
 ### 이전 commit
+- `c23c7f27` — Session-2 M-A2 결정 [DONE] / Case A 채택
 - `ba003b2f` — Session-1 M-A1 분석 [DONE]
 - `abb41e59` — Session-0 ticket 24건 작성
 
 ---
 
 ## 직전 세션 종료 상태
+
+### Session-3 (M-A3 코드 변경 + 회귀)
+
+| 항목 | 결과 |
+|---|---|
+| M-A2 결정 결과 확인 (Case A — B-1+a+c+a) | [DONE] |
+| build_status.yml 헤더 주석 강화 (시나리오 4 매트릭스 + 의도 명문화 + 3 reference) | [DONE] |
+| status_rules.yml 변경 0 (DEAD CODE + collection_result 절 인라인과 정합 확인) | [DONE] |
+| mock fixture 신규: `tests/fixtures/outputs/status_success_with_warnings.json` (시나리오 B) | [DONE] |
+| 회귀 pytest 신규: `tests/unit/test_status_scenario_b_invariants.py` 13 테스트 | [DONE] |
+| pytest 291/291 PASS (기존 278 + 신규 13) | [DONE] |
+| verify_harness_consistency PASS | [DONE] |
+| baseline 회귀 영향 0 (코드 동작 변경 없음) | [DONE] |
+| M-A3.md / fixes/INDEX.md / SESSION-HANDOFF.md / DEPENDENCIES.md 갱신 | [DONE] |
+| M-A4 [SKIP] 판정 (rule 70 R8 trigger NO — 본문 변경 없음, 표면 카운트 변동 없음) | [DONE] |
 
 ### Session-2 (M-A2 결정)
 
@@ -53,16 +69,16 @@
 
 ### 다음 세션 시작 가능 여부
 
-- **YES** — Session-3 (M-A3: status 코드 변경, Case A) 진입 가능. M-A2 결정 + Case A 변경 spec 입력 준비됨
+- **YES** — Session-4 진입 가능. M-A 영역 완결 ([DONE] M-A1/M-A2/M-A3 + [SKIP] M-A4). 다음 P1 후보: M-B1 (account_provision flow 분석) / M-C1 (vault 동적 로딩) / M-D1 (호환성 매트릭스) / M-E1 (Superdome web 검색) / M-F1 (docs/20 신설)
 
 ---
 
 ## 이번 cycle 종료 상태 (현재)
 
-- **round**: 3 (Session-0 ticket 작성 + Session-1 M-A1 + Session-2 M-A2)
+- **round**: 4 (Session-0 ticket 작성 + Session-1 M-A1 + Session-2 M-A2 + Session-3 M-A3)
 - **ticket 작성**: 24건
-- **ticket 진행**: 2건 [DONE] (M-A1, M-A2) / 22건 [PENDING]
-- **commit**: 3건 누적 (Session-0/1/2)
+- **ticket 진행**: 3건 [DONE] (M-A1, M-A2, M-A3) / 1건 [SKIP] (M-A4) / 20건 [PENDING]
+- **commit**: 4건 누적 (Session-0/1/2/3)
 
 ---
 
@@ -97,14 +113,13 @@ DEPENDENCIES.md 참조. 현재 [PENDING] + 의존 통과:
 
 | ticket | 영역 | 우선 |
 |---|---|---|
-| **M-A3** | status 코드 변경 (Case A — 의도 주석 강화 only) | P1 (M-A2 [DONE] 후 의존 통과) |
 | **M-B1** | account_provision flow 분석 (read-only) | P1 |
 | **M-C1** | vault 동적 로딩 분석 (read-only) | P1 |
 | **M-D1** | 9 vendor × N gen × 9 sections 매트릭스 작성 | P1 (M-D 전체 진입점) |
 | **M-E1** | HPE Superdome web 검색 | P1 |
-| **M-F1** | docs/20_json-schema-fields.md 신설 | P2 (의존 없음, 독립) |
+| **M-F1** | docs/20_json-schema-fields.md 신설 (M-A3 결과 — status 판정 절 포함 의무) | P2 (의존 없음, 독립) |
 
-위 6 ticket 은 동시 진행 가능 (서로 다른 파일 영역).
+위 5 ticket 은 동시 진행 가능 (서로 다른 파일 영역). M-A 영역 완결 ([DONE] M-A1/M-A2/M-A3 + [SKIP] M-A4).
 
 ---
 
@@ -112,55 +127,53 @@ DEPENDENCIES.md 참조. 현재 [PENDING] + 의존 통과:
 
 | ticket | 차단 사유 |
 |---|---|
-| M-A4 | M-A3 [DONE] 후 ADR trigger 판정 (Case A → trigger NO 예상 → SKIP 가능) |
+| M-A4 | [SKIP] 판정 (Session-3, 2026-05-06) — Case A 채택 결과 rule 70 R8 trigger NO (rule 본문 변경 없음 / 표면 카운트 변동 없음 / 보호 경로 정책 변경 없음) |
 | M-D 모든 fallback | M-D1 매트릭스 + M-D2 web 검색 결과 본 후 진입 |
 | M-E 6단계 | M-E1 web 검색 결과 본 후 진입 (rule 50 R2 9단계 명시 승인 — 이미 받음) |
 | M-G | 다른 모든 ticket [DONE] 후 진입 (cycle 종료 학습 추출) |
 
 ---
 
-## 검증 통과 여부 (Session-0 종료 시점)
+## 검증 통과 여부 (Session-3 종료 시점)
 
 | 검증 | 결과 |
 |---|---|
-| pytest 108/108 | [PASS] |
-| verify_harness_consistency.py | [PASS] |
-| verify_vendor_boundary.py | [PASS] |
-| check_project_map_drift.py | [PASS] (Session-0 시작 시 갱신) |
-| YAML/Python AST | [PASS] |
+| pytest 291/291 | [PASS] (기존 278 + 신규 13 — M-A3 시나리오 B invariants) |
+| verify_harness_consistency.py | [PASS] (rules:28 / skills:48 / agents:59 / policies:10) |
+| verify_vendor_boundary.py | 위반 3건 — pre-existing (redfish_gather.py OEM Lenovo/HPE), 본 cycle 영역 외 |
+| YAML / JSON / Python AST | [PASS] |
+| baseline 회귀 영향 | 0 (Case A — 의도 주석만, 코드 동작 변경 없음) |
 
 ---
 
 ## 현재 진행 중 ticket
 
-(없음 — Session-1 종료. Session-2 진입 시 갱신)
+(없음 — Session-3 종료. Session-4 진입 시 갱신)
 
 | ticket | worker | 시작 시점 |
 |---|---|---|
 | — | — | — |
 
-## 다음 세션 (Session-3 / M-A3) 첫 지시
+## 다음 세션 (Session-4) 첫 지시
 
 ```
-M-A3 status 코드 변경 진입.
+2026-05-06 multi-session-compatibility cycle Session-4 진입.
 
-cold-start: SESSION-PROMPTS.md + fixes/M-A3.md ("현재 상태" + "변경 spec → Case A" 절) + fixes/M-A2.md ("변경 spec (M-A3 도출)" 절)
+cold-start: SESSION-PROMPTS.md + fixes/INDEX.md (진행 가능 ticket list)
 
-M-A2 결정 결과: Case A (B-1 + a + c + a)
+진행 가능 ticket (M-A 영역 완결):
+- M-B1 (account_provision flow 분석, read-only)
+- M-C1 (vault 동적 로딩 분석, read-only)
+- M-D1 (9 vendor × N gen × 9 sections 매트릭스)
+- M-E1 (Superdome web 검색)
+- M-F1 (docs/20_json-schema-fields.md 신설 — M-A3 결과로 status 판정 절 포함 의무)
 
-작업:
-1. common/tasks/normalize/build_status.yml 헤더 주석 강화
-   - 시나리오 B 의도 명시 ("errors[] 는 보지 않는다 / 섹션 status 만 본다")
-   - errors[] 분리 의미 명문화 ("사유 추적용 분리 영역")
-   - 코드 주석 3 reference (gather_memory.yml:171-172 / gather_network.yml:208 / normalize_storage.yml:79-80)
-2. status_rules.yml 변경 0 (DEAD CODE 명시 주석 reference 확인만)
-3. mock fixture 1건 신규 — 시나리오 B 재현 (status_success_with_warnings.json 위치 결정)
-4. pytest 회귀 + verify_harness_consistency PASS
-5. baseline 회귀 영향 0 확인
-6. CURRENT_STATE.md 갱신 (M-A2 결정 + M-A3 작업 반영)
-7. M-F1 신설 시 status 판정 규칙 절 포함 의무 — DEPENDENCIES 갱신
-
-ADR (M-A4): rule 70 R8 trigger NO 예상 (rule 본문 변경 없음, 표면 카운트 변동 없음). M-A4 SKIP 가능.
+작업 원칙:
+- Additive only (rule 92 R2)
+- lab 없음 → 정적 분석 + mock fixture + DMTF/vendor docs origin 주석 (rule 96 R1-A)
+- ticket 종료 시 SESSION-HANDOFF.md / fixes/INDEX.md 갱신
+- commit 마커: feat: [M-X## DONE] <요약>
+- 공용 파일 (schema/sections.yml / field_dictionary.yml / vendor_aliases.yml) 동시 편집 금지
 ```
 
 ---

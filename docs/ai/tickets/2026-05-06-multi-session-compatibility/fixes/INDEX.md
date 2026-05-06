@@ -10,8 +10,8 @@
 |---|---|---|---|---|---|---|
 | **M-A1** | status 로직 분석 (read-only) | P1 | — | [DONE] | Session-1 | `ba003b2f` |
 | **M-A2** | status 의도 결정 (사용자) | P1 | M-A1 | [DONE] | Session-2 | `c23c7f27` |
-| **M-A3** | status 코드 변경 + 회귀 (Case A) | P1 | M-A2 | [PENDING] | — | — |
-| **M-A4** | status ADR (rule 70 R8 trigger 시) | P2 | M-A3 | [PENDING] | — | — |
+| **M-A3** | status 코드 변경 + 회귀 (Case A) | P1 | M-A2 | [DONE] | Session-3 | (신규) |
+| **M-A4** | status ADR (rule 70 R8 trigger 시) | P2 | M-A3 | [SKIP] | — | rule 본문 변경 없음 / 표면 카운트 변동 없음 → trigger NO |
 | **M-B1** | account_provision flow 분석 | P1 | — | [PENDING] | — | — |
 | **M-B2** | F49/F50 5 vendor 매트릭스 검증 | P1 | M-B1 | [PENDING] | — | — |
 | **M-B3** | 공통계정 회귀 mock fixture | P1 | M-B2 | [PENDING] | — | — |
@@ -86,6 +86,7 @@
 | [BLOCKED:dep] | 의존 ticket 미완료 |
 | [IN-PROGRESS] | worker 진행 중 |
 | [DONE] | 완료 + commit |
+| [SKIP] | 진행 불필요 (trigger NO 등 — 사유 commit 컬럼 명시) |
 | [BLOCKED:user] | 사용자 결정 대기 |
 | [BLOCKED:lab] | lab 검증 대기 (cycle 종료까지) |
 

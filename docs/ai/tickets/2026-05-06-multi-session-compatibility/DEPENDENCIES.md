@@ -25,6 +25,10 @@ M-E1 (Superdome web 검색)       ── M-E2 (adapter 추가) ── M-E3 (ai-c
 
 M-F1 (JSON schema 문서)        ── M-F2 (3채널 비교)
    (독립 — M-A1/M-B1 분석 결과 반영하면 더 풍부)
+   ※ M-A3 [DONE] (Session-3) — M-F1 신설 시 다음 절 포함 의무:
+      · `status` 필드 enum 3종 (success / partial / failed)
+      · 시나리오 4 매트릭스 (A/B/C/D — build_status.yml 헤더 주석 정본)
+      · errors[] 와 status 분리 의미 (warning emit 시 status 영향 없음)
 
 M-G1 (학습 추출) ── M-G2 (rule/skill/agent 후보)
    (모든 다른 ticket [DONE] 후 진입)
