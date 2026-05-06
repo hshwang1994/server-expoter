@@ -1,218 +1,267 @@
-# 10. Adapter 시스템
+# 10. Adapter — 벤더 차이를 코드 밖으로 빼낸 장치
 
-> **이 문서는** server-exporter 가 어떻게 벤더 / 세대 별 차이를 흡수하는지를 설명한다.
->
-> 가장 핵심: **벤더 분기 코드를 늘리지 않는다.** 새 벤더가 등장하면 `adapters/` 폴더에 YAML 1~3개를 추가하기만 하면 된다.
-> Python / Ansible 코드를 만지지 않아도 되는 이유, 그리고 점수 계산으로 어떻게 가장 적합한 어댑터가 선택되는지를 단계적으로 보여준다.
+## 한 줄 요약
 
-## 개요
+새 벤더 / 새 세대 BMC 가 들어와도 **Python / Ansible 코드는 안 만진다.** `adapters/` 폴더에 YAML 파일 1~3장 추가하면 끝.
 
-Adapter 시스템은 벤더/세대/OS가 늘어나도 `adapters/` 디렉토리에 YAML 파일 추가로 확장하는 레지스트리입니다.
-
-## 디렉토리 구조
-
-```
-adapters/
-  registry.yml               # 마스터 인덱스
-  redfish/                   # 14개
-    redfish_generic.yml       # 범용 (priority: 0)
-    dell_idrac.yml            # Dell 기본 (priority: 10)
-    dell_idrac8.yml           # Dell iDRAC 8 (priority: 50)
-    dell_idrac9.yml           # Dell iDRAC 9 (priority: 100)
-    hpe_ilo.yml               # HPE 기본
-    hpe_ilo4.yml              # HPE iLO 4
-    hpe_ilo5.yml              # HPE iLO 5
-    hpe_ilo6.yml              # HPE iLO 6
-    lenovo_imm2.yml           # Lenovo IMM2
-    lenovo_xcc.yml            # Lenovo XCC
-    cisco_cimc.yml            # Cisco CIMC
-    supermicro_bmc.yml        # Supermicro 기본
-    supermicro_x9.yml         # Supermicro X9
-    supermicro_x11.yml        # Supermicro X11
-  os/                        # 7개
-    linux_generic.yml         # Linux 범용
-    linux_rhel.yml            # RHEL 계열
-    windows_generic.yml       # Windows 범용
-    ...
-  esxi/                      # 4개
-    esxi_generic.yml          # ESXi 범용
-    esxi_7x.yml               # ESXi 7.x
-    ...
-```
-
-## Adapter YAML 구조
-
-```yaml
-adapter_id: redfish_dell_idrac9    # 고유 ID
-channel: redfish                    # 수집 채널 (redfish/os/esxi)
-priority: 100                       # 우선순위 (높을수록 우선)
-version: "1.0.0"                    # adapter 버전
-generic: false                      # true면 fallback adapter
-
-match:                              # 매칭 조건 (모두 충족해야 선택)
-  vendor: ["Dell", "Dell Inc."]     # 벤더명 목록
-  firmware_patterns: ["iDRAC.*9"]   # 펌웨어 정규식 패턴
-  model_patterns: []                # 모델 정규식 패턴
-  os_type: linux                    # OS 유형 (os 채널용)
-  distribution_patterns: ["RHEL"]   # 배포판 패턴 (os 채널용)
-  version_patterns: ["^7\\."]       # 버전 패턴 (esxi 채널용)
-
-capabilities:
-  sections_supported: [system, hardware, bmc, ...] # 수집 가능 섹션
-
-collect:                            # 수집 태스크 경로
-  standard_tasks: "redfish-gather/tasks/collect_standard.yml"
-  oem_tasks: "redfish-gather/tasks/vendors/dell/collect_oem.yml"
-
-normalize:
-  standard_tasks: "redfish-gather/tasks/normalize_standard.yml"
-  oem_tasks: "redfish-gather/tasks/vendors/dell/normalize_oem.yml"
-
-credentials:
-  profile: "redfish_dell"           # vault 프로파일명
-  fallback_profiles: ["redfish_default"]
-
-graceful_degradation:
-  critical_sections: [system, hardware]  # 실패 시 abort
-  optional_sections: [firmware, power]   # 실패해도 continue
-
-diagnosis:
-  not_supported_message: "..."       # Redfish 미지원 시 메시지
-```
-
-## Adapter 선택 흐름
-
-```
-1. precheck_bundle (Phase 1)
-   → ping → port → protocol → auth 진단
-   → probe_facts 획득 (vendor, firmware, model)
-
-2. detect_vendor
-   → vendor_aliases.yml 기반 정규화
-   → _rf_probe_facts 생성
-
-3. adapter_loader (lookup plugin)
-   → adapters/<channel>/*.yml 스캔
-   → match 조건 평가
-   → 점수 계산: priority × 1000 + specificity × 10 + match_score
-   → 최고 점수 adapter 반환
-
-4. 선택된 adapter 기반으로:
-   → credentials.profile → vault 로딩
-   → collect.oem_tasks → OEM 수집 실행 여부
-   → capabilities → 실패 시 지원 섹션 목록
-```
-
-## 점수 계산
-
-| 요소 | 가중치 | 설명 |
-|------|--------|------|
-| priority | × 1000 | YAML에 명시된 우선순위 |
-| specificity | × 10 | match 조건 개수/유형에 따른 점수 |
-| match_score | × 1 | 실제 매칭 성공 보너스 (vendor +20, model +25, firmware +25) |
-| generic | -40 | generic adapter 감점 |
-
-**예시**: Dell iDRAC 9 (firmware 매칭)
-- priority=100 × 1000 = 100,000
-- specificity = vendor(10) + firmware(20) = 30 × 10 = 300
-- match_score = vendor(20) + firmware(25) = 45
-- **총점: 100,345**
-
-**예시**: Dell 기본 adapter (firmware 정보 없음)
-- priority=10 × 1000 = 10,000
-- specificity = vendor(10) = 10 × 10 = 100
-- match_score = vendor(20) = 20
-- **총점: 10,120**
-
-## 새 장비 추가 방법
-
-### 벤더 감지 — `_BUILTIN_VENDOR_MAP`
-
-`redfish_gather.py`의 `_detect_vendor_from_service_root()`는 `_BUILTIN_VENDOR_MAP` 딕셔너리를 사용하여
-모든 벤더(dell, hpe, lenovo, supermicro, cisco)를 감지합니다.
-
-새 벤더 추가 시 `_BUILTIN_VENDOR_MAP`에 항목 추가 + adapter YAML 생성만으로
-벤더 감지 로직 변경 없이 자동 지원됩니다.
-
-### 새 벤더 (예: Fujitsu)
-
-1. `common/vars/vendor_aliases.yml`에 벤더 매핑 추가:
-   ```yaml
-   fujitsu:
-     - "Fujitsu"
-     - "FUJITSU"
-     - "FUJITSU LIMITED"
-   ```
-
-2. `adapters/redfish/fujitsu_irmc.yml` 생성
-
-3. (선택) `redfish-gather/tasks/vendors/fujitsu/` 에 OEM 태스크 추가
-
-4. (선택) `vault/redfish/redfish_fujitsu.yml` 에 인증 정보 추가
-
-**site.yml 수정 불필요!**
-
-### 새 OS 배포판 (예: Rocky Linux)
-
-1. `adapters/os/linux_rocky.yml` 생성 (distribution_patterns에 "Rocky" 추가)
-
-### 새 ESXi 버전
-
-1. `adapters/esxi/esxi_9x.yml` 생성 (version_patterns에 "^9\\." 추가)
-
-## redfish_gather.py vs Adapter 역할 분리
-
-| 계층 | 담당 |
-|------|------|
-| API 호출 (HTTP) | `redfish_gather.py` — 13개 표준 endpoint 직접 호출 |
-| 벤더 감지 | `redfish_gather.py` — `detect_vendor()` |
-| 데이터 정규화 | adapter YAML + normalize tasks |
-| 필드 매핑 | adapter capabilities + normalize tasks |
-
-## 검증 상태
-
-| 벤더 | 검증 기준 장비 | 매칭 Adapter | 실장비 검증 |
-|------|--------------|-------------|-----------|
-| Dell | PowerEdge R740 (iDRAC 9, FW 4.00) | redfish_dell_idrac9 (P100) | 검증 완료 |
-| HPE | DL380 Gen11 (iLO 6, FW 1.73) | redfish_hpe_ilo6 (P100) | 검증 완료 |
-| Lenovo | SR650 V2 (XCC, FW 5.70) | redfish_lenovo_xcc (P100) | 검증 완료 |
-| Supermicro | — | redfish_supermicro_bmc 등 | 미검증 (어댑터만 존재) |
-| Cisco | — | redfish_cisco_cimc | baseline + E2E 검증 완료 (실장비 미검증) |
-
-> 검증 상세는 [docs/13_redfish-live-validation.md](13_redfish-live-validation.md) 참조.
-
-## 설계 원칙 (실장비 검증 확정)
-
-1. **URI 패턴 하드코딩 금지** — 컬렉션 Members[0]에서 동적 취득
-2. **StorageControllers fallback 필수** — HPE Gen11+ 는 Controllers 링크 사용
-3. **null 허용 필드 명시** — 벤더마다 누락 필드 다름 (adapter에서 `optional_fields` 정의)
-4. **SimpleStorage는 fallback 전용** — Storage 실패 시만 시도
-5. **OEM은 최소 사용** — 표준 필드로 충분한 항목이 대부분
-
-## 주요 파일
-
-| 파일 | 역할 |
-|------|------|
-| `module_utils/adapter_common.py` | 벤더 정규화, match 평가, 점수 계산 |
-| `lookup_plugins/adapter_loader.py` | Ansible lookup plugin (adapter 스캔+선택) |
-| `common/vars/vendor_aliases.yml` | 벤더명 정규화 매핑 |
-| `adapters/registry.yml` | 마스터 인덱스 |
+이게 가능한 이유와, 실제로 어떤 YAML 이 어떻게 매칭되는지를 풀어본다.
 
 ---
 
-## 다음 단계
+## 1. 왜 Adapter 가 필요한가
 
-| 다음 작업 | 문서 |
+같은 "서버 정보 수집" 인데도 벤더마다 다음이 전부 다르다.
+
+- BMC 응답 JSON 구조 (Dell `Oem.Dell.DellSystem`, HPE `Oem.Hpe.Bios`, …)
+- 펌웨어 버전 표기 형식
+- 일부 필드 존재 여부 (`storage.logical_volumes` 가 일부 세대에는 없다)
+- 필요한 호출 순서 (HPE Gen11 부터는 Controllers 링크를 따로 호출해야 함)
+
+이걸 전부 Python 코드에 `if vendor == "dell": ...` 분기로 박으면, 새 벤더 들어올 때마다 코드 깊숙이 손대야 한다. 5개 벤더면 어떻게든 버틴다. 9개, 12개 늘어나면 아무도 못 읽는다.
+
+대신 **벤더 차이만 떼어내서 YAML 한 장에 적어두는 식으로 분리**한다. Python 코드는 "어떤 YAML 이 매칭되는지" 만 결정하고, **그 YAML 에 적힌 경로대로** 호출한다.
+
+---
+
+## 2. 실제 어떻게 동작하나 — 한 번의 호출 따라가기
+
+호출자가 Dell 서버 BMC IP 를 넘긴 시점부터 어떤 adapter 가 어떻게 선택되는지.
+
+```
+[ Step 1 ] precheck — 어디까지 닿는지 확인
+    ping(10.50.11.162) → OK
+    TCP 443 응답 → OK
+    HTTPS handshake → OK
+    Basic Auth → OK
+    │
+    이때 BMC 가 알려준 정보:
+       Manufacturer: "Dell Inc."
+       Product:      "Integrated Dell Remote Access Controller"
+       FirmwareVersion: "iDRAC 9 4.00.00.00"
+    │
+    ▼
+[ Step 2 ] vendor 정규화
+    "Dell Inc." → vendor_aliases.yml 조회 → "dell"
+    │
+    ▼
+[ Step 3 ] adapter_loader (Ansible lookup plugin) 실행
+    │
+    ├─ adapters/redfish/*.yml 14개 파일 모두 읽기
+    │
+    ├─ 각 파일의 match 조건 평가 (vendor / firmware / model 패턴)
+    │   - redfish_generic.yml      → 매칭 (모든 vendor 대상, 점수 낮음)
+    │   - dell_idrac.yml            → 매칭 (vendor=dell)
+    │   - dell_idrac9.yml           → 매칭 (vendor=dell + firmware ~ /iDRAC.*9/)
+    │   - dell_idrac8.yml           → 미매칭 (firmware 패턴 다름)
+    │   - hpe_*, lenovo_*, ...      → 미매칭
+    │
+    ├─ 매칭된 adapter 들에 점수 매기기 (3절 공식 참조)
+    │   - dell_idrac9.yml  = 100,345
+    │   - dell_idrac.yml   =  10,120
+    │   - redfish_generic  =     -40
+    │
+    └─ 최고 점수 → dell_idrac9.yml 선택
+    │
+    ▼
+[ Step 4 ] 선택된 adapter 가 시키는 대로
+    - credentials.profile = "redfish_dell"  → vault/redfish/redfish_dell.yml 로드
+    - collect.standard_tasks = "redfish-gather/tasks/collect_standard.yml" 실행
+    - collect.oem_tasks      = "redfish-gather/tasks/vendors/dell/collect_oem.yml" 실행
+    - normalize.standard_tasks 실행 → fragment 생성
+    - capabilities.sections_supported 가 출력 sections[].not_supported 의 기준
+```
+
+여기서 핵심: Ansible / Python 코드 **어디에도 "Dell" 이라는 단어가 없다.** 모든 분기가 YAML 안의 정보로 결정된다.
+
+---
+
+## 3. 점수 계산 — 누가 뽑히나
+
+매칭된 adapter 가 여러 개일 때 점수가 가장 높은 것이 뽑힌다.
+
+### 공식
+
+```
+score = priority × 1000  +  specificity × 10  +  match_score  -  generic 감점(40)
+```
+
+### 각 요소
+
+| 요소 | 어디서 오나 | 보통 값 |
+|---|---|---|
+| `priority` | YAML 의 `priority:` 값 | 0(generic) / 10(기본 vendor) / 50(세대별) / 100(최신 세대) |
+| `specificity` | match 조건 개수 / 종류 | vendor 만 = 10, vendor+firmware = 30 |
+| `match_score` | 실제 매칭 성공 보너스 | vendor +20, model +25, firmware +25 |
+| `generic` 감점 | YAML 의 `generic: true` 면 −40 | fallback 용이라 점수 낮춤 |
+
+### 예시 — Dell iDRAC 9 vs Dell 기본
+
+| adapter | priority | specificity | match | generic 감점 | 합계 |
+|---|---:|---:|---:|---:|---:|
+| `dell_idrac9.yml` | 100×1000 | (10+20)×10 | 20+25 | 0 | **100,345** |
+| `dell_idrac.yml` | 10×1000 | 10×10 | 20 | 0 | **10,120** |
+| `redfish_generic.yml` | 0×1000 | 0×10 | 0 | −40 | **−40** |
+
+세대별 (`dell_idrac9`) 이 항상 기본 (`dell_idrac`) 보다 압도적으로 높게 나오게 priority 차등을 둔다. 이게 깨지면 (예: dell_idrac9 의 priority 를 5 로 두면) 기본이 뽑히는 이상 동작이 생긴다.
+
+---
+
+## 4. Adapter YAML 한 장 뜯어보기
+
+`adapters/redfish/dell_idrac9.yml` 같은 한 장에 들어가는 항목.
+
+```yaml
+adapter_id: redfish_dell_idrac9       # 고유 ID. envelope 의 meta.adapter_id 에 찍힘
+channel:    redfish                   # 어떤 채널에서 쓸지 (redfish/os/esxi)
+priority:   100                       # 이 vendor 안에서의 우선순위
+version:    "1.0.0"
+generic:    false                     # true 면 fallback adapter (점수 −40)
+
+match:                                # ↓ 모두 만족해야 이 adapter 가 매칭됨
+  vendor:             ["Dell", "Dell Inc."]
+  firmware_patterns:  ["iDRAC.*9"]
+  model_patterns:     []
+  os_type:            linux           # OS 채널일 때만 사용
+  distribution_patterns: ["RHEL"]
+  version_patterns:   ["^7\\."]       # ESXi 채널일 때만 사용
+
+capabilities:
+  sections_supported: [system, hardware, bmc, cpu, memory, storage,
+                       network, firmware, power]
+                                      # ← 출력 JSON 의 sections 에서
+                                      #   여기 없는 섹션은 자동으로 not_supported
+
+collect:
+  standard_tasks: "redfish-gather/tasks/collect_standard.yml"
+  oem_tasks:      "redfish-gather/tasks/vendors/dell/collect_oem.yml"
+
+normalize:
+  standard_tasks: "redfish-gather/tasks/normalize_standard.yml"
+  oem_tasks:      "redfish-gather/tasks/vendors/dell/normalize_oem.yml"
+
+credentials:
+  profile:           "redfish_dell"   # vault/redfish/redfish_dell.yml 을 로드
+  fallback_profiles: ["redfish_default"]
+
+graceful_degradation:
+  critical_sections: [system, hardware]   # 이게 실패하면 abort
+  optional_sections: [firmware, power]    # 이게 실패해도 다른 섹션 계속
+```
+
+읽는 법: 위에서부터 "**누구한테 매칭되는가 → 뭘 할 수 있는가 → 어떤 코드를 호출하는가 → 어떤 자격증명 쓰는가 → 실패 어떻게 다루는가**".
+
+---
+
+## 5. 새 벤더 추가 — 정확히 3단계
+
+새 벤더 (예: Fujitsu) 를 붙일 때 만져야 하는 곳.
+
+### 1단계 — 별칭 추가
+
+`common/vars/vendor_aliases.yml` 에 BMC 가 보고할 만한 manufacturer 표기를 모두 적는다.
+
+```yaml
+fujitsu:
+  - "Fujitsu"
+  - "FUJITSU"
+  - "FUJITSU LIMITED"
+```
+
+### 2단계 — Adapter YAML 만들기
+
+`adapters/redfish/fujitsu_irmc.yml` 작성. 위 4절 구조 그대로.
+
+### 3단계 — (선택) OEM 태스크
+
+Fujitsu 만의 특이한 응답이 있으면 `redfish-gather/tasks/vendors/fujitsu/collect_oem.yml` 추가.
+
+OEM 이 필요 없으면 표준 필드만으로 충분하다. 그 경우 adapter YAML 의 `collect.oem_tasks` 를 비우면 된다.
+
+**`site.yml` 은 수정하지 않는다.** adapter_loader 가 폴더를 동적으로 스캔한다.
+
+---
+
+## 6. 새 OS / ESXi 도 같은 패턴
+
+| 들어온 것 | 만들 YAML |
 |---|---|
-| 새 벤더 / 새 세대 어댑터 추가 절차 | [14_add-new-gather.md](14_add-new-gather.md) |
-| 벤더별 호환성 매트릭스 | [22_compatibility-matrix.md](22_compatibility-matrix.md) |
-| 실장비 검증 절차 | [13_redfish-live-validation.md](13_redfish-live-validation.md) |
+| 새 Linux 배포판 (예: Rocky) | `adapters/os/linux_rocky.yml` (distribution_patterns 에 "Rocky") |
+| 새 ESXi 메이저 버전 (예: 9.x) | `adapters/esxi/esxi_9x.yml` (version_patterns 에 `^9\.`) |
 
-## 자주 헷갈리는 점
+벤더가 아니라 **운영체제 / 가상화 버전** 이 분기 키일 뿐, 구조는 동일하다.
 
-| 질문 | 답 |
-|------|----|
-| 어떤 어댑터가 선택됐는지 어떻게 확인? | ansible-playbook 의 `-vvv` 옵션 + `grep "Selected adapter"` 또는 envelope `meta.adapter_id` 확인 |
-| 같은 점수의 어댑터가 둘 이상이면? | 정의되지 않은 동작 — 점수 충돌은 어댑터 작성자가 priority / specificity 로 명확히 구분해야 함 |
-| 어댑터를 추가했는데 선택되지 않음 | match 의 manufacturer / model 패턴이 실제 BMC 응답과 일치하는지 raw fixture 로 비교 |
-| OEM 필드가 누락됐는데? | 표준 필드만으로 충분한 경우 OEM 은 placeholder 유지가 정상. 사용자 요구가 발생하면 추가 |
+---
+
+## 7. Python 코드와 Adapter 의 역할 분리
+
+Adapter 가 모든 걸 해결하는 건 아니다. 두 계층이 각자 책임이 다르다.
+
+| 계층 | 담당 |
+|---|---|
+| Python (`redfish_gather.py`) | HTTP 호출, 응답 파싱, 벤더 감지 (`_detect_vendor_from_service_root`) |
+| Adapter YAML | 어떤 task 를 부를지, 어떤 vault 를 쓸지, 어떤 섹션을 지원하는지 |
+| Normalize task | 응답 dict 를 envelope `data` 에 맞게 정리 |
+
+Python 은 **"어떻게 가져오나"**, Adapter 는 **"누구에게 무엇을 할 수 있나"**, Normalize 는 **"어떻게 표준 JSON 으로 옮기나"**.
+
+이렇게 나누면 Python 은 거의 안 바뀌고 (3년에 한 번 정도), Adapter 가 자주 바뀌어도 (분기 한 번에 1장씩) 충돌이 없다.
+
+---
+
+## 8. 디버깅 — 어느 adapter 가 뽑혔지?
+
+세 가지 방법.
+
+**(가) envelope 안 보기**
+```json
+"meta": { "adapter_id": "redfish_dell_idrac9", ... }
+```
+
+**(나) `-vvv` 로 ansible 실행해서 로그 보기**
+```bash
+ansible-playbook redfish-gather/site.yml -e target_ip=10.x.x.1 -vvv 2>&1 | grep -i adapter
+```
+
+**(다) `score-adapter-match` 절차 (skill) 사용**
+점수 충돌이 의심될 때 각 adapter 의 점수를 풀어서 보여준다.
+
+---
+
+## 9. 자주 마주치는 사고
+
+**Q. 새 adapter 만들었는데 선택이 안 됨**
+match 조건이 실제 BMC 응답과 다른 경우가 90%. probe 로 raw 응답을 받아서 vendor / firmware / model 문자열을 직접 확인한다.
+
+**Q. 같은 vendor 의 다른 generation 이 잘못 뽑힘**
+priority 가 역전됐다 (세대별이 기본 보다 낮음). 또는 priority 는 같은데 specificity 가 비슷해서 정렬 결과가 불확정. **priority 를 100 / 50 / 10 / 0 으로 충분히 벌려놓는** 게 안전.
+
+**Q. capabilities.sections_supported 에 적었는데 출력에 not_supported 로 나옴**
+adapter 가 매칭은 됐는데 normalize task 가 그 섹션을 못 채운 경우. fragment 생성 단계의 raw 응답 / Jinja2 추출 / fragment merge 호출 누락을 차례로 점검.
+
+---
+
+## 10. 더 보고 싶을 때
+
+| 보고 싶은 것 | 파일 |
+|---|---|
+| 벤더 / 세대 / 섹션 호환성 한 장 표 | `docs/22_compatibility-matrix.md` |
+| 새 벤더 추가 절차 (전체 9단계) | `docs/14_add-new-gather.md` |
+| 실장비 검증 결과 | `docs/13_redfish-live-validation.md` |
+| 점수 계산 코드 | `module_utils/adapter_common.py` |
+| adapter 동적 로딩 | `lookup_plugins/adapter_loader.py` |
+| 벤더 별칭 사전 | `common/vars/vendor_aliases.yml` |
+| adapter 인덱스 | `adapters/registry.yml` |
+
+---
+
+## 검증 상태 (요약)
+
+| 벤더 | 검증 기준 장비 | 매칭 Adapter | 실장비 검증 |
+|---|---|---|---|
+| Dell | PowerEdge R740 (iDRAC 9, FW 4.00) | `redfish_dell_idrac9` (P100) | 완료 |
+| HPE | DL380 Gen11 (iLO 6, FW 1.73) | `redfish_hpe_ilo6` (P100) | 완료 |
+| Lenovo | SR650 V2 (XCC, FW 5.70) | `redfish_lenovo_xcc` (P100) | 완료 |
+| Supermicro | — | 어댑터만 존재 | 미검증 |
+| Cisco | — | `redfish_cisco_cimc` | baseline 검증, 실장비 미검증 |
+
+상세는 `docs/13_redfish-live-validation.md`.

@@ -1,0 +1,410 @@
+// ============================================================
+// Dell PowerEdge R740 (iDRAC9) — Redfish 채널 수집 결과 예시
+// ============================================================
+// 이 파일은 server-exporter 가 호출자에게 돌려주는 JSON 의
+// "정상 케이스" 샘플이다. 실제 운영에서 받은 응답 (schema/baseline_v1/dell_baseline.json) 에
+// 한국어 주석을 라인별로 달아둔 교육용 사본이다.
+//
+// JSON 표준은 주석을 허용하지 않기 때문에 확장자가 .jsonc (JSON with Comments) 다.
+// 시스템이 실제로 보내는 파일은 주석 없는 .json 이다.
+//
+// 읽는 법:
+//   - 위에서 아래로 한 번 훑으면 "한 대 서버에서 뭘 수집해 오는지" 감이 온다.
+//   - 헷갈리면 docs/20_json-schema-fields.md 의 같은 섹션을 본다.
+
+{
+  // ─────────── 식별·라우팅 (5개) ───────────
+  // "이 응답이 어디서 왔고 누구를 가리키는지"
+
+  "target_type": "redfish",            // 수집 채널. os / esxi / redfish 중 하나.
+                                       // redfish = BMC (iDRAC/iLO/XCC 등) 통해 수집했다는 뜻.
+
+  "collection_method": "redfish_api",  // 실제 수집 방식. target_type 따라 자동.
+                                       // redfish_api = Redfish HTTP + Basic Auth.
+                                       // (참고: agent = SSH/WinRM, vsphere_api = vCenter API)
+
+  "ip": "10.50.11.162",                // 호출자가 넘긴 대상 IP.
+                                       // Redfish 채널이면 BMC IP, OS 채널이면 서버 IP.
+
+  "hostname": "LENOVO01",              // 해석된 호스트명. 풀어내지 못하면 ip 값으로 fallback.
+                                       // (이 케이스는 BMC 가 보고한 fqdn 을 그대로 사용)
+
+  "vendor": "dell",                    // 정규화된 벤더 (소문자 한 단어).
+                                       // 가능값: dell / hpe / lenovo / supermicro / cisco / null
+                                       // BMC 가 보고한 Manufacturer 를 별칭표에 따라 정규화.
+
+
+  // ─────────── 결과 상태 (2개) ───────────
+  // "전체적으로 잘 됐는지, 섹션별로 잘 됐는지"
+
+  "status": "success",                 // 전체 수집 결과. success / partial / failed.
+                                       //   success     = 모든 지원 섹션 수집 성공
+                                       //   partial     = 일부 섹션만 성공
+                                       //   failed      = 인증/네트워크 단계에서 멈춤
+                                       // 주의: "수집 성공" 이지 "장비 정상" 이 아니다.
+                                       // 장비 자체 건강 상태는 data.hardware.health 를 본다.
+
+  "sections": {                        // 섹션 10개 각각의 상태.
+                                       //   success       = 데이터 수집됨
+                                       //   failed        = 권한/응답 문제로 못 가져옴
+                                       //   not_supported = 이 채널로는 원래 못 가져오는 영역
+    "system":   "not_supported",       // OS 정보 (Redfish 는 OS 미접근)
+    "hardware": "success",             // 벤더/모델/시리얼/BIOS
+    "bmc":      "success",             // BMC 자체 상태
+    "cpu":      "success",
+    "memory":   "success",
+    "storage":  "success",
+    "network":  "success",
+    "firmware": "success",
+    "users":    "not_supported",       // 로컬 OS 계정 (Redfish 채널은 미수집)
+    "power":    "success"              // PSU 상태/전력
+  },
+
+
+  // ─────────── 진단 (precheck 4단계) ───────────
+  // "어디까지 닿았는지, 어디서 막혔는지"
+
+  "diagnosis": {
+    "reachable":          true,        // 1단계 ping. 호스트 자체 도달 가능?
+    "port_open":          true,        // 2단계 port. Redfish 면 443/TCP 응답?
+    "protocol_supported": true,        // 3단계 protocol. HTTPS handshake + Redfish JSON 응답?
+    "auth_success":       true,        // 4단계 auth. 자격증명 통과?
+    "failure_stage":      null,        // 실패한 단계 이름 (port/protocol/auth). 정상이면 null.
+    "failure_reason":     null,        // 실패 사유 (사람용 문구). 정상이면 null.
+    "details": {                       // 채널별 부가 정보
+      "channel":            "redfish",
+      "adapter_candidate":  "redfish_dell_idrac9",  // 어떤 adapter YAML 이 매칭됐는지
+      "checked_ports":      [443],
+      "selected_port":      443,
+      "redfish_version":    "1.6.0",   // BMC 가 지원하는 Redfish 스펙 버전
+      "product":            "Integrated Dell Remote Access Controller",
+      "systems_uri":        "/redfish/v1/Systems"
+    }
+  },
+
+
+  // ─────────── 메타 (실행 정보) ───────────
+  // "언제, 얼마나 걸렸고, 어떤 어댑터로 처리했는지"
+
+  "meta": {
+    "started_at":      "2026-04-01T04:35:36.222928Z",  // 수집 시작 (UTC ISO8601)
+    "finished_at":     "2026-04-01T04:37:22.284363Z",  // 수집 종료
+    "duration_ms":     106000,                          // 호스트 1대 기준 소요 시간 (ms) — 이 케이스 약 1분 46초
+    "adapter_id":      "redfish_dell_idrac9",           // 어떤 adapter YAML 사용됐는지
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+
+
+  // ─────────── 상관관계 (식별자) ───────────
+  // "이 응답을 다른 시스템 데이터와 묶을 때 쓰는 키"
+
+  "correlation": {
+    "serial_number": "CNIVC009CP0282",                  // 섀시 시리얼 (Dell 서비스 태그)
+    "system_uuid":   "4c4c4544-0042-4a10-8038-b2c04f303333",  // BMC 가 보고한 SMBIOS UUID
+    "bmc_ip":        "10.50.11.162",                    // BMC 자체 IP
+    "host_ip":       "10.50.11.162"                     // 호출자가 넘긴 대상 IP
+                                                         // (Redfish 채널은 bmc_ip == host_ip 가 정상)
+  },
+
+
+  // ─────────── 오류 목록 ───────────
+  // "수집 중에 생긴 문제들. 정상이면 빈 배열."
+
+  "errors": [],                        // 예: [{ "section": "firmware", "stage": "fetch",
+                                       //         "code": "TIMEOUT", "message": "..." }]
+                                       // status="success" 라도 errors[] 가 비어있지 않을 수 있다.
+                                       // (예: 한 PSU 가 health=Critical 이라 records 에 기록은 되지만
+                                       //  수집 자체는 성공)
+
+
+  // ─────────── 실제 데이터 (섹션별) ───────────
+  // "수집한 알맹이. sections.* 가 success 인 것만 의미 있다."
+
+  "data": {
+
+    // === BMC 정보 ===
+    "bmc": {
+      "name":             "iDRAC",            // BMC 표시명 (Dell=iDRAC, HPE=iLO, Lenovo=XCC, Cisco=CIMC)
+      "firmware_version": "4.00.00.00",       // BMC 펌웨어 버전
+      "model":            "14G Monolithic",   // BMC 하드웨어 세대
+      "manager_type":     "BMC",
+      "health":           "OK",               // BMC 자체 상태 (서버 상태 아님)
+      "ip":               "10.50.11.162",
+      "oem":              {}                  // 벤더 전용 확장 (이 케이스는 비어있음)
+    },
+
+    // === 네트워크 ===
+    "network": {
+      "dns_servers":      [],                 // BMC 가 알고 있는 DNS 서버 (이 케이스는 미설정)
+      "default_gateways": [],
+      "interfaces": [
+        {
+          "id":            "NIC.Slot.7-1-1",  // BMC 가 부여한 NIC 식별자
+          "name":          "System Ethernet Interface",
+          "kind":          "server_nic",      // server_nic / os_nic / vmkernel
+          "mac":           "40:A6:B7:01:CA:60",
+          "mtu":           null,              // null = BMC 가 정보 미제공
+          "speed_mbps":    0,                 // 0 = 링크 다운 또는 협상 안됨
+          "link_status":   "linkdown",        // linkup / linkdown / none / null
+                                              // (none = BMC 가 상태 정보 자체를 안 줌)
+          "is_primary":    false,
+          "addresses":     []                 // IP 주소 (Redfish 는 보통 비어있음)
+        },
+        // ... NIC 8개 중 7개 생략. 패턴은 모두 동일.
+        {
+          "id":            "NIC.Slot.1-2-1",
+          "name":          "System Ethernet Interface",
+          "kind":          "server_nic",
+          "mac":           "F8:F2:1E:3F:83:E1",
+          "mtu":           null,
+          "speed_mbps":    10240,             // 10Gbps NIC (10240 Mbps)
+          "link_status":   "linkup",
+          "is_primary":    false,
+          "addresses":     []
+        }
+      ],
+      "summary": {                            // NIC 집계 정보 (호출자 화면에 한 줄로 보여주기 위함)
+        "groups": [
+          { "speed_mbps": 0,     "link_type": null, "quantity": 4, "link_up_count": 2 },
+          { "speed_mbps": 1000,  "link_type": null, "quantity": 2, "link_up_count": 2 },
+          { "speed_mbps": 10240, "link_type": null, "quantity": 2, "link_up_count": 2 }
+        ]                                      // → 1Gbps 2개, 10Gbps 2개 외 4개는 미링크 NIC
+      }
+    },
+
+    // === 메모리 ===
+    "memory": {
+      "total_mb":     655360,                 // 총 메모리 (MB). 640 GB.
+      "total_basis":  "physical_installed",   // total_mb 의 산출 기준
+                                              //   physical_installed   = DIMM 장착 합계 (Redfish 표준)
+                                              //   os_visible           = OS 가 보는 양 (OS 채널)
+                                              //   hypervisor_visible   = 하이퍼바이저 보는 양 (ESXi)
+      "installed_mb": 655360,                 // 물리 장착 (Redfish 가 주로 채움)
+      "visible_mb":   null,                   // OS 인식량 (OS/ESXi 채널이 채움). Redfish=null 정상.
+      "free_mb":      null,                   // OS 가용량. OS 채널 전용.
+      "slots": [                              // DIMM 개별 정보. 이 서버는 슬롯 20개 장착.
+        {
+          "id":           "DIMM.Socket.A1",
+          "name":         "DIMM A1",
+          "capacity_mib": 32768,              // 32 GiB
+          "type":         "DDR4",
+          "speed_mhz":    2400,
+          "manufacturer": "Samsung",
+          "serial":       "355C2040",
+          "part_number":  "M386A4G40DM1-CRC",
+          "health":       "OK"
+        }
+        // ... 나머지 19개 DIMM 동일 구조 생략 (전부 32GiB DDR4-2400 Samsung).
+      ],
+      "summary": {                            // 같은 단위 DIMM 끼리 묶은 집계
+        "groups": [
+          { "unit_capacity_gb": 32, "type": "DDR4", "quantity": 20, "group_total_gb": 640 }
+        ],
+        "grand_total_gb": 640
+      }
+    },
+
+    // === 하드웨어 (장비 본체) ===
+    "hardware": {
+      "vendor":       "Dell Inc.",            // BMC 가 보고한 원본 Manufacturer (정규화 안 한 것)
+      "model":        "PowerEdge R740",
+      "serial":       "CNIVC009CP0282",       // 섀시 시리얼
+      "uuid":         "4c4c4544-0042-4a10-8038-b2c04f303333",
+      "sku":          "2BJ8033",              // 제품 식별 번호. 벤더마다 의미 다름.
+                                              //   Dell  = 서비스 태그
+                                              //   HPE   = 파트 번호
+                                              //   Lenovo= CTO 주문 번호
+      "bios_version": "2.21.2",
+      "bios_date":    null,                   // 발행일 (Dell 표준 응답에 없음. oem.bios_release_date 에 있음)
+      "power_state":  "On",                   // On / Off / PoweringOn / PoweringOff
+      "health":       "Critical",             // 서버 전체 건강 상태 (BMC rollup).
+                                              // 이 케이스는 PSU1 fault 때문에 Critical.
+                                              // (HW health 는 "수집 성공" 과 별개)
+      "oem": {                                // 벤더 전용 확장. Dell 만 의미 있는 키들.
+        "lifecycle_version":      null,
+        "bios_release_date":      "02/19/2024",
+        "current_rollup_status":  "OK",       // 통합 rollup
+        "cpu_rollup_status":      "OK",
+        "fan_rollup_status":      "OK",
+        "battery_rollup_status":  "OK",
+        "intrusion_rollup_status":"OK",
+        "storage_rollup_status":  "OK",
+        "chassis_service_tag":    "2BJ8033",
+        "express_service_code":   "5050978671",
+        "estimated_exhaust_temp": 29           // 배기 온도 추정 (°C)
+      }
+    },
+
+    // === 전원 ===
+    "power": {
+      "power_supplies": [
+        {
+          "name":             "PS1 Status",
+          "model":            "PWR SPLY,750W,RDNT,ARTESYN",
+          "serial":           "PHARP009CM01MC",
+          "manufacturer":     "DELL",
+          "power_capacity_w": 750,
+          "firmware_version": "00.1B.53",
+          "health":           "Critical",      // ← 이 PSU 가 hardware.health=Critical 의 원인
+          "state":            "UnavailableOffline"
+                                                //   Enabled              = 동작 중
+                                                //   UnavailableOffline   = 빠져있거나 fault
+        },
+        {
+          "name":             "PS2 Status",
+          "model":            "PWR SPLY,750W,RDNT,ARTESYN",
+          "serial":           "PHARP009CM01M2",
+          "manufacturer":     "DELL",
+          "power_capacity_w": 750,
+          "firmware_version": "00.1B.53",
+          "health":           "OK",
+          "state":            "Enabled"
+        }
+      ],
+      "power_control": {                       // 전체 전력 사용 통계
+        "power_consumed_watts": 261,           // 현재 사용량
+        "power_capacity_watts": 806,           // 시스템 정격
+        "interval_in_min":      1,
+        "min_consumed_watts":   260,
+        "avg_consumed_watts":   260,
+        "max_consumed_watts":   261
+      }
+    },
+
+    "users": [],                                // Redfish 채널은 OS 로컬 계정 미수집
+
+    // === 펌웨어 인벤토리 ===
+    // 이 서버는 firmware[] 에 28개 entry. 한 entry 만 예시:
+    "firmware": [
+      {
+        "id":         "Current-159-2.21.2",   // BMC 가 부여한 항목 ID
+        "name":       "BIOS",
+        "version":    "2.21.2",
+        "updateable": true,                    // 업데이트 가능 여부
+        "component":  "159"                    // SoftwareId. 벤더마다 형식 다름.
+                                               //   Dell = 숫자 / Lenovo = BMC-AFBT-10 / HPE = 숫자나 UUID / Cisco = 슬롯명
+      }
+      // ... 27개 entry 생략. NIC 펌웨어 / RAID 컨트롤러 / iDRAC / Lifecycle Controller 등.
+    ],
+
+    // === OS 정보 (Redfish 는 거의 비어있음) ===
+    "system": {
+      "os_family":      null,                 // Redfish 는 OS 안 봄
+      "distribution":   null,
+      "version":        null,
+      "kernel":         null,
+      "architecture":   null,
+      "uptime_seconds": null,
+      "selinux":        null,
+      "fqdn":           "LENOVO01"            // BMC 가 보고한 호스트명 (이 케이스는 부정확 — 실제 Dell 장비)
+    },
+
+    // === 스토리지 ===
+    "storage": {
+      "datastores":  [],                      // ESXi 채널 전용 (Redfish=비어있음)
+      "filesystems": [],                      // OS 채널 전용
+
+      // 컨트롤러 단위 (RAID 카드 / SATA 컨트롤러)
+      "controllers": [
+        {
+          "id":     "RAID.Slot.6-1",
+          "name":   "PERC H330 Adapter",       // Dell 의 RAID 카드
+          "health": null,                      // PERC H330 은 자체 health 미보고
+          "drives": [                          // 이 컨트롤러에 연결된 드라이브들
+            {
+              "device":     "Solid State Disk 0:1:0",
+              "model":      "MZ7KH480HAHQ0D3",
+              "total_mb":   457862,           // ≈ 480GB SSD
+              "media_type": "SSD",
+              "protocol":   "SATA",
+              "health":     null
+            }
+            // ... drives 5개 더 생략
+          ]
+        },
+        {
+          "id":     "AHCI.Slot.2-1",
+          "name":   "BOSS-S1",                 // Dell BOSS (Boot Optimized Storage Solution) 카드
+          "health": "OK",
+          "drives": [
+            { "device": "SSD 0", "model": "MTFDDAV240TCB", "total_mb": 228936, "media_type": "SSD", "protocol": "SATA", "health": "OK" },
+            { "device": "SSD 1", "model": "MTFDDAV240TCB", "total_mb": 228936, "media_type": "SSD", "protocol": "SATA", "health": "OK" }
+          ]
+        }
+        // ... AHCI 컨트롤러 2개 더 생략 (drives 비어있음)
+      ],
+
+      // 물리 디스크 단위 (모든 컨트롤러 합친 list, 중복 제거)
+      "physical_disks": [
+        {
+          "id":                     "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.6-1",
+          "device":                 "Solid State Disk 0:1:0",
+          "model":                  "MZ7KH480HAHQ0D3",
+          "serial":                 "S5CNNA0MC03697",
+          "total_mb":               457862,
+          "media_type":             "SSD",
+          "protocol":               "SATA",
+          "health":                 null,
+          "failure_predicted":      false,    // SMART 기반 고장 예측. true 면 곧 죽을 가능성 높음.
+          "predicted_life_percent": 90        // SSD 남은 미디어 수명 (%). 100=새것, 0=수명 끝.
+                                              // HDD 는 보통 null.
+        }
+        // ... 7개 디스크 더 생략. SSD 8개 총합 약 8.5TB.
+      ],
+
+      // 논리 볼륨 (RAID)
+      "logical_volumes": [
+        {
+          "id":               "Disk.Virtual.0:AHCI.Slot.2-1",
+          "name":             "RAID1_OS",
+          "controller_id":    "AHCI.Slot.2-1",     // ↑ controllers[].id 와 매칭
+          "member_drive_ids": [                     // ↑ physical_disks[].id 와 매칭
+            "Disk.Direct.0-0:AHCI.Slot.2-1",
+            "Disk.Direct.1-1:AHCI.Slot.2-1"
+          ],
+          "raid_level":       "RAID1",              // RAID0/1/5/6/10/50/JBOD
+          "total_mb":         228872,
+          "health":           "OK",
+          "state":            "Enabled",            // Enabled / Degraded / Offline
+          "boot_volume":      false                 // Dell OEM 만 판별 가능. 다른 벤더는 null.
+        }
+      ],
+
+      // 스토리지 집계 (호출자 화면 요약용)
+      "summary": {
+        "groups": [
+          { "unit_capacity_gb": 447,  "media_type": "SSD", "protocol": "SATA", "quantity": 2, "group_total_gb": 894  },
+          { "unit_capacity_gb": 1788, "media_type": "SSD", "protocol": "SAS",  "quantity": 4, "group_total_gb": 7152 },
+          { "unit_capacity_gb": 223,  "media_type": "SSD", "protocol": "SATA", "quantity": 2, "group_total_gb": 446  }
+        ],
+        "grand_total_gb": 8492                       // 약 8.3 TB 전체 raw
+      }
+    },
+
+    // === CPU ===
+    "cpu": {
+      "sockets":         2,                          // 소켓 수
+      "cores_physical":  24,                         // 물리 코어 합계 (소켓당 X 가 아니라 전체)
+      "logical_threads": 24,                         // 논리 스레드. HT 꺼져있어 cores 와 동일.
+      "model":           "Intel(R) Xeon(R) Silver 4214 CPU @ 2.20GHz",
+      "max_speed_mhz":   4000,
+      "architecture":    null,                       // Redfish 는 보통 미제공. OS 채널은 x86_64 등.
+      "summary": {
+        "groups": [                                  // 같은 모델 CPU 끼리 묶음
+          {
+            "model":            "Intel(R) Xeon(R) Silver 4214 CPU @ 2.20GHz",
+            "sockets":          2,
+            "cores_per_socket": 12,
+            "total_cores":      24
+          }
+        ]
+      }
+    }
+  },
+
+
+  // ─────────── 스키마 버전 ───────────
+  "schema_version": "1"                            // envelope 자체의 버전. 현재 "1" 고정.
+                                                   // 깨지는 변경이 생기면 "2" 로 올라감 (사용자 승인 필요).
+}

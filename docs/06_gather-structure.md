@@ -1,198 +1,265 @@
-# 06. Gather 구조 설명
+# 06. 수집 구조 — 한눈에
 
-> **이 문서는** server-exporter 가 어떤 구조로 정보를 수집하는지 개발자 시야에서 설명합니다.
-> "왜 gather 가 여러 파일로 쪼개져 있는지", "fragment 가 정확히 무엇인지" 가 궁금할 때 보세요.
->
-> 새 섹션 / 새 채널을 추가하기 전에 본 문서를 한 번 정독하면 후속 PR 시간이 크게 줄어듭니다.
+## 한 줄 요약
 
----
+server-exporter 는 한 서버를 3가지 시점으로 본다.
 
-## 한 단락 요약
+- **OS-gather** — 서버 OS 안에서 (SSH / WinRM)
+- **ESXi-gather** — 하이퍼바이저에서 (vSphere API)
+- **Redfish-gather** — BMC 에서 (HTTP + Redfish)
 
-각 gather 파일은 **전체 JSON 을 만들지 않습니다.** 자기 역할의 작은 조각 (fragment) 만 만든 뒤, 공통 정규화 엔진(merge_fragment.yml + build_*.yml) 이 그 조각들을 모아 최종 JSON envelope 을 조립합니다.
-
-이렇게 분리하는 이유:
-- 새 섹션 추가가 site.yml 한 줄로 끝납니다.
-- 한 gather 의 실패가 다른 gather 의 결과를 오염시키지 않습니다.
-- 같은 정규화 엔진이 3 채널을 모두 처리하므로 출력 형식이 자동으로 일관됩니다.
-
-## Fragment 기반 수집 철학
-
-```
-raw 수집  (벤더 / OS / API 별 원본 데이터)
-   ↓
-정규화    (gather 별로 자기 섹션 변환)
-   ↓
-Fragment 생성     ─┐
-  _data_fragment   │
-  _sections_*       │  ← 각 gather 가 만들어내는 5종 변수
-  _errors_fragment ─┘
-   ↓
-merge_fragment.yml  (누적 변수에 병합 — 자기 영역만 덧붙임)
-   ↓
-build_sections / build_status / build_errors / build_meta / build_correlation
-   ↓
-build_output.yml  (envelope 13 필드 조립)
-   ↓
-schema_version 주입
-   ↓
-OUTPUT 태스크 → callback plugin 캡처 → 호출자
-```
-
-### 새 수집 항목 추가 방법 (한 줄 정리)
-
-1. 새 `gather_xxx.yml` 작성 → fragment 변수 5종 set_fact → `merge_fragment.yml` 호출
-2. `site.yml` 에 `include_tasks: tasks/gather_xxx.yml` 한 줄 추가
-3. 끝. (`site.yml` / `build_output.yml` 전체 수정은 필요 없음)
-
-상세 절차와 7단계 체크리스트는 [14_add-new-gather.md](14_add-new-gather.md).
+각 시점이 자기 자리에서 본 정보만 모아 같은 모양의 JSON 으로 돌려준다. 호출자가 둘 이상을 합쳐 보면 한 서버의 그림이 더 완성된다.
 
 ---
 
-## 전체 흐름
+## 1. 호출 흐름
 
 ```
-포털 → Jenkins (target_type: os|esxi|redfish)
-     → inventory.sh (ip 만 처리)
-     → vault 자동 로딩
-     → init_fragments.yml   ← 누적 변수 초기화
-     → tasks/ (수집 → 각자 fragment 생성 → merge_fragment)
-     → build_sections / build_status / build_errors
-     → build_meta / build_correlation
-     → build_output → schema_version 주입
-     → OUTPUT 태스크 → callback plugin 캡처 → 포털
+[ 호출자 (Jenkins Job 트리거) ]
+        │  inventory_json = [{ ip: "10.50.11.162" }]
+        │  target_type    = "redfish"  (또는 os / esxi)
+        │  loc            = "ich"
+        ▼
+[ Jenkins 4-Stage 파이프라인 ]
+        │
+        ├─ [1] Validate    : 입력값 형식 점검
+        │
+        ├─ [2] Gather      : ansible-playbook 실행
+        │       │
+        │       ├─→ os-gather/site.yml      (target_type=os 일 때)
+        │       ├─→ esxi-gather/site.yml    (target_type=esxi 일 때)
+        │       └─→ redfish-gather/site.yml (target_type=redfish 일 때)
+        │
+        ├─ [3] Validate Schema : 출력 JSON 이 정의된 키와 일치하는지
+        │
+        └─ [4] E2E Regression  : 벤더별 baseline 회귀 테스트
+                │
+                ▼
+        [ callback plugin (json_only) 이 stdout 으로 OUTPUT JSON 만 흘려보냄 ]
+                │
+                ▼
+        [ 호출자가 console log 파싱 또는 artifact 로 수령 ]
 ```
+
+핵심: **호출자는 IP 만 넘긴다.** 자격증명은 Ansible vault 에서 자동 로딩되고, 벤더는 BMC 가 보고하는 manufacturer 로 자동 감지된다.
 
 ---
 
-## os-gather
+## 2. 어느 시점이 뭘 보나
 
-```
-site.yml Play1: 포트 감지 (SSH 22 / WinRM 5985/5986)
-  → 성공: _os_linux 또는 _os_windows 그룹에 등록
-  → 실패: build_failed_output.yml 공통 모듈로 failed OUTPUT 생성
-          ↓
-site.yml Play2 (Linux):
-  common/init_fragments.yml     ← 누적 변수 초기화
-  adapter_loader (os 채널)      ← adapter 선택
-  tasks/linux/preflight.yml     → Python 경로, 명령 존재 확인
-  tasks/linux/gather_system.yml → system fragment → merge_fragment
-  tasks/linux/gather_cpu.yml    → cpu fragment → merge_fragment
-  tasks/linux/gather_memory.yml → memory fragment (dmidecode) → merge_fragment
-  tasks/linux/gather_storage.yml → storage fragment (lsblk+mounts) → merge_fragment
-  tasks/linux/gather_network.yml → network fragment (gw/dns/speed) → merge_fragment
-  tasks/linux/gather_users.yml  → users fragment (getent+lastlog) → merge_fragment
-  tasks/normalize/build_output.yml → build_sections/status/errors/output
+같은 한 대 서버를 세 시점에서 본 결과를 비교해 본다.
 
-site.yml Play3 (Windows): 동일 구조, tasks/windows/*
-```
+| 섹션 | OS 안에서 (Linux/Windows) | 하이퍼바이저에서 (ESXi) | BMC 에서 (Redfish) |
+|---|:---:|:---:|:---:|
+| OS / 호스트명 / 가동시간 | O | O | (X) |
+| 벤더 / 모델 / 시리얼 / BIOS | | O | O |
+| BMC 펌웨어 / 자체 상태 | | | O |
+| CPU / 메모리 / 스토리지 / 네트워크 | O | O | O |
+| 펌웨어 인벤토리 | | | O |
+| 로컬 OS 계정 | O | | |
+| PSU / 전력 사용 | | | O |
 
----
+같은 서버라도 시점별로 채워지는 영역이 겹치되 다르다. 호출자가 **둘 이상을 동시에 호출** 해서 합치면:
 
-## esxi-gather
+- Redfish 만 호출 → 하드웨어와 펌웨어 그림이 풍부, OS 정보는 빈 칸
+- OS-gather 만 호출 → OS 와 계정 그림이 풍부, BMC 정보는 빈 칸
+- 둘 다 호출 → 한 서버 전체 그림 완성
 
-```
-site.yml (1 Play):
-  common/init_fragments.yml
-  tasks/collect_facts.yml      → _e_raw_facts, _e_facts_ok
-  tasks/collect_config.yml     → _e_raw_config, _e_config_ok
-  tasks/collect_datastores.yml → _e_raw_ds, _e_ds_ok
-  tasks/normalize_system.yml   → system/hardware/cpu/memory fragment → merge_fragment
-  tasks/normalize_network.yml  → network fragment → merge_fragment
-  tasks/normalize_storage.yml  → storage fragment (partial 판정 반영) → merge_fragment
-  build_sections / build_status / build_errors / build_output
-```
+상세 호환 표는 `docs/22_compatibility-matrix.md`.
 
 ---
 
-## redfish-gather
+## 3. 공통 골격 — 세 채널이 모두 같은 패턴
+
+세 채널 모두 다음 흐름을 똑같이 따른다.
 
 ```
-site.yml (1 Play):
-  common/init_fragments.yml
-  precheck_bundle              → 4단계 진단 (ping→port→protocol→auth)
-  tasks/detect_vendor.yml      → _rf_detected_vendor
-  adapter_loader (redfish)     → _selected_adapter (벤더별 adapter 자동 선택)
-  tasks/load_vault.yml         → vault/redfish/{vendor}.yml
-  tasks/collect_standard.yml   → _rf_raw_collect, _rf_vendor
-    └ gather_storage()         → Storage 실패 시 SimpleStorage fallback
-  tasks/normalize_standard.yml → 전체 표준 fragment → merge_fragment
-  _selected_adapter.oem_tasks  → OEM fragment → merge_fragment (adapter 기반 동적 로딩)
-  build_sections / build_status / build_errors / build_meta / build_correlation / build_output
+[ A ] init_fragments.yml          ← 누적 변수 비우기 (보고서 빈 종이 준비)
+        │
+[ B ] precheck (4단계 진단)        ← 어디까지 닿는지 (docs/11)
+        │
+[ C ] adapter_loader              ← 벤더 / 세대 맞춰 어떤 처리 쓸지 결정 (docs/10)
+        │
+[ D ] (Redfish 만) load_vault     ← 벤더에 맞는 자격증명 로드
+        │
+[ E ] gather_*  /  collect_*      ← 실제 수집. 자기 fragment 5개만 채움
+        │   ↑
+        │   └ 각 gather 후에 merge_fragment.yml 호출 (docs/07)
+        │
+[ F ] build_sections / status / errors / meta / correlation / output
+        │                            ← envelope 13 필드 조립
+        ▼
+[ G ] OUTPUT 태스크 → callback plugin → stdout
 ```
 
-### Redfish Storage 구조
+이 골격을 깨면 새 채널 추가가 어려워진다. 같은 패턴이라서 OS / ESXi / Redfish 가 같은 모양 JSON 을 돌려준다.
+
+---
+
+## 4. os-gather
+
+```
+site.yml
+  Play 1 — 포트 감지
+      SSH(22) 응답하면  → _os_linux 그룹에 등록
+      WinRM(5986) 응답하면 → _os_windows 그룹에 등록
+      둘 다 실패          → build_failed_output (failed envelope 즉시 반환)
+
+  Play 2 — Linux 일 때
+      init_fragments
+      adapter_loader (os 채널)
+      tasks/linux/preflight.yml      → Python 버전 감지 → python_ok / raw_fallback 분기
+      tasks/linux/gather_system.yml  → system fragment   → merge
+      tasks/linux/gather_cpu.yml     → cpu fragment      → merge
+      tasks/linux/gather_memory.yml  → memory fragment   → merge   (dmidecode)
+      tasks/linux/gather_storage.yml → storage fragment  → merge   (lsblk + mounts)
+      tasks/linux/gather_network.yml → network fragment  → merge   (gw / dns / speed)
+      tasks/linux/gather_users.yml   → users fragment    → merge   (getent + lastlog)
+      build_*  → output
+
+  Play 3 — Windows 일 때
+      Linux 와 동일 구조, tasks/windows/* 사용
+```
+
+Linux 는 환경에 따라 두 가지 모드로 동작한다.
+
+| 모드 | 조건 | 수집 방식 |
+|---|---|---|
+| Python 모드 | Python 3.9+ 설치됨 | setup / shell / command / getent 풀가동 |
+| Raw fallback | Python 미설치 또는 3.8 이하 | `raw` 모듈만 + 컨트롤러에서 Jinja2 파싱 |
+
+`SE_FORCE_LINUX_RAW_FALLBACK=true` 로 강제 raw 모드도 가능 (디버깅용). 6개 섹션 모두 raw 모드로도 수집 가능하며, 출력 JSON 형식은 100% 동일하다.
+
+---
+
+## 5. esxi-gather
+
+```
+site.yml (Play 1개)
+  init_fragments
+  tasks/collect_facts.yml      → _e_raw_facts      (vSphere API: HostSystem facts)
+  tasks/collect_config.yml     → _e_raw_config     (vSphere API: HostNetworkSystem 등)
+  tasks/collect_datastores.yml → _e_raw_ds         (vSphere API: HostDatastoreSystem)
+  tasks/normalize_system.yml   → system / hardware / cpu / memory fragment → merge
+  tasks/normalize_network.yml  → network fragment                          → merge
+  tasks/normalize_storage.yml  → storage fragment (datastore / 볼륨 포함)   → merge
+  build_*  → output
+```
+
+ESXi 는 `community.vmware` 컬렉션 + `pyvmomi` 9.0.0 의존. Agent 환경 설치 필요는 `docs/03_agent-setup.md`.
+
+---
+
+## 6. redfish-gather
+
+세 채널 중 가장 단계가 많다. Redfish 는 무인증 ServiceRoot 호출로 벤더를 먼저 알아내고, 그 결과로 자격증명을 동적으로 로드한다.
+
+```
+site.yml (Play 1개)
+  init_fragments
+  precheck_bundle              → 4단계 진단 (ping → port 443 → /redfish/v1/ → Basic Auth)
+  tasks/detect_vendor.yml      → BMC manufacturer → vendor_aliases.yml 거쳐 정규화
+                                 → _rf_detected_vendor = "dell" / "hpe" / ...
+  adapter_loader (redfish)     → _selected_adapter = (예) redfish_dell_idrac9
+  tasks/load_vault.yml         → vault/redfish/dell.yml 등 동적 로드
+  tasks/collect_standard.yml   → 표준 endpoint 호출 (Systems / Chassis / Managers / Storage / ...)
+                                 → Storage 실패 시 SimpleStorage 로 fallback
+  tasks/normalize_standard.yml → 표준 fragment 생성 → merge
+  _selected_adapter.oem_tasks  → 벤더 OEM fragment → merge   (adapter 가 시키면 호출)
+  build_*  → output
+```
+
+### 6.1 Redfish 의 Storage 구조
 
 ```
 storage
-├── controllers[]      ← RAID/HBA 컨트롤러 (id, name, health, drives[])
-├── physical_disks[]   ← 물리 디스크 (id, device, model, serial, ...)
-├── logical_volumes[]  ← RAID 논리 볼륨 (Redfish only, OS/ESXi는 빈 배열)
-├── filesystems[]      ← (Redfish에서는 빈 배열)
-└── datastores[]       ← (Redfish에서는 빈 배열)
+├── controllers[]       — RAID / HBA 컨트롤러
+│   └── drives[]        — 컨트롤러에 매달린 드라이브
+├── physical_disks[]    — 모든 물리 디스크 (중복 제거)
+├── logical_volumes[]   — RAID 논리 볼륨 (Redfish 전용)
+├── filesystems[]       — (Redfish 에서는 빈 배열)
+└── datastores[]        — (Redfish 에서는 빈 배열)
 ```
 
-**관계**: `logical_volumes[].controller_id` → `controllers[].id`,
-`logical_volumes[].member_drive_ids` → `physical_disks[].id`.
+연결 관계:
+- `logical_volumes[].controller_id`    →  `controllers[].id`
+- `logical_volumes[].member_drive_ids` →  `physical_disks[].id`
 
-`logical_volumes`는 Redfish `/Systems/{id}/Storage/{id}/Volumes` 엔드포인트에서 수집.
-Cisco v1_0_3 스키마는 `RAIDType` 필드가 없어 `VolumeType` → `RAIDType` fallback 매핑 사용.
+`logical_volumes` 는 `/Systems/{id}/Storage/{id}/Volumes` 에서 수집. Cisco v1_0_3 스키마는 `RAIDType` 필드가 없어 `VolumeType` → `RAIDType` 으로 fallback 매핑.
 
-### Redfish Safe Common 5 필드 (normalize_standard.yml 반영)
+### 6.2 디스크 필터 정책
 
-| 위치 | 필드 | 타입 |
-|------|------|------|
-| `hardware` | `health` | string\|null (OK/Warning/Critical) |
-| `hardware` | `power_state` | string\|null (On/Off/PoweringOn/PoweringOff) |
-| `physical_disks[]` | `serial` | string\|null |
-| `physical_disks[]` | `failure_predicted` | boolean\|null |
-| `physical_disks[]` | `predicted_life_percent` | integer\|null (0-100) |
+- `CapacityBytes == 0` 또는 Name 에 "empty" 포함 → 빈 베이로 보고 skip
+- HPE `PredictedMediaLifeLeftPercent` 가 float 로 오면 `int()` 변환
 
-**디스크 필터 정책**: CapacityBytes == 0 또는 Name에 "empty" 포함 시 드라이브 skip.
-HPE `PredictedMediaLifeLeftPercent` float 값은 int()로 변환.
+### 6.3 지원 벤더
 
-> **Conditional 필드 (보류)**: hardware.sku, PowerConsumedWatts, PowerCapacityWatts,
-> PowerMetrics.*, Proc.MaxSpeedMHz, PSU.Health, NIC.LinkStatus 등은 벤더 간 일관성 미확보로 보류.
+| 벤더 | 매칭 adapter | vault |
+|---|---|---|
+| Dell | `redfish_dell_idrac9` 외 | `vault/redfish/dell.yml` |
+| HPE | `redfish_hpe_ilo6` 외 | `vault/redfish/hpe.yml` |
+| Lenovo | `redfish_lenovo_xcc` 외 | `vault/redfish/lenovo.yml` |
+| Supermicro | `redfish_supermicro_*` | `vault/redfish/supermicro.yml` |
+| Cisco | `redfish_cisco_cimc` | `vault/redfish/cisco.yml` |
 
-### 지원 벤더
-
-dell, hpe, lenovo, supermicro, cisco (5개 벤더)
-- Cisco: adapter `redfish_cisco_cimc`, vault `vault/redfish/cisco.yml`
+신규 벤더 (Huawei / Inspur / Fujitsu / Quanta / HPE Superdome) 도 adapter 가 등록되어 있으나 lab 부재로 미검증. 상세는 `docs/13_redfish-live-validation.md`.
 
 ---
 
-## callback_plugins/json_only.py
+## 7. callback plugin — JSON 만 깔끔하게
 
-- `name: OUTPUT` 태스크의 `msg` 만 stdout 으로 캡처
-- 나머지 Ansible 출력 전부 억제
-- 프로젝트 루트 `callback_plugins/json_only.py` 단일 사본 유지 (`ansible.cfg`의 `callback_plugins = ./callback_plugins`로 참조)
+`callback_plugins/json_only.py` 가 stdout 출력을 통제한다.
 
----
+- Ansible 의 `PLAY / TASK / ok / changed` 같은 진행 메시지를 모두 차단
+- `name: "OUTPUT: ..."` 으로 시작하는 task 의 `msg` 만 stdout 으로 흘려보냄
 
-## inventory.sh
+호출자가 stdout 한 덩어리를 그대로 JSON 파싱하면 된다. 별도 artifact 도 가능.
 
-각 채널 (`os-gather/`, `esxi-gather/`, `redfish-gather/`) 에 같은 동작의 inventory.sh 가 있습니다.
-
-| 동작 | 설명 |
-|------|------|
-| 우선순위 1 | `INVENTORY_JSON` 환경변수에서 읽음 |
-| 우선순위 2 | `.inventory_input.json` 파일에서 읽음 (Jenkinsfile 의 `writeFile` 이 생성) |
-| 결과 | Ansible 가 이해할 수 있는 동적 인벤토리 출력 |
-
-> 왜 두 가지 경로가 필요한가?
-> Jenkins 의 `ansiblePlaybook` 플러그인이 `environment` 블록의 멀티라인 환경변수를 그대로 전달하지 못하는 경우가 있어서, 파일 fallback 을 함께 둡니다.
-
-다른 약속:
-- `inventory_hostname = ip` 로 통일 (호스트명 사전 등록 필요 없음)
-- 자격증명 정보는 inventory 에 들어가지 않음 (vault 에서 자동 로딩)
+위치: 프로젝트 루트의 `callback_plugins/json_only.py` 단일 사본. `ansible.cfg` 에서 `callback_plugins = ./callback_plugins` 로 참조.
 
 ---
 
-## 다음 단계
+## 8. inventory.sh — IP 만 넘기는 약속
 
-| 다음 작업 | 문서 |
+세 채널 (`os-gather/`, `esxi-gather/`, `redfish-gather/`) 모두 동일한 동작의 `inventory.sh` 가 있다.
+
+| 입력 우선순위 | 출처 |
 |---|---|
-| Fragment 가 정규화 엔진을 거쳐 envelope 이 되는 흐름 | [07_normalize-flow.md](07_normalize-flow.md) |
-| 실패 처리 패턴 (block / rescue / always) | [08_failure-handling.md](08_failure-handling.md) |
-| 새 섹션 추가 7단계 체크리스트 | [14_add-new-gather.md](14_add-new-gather.md) |
-| Adapter 시스템 (벤더 자동 감지 점수 계산) | [10_adapter-system.md](10_adapter-system.md) |
+| 1순위 | `INVENTORY_JSON` 환경변수 |
+| 2순위 | `.inventory_input.json` 파일 (Jenkinsfile 의 `writeFile` 가 생성) |
+
+두 가지 경로를 두는 이유: Jenkins `ansiblePlaybook` 플러그인이 멀티라인 환경변수를 일부 환경에서 못 넘긴다. 파일 fallback 으로 보완.
+
+추가 약속:
+- `inventory_hostname = ip` 로 통일. 호스트명 사전 등록 안 한다.
+- 자격증명은 inventory 에 안 들어간다. vault 에서 자동 로딩.
+
+입력 JSON 스펙은 `docs/05_inventory-json-spec.md`.
+
+---
+
+## 9. 새 섹션 추가는 site.yml 한 줄
+
+새 수집 항목을 추가할 때:
+
+1. `gather_<섹션>.yml` 작성. fragment 5개 set_fact 후 `merge_fragment.yml` 호출.
+2. 채널의 `site.yml` 에 `include_tasks: tasks/gather_<섹션>.yml` 한 줄 추가.
+3. `schema/sections.yml` + `schema/field_dictionary.yml` + `baseline_v1/*.json` 갱신.
+
+**`build_output.yml` 도 `merge_fragment.yml` 도 안 만진다.** 정규화 엔진은 fragment 패턴만 따르면 자동으로 동작한다.
+
+상세 절차 7단계 체크리스트는 `docs/14_add-new-gather.md`.
+
+---
+
+## 10. 더 보고 싶을 때
+
+| 보고 싶은 것 | 파일 |
+|---|---|
+| Fragment 가 어떻게 envelope 으로 합쳐지나 | `docs/07_normalize-flow.md` |
+| 실패 처리 패턴 (block / rescue / always) | `docs/08_failure-handling.md` |
+| 새 섹션 / 새 채널 추가 절차 | `docs/14_add-new-gather.md` |
+| Adapter 점수 계산과 벤더 자동 감지 | `docs/10_adapter-system.md` |
+| 출력 JSON 키 의미 | `docs/20_json-schema-fields.md` |
+| 진단 4단계 상세 | `docs/11_precheck-module.md` |
+| inventory_json 입력 형식 | `docs/05_inventory-json-spec.md` |
