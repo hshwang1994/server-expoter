@@ -1,23 +1,36 @@
 # Session Handoff — 2026-05-06 Multi-Session Compatibility Cycle
 
-> **마지막 갱신**: Session-1 종료 시점 (M-A1 [DONE])
+> **마지막 갱신**: Session-2 종료 시점 (M-A2 [DONE])
 
 ---
 
 ## 마지막 commit / 시점
 
-- **commit**: `ba003b2f`
-- **메시지**: `docs: [M-A1 DONE] status 로직 분석 — 시나리오 4 / errors trigger 26 / 사용자 결정 4 + AI default`
+- **commit**: (Session-2 commit 후 sha 기록)
+- **메시지**: `docs: [M-A2 DONE] status 의도 결정 — Case A (B-1+a+c+a) / M-A3 spec 도출`
 - **시점**: 2026-05-06 (Asia/Seoul)
 - **branch**: `main` (사용자 명시 자율 push, rule 93 R1+R4)
 - **push 결과**: github + gitlab 동시 (origin push URL 2개)
 
 ### 이전 commit
+- `ba003b2f` — Session-1 M-A1 분석 [DONE]
 - `abb41e59` — Session-0 ticket 24건 작성
 
 ---
 
 ## 직전 세션 종료 상태
+
+### Session-2 (M-A2 결정)
+
+| 항목 | 결과 |
+|---|---|
+| M-A1 분석 결과 확인 | [DONE] |
+| 4 결정 default 채택 (B-1 / a / c / a — AI 자율 진행 권한) | [DONE] |
+| 결정 근거 + 대안 비교 기록 (M-A2.md "사용자 결정 결과") | [DONE] |
+| M-A3 변경 spec 도출 (Case A — 의도 주석 강화 only) | [DONE] |
+| M-A3.md "현재 상태" Case A 채택 명시 | [DONE] |
+| docs/19_decision-log.md entry 추가 (rule 70 R8 trace) | [DONE] |
+| INDEX.md M-A2 [DONE] 갱신 | [DONE] |
 
 ### Session-1 (M-A1 분석)
 
@@ -40,16 +53,16 @@
 
 ### 다음 세션 시작 가능 여부
 
-- **YES** — Session-2 (M-A2: status 의도 결정) 진입 가능. M-A1 분석 결과 + AI default 4건 입력 준비됨
+- **YES** — Session-3 (M-A3: status 코드 변경, Case A) 진입 가능. M-A2 결정 + Case A 변경 spec 입력 준비됨
 
 ---
 
-## 이번 cycle 종료 상태 (예상)
+## 이번 cycle 종료 상태 (현재)
 
-- **round**: 1 (Session-0 ticket 작성 round)
+- **round**: 3 (Session-0 ticket 작성 + Session-1 M-A1 + Session-2 M-A2)
 - **ticket 작성**: 24건
-- **ticket 진행**: 0건 (worker 세션 진입 전)
-- **commit**: 1건 (본 ticket commit)
+- **ticket 진행**: 2건 [DONE] (M-A1, M-A2) / 22건 [PENDING]
+- **commit**: 3건 누적 (Session-0/1/2)
 
 ---
 
@@ -80,11 +93,11 @@ cold-start:
 
 ## 진행 가능 ticket (worker 세션 즉시 착수 가능)
 
-DEPENDENCIES.md 참조. 의존성 없는 ticket:
+DEPENDENCIES.md 참조. 현재 [PENDING] + 의존 통과:
 
 | ticket | 영역 | 우선 |
 |---|---|---|
-| **M-A1** | status 로직 분석 (read-only) | P1 (사용자 의심 영역) |
+| **M-A3** | status 코드 변경 (Case A — 의도 주석 강화 only) | P1 (M-A2 [DONE] 후 의존 통과) |
 | **M-B1** | account_provision flow 분석 (read-only) | P1 |
 | **M-C1** | vault 동적 로딩 분석 (read-only) | P1 |
 | **M-D1** | 9 vendor × N gen × 9 sections 매트릭스 작성 | P1 (M-D 전체 진입점) |
@@ -99,8 +112,7 @@ DEPENDENCIES.md 참조. 의존성 없는 ticket:
 
 | ticket | 차단 사유 |
 |---|---|
-| M-A2 | 사용자 의도 결정 필요 ("errors 있는데 success" — 의도 vs 버그) — M-A1 분석 결과 본 후 결정 |
-| M-A3 | M-A2 결정 후 진입 |
+| M-A4 | M-A3 [DONE] 후 ADR trigger 판정 (Case A → trigger NO 예상 → SKIP 가능) |
 | M-D 모든 fallback | M-D1 매트릭스 + M-D2 web 검색 결과 본 후 진입 |
 | M-E 6단계 | M-E1 web 검색 결과 본 후 진입 (rule 50 R2 9단계 명시 승인 — 이미 받음) |
 | M-G | 다른 모든 ticket [DONE] 후 진입 (cycle 종료 학습 추출) |
@@ -127,22 +139,28 @@ DEPENDENCIES.md 참조. 의존성 없는 ticket:
 |---|---|---|
 | — | — | — |
 
-## 다음 세션 (Session-2 / M-A2) 첫 지시
+## 다음 세션 (Session-3 / M-A3) 첫 지시
 
 ```
-M-A2 status 의도 결정 진입.
+M-A3 status 코드 변경 진입.
 
-cold-start: SESSION-PROMPTS.md + fixes/M-A2.md + M-A1 분석 결과 ("분석 결과" 절)
+cold-start: SESSION-PROMPTS.md + fixes/M-A3.md ("현재 상태" + "변경 spec → Case A" 절) + fixes/M-A2.md ("변경 spec (M-A3 도출)" 절)
 
-자율 진행 default (M-A1 분석 + AI 추천):
-- (1) B-1 (현재 동작 유지) — envelope shape 변경 없음
-- (2) (a) errors severity 유지
-- (3) (c) status_rules.yml 유지
-- (4) (a) 3 enum 유지
+M-A2 결정 결과: Case A (B-1 + a + c + a)
 
-근거: 본 cycle Additive only (rule 92 R2 + 사용자 명시) + rule 13 R5 + rule 96 R1-B (envelope shape 보존). 시나리오 B 는 명백한 의도된 동작 — 코드 주석 3 위치가 명시.
+작업:
+1. common/tasks/normalize/build_status.yml 헤더 주석 강화
+   - 시나리오 B 의도 명시 ("errors[] 는 보지 않는다 / 섹션 status 만 본다")
+   - errors[] 분리 의미 명문화 ("사유 추적용 분리 영역")
+   - 코드 주석 3 reference (gather_memory.yml:171-172 / gather_network.yml:208 / normalize_storage.yml:79-80)
+2. status_rules.yml 변경 0 (DEAD CODE 명시 주석 reference 확인만)
+3. mock fixture 1건 신규 — 시나리오 B 재현 (status_success_with_warnings.json 위치 결정)
+4. pytest 회귀 + verify_harness_consistency PASS
+5. baseline 회귀 영향 0 확인
+6. CURRENT_STATE.md 갱신 (M-A2 결정 + M-A3 작업 반영)
+7. M-F1 신설 시 status 판정 규칙 절 포함 의무 — DEPENDENCIES 갱신
 
-작업: M-A2.md 의 4 결정 default 기록 + 근거 + M-A3 변경 spec 도출 (의도 주석 강화 only).
+ADR (M-A4): rule 70 R8 trigger NO 예상 (rule 본문 변경 없음, 표면 카운트 변동 없음). M-A4 SKIP 가능.
 ```
 
 ---

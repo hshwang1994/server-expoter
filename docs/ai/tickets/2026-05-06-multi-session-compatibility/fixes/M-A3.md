@@ -18,7 +18,20 @@ M-A2 사용자 결정 결과 → 코드 반영 + 회귀 테스트.
 
 ## 현재 상태
 
-(M-A2 [DONE] 후 결정 결과 첨부 — 변경 spec 도출 매트릭스)
+M-A2 [DONE] (Session-2, 2026-05-06) — 결정 결과:
+
+| 결정 | 선택 |
+|---|---|
+| (1) 시나리오 B 처리 | **B-1 (현재 동작 유지)** |
+| (2) errors[] severity | **(a) 유지 (severity 도입 없음)** |
+| (3) status_rules.yml | **(c) 유지 (현재)** |
+| (4) status enum | **(a) 3 enum 유지** |
+
+→ **Case A 채택** — 의도된 동작 명시 only (Additive). 코드 동작 변경 없음.
+
+근거 종합: rule 92 R2 (Additive only) + rule 13 R5 (envelope 13 필드 보존) + rule 96 R1-B (호환성 외 영역 — schema 확장 별도 cycle) + M-A1 분석 (시나리오 B 가 명백한 의도된 동작 — 코드 주석 3 위치 명시).
+
+상세 근거 + 결정 매트릭스: `M-A2.md` "사용자 결정 결과" 절 + "변경 spec (M-A3 도출)" 절.
 
 ## 변경 spec (조건부 — M-A2 결정에 따라)
 

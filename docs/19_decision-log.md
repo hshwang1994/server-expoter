@@ -1,6 +1,69 @@
 # 의사결정 로그
 
-> 최종 갱신: 2026-05-01 (cycle-019 — 7-loop + 10R audit P1 22건 + 신규 vendor 4종 도입)
+> 최종 갱신: 2026-05-06 (cycle 2026-05-06-multi-session-compatibility — M-A2 status 의도 결정)
+
+## 2026-05-06 (cycle 2026-05-06-multi-session-compatibility) — status 의도 결정 (Case A 채택)
+
+### 컨텍스트
+
+사용자 (hshwang1994) 의심 영역 (cycle 진입 시점 명시):
+
+> "스키마 검증 들어가자. 모든 값에 대한 스키마 검증해주되 특히 자세히 봐야할것은 개더링상태가 success failed partial 이렇게 3개로 나눠져있는것으로 보이는데, 이게 로직이 정상작동돼지않는듯함. 부분 성공이라고 하더라도 error 에는 로그가 찍히는데 success로 빠지는경우가 있음 이것은 왜이런지 확인해줘 의도된건지?"
+
+→ M-A1 [DONE] (commit `ba003b2f`) 분석 결과: 시나리오 B (섹션 success + errors warning → overall=success) 는 **명백한 의도된 동작**. 코드 주석 3 위치가 명시:
+- `os-gather/tasks/linux/gather_memory.yml:171-172` (dmidecode fallback 사유 추적)
+- `os-gather/tasks/linux/gather_network.yml:208` (lspci stderr 권한 부족 추적)
+- `esxi-gather/tasks/normalize_storage.yml:79-80` (NFS/vSAN/vVOL cap 미수집 추적)
+
+build_status.yml 판정 로직 (정본 인라인 Jinja2): **errors[] 는 보지 않는다 / 섹션 status 만 본다**. errors[] 는 사유 추적용 분리 영역.
+
+### 결정 (4 포인트)
+
+AI 자율 진행 권한 적용 (cycle 진입 시 사용자 명시 — "사용자 결정 4 포인트도 AI 합리적 default 결정 후 진행"):
+
+| 결정 | 선택 | 근거 |
+|---|---|---|
+| (1) 시나리오 B 처리 | **B-1 (현재 동작 유지)** | M-A1 분석 — 의도된 설계 + Additive only cycle + rule 96 R1-B (envelope shape 보존) |
+| (2) errors[] severity | **(a) 유지** | rule 22 R7/R8 + rule 13 R5 + 3채널 27+ 위치 영향 → 별도 cycle 영역 |
+| (3) status_rules.yml | **(c) 유지** | DEAD CODE 명시 주석 "삭제 금지 / 향후 reserved" + rule 70 R5 보존 판정 YES |
+| (4) status enum | **(a) 3 enum 유지** | rule 13 R5 envelope 13 필드 정본 + rule 96 R1-B (호환성 외 schema 확장 별도 cycle) |
+
+→ **Case A 채택** — 의도된 동작 명시 only (Additive 주석/문서 강화).
+
+### 영향
+
+- 코드 동작 변경: **0건**
+- envelope 13 필드: **변경 0** (rule 13 R5 / 96 R1-B 보존)
+- status enum: **3종 유지** (success / partial / failed)
+- 9 vendor baseline 회귀: **영향 0**
+- 호출자 시스템 파싱: **영향 0**
+- ADR (rule 70 R8 trigger): **NO** — rule 본문 변경 없음, 표면 카운트 변동 없음 → M-A4 SKIP 가능
+
+### M-A3 작업 (다음 세션)
+
+1. `common/tasks/normalize/build_status.yml` 헤더 주석 강화 — 시나리오 B 의도 명시 + errors[] 분리 의미 명문화 + 코드 주석 3 reference
+2. `status_rules.yml` 변경 0 (DEAD CODE 명시 주석 reference 확인만)
+3. mock fixture 1건 신규 — 시나리오 B 재현 (`status_success_with_warnings.json`)
+4. pytest 회귀 + verify_harness_consistency PASS 확인
+5. M-F1 (docs/20_json-schema-fields.md 신설 시) status 판정 규칙 절 포함 의무 — DEPENDENCIES 갱신
+
+### 대안 비교 (Considered)
+
+- **Case B (B-2 + ?)**: errors non-empty → overall=partial. 거절 이유: 모든 vendor baseline 회귀 fail (success → partial 전환), 호출자 partial 대응 로직 추가 필요, rule 96 R1-B 호환성 외 영역
+- **Case C (B-3 + (b) + (b))**: 4 enum + severity 도입. 거절 이유: envelope schema 변경 (rule 13 R5 + 92 R5 사용자 명시 승인 필요), 3채널 27+ 위치 영향, 본 cycle Additive only 영역 외 — 별도 cycle 사용자 명시 승인 후 진행 영역
+
+### rule / 정본 참조
+
+- rule 13 R5 (envelope 13 필드 — status 필드 정본 보존)
+- rule 22 R7/R8 (Fragment 5 변수 / 타입 정본 — 변경 안 함)
+- rule 70 R5 (문서 보존 판정 — status_rules.yml 유지)
+- rule 70 R8 (ADR trigger — Case A 는 NO → M-A4 SKIP)
+- rule 92 R2 (Additive only)
+- rule 92 R5 (schema 변경 사용자 명시 — Case C 거절 이유)
+- rule 96 R1-B (호환성 cycle 외 envelope shape 변경 자제)
+- ticket: `docs/ai/tickets/2026-05-06-multi-session-compatibility/fixes/M-A1.md`, `M-A2.md`, `M-A3.md`
+
+---
 
 ## 2026-05-01 (cycle-019) — 신규 vendor 4종 도입 (Huawei / Inspur / Fujitsu / Quanta)
 
