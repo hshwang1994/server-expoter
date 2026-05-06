@@ -1,39 +1,38 @@
-# 호환성 매트릭스 (Compatibility Matrix)
+# 22. 호환성 매트릭스 — 어느 벤더 / 어느 세대가 무엇을 주나
 
-> **이 문서는** server-exporter 가 어떤 벤더 / 어떤 세대 / 어떤 섹션을 어디까지 지원하는지를 한 장 표로 정리한 reference 다.
->
-> 호출자 / 신규 작업자가 "Dell iDRAC 8 세대도 storage 수집 되는가?" 같은 질문을 빠르게 해소할 때 본다.
-> 9개 벤더 × 여러 세대 × 10 섹션 조합 (총 240 셀 규모) 을 한눈에 비교할 수 있다.
->
-> 매트릭스는 어댑터의 `capabilities` 와 실장비 baseline 결과를 기준으로 작성된다.
+## 누가 읽나
 
-## 1. 목적
+"**내가 호출하면 어떤 섹션을 받게 될까?**" 가 궁금한 사람.
 
-server-exporter 가 지원하는 vendor / generation / section 호환성을 한 장 매트릭스로 추적. 호출자 / 다음 작업자 / 다음 cycle 진입자가 lookup reference 로 사용.
+호출자 시스템 개발자가 응답을 미리 예상할 때, 새로 들어온 작업자가 지원 범위를 파악할 때, 다음 cycle 진입자가 GAP 영역을 찾을 때 본다.
 
-호환성 매트릭스 입력:
-- `adapters/redfish/{vendor}_*.yml` 의 `capabilities.sections_supported`
-- `schema/baseline_v1/{vendor}_baseline.json` (실장비 검증 후)
-- `tests/evidence/<날짜>-<vendor>.md` (Round 검증)
-- web sources (rule 96 R1-A) — lab 부재 영역
+9개 벤더 × 여러 세대 × 10 섹션 = 240 칸짜리 표 한 장으로 정리되어 있다.
 
-## 2. 판정 기호
+## 매트릭스를 만든 재료
 
-| 기호 | 의미 |
-|---|---|
-| `OK` | adapter `capabilities.sections_supported` 명시 + 코드 처리 + baseline 확보 (lab tested) |
-| `OK★` | adapter `capabilities.sections_supported` 명시 + 코드 처리. baseline 부재 (mock 회귀 / web sources 기반 가정) |
-| `FB` | fallback 적용 — cycle 2026-04-30 / 2026-05-01 호환성 fallback 코드 있음 |
-| `GAP` | 명시적 미지원 — adapter `capabilities.sections_supported` 에서 누락 — fallback 추가 후보 |
-| `BLOCK` | 외부 의존 (lab fixture / 실장비 / 사이트 사고 재현) |
-| `N/A` | 해당 채널에 해당 section 없음 (sections.yml channels 정의 기준) |
-| `?` | 미확인 — adapter 명시 부재 + spec 불명확. web sources 검색 대상 |
+3가지를 종합해서 작성된다.
 
-## 3. 매트릭스 (Redfish 단독 — 24 row × 10 col = 240 cell)
+1. **Adapter YAML** 의 `capabilities.sections_supported` (어떤 섹션을 다룰 수 있다고 선언했나)
+2. **Baseline JSON** (실장비 검증 결과) — `schema/baseline_v1/<vendor>_baseline.json`
+3. **Web sources** — lab 에 장비가 없어 직접 검증 못한 영역의 vendor 공식 문서 / DMTF 스펙
 
-> OS / ESXi 채널은 별도. `users` 섹션은 sections.yml channels=[os] — Redfish 채널에서는 모든 vendor / 모든 generation 공통 N/A.
+세 재료가 모두 있는 칸이 가장 신뢰도가 높다 (`OK` 표기). 일부만 있으면 `OK★` / `GAP` / `BLOCK` 으로 갈린다.
 
-cycle 2026-05-06 M-D1 매트릭스 (정본 — `docs/ai/tickets/2026-05-06-multi-session-compatibility/COMPATIBILITY-MATRIX.md`):
+## 판정 기호 7개
+
+| 기호 | 무슨 뜻 | 호출자 입장 |
+|---|---|---|
+| `OK` | 코드 + adapter + baseline 모두 확보 (lab 검증 완료) | 안심하고 사용 |
+| `OK★` | 코드 + adapter 는 있고 baseline 은 없음 | 동작 가능성 높음, 첫 사용 시 응답 확인 권장 |
+| `FB` | fallback 코드 적용됨 (옛 펌웨어 호환) | 사용 가능, 일부 필드 null 가능 |
+| `GAP` | adapter 에서 명시적으로 미지원 선언 | 응답에 `not_supported` 로 옴 |
+| `BLOCK` | lab 장비도 없고 spec 도 불명 | 미검증. 새 cycle 에서 추가 필요 |
+| `N/A` | 채널 자체가 그 섹션을 안 다룸 | `not_supported` 로 옴 (정상) |
+| `?` | adapter 도 없고 spec 도 불명확 | 추가 조사 필요 |
+
+## 매트릭스 — Redfish 채널 (24 row × 10 col)
+
+OS / ESXi 채널은 별도다. Redfish 채널은 OS 로컬 계정을 안 보기 때문에 `users` 섹션이 모든 행에서 `N/A` 로 표시된다.
 
 | vendor | generation | system | hardware | bmc | cpu | memory | storage | network | firmware | users | power |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -62,101 +61,73 @@ cycle 2026-05-06 M-D1 매트릭스 (정본 — `docs/ai/tickets/2026-05-06-multi
 | **Fujitsu** | iRMC (PRIMERGY M5/M6/M7) | OK★ | OK★ | OK★ | OK★ | OK★ | OK★ | OK★ | OK★ | N/A | OK★ |
 | **Quanta** | QCT BMC (OpenBMC) | OK★ | OK★ | OK★ | OK★ | OK★ | OK★ | OK★ | OK★ | N/A | OK★ |
 
-## 4. Cell 분포 집계 (cycle 2026-05-06 M-D1 시점)
+## 칸 분포 — 한눈에
 
-| 기호 | 개수 | 비율 |
-|---|---|---|
-| OK (lab tested + baseline) | 27 | 11.3% |
-| OK★ (adapter + 코드, baseline 부재) | 167 | 69.6% |
-| FB (cycle 2026-05-01 fallback 적용) | 9 | 3.8% |
-| GAP (adapter 명시 미지원) | 7 | 2.9% |
-| BLOCK (lab fixture 부재 + spec 불명) | 6 | 2.5% |
-| ? | 0 | 0.0% |
-| N/A (Redfish 채널 미해당 섹션 — users) | 24 | 10.0% |
-| **합계** | **240** | **100.0%** |
+240 칸을 기호별로 모아보면:
 
-→ baseline 보유 vendor (lab tested): Dell iDRAC9 / HPE iLO6 / Lenovo XCC v2 / Cisco CIMC M4 (4 vendor × 9 sections = 27 cell + ESXi/OS baseline 4종 별도).
+| 기호 | 개수 | 비율 | 상태 |
+|---|---:|---:|---|
+| `OK` (lab 검증 완료) | 27 | 11% | 가장 신뢰 |
+| `OK★` (코드는 있고 baseline 만 부재) | 167 | 70% | 보통 동작 |
+| `FB` (옛 펌웨어 fallback) | 9 | 4% | 사용 가능 |
+| `GAP` (명시 미지원) | 7 | 3% | not_supported 응답 |
+| `BLOCK` (미검증) | 6 | 2.5% | 신규 추가 필요 |
+| `N/A` (Redfish 가 안 다루는 영역) | 24 | 10% | 정상 |
+| **합계** | **240** | **100%** | |
 
-## 5. lab 부재 영역 식별 (rule 50 R2 단계 10 + rule 96 R1-A)
+baseline 을 가진 lab tested 벤더 4개 (Dell iDRAC9 / HPE iLO6 / Lenovo XCC v2 / Cisco CIMC M4) 가 27 칸을 차지한다. 나머지는 코드 / 어댑터는 있지만 실장비 검증을 못한 상태.
+
+## lab 에 장비가 없는 영역
 
 | 영역 | 부재 사유 | 보완 |
 |---|---|---|
-| Dell iDRAC 7 (9 FB cell) | EOL 펌웨어 | cycle 2026-05-01 P1 fallback 적용 |
-| Dell iDRAC 8 (1 GAP — power) | iDRAC 8 power schema 불명확 | adapter capabilities 추가 후보 |
-| HPE iLO 4 (2 GAP) | EOL 펌웨어 / partial PowerSubsystem | adapter capabilities 추가 후보 |
-| Lenovo XCC1 (2 GAP) | legacy IMM2 | XCC1 generation 명시 + fallback 추가 |
-| Supermicro X9 (6 BLOCK) | EOL 펌웨어 + lab fixture 부재 | NEXT_ACTIONS 등재 (lab 도입 cycle) |
+| Dell iDRAC 7 (9 FB) | EOL 펌웨어 | 옛 펌웨어 fallback 코드로 대응 중 |
+| Dell iDRAC 8 (1 GAP — power) | iDRAC 8 PowerSubsystem 스펙 불명 | adapter capabilities 추가 후보 |
+| HPE iLO 4 (2 GAP) | EOL 펌웨어 + partial PowerSubsystem | adapter capabilities 추가 후보 |
+| Lenovo XCC1 (2 GAP) | legacy IMM2 | XCC1 별도 세대 명시 + fallback 추가 |
+| Supermicro X9 (6 BLOCK) | EOL + lab fixture 부재 | lab 도입 cycle 에서 fixture 캡처 필요 |
 | Supermicro X9 (3 GAP) | OEM 미지원 generation | adapter capabilities 추가 후보 |
-| 신규 4 vendor (Huawei/Inspur/Fujitsu/Quanta) | lab 부재 + vault SKIP | rule 96 R1-A web sources + NEXT_ACTIONS 등재 |
-| HPE Superdome Flex | lab 부재 + sub-line | adapter `hpe_superdome_flex.yml` priority=95 + web sources 14건 |
+| 신규 4 vendor (Huawei / Inspur / Fujitsu / Quanta) | lab 부재 + vault 미설정 | vendor 공식 docs / DMTF 스펙 기반으로 작성 |
+| HPE Superdome Flex | lab 부재 + sub-line | priority=95 어댑터 + web sources 14건 |
 
-## 6. 갱신 절차
+## 매트릭스를 갱신해야 하는 시점
 
-### 6.1 매트릭스 갱신 trigger (rule 28 #12)
-
-| trigger | 갱신 위치 |
+| 트리거 | 어느 칸이 바뀌나 |
 |---|---|
-| `adapters/**/*.yml` capabilities 변경 | 본 docs/22 + cycle ticket COMPATIBILITY-MATRIX.md |
-| 새 vendor 추가 (rule 50 R2) | 새 row 추가 |
-| 펌웨어 업그레이드 (lab tested) | 해당 cell `OK★` → `OK` 격상 |
-| `schema/sections.yml` 변경 (sections 10 영향) | column 수정 |
-| `schema/baseline_v1/{vendor}_baseline.json` 추가 | 해당 row `OK★` → `OK` 격상 |
+| Adapter 의 `capabilities` 가 바뀜 | 해당 row 의 칸들 |
+| 새 vendor / 새 세대 추가 | 새 row 추가 |
+| 펌웨어 업그레이드 후 실장비로 검증 | `OK★` → `OK` 격상 |
+| Baseline JSON 추가 | 해당 row `OK★` → `OK` |
+| `schema/sections.yml` 의 섹션 변경 | column 수정 |
 
-TTL 14일 — `scripts/ai/measure_compatibility_matrix.py` (P3 도입 예정) 자동 측정.
+TTL 은 14일. 자동 측정 도구는 도입 예정.
 
-### 6.2 cycle 진입 시 매트릭스 read
+## 칸을 격상 / 격하하는 절차
 
-cycle-orchestrator skill Phase 1 (분석 단계) 에서 본 docs/22 read → 영역별 GAP / BLOCK / FB cell 식별 → 영향 vendor / 영향 ticket 도출.
+- `OK★` → `OK` — 실장비 검증 후 `schema/baseline_v1/<vendor>_baseline.json` 추가
+- `GAP` → `FB` — 호환성 fallback 코드 추가 (Additive only — 기존 동작 유지)
+- `BLOCK` → `OK★` — 사이트 fixture 캡처 + adapter capabilities 명시
+- `?` → `OK★` / `GAP` — 벤더 공식 문서 / DMTF 스펙 확인 후 결정
 
-### 6.3 cell 격상 / 격하 절차
+## 변경 이력
 
-- `OK★` → `OK`: 실장비 검증 (rule 13 R4) 후 baseline 추가 (`schema/baseline_v1/{vendor}_baseline.json`)
-- `GAP` → `FB`: cycle 호환성 fix 적용 (rule 92 R2 Additive 검증 절차)
-- `BLOCK` → `OK★`: lab fixture 도입 (`capture-site-fixture` skill) + adapter capabilities 명시
-- `?` → `OK★` / `GAP`: web sources (rule 96 R1-A) 로 명시 또는 미지원 결정
-
-## 7. 호환성 fix 적용 history (cycle 별)
-
-| cycle | fix 영역 | cell 변화 |
+| 시점 | 어떤 변화 | 표에서의 영향 |
 |---|---|---|
-| cycle 2026-04-30 | F40 power Members[0] 단일 진입 | Lenovo XCC v3 power `?` → `OK★` |
-| cycle 2026-05-01 | P1 22건 일괄 (신 generation BMC 7종 + 호환성 fallback) | iDRAC 7 / iDRAC 10 / iLO 7 / XCC v3 / X12-X14 / UCS X-Series — 모두 신규 row 추가 |
-| cycle 2026-05-01 | F44~F47 신규 4 vendor | Huawei / Inspur / Fujitsu / Quanta — 모두 신규 row 추가 |
-| cycle 2026-05-01 | F50 phase4 Lenovo XCC 권한 cache fix | XCC v3 auth recovery `BLOCK` → `OK★` |
-| cycle 2026-05-06 | M-D2 W1~W6 9 라인 (Additive only) | (cell 불변 — 기존 path 유지 + 새 fallback path 추가) |
-| cycle 2026-05-06 | M-E hpe_superdome_flex | 신규 row (HPE sub-line) |
-
-## 8. 관련 문서
-
-| 문서 | 용도 |
-|---|---|
-| `rule 28 #12` | COMPATIBILITY-MATRIX TTL 14일 정본 |
-| `rule 50 R2 + 단계 10` | vendor 추가 9단계 + lab 부재 NEXT_ACTIONS |
-| `rule 96 R1-A / R1-C` | web sources 의무 / lab 부재 NEXT_ACTIONS 자동 등록 |
-| `skill: cycle-orchestrator` | Phase 1 매트릭스 read |
-| `skill: add-vendor-no-lab` | lab 부재 vendor 추가 |
-| `script: scripts/ai/measure_compatibility_matrix.py` | P3 자동 측정 (예정) |
-| `docs/10_adapter-system.md` | Adapter 시스템 (점수 / capabilities) |
-| `docs/13_redfish-live-validation.md` | Round 검증 (lab tested 격상 trigger) |
-| `docs/14_add-new-gather.md` | gather 추가 일반 |
-| `docs/19_decision-log.md` | 의사결정 trace |
-| `docs/20_json-schema-fields.md` | envelope / sections / field_dictionary 정본 |
-| `docs/21_vault-operations.md` | vault 자동 반영 / 회전 |
+| 2026-04-30 | power 섹션 `Members[0]` 단일 진입 fix | Lenovo XCC v3 power `?` → `OK★` |
+| 2026-05-01 | 신 세대 BMC 7종 + 호환성 fallback 22건 일괄 | iDRAC 7 / 10, iLO 7, XCC v3, X12~14, UCS X-Series — 신규 row |
+| 2026-05-01 | 신규 4 vendor 도입 | Huawei / Inspur / Fujitsu / Quanta — 신규 row |
+| 2026-05-01 | Lenovo XCC 권한 캐시 fix | XCC v3 auth recovery `BLOCK` → `OK★` |
+| 2026-05-06 | 호환성 fallback 9 라인 (Additive only) | 칸 자체는 불변 (기존 path 유지 + 새 fallback path 추가) |
+| 2026-05-06 | HPE Superdome Flex 추가 | 신규 row (HPE sub-line) |
 
 ---
 
-## 다음 단계
+## 더 보고 싶을 때
 
-| 다음 작업 | 문서 |
+| 보고 싶은 것 | 파일 |
 |---|---|
-| Adapter 시스템 (점수 / 자동 선택) | [10_adapter-system.md](10_adapter-system.md) |
-| 새 벤더 / 세대 추가 | [14_add-new-gather.md](14_add-new-gather.md) |
-| 검증 라운드 결과 | [13_redfish-live-validation.md](13_redfish-live-validation.md) |
-
-## 본 매트릭스 보는 법
-
-- `[OK]` — 해당 섹션이 정상 수집됨 (실장비 검증 또는 fixture 회귀로 확인)
-- `[N/A]` — 그 벤더 / 세대에서 원래 수집 불가 (envelope 의 `not_supported` 와 동일 의미)
-- `[?]` — lab / 사이트 fixture 부재로 미검증 (코드만 작성됨)
-
-호출자 시스템 개발자가 "내가 받을 응답에 어느 섹션이 있을지" 미리 알고 싶을 때 이 표를 본다.
+| Adapter 가 어떻게 선택되나 (점수 계산) | `docs/10_adapter-system.md` |
+| 새 벤더 / 새 세대 추가 절차 | `docs/14_add-new-gather.md` |
+| 실장비 검증 라운드 결과 | `docs/13_redfish-live-validation.md` |
+| Vault 관리 / 회전 | `docs/21_vault-operations.md` |
+| 출력 envelope 의 `not_supported` 가 어떻게 나오는지 | `docs/20_json-schema-fields.md` |
