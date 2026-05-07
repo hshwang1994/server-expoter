@@ -19,7 +19,36 @@
   - **후속 작업**: 사이트 cisco UCS 실측 + baseline 재생성 → xfail 제거. lab 또는 사이트 수집 evidence 첨부 필요 (rule 13 R4)
   - 추적 evidence: `tests/evidence/2026-05-07-cross-channel-regression-baseline.md` (Phase A 완료 시 작성)
 
-### 다음 phase (Phase B/C/E/F/G/H)
+### Phase B 진행 상황 (P0 회귀 차단 hooks)
+
+- **신규**: `scripts/ai/hooks/pre_commit_jinja_namespace_check.py` — advisory hook
+  - self-test 9 cases 모두 PASS
+  - 자기 참조 누적 패턴 (`set var = var + ...`) 만 검출 (per-iteration local 안전)
+  - lookbehind/lookahead 로 attribute (`d.ipv4`) / 문자열 리터럴 (`'ipv4'`) false positive 회피
+- **신규**: `scripts/ai/hooks/pre_commit_fragment_skeleton_sync.py` — blocking hook
+  - 3 skeleton 파일 (init_fragments / build_empty_data / build_failed_output) 동기화 검증
+  - 정본 10 sections (rule 13 R1) 모두 일치 확인
+  - self-test 3 cases 모두 PASS / 실 코드 0 drift
+- **install-git-hooks.sh 갱신**: 두 hook 등록 + skip 환경변수 문서화
+- **회귀 차단 패턴**: cycle-015/016/M-D2 Jinja2 namespace + 2026-04-29 production-audit BUG #1 skeleton drift
+
+### 발견된 의심 패턴 (Jinja namespace check 결과 — 후속 조사 필요)
+
+advisory hook 이 3건 검출 (false positive 가능 / 일부는 진짜 사고 의심):
+
+1. **`os-gather/tasks/linux/gather_network.yml:99`** — `{%- set val = val - bit -%}`
+   - 위치: netmask CIDR 비트 카운팅 inner for loop
+   - 의심: `val` 이 outer-for(octet) 에서 `set val = octet|int`. inner-for(bit) 의 `set val = val - bit` 가 inner-for 다음 iteration 에 propagate 안 됨
+   - 사고 가능성: HIGH — 대부분 netmask (255 / 0) 는 우연히 올바른 값. 단 `255.255.254.0 (/23)` 같은 경우 `/24` 로 잘못 계산 가능
+   - **후속**: namespace 로 변경 (`set ns.val = ns.val - bit`) 또는 ipaddr filter 사용 검토. 별도 fix cycle.
+2. **`esxi-gather/tasks/normalize_network.yml:67`** — `{%- set val = val - bit -%}`
+   - 동일 패턴 (esxi 채널). 영향 범위 같음.
+3. **`os-gather/tasks/linux/gather_users.yml:77, 212`** — `{%- set groups = [ns.primary_grp] + groups -%}`
+   - 위치: `if ns.primary_grp and ns.primary_grp not in groups` 안 (for uname 안)
+   - 의심도: LOW — `groups` 가 같은 for-iteration 에 line 75 에서 정의됨. `if` 블록은 자체 scope 없음 → 같은 for-iteration scope 내 redefinition. 이론상 작동.
+   - **후속**: 검증 후 noqa 주석 또는 namespace 로 명시 (advisory hook silence)
+
+### 다음 phase (Phase C/E/F/G/H)
 
 7 Phase 완료 후 별도 cycle ADR 작성. 본 우려사항 7개 중 5개는 코드 변경 / 2개는 문서화만. 진행 중.
 

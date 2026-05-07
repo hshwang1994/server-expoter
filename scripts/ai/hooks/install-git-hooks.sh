@@ -8,6 +8,8 @@
 #               + pre_commit_status_logic_check (rule 13 R8)
 #               + pre_commit_ticket_consistency (cold-start 6 절)
 #               + pre_commit_additive_only_check (rule 92 R2 / 96 R1-B)
+#               + pre_commit_jinja_namespace_check (rule 22 R7 — cycle 2026-05-07)
+#               + pre_commit_fragment_skeleton_sync (rule 22 R7 — cycle 2026-05-07)
 # - commit-msg: commit_msg_check (rule 90)
 # - post-commit: post_commit_measurement_trigger (rule 28)
 #                + post_commit_compatibility_matrix_check (rule 28 #12)
@@ -70,7 +72,9 @@ write_hook "pre-commit" \
     "pre_commit_docs20_sync_check.py" \
     "pre_commit_status_logic_check.py" \
     "pre_commit_ticket_consistency.py" \
-    "pre_commit_additive_only_check.py"
+    "pre_commit_additive_only_check.py" \
+    "pre_commit_jinja_namespace_check.py" \
+    "pre_commit_fragment_skeleton_sync.py"
 
 write_hook "commit-msg" \
     "commit_msg_check.py"
@@ -99,3 +103,6 @@ echo "  ADDITIVE_SKIP_NEW_CYCLE=1     — 새 cycle (호환성 외) 명시 skip"
 echo "  COMPAT_MATRIX_CHECK_SKIP=1    — post_commit_compatibility_matrix_check skip (rule 28 #12)"
 echo "  POST_MERGE_GAP_SKIP=1         — post_merge_gap_check skip"
 echo "  INCOMING_REVIEW_SKIP=1        — post_merge_incoming_review skip"
+echo "  JINJA_NAMESPACE_SKIP=1        — pre_commit_jinja_namespace_check skip (rule 22 R7, advisory)"
+echo "  JINJA_NAMESPACE_SKIP_FILE=... — 특정 파일만 skip (':' 구분)"
+echo "  SKELETON_SYNC_SKIP=1          — pre_commit_fragment_skeleton_sync skip (rule 22 R7, blocking)"
