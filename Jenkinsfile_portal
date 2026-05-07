@@ -52,7 +52,7 @@ pipeline {
         )
         choice(
             name        : 'target_type',
-            choices     : ['linux', 'windows', 'esxi'],
+            choices     : ['linux', 'windows', 'esxi', 'redfish'],
             description : '수집 대상 종류'
         )
         text(
