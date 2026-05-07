@@ -1,8 +1,23 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-05-07 (cycle refactor-review — 7개 우려사항 검토 / Phase A 진행 중)
+## 일자: 2026-05-07 (cycle refactor-review — **종료 / 8 Phase + 잔여 후속 4 task 모두 [DONE]**)
 
-### Phase A 진행 상황 (P0 회귀 보호 인프라)
+### cycle 종료 통계 (commit 5e946584 → 2e77d0e8, 11 commit)
+
+- **8 Phase**: A (회귀 인프라) → B (hooks) → C (디버깅) → E (hostname docs) → F (vendor 가이드) → G (README) → H (refactor) → 종료 ADR
+- **잔여 후속 4 task**: cisco hostname 보정 / netmask CIDR fix / groups namespace / 문서 정합
+- **pytest**: 32 → **461 PASS** (+13× 보호 폭)
+- **hooks**: 26 → **28**
+- **docs**: docs/22 → docs/23 신설 + docs/10/14/20 확장 + 5 README
+- **사용자 영향**: envelope / vault / cron / 의존성 변경 0
+
+### 다음 cycle 권장
+
+1. **lab Cisco UCS 도입 검증** — `cisco_baseline.json` `hostname="10.100.15.2"` 가 실 BMC 응답과 일치 재검증 (rule 13 R4)
+2. **Jinja namespace hook blocking 격상 검토** — 1 cycle advisory 모니터링 후 false positive 0 확인 시
+3. **운영 hook 4종 (advisory) 안정화** — 신규 jinja_namespace + skeleton_sync + 기존 status_logic + docs20_sync false positive 모니터링
+
+### Phase A 진행 상황 (P0 회귀 보호 인프라) — [DONE]
 
 - **신규**: `tests/regression/test_cross_channel_consistency.py` — 13 테스트 그룹 × 8 baseline = 107 검증 (1 xfailed)
   - T1 envelope 13 필드 / T2 target_type+collection_method / T3 hostname fallback / T4 vendor canonical / T5 status enum / T6 sections enum / T7 diagnosis dict / T8 errors list / T9 schema_version / T10 channel coverage
@@ -50,9 +65,7 @@
 - evidence: `tests/evidence/2026-05-07-cisco-hostname-fallback-correction.md`
 - 후속: lab Cisco UCS 도입 시 실측으로 본 보정값 일치 재검증 (rule 13 R4)
 
-### 다음 phase (Phase C/E/F/G/H)
-
-7 Phase 완료 후 별도 cycle ADR 작성. 본 우려사항 7개 중 5개는 코드 변경 / 2개는 문서화만. 진행 중.
+### Phase C/E/F/G/H — [DONE] (cycle 종료 ADR-2026-05-07-refactor-review-7-concerns.md 작성 완료)
 
 ---
 

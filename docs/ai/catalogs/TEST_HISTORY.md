@@ -2,6 +2,31 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-07 (refactor-review cycle — 7 우려 8 Phase + 잔여 후속 4 task)
+
+### pytest 회귀
+- 총: 32 → **461 PASS** (cycle 진입 32 → Phase 8 종료 441+1xfail → 잔여 후속 461)
+- 신규 (본 cycle):
+  - `tests/regression/test_cross_channel_consistency.py` — 107 PASS (Phase A)
+  - `tests/unit/test_netmask_cidr_jinja_fix.py` — 19 PASS (잔여 후속 2)
+- xfail → PASS 격상: cisco_baseline hostname=null drift 보정 (잔여 후속 1)
+
+### 검증 hooks 신설
+- `pre_commit_jinja_namespace_check.py` (advisory) — Phase B
+- `pre_commit_fragment_skeleton_sync.py` (blocking) — Phase B
+- 기존 hooks 26 → 28
+
+### 영향
+- envelope schema 변경 / 호출자 영향 / 의존성 추가 / vault 변경 / cron 변경 모두 **0**
+- adapter / vendor 분리 (rule 12) / Fragment 철학 (rule 22) 모두 통과
+- Lab 영향: cisco UCS 도입 시 hostname 재실측만 (코드 의도 보정값 검증)
+
+### 중요 사고 검출 (회귀 차단)
+- cisco_baseline.json hostname=null drift (회귀 테스트가 자동 검출)
+- gather_network.yml + esxi normalize_network.yml netmask CIDR 사고 (Jinja namespace hook + 19 신규 회귀)
+
+---
+
 ## 2026-05-07 (실 장비 개더링 — schema/output_examples/ 한글 주석본 신설)
 
 - 환경: Jenkins 에이전트 10.100.64.155 (Ansible 2.20.3 / Python 3.12 venv `/opt/ansible-env/`)

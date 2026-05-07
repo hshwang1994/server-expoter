@@ -20,6 +20,25 @@
 
 ---
 
+## 2026-05-07 — netmask CIDR Jinja2 loop-scoping 사고 (4번째 동일 패턴)
+
+- 카테고리: jinja2-loop-scoping (반복 패턴 — cycle-015 + cycle-016 + M-D2 다음 4번째)
+- 발견 위치:
+  - `os-gather/tasks/linux/gather_network.yml:99`
+  - `esxi-gather/tasks/normalize_network.yml:67`
+- 증상: `/23`, `/26`, `/30` 같은 비표준 CIDR 가 잘못 계산 (`/24`, `/32`, `/32` 로 보고)
+- 원인: outer for(octet) 안 `set val = octet|int` + inner for(bit) 안 `set val = val - bit` — Jinja2 default for-scope 위반 (inner for set 이 다음 inner iteration 에 미반영). `/24`, `/16`, `/8`, `/0` 같은 all-FF octet 만 우연히 정상 (모든 bit 트리거 → 8 bits)
+- 영향: 비표준 CIDR 사용 사이트 envelope `data.network.interfaces[].cidr` / `prefix` 잘못된 값 emit. lab 이 `/24` 만 사용 → 표면화 안 됐음
+- 수정: cycle 2026-05-07-post — `val` 을 namespace 에 포함 (`ns.val`). commit 151c1386
+- 재발 방지:
+  - `pre_commit_jinja_namespace_check.py` advisory 가 본 사고 검출 (cycle 2026-05-07 Phase B 신설 hook)
+  - `tests/unit/test_netmask_cidr_jinja_fix.py` 19 회귀 (broken algorithm 사고 명시 + fixed algorithm 정답)
+  - 다른 동일 패턴 없는지 `find . -name "*.yml" | xargs grep -l "for octet\|for bit"` 추가 점검 권장
+- 학습: 동일 Jinja2 namespace scoping 사고 4번째 발생 → hook advisory 정합. blocking 격상 검토 (1 cycle 모니터링 후)
+- 관련 rule: rule 22 R7 (Fragment Jinja 안전), rule 95 R1 #2 (코드 critical review)
+
+---
+
 ## 2026-05-01 — 외부 계약 advisory 다수 등재 (F91/F97/F104/F125/F126 — 10R extended audit)
 
 - 카테고리: external-contract-drift (advisory)

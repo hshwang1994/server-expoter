@@ -70,12 +70,25 @@
 - Jenkinsfile cron 변경: **0**
 - 의존성 추가: **0** (stdlib only 유지)
 
-### 후속 사고 추적 (NEXT_ACTIONS)
+### 후속 사고 추적 (cycle 2026-05-07-post 모두 [DONE])
 
-1. **cisco_baseline.json hostname=null drift** — lab Cisco UCS 실측 후 baseline 갱신 (rule 13 R4)
-2. **gather_network.yml:99 val=val-bit Jinja2 scoping** — netmask CIDR 계산 사고 의심 (특정 mask /23 만 영향). namespace 로 변경 검토 (별도 fix cycle)
-3. **gather_users.yml:77, 212 set groups self-ref** — `if` 안 redefinition (이론상 작동) — noqa 또는 namespace 로 silence
-4. **normalize_network.yml:67 val=val-bit** — esxi 채널 동일 패턴 (#2 와 같이 fix)
+| # | 사고 | 처리 | commit |
+|---|---|---|---|
+| 1 | `cisco_baseline.json` hostname=null drift | "10.100.15.2" 보정 (build_output.yml fallback 의도대로) + xfail → 정 PASS | 151c1386 |
+| 2 | `gather_network.yml:99` Jinja `val=val-bit` netmask 사고 | `val` namespace 포함 (`ns.val`) — `/23, /30` 등 비표준 mask 잘못 계산 차단 | 151c1386 |
+| 3 | `esxi normalize_network.yml:67` 동일 사고 | 동일 namespace fix | 151c1386 |
+| 4 | `gather_users.yml:77, 212` set groups self-ref advisory | `ns.groups` namespace 통일 — 의도 명확화 + advisory silence | 151c1386 |
+
+### 잔여 후속 회귀 검증
+
+- pytest 461 PASS (cycle 진입 32 → +13× 보호 폭)
+- 신규 회귀 19 (`tests/unit/test_netmask_cidr_jinja_fix.py`) — broken algorithm 사고 명시 + fixed algorithm 정답
+- xfail → PASS 격상 1 (`test_hostname_never_null[cisco_redfish]`)
+- Jinja namespace hook 0 의심 (모든 advisory 패턴 silence)
+
+### 외부 의존 (다음 cycle)
+
+- **lab Cisco UCS 도입 시**: `cisco_baseline.json` `hostname="10.100.15.2"` 가 실 BMC 응답과 일치 재검증. 만약 실 BMC 가 hostname 응답하면 baseline 갱신.
 
 ## 대안 비교 (Considered)
 

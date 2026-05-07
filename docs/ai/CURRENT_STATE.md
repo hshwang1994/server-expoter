@@ -27,13 +27,20 @@
 - 회귀 차단 검증: 107 cross-channel × 8 baseline
 - envelope schema 변경 / 호출자 영향 / 의존성 추가 / vault 변경 / cron 변경 모두 **0**
 
-### 발견된 후속 사고 (NEXT_ACTIONS)
-- cisco_baseline.json hostname=null drift (lab 실측 후 baseline 갱신)
-- gather_network.yml:99 / esxi normalize_network.yml:67 — Jinja2 namespace val=val-bit netmask 사고 의심 (특정 mask 영향)
-- gather_users.yml:77, 212 — set groups self-ref (이론상 작동 — noqa 대상)
+### 발견된 후속 사고 (cycle 2026-05-07-post 모두 [DONE])
+- **[DONE]** cisco_baseline.json hostname=null drift → "10.100.15.2" 보정 (build_output.yml fallback 의도대로) + xfail 제거
+- **[DONE]** gather_network.yml:99 + esxi normalize_network.yml:67 — Jinja2 namespace `val` fix (`/23, /30` 사고 차단) + 19 회귀 신규
+- **[DONE]** gather_users.yml:77, 212 — `ns.groups` namespace 통일 (advisory silence)
+
+### 잔여 후속 5 (문서 정합)
+- **[DONE]** FAILURE_PATTERNS.md netmask Jinja 사고 entry (4번째 패턴)
+- **[DONE]** TEST_HISTORY.md 461 PASS 기록
+- **[DONE]** NEXT_ACTIONS.md cycle 종료 표기
 
 ### Round 검증
 - 회귀 정합 모두 PASS — rule 24 6/6 체크 통과
+- pytest 461 PASS (32 → 461, +13×)
+- hooks 26 → 28 / docs/22 → docs/23 신설
 
 ---
 
