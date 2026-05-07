@@ -17,77 +17,77 @@
   "ip": "10.100.15.27",                                    // BMC IP
   "hostname": "r760-1.gooddi.lab",                         // Dell HostName / iDRAC dns_name
   "vendor": "dell",                                        // 정규화 vendor (Dell Inc. → dell)
-  "status": "success",
-  "sections": {
+  "status": "success",                                  // 전체 수집 결과 — success / partial / failed
+  "sections": {                                         // 섹션별 수집 상태 dict — success / failed / not_supported
     "system": "not_supported",                             // Redfish 채널은 OS system 정보 미수집
     "hardware": "success",                                 // Redfish 가 가장 풍부 (model / serial / health / oem)
     "bmc": "success",                                      // Redfish 전용 — Manager (iDRAC)
-    "cpu": "success",
-    "memory": "success",
-    "storage": "success",
-    "network": "success",
+    "cpu": "success",                                   // CPU 정보 (코어 / 모델 / 캐시)
+    "memory": "success",                                // 메모리 정보 (DIMM 슬롯 / 총량)
+    "storage": "success",                               // 스토리지 (디스크 / 컨트롤러 / 파일시스템)
+    "network": "success",                               // 네트워크 (NIC / IP / DNS / 라우팅)
     "firmware": "success",                                 // Redfish 전용 — UpdateService.FirmwareInventory
     "users": "not_supported",                              // OS 사용자 미수집 (BMC 사용자는 별도 — AccountService)
     "power": "success"                                     // Redfish 전용 — PowerSubsystem
   },
-  "diagnosis": {
-    "reachable": true,
-    "port_open": true,
-    "protocol_supported": true,
-    "auth_success": true,
-    "failure_stage": null,
-    "failure_reason": null,
-    "details": {
-      "channel": "redfish",
+  "diagnosis": {                                        // 4단계 진단 (precheck) 결과 + 채널별 추가 정보
+    "reachable": true,                                  // ICMP 또는 TCP SYN 도달성
+    "port_open": true,                                  // target_type 별 port 응답 (OS=22/5985/5986, ESXi/Redfish=443)
+    "protocol_supported": true,                         // 프로토콜 응답 형식 검증 (SSH banner / WinRM HTTP / Redfish JSON / vSphere)
+    "auth_success": true,                               // 자격증명 인증 성공
+    "failure_stage": null,                              // 실패 단계 (성공 시 null) — ping/port/protocol/auth
+    "failure_reason": null,                             // 실패 사유 한글 (성공 시 null)
+    "details": {                                        // 채널별 추가 진단 정보
+      "channel": "redfish",                             // 수집 채널 식별 (diagnosis 안에 다시 명시)
       "adapter_candidate": "redfish_dell_idrac10",         // adapter 점수 = 110×1000 + specificity×10 + match
-      "checked_ports": [443],
-      "selected_port": 443,
+      "checked_ports": [443],                           // detect 단계 시도한 port list
+      "selected_port": 443,                             // 실제 통신 port
       "redfish_version": "1.20.1",                         // ServiceRoot.RedfishVersion
       "product": "Integrated Dell Remote Access Controller",  // ServiceRoot.Product
       "systems_uri": "/redfish/v1/Systems",                // Systems collection URI
-      "auth": {
+      "auth": {                                         // try_credentials 결과 — 시도한 계정 / 사용한 계정 / fallback 여부
         "attempted_count": 5,                              // vault/redfish/dell.yml accounts 5개 (primary + recovery 4)
         "used_label": "common_infraops",                   // primary 성공 (5 vendor 통일 — cycle 2026-05-06 F50)
-        "used_role": "primary",
-        "fallback_used": false
+        "used_role": "primary",                         // 계정 role — primary / secondary / recovery
+        "fallback_used": false                          // recovery 계정 사용 여부
       },
       "account_service": {}                                // AccountService 진단 (현재 비어있음)
     }
   },
-  "meta": {
-    "started_at": "2026-05-06T23:46:22.507315Z",
-    "finished_at": "2026-05-06T23:47:25.353917Z",
-    "duration_ms": 62802,
-    "adapter_id": "redfish_dell_idrac10",
-    "adapter_version": null,
-    "ansible_version": "2.20.3"
+  "meta": {                                             // 수집 메타데이터 — 운영 추적 + 성능 분석
+    "started_at": "2026-05-06T23:46:22.507315Z",        // 시작 시각 (UTC ISO 8601)
+    "finished_at": "2026-05-06T23:47:25.353917Z",       // 종료 시각 (UTC ISO 8601)
+    "duration_ms": 62802,                               // 수집 소요 시간 (밀리초)
+    "adapter_id": "redfish_dell_idrac10",               // Redfish NetworkAdapter @id
+    "adapter_version": null,                            // adapter 버전 (현재 adapter YAML 미정 → null)
+    "ansible_version": "2.20.3"                         // 실행 ansible 버전
   },
-  "correlation": {
+  "correlation": {                                      // 상관관계 식별자 — 여러 채널에서 같은 장비 매칭
     "serial_number": "CNIVC004950455",                     // Dell System Service Tag (Hardware.serial)
     "system_uuid": "4c4c4544-0034-4310-8058-b6c04f4a3534", // System UUID
     "bmc_ip": "10.100.15.27",                              // Redfish 채널 — BMC IP
     "host_ip": "10.100.15.27"                              // 호출자 inventory_json bmc_ip
   },
-  "errors": [],
-  "data": {
+  "errors": [],                                         // 수집 중 errors (warning 수준이면 status=success 와 공존 가능 — rule 13 R8)
+  "data": {                                             // 실제 수집된 raw 데이터 (섹션별 dict). not_supported / failed 섹션은 null 또는 빈 list
     "memory": {
       "total_mb": 262144,                                  // 256 GB
-      "total_basis": "physical_installed",
-      "installed_mb": 262144,
+      "total_basis": "physical_installed",              // total_mb 의미 — physical_installed (dmidecode) / os_visible (/proc/meminfo) / hypervisor_visible (ESXi)
+      "installed_mb": 262144,                           // 물리 설치 메모리 (dmidecode SUM)
       "visible_mb": null,                                  // BMC 는 OS visible 모름
-      "free_mb": null,
-      "slots": [
+      "free_mb": null,                                  // free 메모리 (현재)
+      "slots": [                                        // 메모리 슬롯 별 정보 (DIMM)
         {
           "id": "DIMM.Socket.A1",                          // Redfish DIMM Memory @id
           "name": "DIMM A1",                               // DIMM 이름
           "locator": "DIMM A1",                            // Memory.DeviceLocator
           "capacity_mb": 65536,                            // 64 GB
-          "type": "DDR5",
+          "type": "DDR5",                               // 메모리 type — DDR3 / DDR4 / DDR5 / DRAM
           "base_module_type": "RDIMM",                     // Redfish 전용 — RDIMM / LRDIMM / UDIMM
-          "speed_mhz": 4400,
-          "manufacturer": "Samsung",
+          "speed_mhz": 4400,                            // 메모리 속도 (MHz)
+          "manufacturer": "Samsung",                    // 제조사
           "serial": "12CAA52F",                            // DIMM 시리얼
-          "part_number": "M321R8GA0BB0-CQKZJ",
+          "part_number": "M321R8GA0BB0-CQKZJ",          // 부품 번호 (P/N)
           "rank_count": 2,                                 // Memory.RankCount
           "data_width_bits": 64,                           // Memory.DataWidthBits
           "bus_width_bits": 80,                            // Memory.BusWidthBits (with ECC)
@@ -98,12 +98,12 @@
         {"id": "DIMM.Socket.A2", "name": "DIMM A2", "locator": "DIMM A2", "capacity_mb": 65536, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "12CAA56B", "part_number": "M321R8GA0BB0-CQKZJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
         {"id": "DIMM.Socket.B2", "name": "DIMM B2", "locator": "DIMM B2", "capacity_mb": 65536, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "SK hynix", "serial": "29E2E2ED", "part_number": "HMCG94AEBRA123N", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"}
       ],
-      "summary": {
-        "groups": [
+      "summary": {                                      // 그룹 합계 (같은 사양 묶음)
+        "groups": [                                     // 같은 사양 그룹 list
           {"unit_capacity_gb": 64, "type": "DDR5", "speed_mhz": 4400, "manufacturer": "Samsung", "part_number": "M321R8GA0BB0-CQKZJ", "quantity": 2, "group_total_gb": 128},
           {"unit_capacity_gb": 64, "type": "DDR5", "speed_mhz": 4400, "manufacturer": "SK hynix", "part_number": "HMCG94AEBRA123N", "quantity": 2, "group_total_gb": 128}
         ],
-        "grand_total_gb": 256
+        "grand_total_gb": 256                           // 전체 합계 (GB)
       }
     },
     "bmc": {                                               // Redfish 전용 — Manager (iDRAC) 정보
@@ -130,45 +130,45 @@
       }
     },
     "storage": {
-      "infiniband": [],
+      "infiniband": [],                                 // InfiniBand HCA list
       "controllers": [                                     // RAID 컨트롤러 list
         {
           "id": "RAID.SL.3-1",                             // 컨트롤러 식별자
           "name": "PERC H965i Front",                      // 컨트롤러 이름
           "health": "Warning",                             // 컨트롤러 health
-          "controller_model": "PERC H965i Front",
-          "controller_firmware": "8.8.0.0.18-26",
-          "controller_manufacturer": "DELL",
-          "controller_health": "Warning",
+          "controller_model": "PERC H965i Front",       // 컨트롤러 모델
+          "controller_firmware": "8.8.0.0.18-26",       // 컨트롤러 펌웨어
+          "controller_manufacturer": "DELL",            // 컨트롤러 제조사
+          "controller_health": "Warning",               // 컨트롤러 health
           "drives": []                                     // 이 컨트롤러에 연결된 drive (옆 physical_disks 와 별도)
         },
         {"id": "AHCI.Embedded.2-1", "name": "Sapphire Rapids SATA AHCI Controller", "health": null, "controller_model": "Sapphire Rapids SATA AHCI Controller", "controller_firmware": "", "controller_manufacturer": "DELL", "controller_health": null, "drives": []},
         {"id": "AHCI.Embedded.1-1", "name": "Sapphire Rapids SATA AHCI Controller", "health": null, "controller_model": "Sapphire Rapids SATA AHCI Controller", "controller_firmware": "", "controller_manufacturer": "DELL", "controller_health": null, "drives": []},
         {"id": "BOSS.SL.12-1", "name": "BOSS-N1 Monolithic", "health": "OK", "controller_model": "BOSS-N1 Monolithic", "controller_firmware": "2.1.13.2025", "controller_manufacturer": "DELL", "controller_health": "OK", "drives": [{"device": "NVMe 0", "model": "Dell EC NVMe ISE 7450 RI M.2 80 480GB", "total_mb": 457862, "media_type": "SSD", "protocol": "PCIe", "health": "OK"}]}
       ],
-      "filesystems": [],
-      "hbas": [],
+      "filesystems": [],                                // 마운트된 파일시스템 list
+      "hbas": [],                                       // HBA list (FC / iSCSI / SAS / AHCI). Linux OS 는 빈 list
       "summary": {
         "groups": [
           {"unit_capacity_gb": 447, "model": "Dell EC NVMe ISE 7450 RI M.2 80 480GB", "media_type": "SSD", "protocol": "PCIe", "quantity": 1, "group_total_gb": 447}
         ],
         "grand_total_gb": 447
       },
-      "physical_disks": [
+      "physical_disks": [                               // 물리 디스크 list
         {
           "id": "Disk.Direct.0-0:BOSS.SL.12-1",
-          "device": "NVMe 0",
+          "device": "NVMe 0",                           // 디바이스 경로 (Linux=/dev/sdX, Windows=\\.\PHYSICALDRIVEx, Redfish=PD-X 등)
           "model": "Dell EC NVMe ISE 7450 RI M.2 80 480GB",
           "serial": "242749DEA5A9",
           "total_mb": 457862,
-          "media_type": "SSD",
-          "protocol": "PCIe",
+          "media_type": "SSD",                          // SSD / HDD / NVMe
+          "protocol": "PCIe",                           // SAS / SATA / PCIe / NVMe / null
           "health": "OK",
           "failure_predicted": false,                      // SMART 기반 — 장애 예측
           "predicted_life_percent": 100                    // 남은 수명 (%) — Dell 전용 (cycle 2026-05-06 F49)
         }
       ],
-      "logical_volumes": [
+      "logical_volumes": [                              // LVM/RAID 가상 볼륨 list
         {
           "id": "Disk.Virtual.0:BOSS.SL.12-1",             // 가상 볼륨 식별자
           "name": "VD_0",                                  // 볼륨 이름
@@ -181,7 +181,7 @@
           "boot_volume": false                             // 부팅 볼륨 여부
         }
       ],
-      "datastores": []
+      "datastores": []                                  // ESXi datastore list (OS/Redfish 는 빈 list)
     },
     "hardware": {                                          // Redfish 가 가장 풍부 — Hardware (System) 정보
       "vendor": "Dell Inc.",                               // System.Manufacturer 원본 (envelope vendor 는 정규화 "dell")
@@ -189,7 +189,7 @@
       "serial": "CNIVC004950455",                          // System.SerialNumber (Dell Service Tag)
       "uuid": "4c4c4544-0034-4310-8058-b6c04f4a3534",
       "sku": "64CXJ54",                                    // System.SKU
-      "bios_version": "2.3.5",
+      "bios_version": "2.3.5",                          // BIOS 버전
       "bios_date": "2024-09-10",                           // BIOS 날짜
       "power_state": "On",                                 // System.PowerState
       "health": "OK",                                      // System.Status.Health (BMC rollup)
@@ -219,9 +219,9 @@
     },
     "users": [],                                           // Redfish 채널 users 미수집 (BMC AccountService 별도)
     "cpu": {
-      "sockets": 2,
-      "cores_physical": 24,
-      "logical_threads": 48,
+      "sockets": 2,                                     // 물리 socket 수
+      "cores_physical": 24,                             // 물리 코어 수
+      "logical_threads": 48,                            // 논리 thread 수 (HT 활성 시 cores × 2)
       "model": "INTEL(R) XEON(R) SILVER 4510",
       "max_speed_mhz": 4000,                               // Processor.MaxSpeedMHz
       "architecture": "x86",                               // Redfish 표기는 x86 (Linux 는 x86_64)
@@ -232,8 +232,8 @@
       }
     },
     "network": {
-      "portgroups": [],
-      "dns_servers": [],
+      "portgroups": [],                                 // ESXi portgroup list (OS/Redfish 는 빈 list)
+      "dns_servers": [],                                // 시스템 DNS 서버 list
       "ports": [                                           // Redfish — NetworkAdapter.NetworkPorts (BMC 가 보고)
         {
           "adapter_id": "NIC.Embedded.1",                  // 소속 어댑터 ID
@@ -258,8 +258,8 @@
         {"id": "NIC.Embedded.1-1-1", "name": "System Ethernet Interface", "kind": "server_nic", "mac": "C4:CB:E1:DF:16:EE", "mtu": null, "speed_mbps": 0, "link_status": "down", "is_primary": false, "addresses": []},
         {"id": "NIC.Slot.8-1-1", "name": "System Ethernet Interface", "kind": "server_nic", "mac": "3C:FD:FE:B6:1C:E0", "mtu": null, "speed_mbps": 10000, "link_status": "up", "is_primary": false, "addresses": []}
       ],
-      "virtual_switches": [],
-      "driver_map": [],
+      "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)
+      "driver_map": [],                                 // interface ↔ driver / VLAN / bond master 매핑
       "summary": {
         "groups": [
           {"speed_mbps": 10000, "model": "Intel(R) 25GbE 2P XXV710 Adptr", "manufacturer": "Intel Corporation", "link_type": "ethernet", "quantity": 2, "link_up_count": 2},
@@ -270,7 +270,7 @@
         "port_count": 4,                                   // 포트 갯수
         "primary_speed_mbps": 10000                        // 기본 NIC 속도
       },
-      "default_gateways": [{"family": "ipv4", "address": "10.100.15.254"}],
+      "default_gateways": [{"family": "ipv4", "address": "10.100.15.254"}],  // 기본 게이트웨이 list (IPv4 / IPv6)
       "adapters": [                                        // NetworkAdapter list (Redfish — System.NetworkAdapters)
         {
           "id": "NIC.Embedded.1",                          // 어댑터 식별자
@@ -282,20 +282,20 @@
           "firmware_version": "22.91.5",                   // 어댑터 펌웨어
           "mac": "C4:CB:E1:DF:16:EE",                      // 첫 포트 MAC (대표)
           "link_status": "down",
-          "speed_mbps": null,
+          "speed_mbps": null,                           // 속도 (Mbps)
           "port_count": 2                                  // 포트 갯수
         },
         {"id": "NIC.Slot.8", "name": "Network Adapter View", "manufacturer": "Intel Corporation", "model": "Intel(R) 25GbE 2P XXV710 Adptr", "part_number": "0HN7J7", "serial_number": "MY124027B404LM", "firmware_version": "19.5.12", "mac": "3C:FD:FE:B6:1C:E0", "link_status": "up", "speed_mbps": 10000, "port_count": 2}
       ]
     },
     "system": {                                            // Redfish 채널 — system 섹션 not_supported 이지만 fqdn 만 채워짐
-      "os_family": null,
-      "distribution": null,
-      "version": null,
-      "kernel": null,
+      "os_family": null,                                // OS family — RedHat / Debian / Windows / VMware ESXi
+      "distribution": null,                             // 배포판 — RedHat / Ubuntu / Debian / Rocky / Microsoft Windows / VMware ESXi
+      "version": null,                                  // OS 버전 (예: 8.10 / 9.6 / 24.04 / 7.0.3 / 21H2)
+      "kernel": null,                                   // 커널 버전 (uname -r) / Windows build / ESXi build
       "architecture": null,
-      "uptime_seconds": null,
-      "selinux": null,
+      "uptime_seconds": null,                           // 부팅 후 경과 (초)
+      "selinux": null,                                  // SELinux 상태 — enabled / disabled / null (Windows/ESXi)
       "fqdn": "r760-1.gooddi.lab"                          // BMC 가 보고하는 호스트 FQDN
     },
     "power": {                                             // Redfish 전용 — PowerSubsystem
@@ -369,5 +369,5 @@
       {"id": "Installed-28897-7.10.70.00__USC.Embedded.1:LC.Embedded.1", "name": "Lifecycle Controller", "version": "7.10.70.00", "updateable": true, "component": "28897", "pending": false, "category": "lifecycle"}
     ]
   },
-  "schema_version": "1"
+  "schema_version": "1"                                 // envelope schema 버전 — "1" 고정 (rule 13 R5)
 }

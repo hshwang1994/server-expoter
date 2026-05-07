@@ -21,15 +21,15 @@
   "vendor": "vmware",                                      // 정규화 vendor (소문자) — VM 이라 hosting hardware = VMware
   "status": "success",                                     // 전체 수집 결과 — success / partial / failed
   "sections": {                                            // 섹션별 수집 상태 — success / failed / not_supported
-    "system": "success",
+    "system": "success",                                // OS 정보 (커널 / 배포판 / runtime). Redfish 채널은 not_supported
     "hardware": "not_supported",                           // OS 채널은 hardware 미지원 (Redfish 가 지원)
     "bmc": "not_supported",                                // OS 채널은 BMC 미지원
-    "cpu": "success",
-    "memory": "success",
-    "storage": "success",
-    "network": "success",
+    "cpu": "success",                                   // CPU 정보 (코어 / 모델 / 캐시)
+    "memory": "success",                                // 메모리 정보 (DIMM 슬롯 / 총량)
+    "storage": "success",                               // 스토리지 (디스크 / 컨트롤러 / 파일시스템)
+    "network": "success",                               // 네트워크 (NIC / IP / DNS / 라우팅)
     "firmware": "not_supported",                           // OS 채널은 firmware 미지원
-    "users": "success",
+    "users": "success",                                 // 사용자 list. OS 채널만 success, Redfish/ESXi 는 not_supported
     "power": "not_supported"                               // OS 채널은 power 미지원
   },
   "diagnosis": {                                           // 4단계 진단 (precheck) 결과
@@ -87,7 +87,7 @@
       ],
       "hbas": [],                                          // FC HBA list
       "summary": {                                         // 같은 사양 디스크 묶음 합계
-        "groups": [
+        "groups": [                                     // 같은 사양 그룹 list
           {
             "unit_capacity_gb": 50,                        // 1디스크 capacity (GB)
             "model": "Virtual disk",

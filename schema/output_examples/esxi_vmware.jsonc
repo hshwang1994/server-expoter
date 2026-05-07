@@ -15,61 +15,61 @@
   "ip": "10.100.64.1",                                     // ESXi management IP
   "hostname": "esxi01",                                    // ESXi system name
   "vendor": "cisco",                                       // ESXi 가 보고하는 hosting hardware vendor (BIOS DMI)
-  "status": "success",
-  "sections": {
-    "system": "success",
+  "status": "success",                                  // 전체 수집 결과 — success / partial / failed
+  "sections": {                                         // 섹션별 수집 상태 dict — success / failed / not_supported
+    "system": "success",                                // OS 정보 (커널 / 배포판 / runtime). Redfish 채널은 not_supported
     "hardware": "success",                                 // ESXi 는 BIOS / model / serial 보고 (Linux OS 채널과 차이)
-    "bmc": "not_supported",
-    "cpu": "success",
-    "memory": "success",
-    "storage": "success",
-    "network": "success",
-    "firmware": "not_supported",
-    "users": "not_supported",
-    "power": "not_supported"
+    "bmc": "not_supported",                             // BMC (Manager) 정보. Redfish 채널만 success, OS/ESXi 는 not_supported
+    "cpu": "success",                                   // CPU 정보 (코어 / 모델 / 캐시)
+    "memory": "success",                                // 메모리 정보 (DIMM 슬롯 / 총량)
+    "storage": "success",                               // 스토리지 (디스크 / 컨트롤러 / 파일시스템)
+    "network": "success",                               // 네트워크 (NIC / IP / DNS / 라우팅)
+    "firmware": "not_supported",                        // 펌웨어 inventory. Redfish 채널만 success, OS/ESXi 는 not_supported
+    "users": "not_supported",                           // 사용자 list. OS 채널만 success, Redfish/ESXi 는 not_supported
+    "power": "not_supported"                            // 전력 (PSU / 소비). Redfish 채널만 success
   },
-  "diagnosis": {
-    "reachable": true,
-    "port_open": true,
-    "protocol_supported": true,
-    "auth_success": true,
-    "failure_stage": null,
-    "failure_reason": null,
-    "details": {
-      "channel": "esxi",
+  "diagnosis": {                                        // 4단계 진단 (precheck) 결과 + 채널별 추가 정보
+    "reachable": true,                                  // ICMP 또는 TCP SYN 도달성
+    "port_open": true,                                  // target_type 별 port 응답 (OS=22/5985/5986, ESXi/Redfish=443)
+    "protocol_supported": true,                         // 프로토콜 응답 형식 검증 (SSH banner / WinRM HTTP / Redfish JSON / vSphere)
+    "auth_success": true,                               // 자격증명 인증 성공
+    "failure_stage": null,                              // 실패 단계 (성공 시 null) — ping/port/protocol/auth
+    "failure_reason": null,                             // 실패 사유 한글 (성공 시 null)
+    "details": {                                        // 채널별 추가 진단 정보
+      "channel": "esxi",                                // 수집 채널 식별 (diagnosis 안에 다시 명시)
       "adapter_candidate": "esxi_generic",                 // ESXi adapter 4종 (generic + 6x/7x/8x). 7.0.3 → generic (또는 esxi_7x)
-      "checked_ports": [443],
-      "selected_port": 443,
+      "checked_ports": [443],                           // detect 단계 시도한 port list
+      "selected_port": 443,                             // 실제 통신 port
       "vsphere_endpoint": "https://10.100.64.1:443/sdk",   // ESXi vSphere API endpoint
       "root_status_code": 404,                             // / 경로 404 (정상 — vSphere API 는 /sdk)
-      "requires_auth_at_root": false,
-      "auth": {
-        "attempted_count": 2,
+      "requires_auth_at_root": false,                   // ServiceRoot 가 인증 요구하는지 (일부 BMC 는 ServiceRoot 도 인증 요구)
+      "auth": {                                         // try_credentials 결과 — 시도한 계정 / 사용한 계정 / fallback 여부
+        "attempted_count": 2,                           // 시도한 계정 수
         "used_label": "esxi_current",                      // vault/esxi.yml 의 root 계정
-        "used_role": "primary",
-        "fallback_used": false
+        "used_role": "primary",                         // 계정 role — primary / secondary / recovery
+        "fallback_used": false                          // recovery 계정 사용 여부
       },
       "esxi_version": "7.0.3",                             // ESXi 메이저 버전
       "esxi_build": "20842708",                            // ESXi build 번호
-      "product": "VMware ESXi"
+      "product": "VMware ESXi"                          // ServiceRoot.Product (Redfish 채널)
     }
   },
-  "meta": {
-    "started_at": "2026-05-06T23:46:22.594704Z",
-    "finished_at": "2026-05-06T23:47:37.790511Z",
-    "duration_ms": 75118,
-    "adapter_id": "esxi_generic",
-    "adapter_version": null,
-    "ansible_version": "2.20.3"
+  "meta": {                                             // 수집 메타데이터 — 운영 추적 + 성능 분석
+    "started_at": "2026-05-06T23:46:22.594704Z",        // 시작 시각 (UTC ISO 8601)
+    "finished_at": "2026-05-06T23:47:37.790511Z",       // 종료 시각 (UTC ISO 8601)
+    "duration_ms": 75118,                               // 수집 소요 시간 (밀리초)
+    "adapter_id": "esxi_generic",                       // Redfish NetworkAdapter @id
+    "adapter_version": null,                            // adapter 버전 (현재 adapter YAML 미정 → null)
+    "ansible_version": "2.20.3"                         // 실행 ansible 버전
   },
-  "correlation": {
+  "correlation": {                                      // 상관관계 식별자 — 여러 채널에서 같은 장비 매칭
     "serial_number": "FCH2117V12M",                        // Cisco serial (DMI System Serial)
-    "system_uuid": "a9f99820-7943-004a-a3bf-320be39e24ae",
-    "bmc_ip": null,
-    "host_ip": "10.100.64.1"
+    "system_uuid": "a9f99820-7943-004a-a3bf-320be39e24ae",  // System UUID (DMI 또는 Redfish Hardware.uuid)
+    "bmc_ip": null,                                     // BMC IP (Redfish 채널만 채워짐. OS/ESXi 는 null)
+    "host_ip": "10.100.64.1"                            // 호출자가 전달한 service_ip / bmc_ip
   },
-  "errors": [],
-  "data": {
+  "errors": [],                                         // 수집 중 errors (warning 수준이면 status=success 와 공존 가능 — rule 13 R8)
+  "data": {                                             // 실제 수집된 raw 데이터 (섹션별 dict). not_supported / failed 섹션은 null 또는 빈 list
     "users": [],                                           // ESXi 채널은 users 미수집
     "network": {
       "ports": [],                                         // Redfish BMC port (ESXi 는 빈 list)
@@ -82,8 +82,8 @@
           "portgroups": ["10.100.64.0/24", "Trunk", "VM Network", "Management Network"]  // 연결된 portgroup
         }
       ],
-      "summary": {
-        "groups": [
+      "summary": {                                      // 그룹 합계 (같은 사양 묶음)
+        "groups": [                                     // 같은 사양 그룹 list
           {"speed_mbps": null, "link_type": null, "quantity": 1, "link_up_count": 0}
         ]
       },
@@ -91,11 +91,11 @@
         {
           "name": "vmnic0",                                // ESXi pnic 이름
           "driver": "igbn",                                // ESXi NIC driver
-          "mac": "a0:23:9f:0e:75:94",
+          "mac": "a0:23:9f:0e:75:94",                   // MAC address (대소문자 정규화 안 함)
           "link_status": "Disconnected",                   // Connected / Disconnected
-          "speed_mbps": null,
+          "speed_mbps": null,                           // 속도 (Mbps)
           "duplex": null,                                  // Full Duplex / Half Duplex / null
-          "pci": "0000:01:00.0",
+          "pci": "0000:01:00.0",                        // PCI bus address
           "adapter": "Intel(R) I350 Gigabit Network Connection"  // 어댑터 모델
         },
         {"name": "vmnic1", "driver": "igbn", "mac": "a0:23:9f:0e:75:95", "link_status": "Disconnected", "speed_mbps": null, "duplex": null, "pci": "0000:01:00.1", "adapter": "Intel(R) I350 Gigabit Network Connection"},
@@ -114,7 +114,7 @@
         {"portgroup": "VM Network", "vlan_id": 64, "vswitch": "vSwitch0"},
         {"portgroup": "Management Network", "vlan_id": 64, "vswitch": "vSwitch0"}
       ],
-      "dns_servers": ["10.100.64.251"],
+      "dns_servers": ["10.100.64.251"],                 // 시스템 DNS 서버 list
       "interfaces": [                                      // ESXi vmkernel interface (Linux OS interface 와 다른 형태)
         {
           "id": "vmk0",                                    // vmkernel 식별자
@@ -124,50 +124,50 @@
           "mtu": 1500,
           "speed_mbps": null,
           "link_status": "unknown",
-          "is_primary": false,
-          "addresses": [
+          "is_primary": false,                          // 기본 NIC 여부 (default route 매칭)
+          "addresses": [                                // 할당된 IP 주소 list
             {"family": "ipv4", "address": "10.100.64.1", "prefix_length": 24, "subnet_mask": "255.255.255.0", "gateway": null}
           ]
         }
       ],
-      "default_gateways": [{"family": "ipv4", "address": "10.100.64.254"}],
-      "driver_map": []
+      "default_gateways": [{"family": "ipv4", "address": "10.100.64.254"}],  // 기본 게이트웨이 list (IPv4 / IPv6)
+      "driver_map": []                                  // interface ↔ driver / VLAN / bond master 매핑
     },
     "memory": {
-      "total_mb": 1048464,
+      "total_mb": 1048464,                              // 전체 (MB) — total_basis 가 결정
       "total_basis": "hypervisor_visible",                 // ESXi 전용 — hypervisor 가 인식한 양
       "installed_mb": null,                                // ESXi 는 dmidecode 미사용
-      "visible_mb": 1048464,
-      "free_mb": 591912,
+      "visible_mb": 1048464,                            // OS 가 인식한 메모리 (/proc/meminfo)
+      "free_mb": 591912,                                // free 메모리 (현재)
       "slots": [],                                         // ESXi 는 DIMM 슬롯 정보 없음 (Redfish 가 풍부)
       "summary": {
         "groups": [],
-        "grand_total_gb": 1023
+        "grand_total_gb": 1023                          // 전체 합계 (GB)
       }
     },
     "bmc": null,
     "system": {
       "hostname": "esxi01",                                // ESXi system name
-      "fqdn": "esxi01",
+      "fqdn": "esxi01",                                 // FQDN (도메인 포함 hostname)
       "version": "7.0.3",                                  // ESXi major version
       "kernel": "20842708",                                // build 번호 (Windows 와 동일하게 build 자리)
       "hosting_type": "hypervisor",                        // ESXi 전용 (Linux 는 virtual / baremetal / container)
-      "uptime_seconds": 9925684,
-      "distribution": "VMware ESXi",
-      "selinux": null,
-      "runtime": {
-        "timezone": "UTC",
-        "ntp_active": false,
-        "ntp_synchronized": false,
+      "uptime_seconds": 9925684,                        // 부팅 후 경과 (초)
+      "distribution": "VMware ESXi",                    // 배포판 — RedHat / Ubuntu / Debian / Rocky / Microsoft Windows / VMware ESXi
+      "selinux": null,                                  // SELinux 상태 — enabled / disabled / null (Windows/ESXi)
+      "runtime": {                                      // OS runtime 정보 (방화벽 / NTP / 시간대 / swap)
+        "timezone": "UTC",                              // 시간대 (timedatectl)
+        "ntp_active": false,                            // NTP 서비스 활성
+        "ntp_synchronized": false,                      // NTP 동기화
         "firewall_tool": "esxi_firewall",                  // ESXi 전용
-        "firewall_state": "enabled",
-        "listening_ports": [],
-        "swap_total_mb": null,
-        "swap_used_mb": null,
-        "swap_free_mb": null
+        "firewall_state": "enabled",                    // 방화벽 상태 — running / enabled / disabled / inactive / not_installed
+        "listening_ports": [],                          // listening port list (string)
+        "swap_total_mb": null,                          // swap 전체 (MB)
+        "swap_used_mb": null,                           // swap 사용
+        "swap_free_mb": null                            // swap 여유
       },
-      "architecture": "x86_64",
-      "os_family": "VMware ESXi"
+      "architecture": "x86_64",                         // CPU 아키텍처 (Linux="x86_64" / Redfish="x86")
+      "os_family": "VMware ESXi"                        // OS family — RedHat / Debian / Windows / VMware ESXi
     },
     "storage": {
       "summary": {
@@ -196,33 +196,33 @@
           "type": "VMFS",                                  // VMFS / NFS / vSAN
           "total_mb": 5968384,
           "free_mb": 3906099,
-          "used_mb": 2062285,
-          "usage_percent": 34.6,
+          "used_mb": 2062285,                           // 사용 (MB)
+          "usage_percent": 34.6,                        // 사용률 (%)
           "accessible": true                               // datastore 접근 가능 여부
         },
         {"name": "ESXi01-Local-RAID0", "type": "VMFS", "total_mb": 10986240, "free_mb": 648573, "used_mb": 10337667, "usage_percent": 94.1, "accessible": true}
       ],
-      "physical_disks": [],
-      "controllers": [],
-      "filesystems": [],
-      "logical_volumes": [],
-      "infiniband": []
+      "physical_disks": [],                             // 물리 디스크 list
+      "controllers": [],                                // RAID 컨트롤러 list
+      "filesystems": [],                                // 마운트된 파일시스템 list
+      "logical_volumes": [],                            // LVM/RAID 가상 볼륨 list
+      "infiniband": []                                  // InfiniBand HCA list
     },
     "power": null,
     "hardware": {                                          // ESXi 가 보고하는 hosting hardware 정보 (BIOS DMI)
       "vendor": "Cisco Systems Inc",
       "model": "TA-UNODE-G1",
-      "serial": "FCH2117V12M",
-      "uuid": "a9f99820-7943-004a-a3bf-320be39e24ae",
-      "bios_version": "C220M4.4.1.2c.0.0202211901",
+      "serial": "FCH2117V12M",                          // 시리얼 (DIMM / disk / PSU 등 컨텍스트)
+      "uuid": "a9f99820-7943-004a-a3bf-320be39e24ae",   // System UUID (Manager / System.uuid)
+      "bios_version": "C220M4.4.1.2c.0.0202211901",     // BIOS 버전
       "bios_date": "2021-02-02T00:00:00+00:00"             // ISO 8601 datetime (Windows 는 date only)
     },
     "cpu": {
-      "sockets": 2,
+      "sockets": 2,                                     // 물리 socket 수
       "cores_physical": 44,                                // 22 cores × 2 socket
       "logical_threads": 88,                               // HT 활성
       "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
-      "max_speed_mhz": 2200,
+      "max_speed_mhz": 2200,                            // 최대 속도 (MHz)
       "architecture": "x86_64",
       "summary": {
         "groups": [
@@ -232,5 +232,5 @@
     },
     "firmware": []
   },
-  "schema_version": "1"
+  "schema_version": "1"                                 // envelope schema 버전 — "1" 고정 (rule 13 R5)
 }

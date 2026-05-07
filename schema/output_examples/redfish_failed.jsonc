@@ -13,56 +13,56 @@
 // 캡처 일시 : 2026-05-07
 // =============================================================================
 {
-  "target_type": "redfish",
-  "collection_method": "redfish_api",
-  "ip": "10.100.15.1",
+  "target_type": "redfish",                             // 수집 채널 — "os" | "esxi" | "redfish"
+  "collection_method": "redfish_api",                   // 수집 방식 — agent (SSH/WinRM) / vsphere_api / redfish_api (stdlib HTTP)
+  "ip": "10.100.15.1",                                  // 대상 장비 IP (호출자 inventory_json 의 service_ip 또는 bmc_ip)
   "hostname": "10.100.15.1",                               // 해석 실패 → ip 로 fallback
   "vendor": null,                                          // probe 실패 → vendor 미감지
   "status": "failed",                                      // 전체 실패
-  "sections": {
-    "system": "failed",
-    "hardware": "failed",
-    "bmc": "failed",
-    "cpu": "failed",
-    "memory": "failed",
-    "storage": "failed",
-    "network": "failed",
-    "firmware": "failed",
+  "sections": {                                         // 섹션별 수집 상태 dict — success / failed / not_supported
+    "system": "failed",                                 // OS 정보 (커널 / 배포판 / runtime). Redfish 채널은 not_supported
+    "hardware": "failed",                               // 하드웨어 정보 (model / serial / health). Linux OS 는 not_supported
+    "bmc": "failed",                                    // BMC (Manager) 정보. Redfish 채널만 success, OS/ESXi 는 not_supported
+    "cpu": "failed",                                    // CPU 정보 (코어 / 모델 / 캐시)
+    "memory": "failed",                                 // 메모리 정보 (DIMM 슬롯 / 총량)
+    "storage": "failed",                                // 스토리지 (디스크 / 컨트롤러 / 파일시스템)
+    "network": "failed",                                // 네트워크 (NIC / IP / DNS / 라우팅)
+    "firmware": "failed",                               // 펌웨어 inventory. Redfish 채널만 success, OS/ESXi 는 not_supported
     "users": "not_supported",                              // 채널 자체 미지원 (failed 와 구분)
-    "power": "failed"
+    "power": "failed"                                   // 전력 (PSU / 소비). Redfish 채널만 success
   },
-  "diagnosis": {
+  "diagnosis": {                                        // 4단계 진단 (precheck) 결과 + 채널별 추가 정보
     "reachable": true,                                     // ICMP 응답 OK
     "port_open": true,                                     // 443 응답
     "protocol_supported": true,                            // TLS handshake OK + JSON 응답
     "auth_success": null,                                  // 인증 시도 자체 안 됨 (root 503 으로 차단)
     "failure_stage": null,                                 // 본 케이스는 stage 명확 안 함 (root 503 전 protocol 통과)
-    "failure_reason": null,
-    "details": {
-      "channel": "redfish",
+    "failure_reason": null,                             // 실패 사유 한글 (성공 시 null)
+    "details": {                                        // 채널별 추가 진단 정보
+      "channel": "redfish",                             // 수집 채널 식별 (diagnosis 안에 다시 명시)
       "adapter_candidate": null,                           // adapter 매칭 안 됨 (probe 실패로 vendor 모름)
-      "checked_ports": [443],
-      "selected_port": 443,
+      "checked_ports": [443],                           // detect 단계 시도한 port list
+      "selected_port": 443,                             // 실제 통신 port
       "root_status_code": 503,                             // root (/redfish/v1/) HTTP 503 — Service Unavailable
       "requires_auth_at_root": false,                      // 일부 BMC 는 ServiceRoot 도 인증 요구
       "header_negotiation_issue": false                    // Accept / OData-Version / User-Agent 협상 이슈 (rule 96 R7-A-1 lenovo XCC3 reverse regression 관련)
     }
   },
-  "meta": {
-    "started_at": "2026-05-06T23:46:22.250801Z",
-    "finished_at": "2026-05-06T23:46:52.721674Z",
+  "meta": {                                             // 수집 메타데이터 — 운영 추적 + 성능 분석
+    "started_at": "2026-05-06T23:46:22.250801Z",        // 시작 시각 (UTC ISO 8601)
+    "finished_at": "2026-05-06T23:46:52.721674Z",       // 종료 시각 (UTC ISO 8601)
     "duration_ms": null,                                   // 실패 시 null (실측 시간 30초)
     "adapter_id": "redfish_generic",                       // probe 단계는 generic adapter 사용
-    "adapter_version": null,
-    "ansible_version": "2.20.3"
+    "adapter_version": null,                            // adapter 버전 (현재 adapter YAML 미정 → null)
+    "ansible_version": "2.20.3"                         // 실행 ansible 버전
   },
-  "correlation": {
+  "correlation": {                                      // 상관관계 식별자 — 여러 채널에서 같은 장비 매칭
     "serial_number": null,                                 // 수집 못함
-    "system_uuid": null,
+    "system_uuid": null,                                // System UUID (DMI 또는 Redfish Hardware.uuid)
     "bmc_ip": null,                                        // 보통 host_ip 와 동일하게 채워지나 실패 시 null
-    "host_ip": "10.100.15.1"
+    "host_ip": "10.100.15.1"                            // 호출자가 전달한 service_ip / bmc_ip
   },
-  "errors": [
+  "errors": [                                           // 수집 중 errors (warning 수준이면 status=success 와 공존 가능 — rule 13 R8)
     {
       "section": "redfish_gather",                         // errors 가 발생한 영역
       "message": "Redfish 수집 실패 — 인증 실패 (10.100.15.1). 네트워크/Redfish API는 정상 (Redfish ? / Unknown). vault/redfish/.yml 자격증명을 확인하세요. 시도된 계정 수: 0.",  // 한국어 사용자 가이드 (rule 23)
@@ -76,24 +76,24 @@
     "cpu": null,
     "memory": null,
     "storage": {                                           // storage 는 빈 dict 형태로 채움 (data shape 유지)
-      "filesystems": [],
-      "physical_disks": [],
-      "datastores": [],
-      "controllers": [],
-      "logical_volumes": [],
-      "hbas": [],
-      "infiniband": [],
-      "summary": {"groups": [], "grand_total_gb": 0}
+      "filesystems": [],                                // 마운트된 파일시스템 list
+      "physical_disks": [],                             // 물리 디스크 list
+      "datastores": [],                                 // ESXi datastore list (OS/Redfish 는 빈 list)
+      "controllers": [],                                // RAID 컨트롤러 list
+      "logical_volumes": [],                            // LVM/RAID 가상 볼륨 list
+      "hbas": [],                                       // HBA list (FC / iSCSI / SAS / AHCI). Linux OS 는 빈 list
+      "infiniband": [],                                 // InfiniBand HCA list
+      "summary": {"groups": [], "grand_total_gb": 0}    // 그룹 합계 (같은 사양 묶음)
     },
     "network": {                                           // network 도 빈 dict (data shape 유지)
-      "dns_servers": [],
-      "default_gateways": [],
-      "interfaces": [],
-      "adapters": [],
-      "ports": [],
-      "virtual_switches": [],
-      "portgroups": [],
-      "driver_map": [],
+      "dns_servers": [],                                // 시스템 DNS 서버 list
+      "default_gateways": [],                           // 기본 게이트웨이 list (IPv4 / IPv6)
+      "interfaces": [],                                 // OS 또는 서버 NIC interface (논리 / 물리)
+      "adapters": [],                                   // 물리 어댑터 list (PCI / Redfish NetworkAdapter / ESXi pnic)
+      "ports": [],                                      // Redfish BMC NetworkAdapter.NetworkPorts (OS/ESXi 는 빈 list)
+      "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)
+      "portgroups": [],                                 // ESXi portgroup list (OS/Redfish 는 빈 list)
+      "driver_map": [],                                 // interface ↔ driver / VLAN / bond master 매핑
       "summary": {"groups": []}
     },
     "users": [],
