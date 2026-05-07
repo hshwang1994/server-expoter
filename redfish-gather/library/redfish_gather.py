@@ -988,6 +988,14 @@ _OEM_EXTRACTORS = {                                                           # 
 
 def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verify_ssl,
                   chassis_uri=None):
+    """system 섹션 수집 (Redfish endpoints).
+
+    호출 endpoint:
+      - GET {system_uri}                       (예: /redfish/v1/Systems/1)
+      - GET {chassis_uri} (선택, OEM 데이터 추출용 — Lenovo ProductName 등)
+
+    Returns: (data_dict, errors_list)
+    """
     st, data, err = _get(bmc_ip, _p(system_uri), username, password, timeout, verify_ssl)
     errors = []
     if err or st != 200:
@@ -1096,6 +1104,14 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
 
 
 def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_ssl):
+    """bmc 섹션 수집 (Redfish endpoints).
+
+    호출 endpoint:
+      - GET {manager_uri}                            (예: /redfish/v1/Managers/1)
+      - GET {manager_uri}/EthernetInterfaces (선택, BMC IP 추출)
+
+    Returns: (data_dict, errors_list)
+    """
     if not manager_uri:
         return {}, [_err('bmc', 'manager_uri 없음')]
 
@@ -1226,6 +1242,14 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
 
 
 def gather_processors(bmc_ip, system_uri, username, password, timeout, verify_ssl):
+    """cpu 섹션 수집 (Redfish endpoints).
+
+    호출 endpoint:
+      - GET {system_uri}/Processors                  (Members collection)
+      - GET {system_uri}/Processors/{id} × N         (각 CPU 상세)
+
+    Returns: (cpu_list, errors_list)
+    """
     path = _p(system_uri) + '/Processors'
     st, coll, err = _get(bmc_ip, path, username, password, timeout, verify_ssl)
     errors = []
@@ -1275,6 +1299,14 @@ def gather_processors(bmc_ip, system_uri, username, password, timeout, verify_ss
 
 
 def gather_memory(bmc_ip, system_uri, username, password, timeout, verify_ssl):
+    """memory 섹션 수집 (Redfish endpoints).
+
+    호출 endpoint:
+      - GET {system_uri}/Memory                  (Members collection)
+      - GET {system_uri}/Memory/{id} × N         (각 DIMM 상세)
+
+    Returns: ({'total_mib': int, 'slots': list}, errors_list)
+    """
     path = _p(system_uri) + '/Memory'
     st, coll, err = _get(bmc_ip, path, username, password, timeout, verify_ssl)
     errors = []

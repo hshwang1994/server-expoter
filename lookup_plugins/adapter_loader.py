@@ -64,7 +64,11 @@ def _resolve_repo_root(kwargs, variables):
 
 
 def _import_adapter_common(repo_root):
-    """module_utils 경로 추가 후 adapter_common import."""
+    """module_utils 경로 추가 후 adapter_common import.
+
+    Returns: (load_vendor_aliases, normalize_vendor, adapter_matches,
+              adapter_score, adapter_specificity, adapter_match_score)
+    """
     module_utils_path = os.path.join(repo_root, "module_utils")
     if module_utils_path not in sys.path:
         sys.path.insert(0, module_utils_path)
@@ -74,13 +78,16 @@ def _import_adapter_common(repo_root):
             normalize_vendor,
             adapter_matches,
             adapter_score,
+            adapter_specificity,
+            adapter_match_score,
         )
     except ImportError:
         raise AnsibleError(
             "adapter_loader: module_utils/adapter_common.py를 "
             "import할 수 없습니다. REPO_ROOT={0}".format(repo_root)
         )
-    return load_vendor_aliases, normalize_vendor, adapter_matches, adapter_score
+    return (load_vendor_aliases, normalize_vendor, adapter_matches,
+            adapter_score, adapter_specificity, adapter_match_score)
 
 
 def _scan_adapters(adapter_dir):
@@ -114,20 +121,51 @@ def _scan_adapters(adapter_dir):
     return adapters
 
 
-def _match_and_score(adapters, facts, aliases, adapter_matches, adapter_score):
-    """각 adapter의 match 평가 + 점수 계산. matched=[(score, adapter), ...]."""
+def _match_and_score(adapters, facts, aliases, adapter_matches, adapter_score,
+                     adapter_specificity=None, adapter_match_score=None):
+    """각 adapter의 match 평가 + 점수 계산. matched=[(score, adapter), ...].
+
+    `-vvv` 시 각 매칭 후보의 score breakdown 표시:
+      score = priority × 1000 + specificity × 10 + match_score
+    """
     matched = []
+    rejected_with_reason: list[str] = []
     for adapter in adapters:
+        adapter_id = adapter.get("adapter_id", adapter.get("_filename"))
         if adapter_matches(adapter, facts, aliases):
             score = adapter_score(adapter, facts, aliases)
             if score > -9999:
                 matched.append((score, adapter))
-                display.vvv(
-                    "adapter_loader: {0} matched (score={1})".format(
-                        adapter.get("adapter_id", adapter.get("_filename")),
-                        score,
+                # score breakdown logging (rule 95 R1 — debugging visibility)
+                if adapter_specificity and adapter_match_score:
+                    priority = int(adapter.get("priority", 0))
+                    spec = adapter_specificity(adapter)
+                    msc = adapter_match_score(adapter, facts, aliases)
+                    display.vvv(
+                        "adapter_loader: {0} matched score={1} "
+                        "(priority={2}×1000 + specificity={3}×10 + match={4})"
+                        .format(adapter_id, score, priority, spec, msc)
                     )
+                else:
+                    display.vvv(
+                        "adapter_loader: {0} matched (score={1})".format(
+                            adapter_id, score
+                        )
+                    )
+            else:
+                rejected_with_reason.append(
+                    "{0} (match passed but score=-9999 — firmware/model regex 충돌)".format(adapter_id)
                 )
+        else:
+            rejected_with_reason.append(
+                "{0} (match 조건 불일치)".format(adapter_id)
+            )
+    if rejected_with_reason:
+        display.vvv(
+            "adapter_loader: 후보 거부 — {0}건".format(len(rejected_with_reason))
+        )
+        for reason in rejected_with_reason[:10]:  # 최대 10건만
+            display.vvv("  - {0}".format(reason))
     return matched
 
 
@@ -152,7 +190,8 @@ class LookupModule(LookupBase):
 
         facts = kwargs.get("facts", {}) or {}
         repo_root = _resolve_repo_root(kwargs, variables)
-        load_vendor_aliases, _normalize_vendor, adapter_matches, adapter_score = (
+        (load_vendor_aliases, _normalize_vendor, adapter_matches,
+         adapter_score, adapter_specificity, adapter_match_score) = (
             _import_adapter_common(repo_root)
         )
 
@@ -162,7 +201,25 @@ class LookupModule(LookupBase):
         adapter_dir = os.path.join(repo_root, "adapters", channel)
         adapters = _scan_adapters(adapter_dir)
 
-        matched = _match_and_score(adapters, facts, aliases, adapter_matches, adapter_score)
+        # rule 95 R1 #4 (debugging visibility) — facts 입력 요약 -vvv 로그
+        display.vvv(
+            "adapter_loader: channel={0}, facts vendor={1}, model={2}, firmware={3}".format(
+                channel,
+                facts.get("vendor", "?"),
+                facts.get("model", "?"),
+                facts.get("firmware", "?"),
+            )
+        )
+        display.vvv(
+            "adapter_loader: scanned {0} candidates from {1}".format(
+                len(adapters), adapter_dir
+            )
+        )
+
+        matched = _match_and_score(
+            adapters, facts, aliases, adapter_matches, adapter_score,
+            adapter_specificity, adapter_match_score,
+        )
         if not matched:
             fallback = _pick_generic_fallback(adapters)
             if fallback is not None:
@@ -179,6 +236,20 @@ class LookupModule(LookupBase):
         # 동률 발견 시 vvv 경고를 남긴다 (rule 10 R5).
         matched.sort(key=lambda x: x[0], reverse=True)
         best_score, best_adapter = matched[0]
+
+        # rule 95 R1 #4 — top 3 후보 -vvv 로그 (debugging visibility)
+        display.vvv(
+            "adapter_loader: top {0} candidates (score 내림차순):".format(
+                min(3, len(matched))
+            )
+        )
+        for i, (sc, ad) in enumerate(matched[:3], start=1):
+            display.vvv(
+                "  #{0} {1} score={2}".format(
+                    i, ad.get("adapter_id", ad.get("_filename")), sc
+                )
+            )
+
         if len(matched) >= 2 and matched[0][0] == matched[1][0]:
             display.vvv(
                 "adapter_loader: 점수 동률 발견 — {0}={1} vs {2}={3} "
@@ -189,7 +260,7 @@ class LookupModule(LookupBase):
             )
 
         display.v(
-            "adapter_loader: 선택됨 — {0} (score={1})".format(
+            "adapter_loader: 선택됨 — {0} (score={1}) [rule 10 R5 score = priority×1000 + specificity×10 + match]".format(
                 best_adapter.get("adapter_id", "unknown"), best_score
             )
         )
