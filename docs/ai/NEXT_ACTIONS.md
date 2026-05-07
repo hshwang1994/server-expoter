@@ -1,5 +1,30 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-07 (cycle refactor-review — 7개 우려사항 검토 / Phase A 진행 중)
+
+### Phase A 진행 상황 (P0 회귀 보호 인프라)
+
+- **신규**: `tests/regression/test_cross_channel_consistency.py` — 13 테스트 그룹 × 8 baseline = 107 검증 (1 xfailed)
+  - T1 envelope 13 필드 / T2 target_type+collection_method / T3 hostname fallback / T4 vendor canonical / T5 status enum / T6 sections enum / T7 diagnosis dict / T8 errors list / T9 schema_version / T10 channel coverage
+- **신규**: `tests/regression/conftest.py` — 8 baseline registry + 파라미터화 fixture
+- **회귀 검출 1건**: `cisco_baseline.json` `hostname=null` (build_output.yml fallback chain 갱신 이전 캡처된 baseline drift)
+
+### 발견된 회귀 사고 (rule 13 R4 — AI 임의 baseline 수정 금지)
+
+- **cisco_redfish baseline hostname=null drift**
+  - 위치: `schema/baseline_v1/cisco_baseline.json:8`
+  - 코드 의도: `build_output.yml:31-33` fallback chain (`system.hostname OR system.fqdn OR ip`) → `"10.100.15.2"`로 fallback해야 함
+  - 실제 baseline: `null` (fallback 작동 안 함 또는 baseline이 stale)
+  - 회귀 테스트: `tests/regression/test_cross_channel_consistency.py::test_hostname_never_null[cisco_redfish]` — `pytest.xfail` known drift 처리
+  - **후속 작업**: 사이트 cisco UCS 실측 + baseline 재생성 → xfail 제거. lab 또는 사이트 수집 evidence 첨부 필요 (rule 13 R4)
+  - 추적 evidence: `tests/evidence/2026-05-07-cross-channel-regression-baseline.md` (Phase A 완료 시 작성)
+
+### 다음 phase (Phase B/C/E/F/G/H)
+
+7 Phase 완료 후 별도 cycle ADR 작성. 본 우려사항 7개 중 5개는 코드 변경 / 2개는 문서화만. 진행 중.
+
+---
+
 ## 일자: 2026-05-06 (post-cycle P2/P3 batch — 22 P2/P3 후보 모두 [DONE])
 
 ### 본 phase 완료 (M-G1 P2/P3 후보 22 → 0 잔존)

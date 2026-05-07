@@ -110,17 +110,41 @@ def test_<vendor>_<fw>_envelope_emit():
 - `tests/evidence/INDEX.md` — 본 evidence 등재 (있으면)
 - `.claude/ai-context/vendors/{vendor}.md` — 본 펌웨어 노트
 
-## 학습 (cycle 2026-05-01)
+### 7. cross-channel 회귀 테스트 자동 적용
+
+신규 fixture / baseline 추가 시 `tests/regression/test_cross_channel_consistency.py` 가 자동으로 13 검증 그룹 적용 (T1~T10). 별도 테스트 작성 불필요:
+
+- 새 baseline JSON 을 `schema/baseline_v1/{label}_baseline.json` 에 추가
+- `tests/regression/conftest.py` 의 `BASELINE_REGISTRY` 에 entry 추가:
+  ```python
+  ("huawei_redfish", "redfish", "redfish_api", "huawei_baseline.json"),
+  ```
+- `pytest tests/regression/` 자동 적용 — envelope 13 필드 / vendor canonical / status enum / hostname fallback / diagnosis shape / errors list / schema_version / channel coverage 모두 검증
+
+### 8. drift 발견 시 처리 (rule 13 R4 보호)
+
+회귀 테스트가 baseline drift 검출 시:
+1. **AI 임의 baseline 수정 금지** (rule 13 R4)
+2. `pytest.xfail` 또는 `_HOSTNAME_FALLBACK_KNOWN_DRIFT` 같은 set 으로 known drift 마크
+3. `docs/ai/NEXT_ACTIONS.md` 에 후속 실측 작업 등재
+4. evidence (`tests/evidence/<날짜>-<주제>.md`) 에 root cause 후보 + 후속 절차 명시
+5. 실측 / 사이트 fixture 캡처 후 baseline 갱신 + xfail 제거 (별도 cycle)
+
+## 학습 (cycle 2026-05-01 + 2026-05-07)
 
 - 사이트 사고 fixture 부재 → reverse regression 위험 (Lenovo XCC 1.17.0 사례)
 - sanitize 안 된 fixture 는 commit 안 함 (보안 + 사용자 동의)
 - evidence 가 fixture 의 "왜" 를 보존 — 단순 JSON 만으로는 다음 작업자 혼란
+- (2026-05-07) cross-channel 회귀 테스트가 단일 vendor 회귀 만으로 발견 못한 drift 검출 — `cisco_baseline.json` hostname=null drift 사례
 
 ## 관련
 
+- rule 13 R4 (실측 기반 baseline 갱신)
+- rule 13 R5 (envelope 13 필드)
 - rule 96 R1-A (web sources / 사이트 실측 우선)
 - rule 25 R7-A-1 (사용자 실측 > spec)
 - rule 21 R2 (fixture 출처 기록)
 - rule 70 R3 (절대 날짜)
 - agent: compatibility-detective (사고 발견 시)
 - skill: probe-redfish-vendor (probe 절차)
+- 회귀 정본: `tests/regression/test_cross_channel_consistency.py` (cycle 2026-05-07)

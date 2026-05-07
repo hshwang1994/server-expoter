@@ -1,0 +1,251 @@
+"""Cross-channel envelope consistency regression.
+
+Validates that the 13-field envelope (rule 13 R5) is structurally identical
+across all 3 channels (os / esxi / redfish), so downstream callers can parse
+any baseline without channel-specific branches.
+
+Test groups:
+  T1 — Envelope 13 fields present (rule 13 R5)
+  T2 — target_type / collection_method enum
+  T3 — hostname fallback chain non-null (concern 7 invariant)
+  T4 — vendor canonical form (cycle-016 BUG #2 regression)
+  T5 — status enum (rule 13 R8 — 4 scenarios A/B/C/D)
+  T6 — sections values enum
+  T7 — diagnosis dict shape (production-audit BUG fix invariant)
+  T8 — errors[] is list (rule 22 R8 fragment type)
+"""
+from __future__ import annotations
+
+import pytest
+
+# rule 13 R5 — 13-field envelope
+ENVELOPE_FIELDS: tuple[str, ...] = (
+    "target_type",
+    "collection_method",
+    "ip",
+    "hostname",
+    "vendor",
+    "status",
+    "sections",
+    "diagnosis",
+    "meta",
+    "correlation",
+    "errors",
+    "data",
+    "schema_version",
+)
+
+VALID_TARGET_TYPES: frozenset[str] = frozenset({"os", "esxi", "redfish"})
+VALID_COLLECTION_METHODS: frozenset[str] = frozenset(
+    {"agent", "vsphere_api", "redfish_api"}
+)
+VALID_STATUS: frozenset[str] = frozenset({"success", "partial", "failed"})
+VALID_SECTION_STATUS: frozenset[str] = frozenset(
+    {"success", "not_supported", "failed", "partial"}
+)
+# rule 50 R1 — vendor 정규화 정본 (vendor_aliases.yml + 신규 4 vendor)
+CANONICAL_VENDORS: frozenset[str | None] = frozenset(
+    {
+        None,  # OS channel can be null (vendor-agnostic)
+        "dell",
+        "hpe",
+        "lenovo",
+        "supermicro",
+        "cisco",
+        "huawei",
+        "inspur",
+        "fujitsu",
+        "quanta",
+    }
+)
+
+
+# ---------------------------------------------------------------------------
+# T1 — Envelope 13 fields present
+# ---------------------------------------------------------------------------
+def test_envelope_thirteen_fields_present(baseline_envelope: dict) -> None:
+    """rule 13 R5 — every baseline must expose all 13 envelope fields."""
+    label = baseline_envelope["__label"]
+    for field in ENVELOPE_FIELDS:
+        assert field in baseline_envelope, (
+            f"[{label}] envelope field missing: {field}"
+        )
+
+
+def test_envelope_no_extra_fields(baseline_envelope: dict) -> None:
+    """rule 13 R5 — no fields beyond the 13 (excluding test-only __label keys)."""
+    label = baseline_envelope["__label"]
+    extra = {
+        k for k in baseline_envelope
+        if not k.startswith("__") and k not in ENVELOPE_FIELDS
+    }
+    assert not extra, (
+        f"[{label}] unexpected envelope field(s): {sorted(extra)}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T2 — target_type / collection_method enum
+# ---------------------------------------------------------------------------
+def test_target_type_enum(baseline_envelope: dict) -> None:
+    label = baseline_envelope["__label"]
+    target = baseline_envelope.get("target_type")
+    assert target in VALID_TARGET_TYPES, (
+        f"[{label}] target_type invalid: {target!r}"
+    )
+
+
+def test_collection_method_matches_target_type(baseline_envelope: dict) -> None:
+    """Each target_type pairs with one collection_method (rule 13 R5)."""
+    label = baseline_envelope["__label"]
+    expected = baseline_envelope["__expected_collection_method"]
+    actual = baseline_envelope.get("collection_method")
+    assert actual == expected, (
+        f"[{label}] collection_method mismatch: {actual!r} != {expected!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T3 — hostname fallback chain non-null (concern 7 invariant)
+# ---------------------------------------------------------------------------
+# cisco_baseline.json: hostname=null — build_output.yml fallback chain
+# (system.hostname OR system.fqdn OR ip) 갱신 이전에 캡처된 baseline drift.
+# rule 13 R4 (AI 임의 baseline 수정 금지) 준수 — 실측 기반 갱신 필요.
+# 후속 작업: docs/ai/NEXT_ACTIONS.md "cisco baseline hostname fallback 재실측".
+_HOSTNAME_FALLBACK_KNOWN_DRIFT: frozenset[str] = frozenset({"cisco_redfish"})
+
+
+def test_hostname_never_null(baseline_envelope: dict) -> None:
+    """build_output.yml fallback chain (system.hostname OR system.fqdn OR ip)
+    guarantees non-null hostname. Concern 7: if hostname == ip that is the
+    intentional ip_fallback path, not a bug."""
+    label = baseline_envelope["__label"]
+    if label in _HOSTNAME_FALLBACK_KNOWN_DRIFT:
+        pytest.xfail(
+            f"[{label}] known baseline drift — predates build_output.yml "
+            f"fallback chain. Tracked in docs/ai/NEXT_ACTIONS.md."
+        )
+    hostname = baseline_envelope.get("hostname")
+    assert hostname is not None and hostname != "", (
+        f"[{label}] hostname is empty — fallback chain broken"
+    )
+
+
+def test_ip_present(baseline_envelope: dict) -> None:
+    """ip is always present — hostname fallback ultimate sentinel."""
+    label = baseline_envelope["__label"]
+    ip = baseline_envelope.get("ip")
+    assert ip, f"[{label}] ip empty — fallback chain ultimate sentinel missing"
+
+
+# ---------------------------------------------------------------------------
+# T4 — vendor canonical form (cycle-016 BUG #2 regression)
+# ---------------------------------------------------------------------------
+def test_vendor_canonical(baseline_envelope: dict) -> None:
+    """ESXi/Redfish vendor must be canonical (e.g., 'cisco' not 'Cisco
+    Systems Inc'). cycle-016 production-audit BUG #2 regression."""
+    label = baseline_envelope["__label"]
+    vendor = baseline_envelope.get("vendor")
+    assert vendor in CANONICAL_VENDORS, (
+        f"[{label}] vendor not canonical: {vendor!r} "
+        f"(expected one of {sorted(str(v) for v in CANONICAL_VENDORS)})"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T5 — status enum (rule 13 R8 — 4 scenarios A/B/C/D)
+# ---------------------------------------------------------------------------
+def test_status_enum(baseline_envelope: dict) -> None:
+    label = baseline_envelope["__label"]
+    status = baseline_envelope.get("status")
+    assert status in VALID_STATUS, (
+        f"[{label}] status invalid: {status!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T6 — sections values enum
+# ---------------------------------------------------------------------------
+def test_sections_values_enum(baseline_envelope: dict) -> None:
+    label = baseline_envelope["__label"]
+    sections = baseline_envelope.get("sections", {})
+    assert isinstance(sections, dict), (
+        f"[{label}] sections not dict: {type(sections).__name__}"
+    )
+    for section_name, section_status in sections.items():
+        assert section_status in VALID_SECTION_STATUS, (
+            f"[{label}] sections.{section_name} invalid: {section_status!r}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# T7 — diagnosis dict shape (production-audit BUG fix invariant)
+# ---------------------------------------------------------------------------
+def test_diagnosis_is_dict(baseline_envelope: dict) -> None:
+    """diagnosis must be dict, not list/str (production-audit shape fix)."""
+    label = baseline_envelope["__label"]
+    diagnosis = baseline_envelope.get("diagnosis")
+    assert isinstance(diagnosis, dict), (
+        f"[{label}] diagnosis not dict: {type(diagnosis).__name__}"
+    )
+
+
+def test_diagnosis_has_4stage_keys(baseline_envelope: dict) -> None:
+    """precheck 4-stage keys must be present in success path
+    (rule 27 — ping → port → protocol → auth)."""
+    label = baseline_envelope["__label"]
+    diagnosis = baseline_envelope.get("diagnosis", {})
+    for key in ("reachable", "port_open", "protocol_supported", "auth_success"):
+        assert key in diagnosis, (
+            f"[{label}] diagnosis.{key} missing — precheck shape broken"
+        )
+
+
+# ---------------------------------------------------------------------------
+# T8 — errors[] is list (rule 22 R8 fragment type)
+# ---------------------------------------------------------------------------
+def test_errors_is_list(baseline_envelope: dict) -> None:
+    """rule 22 R8 — _errors_fragment is list of dicts."""
+    label = baseline_envelope["__label"]
+    errors = baseline_envelope.get("errors")
+    assert isinstance(errors, list), (
+        f"[{label}] errors not list: {type(errors).__name__}"
+    )
+    for i, err in enumerate(errors):
+        assert isinstance(err, dict), (
+            f"[{label}] errors[{i}] not dict: {type(err).__name__}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# T9 — schema_version present and matches policy (rule 13 R3)
+# ---------------------------------------------------------------------------
+def test_schema_version_is_one(baseline_envelope: dict) -> None:
+    """schema_version is currently 1 (rule 13 R3 — bumped only by user)."""
+    label = baseline_envelope["__label"]
+    sv = baseline_envelope.get("schema_version")
+    assert sv == "1", (
+        f"[{label}] schema_version expected '1', got {sv!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# T10 — Aggregate: all 8 baselines covered (rule 21 R1 baseline registry)
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "channel,expected_min",
+    [
+        ("redfish", 4),  # dell + hpe + lenovo + cisco
+        ("os", 3),       # ubuntu + windows + rhel810_raw_fallback
+        ("esxi", 1),     # esxi
+    ],
+)
+def test_baseline_coverage_per_channel(
+    all_baselines: list[dict], channel: str, expected_min: int
+) -> None:
+    """Each channel must have at least N baselines (regression early warning)."""
+    matched = [b for b in all_baselines if b.get("target_type") == channel]
+    assert len(matched) >= expected_min, (
+        f"channel '{channel}' baseline count {len(matched)} < expected {expected_min} "
+        f"(present: {[b['__label'] for b in matched]})"
+    )
