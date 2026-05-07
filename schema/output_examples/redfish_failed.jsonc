@@ -1,0 +1,104 @@
+// =============================================================================
+// redfish_failed.jsonc
+//
+// 대상      : Cisco UCS BMC (10.100.15.1, hostname 해석 실패 → ip 사용)
+// 채널      : redfish-gather (stdlib HTTPS + Basic Auth)
+// 특이사항  : status=failed 사례 — protocol 단계 통과했으나 root 503 (Service Unavailable)
+//             - reachable=true / port_open=true / protocol_supported=true / auth_success=null
+//             - root_status_code=503 (BMC service down 상태) → adapter 매칭 안 됨
+//             - vendor=null (probe 실패 — Manufacturer 추출 못함)
+//             - 모든 섹션 status=failed (users 만 not_supported — 채널 자체 미지원)
+//             - errors[] 1건 — 인증 시도 0회 (probe 단계에서 막힘)
+//             - 호출자 가이드: 본 케이스는 BMC 자체 재기동 필요 (사용자 운영 영역)
+// 캡처 일시 : 2026-05-07
+// =============================================================================
+{
+  "target_type": "redfish",
+  "collection_method": "redfish_api",
+  "ip": "10.100.15.1",
+  "hostname": "10.100.15.1",                               // 해석 실패 → ip 로 fallback
+  "vendor": null,                                          // probe 실패 → vendor 미감지
+  "status": "failed",                                      // 전체 실패
+  "sections": {
+    "system": "failed",
+    "hardware": "failed",
+    "bmc": "failed",
+    "cpu": "failed",
+    "memory": "failed",
+    "storage": "failed",
+    "network": "failed",
+    "firmware": "failed",
+    "users": "not_supported",                              // 채널 자체 미지원 (failed 와 구분)
+    "power": "failed"
+  },
+  "diagnosis": {
+    "reachable": true,                                     // ICMP 응답 OK
+    "port_open": true,                                     // 443 응답
+    "protocol_supported": true,                            // TLS handshake OK + JSON 응답
+    "auth_success": null,                                  // 인증 시도 자체 안 됨 (root 503 으로 차단)
+    "failure_stage": null,                                 // 본 케이스는 stage 명확 안 함 (root 503 전 protocol 통과)
+    "failure_reason": null,
+    "details": {
+      "channel": "redfish",
+      "adapter_candidate": null,                           // adapter 매칭 안 됨 (probe 실패로 vendor 모름)
+      "checked_ports": [443],
+      "selected_port": 443,
+      "root_status_code": 503,                             // root (/redfish/v1/) HTTP 503 — Service Unavailable
+      "requires_auth_at_root": false,                      // 일부 BMC 는 ServiceRoot 도 인증 요구
+      "header_negotiation_issue": false                    // Accept / OData-Version / User-Agent 협상 이슈 (rule 96 R7-A-1 lenovo XCC3 reverse regression 관련)
+    }
+  },
+  "meta": {
+    "started_at": "2026-05-06T23:46:22.250801Z",
+    "finished_at": "2026-05-06T23:46:52.721674Z",
+    "duration_ms": null,                                   // 실패 시 null (실측 시간 30초)
+    "adapter_id": "redfish_generic",                       // probe 단계는 generic adapter 사용
+    "adapter_version": null,
+    "ansible_version": "2.20.3"
+  },
+  "correlation": {
+    "serial_number": null,                                 // 수집 못함
+    "system_uuid": null,
+    "bmc_ip": null,                                        // 보통 host_ip 와 동일하게 채워지나 실패 시 null
+    "host_ip": "10.100.15.1"
+  },
+  "errors": [
+    {
+      "section": "redfish_gather",                         // errors 가 발생한 영역
+      "message": "Redfish 수집 실패 — 인증 실패 (10.100.15.1). 네트워크/Redfish API는 정상 (Redfish ? / Unknown). vault/redfish/.yml 자격증명을 확인하세요. 시도된 계정 수: 0.",  // 한국어 사용자 가이드 (rule 23)
+      "detail": null                                       // 추가 details (envelope shape 변경 금지 — rule 13 R5 / rule 96 R1-B)
+    }
+  ],
+  "data": {                                                // 모든 섹션 null 또는 빈 list/dict (실패 envelope 도 13 필드 + shape 유지)
+    "system": null,
+    "hardware": null,
+    "bmc": null,
+    "cpu": null,
+    "memory": null,
+    "storage": {                                           // storage 는 빈 dict 형태로 채움 (data shape 유지)
+      "filesystems": [],
+      "physical_disks": [],
+      "datastores": [],
+      "controllers": [],
+      "logical_volumes": [],
+      "hbas": [],
+      "infiniband": [],
+      "summary": {"groups": [], "grand_total_gb": 0}
+    },
+    "network": {                                           // network 도 빈 dict (data shape 유지)
+      "dns_servers": [],
+      "default_gateways": [],
+      "interfaces": [],
+      "adapters": [],
+      "ports": [],
+      "virtual_switches": [],
+      "portgroups": [],
+      "driver_map": [],
+      "summary": {"groups": []}
+    },
+    "users": [],
+    "firmware": [],
+    "power": null
+  },
+  "schema_version": "1"                                    // 실패해도 schema_version 은 "1" 유지
+}

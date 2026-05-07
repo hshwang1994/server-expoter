@@ -1,0 +1,291 @@
+// =============================================================================
+// redfish_hpe_ilo6.jsonc
+//
+// 대상      : HPE ProLiant DL380 Gen11 / iLO 6 v1.73 (10.50.11.231, hostname=test0004.hynix.com)
+// 채널      : redfish-gather (stdlib HTTPS + Basic Auth)
+// 특이사항  : iLO 6 (Gen11 generation) — adapter redfish_hpe_ilo7 (priority=110)
+//             - HPE OEM 풍부: post_state / aggregate_server_health / fan_redundancy /
+//               psu_redundancy / subsystem_health (fans/memory/network/power/processors/storage/temperatures)
+//             - hardware.health = Warning + power.summary.health_rollup = Critical
+//               (PSU 1개 장애로 비이중화 — power_supplies[0].health = Critical)
+//             - 회귀: rule 13 R8 시나리오 D — 일부 하드웨어 Critical 인데 status=success (수집 자체는 성공)
+// 캡처 일시 : 2026-05-07
+// =============================================================================
+{
+  "target_type": "redfish",
+  "collection_method": "redfish_api",
+  "ip": "10.50.11.231",
+  "hostname": "test0004.hynix.com",                        // HPE 가 보고하는 host FQDN
+  "vendor": "hpe",                                         // 정규화 (HPE / Hewlett Packard Enterprise / HP → hpe)
+  "status": "success",
+  "sections": {
+    "system": "not_supported",
+    "hardware": "success",
+    "bmc": "success",
+    "cpu": "success",
+    "memory": "success",
+    "storage": "success",
+    "network": "success",
+    "firmware": "success",
+    "users": "not_supported",
+    "power": "success"
+  },
+  "diagnosis": {
+    "reachable": true,
+    "port_open": true,
+    "protocol_supported": true,
+    "auth_success": true,
+    "failure_stage": null,
+    "failure_reason": null,
+    "details": {
+      "channel": "redfish",
+      "adapter_candidate": "redfish_hpe_ilo7",
+      "checked_ports": [443],
+      "selected_port": 443,
+      "redfish_version": "1.20.0",
+      "product": "ProLiant DL380 Gen11",
+      "systems_uri": "/redfish/v1/Systems/",               // HPE 는 trailing slash
+      "auth": {
+        "attempted_count": 3,                              // vault/redfish/hpe.yml accounts 3개
+        "used_label": "common_infraops",
+        "used_role": "primary",
+        "fallback_used": false
+      },
+      "account_service": {}
+    }
+  },
+  "meta": {
+    "started_at": "2026-05-06T23:46:22.006774Z",
+    "finished_at": "2026-05-06T23:48:31.702848Z",
+    "duration_ms": 129615,                                 // 약 2분 (HPE iLO 가 Dell 보다 느림)
+    "adapter_id": "redfish_hpe_ilo7",
+    "adapter_version": null,
+    "ansible_version": "2.20.3"
+  },
+  "correlation": {
+    "serial_number": "SGH504HNZK",                         // HPE Server Serial
+    "system_uuid": "35323550-3433-4753-4835-3034484E5A4B",
+    "bmc_ip": "10.50.11.231",
+    "host_ip": "10.50.11.231"
+  },
+  "errors": [],
+  "data": {
+    "bmc": {
+      "name": "iLO",                                       // HPE BMC 이름
+      "firmware_version": "iLO 6 v1.73",
+      "model": "iLO 6",
+      "manager_type": "BMC",
+      "health": "OK",
+      "state": "Enabled",
+      "power_state": null,                                 // HPE iLO 는 manager power_state 미보고
+      "uuid": "abd5aa3b-1bdb-5ca3-9908-ee2d67d2692c",
+      "last_reset_time": null,
+      "timezone": null,
+      "ip": "10.50.11.231",
+      "mac_address": "5C:ED:8C:F6:14:FE",
+      "dns_name": "ILOSGH504HNZK",
+      "datetime": "2026-05-06T23:46:40Z",
+      "datetime_offset": "+09:00",
+      "oem": {
+        "ilo_version": "iLO 6 v1.73"                       // HPE 전용 — iLO 버전 (Dell idrac_* 자리)
+      }
+    },
+    "system": {
+      "os_family": null,
+      "distribution": null,
+      "version": null,
+      "kernel": null,
+      "architecture": null,
+      "uptime_seconds": null,
+      "selinux": null,
+      "fqdn": "test0004.hynix.com"
+    },
+    "network": {
+      "default_gateways": [{"family": "ipv4", "address": "10.50.11.254"}],
+      "ports": [
+        {"adapter_id": "DC080000", "adapter_model": "HPE Ethernet 10Gb 2-port 562SFP+ Adptr", "port_id": "1", "name": "Port", "physical_port_number": null, "link_status": "down", "link_state": "Disabled", "current_link_speed_mbps": null, "port_type": "", "health": "OK", "associated_address": null},
+        {"adapter_id": "DC080000", "adapter_model": "HPE Ethernet 10Gb 2-port 562SFP+ Adptr", "port_id": "2", "name": "Port", "physical_port_number": null, "link_status": "down", "link_state": "Disabled", "current_link_speed_mbps": null, "port_type": "", "health": "OK", "associated_address": null},
+        {"adapter_id": "DC081000", "adapter_model": "HPE Ethernet 10Gb 2-port 562SFP+ Adptr", "port_id": "1", "name": "Port", "physical_port_number": null, "link_status": "up", "link_state": "Enabled", "current_link_speed_mbps": null, "port_type": "", "health": "OK", "associated_address": null},
+        {"adapter_id": "DC081000", "adapter_model": "HPE Ethernet 10Gb 2-port 562SFP+ Adptr", "port_id": "2", "name": "Port", "physical_port_number": null, "link_status": "up", "link_state": "Enabled", "current_link_speed_mbps": null, "port_type": "", "health": "OK", "associated_address": null},
+        {"adapter_id": "DE082000", "adapter_model": "BCM57414", "port_id": "1", "name": "Ethernet Port 1", "physical_port_number": null, "link_status": "down", "link_state": "Enabled", "current_link_speed_mbps": null, "port_type": "BidirectionalPort", "health": "OK", "associated_address": null},
+        {"adapter_id": "DE082000", "adapter_model": "BCM57414", "port_id": "2", "name": "Ethernet Port 2", "physical_port_number": null, "link_status": "down", "link_state": "Enabled", "current_link_speed_mbps": null, "port_type": "BidirectionalPort", "health": "OK", "associated_address": null},
+        {"adapter_id": "DA000000", "adapter_model": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "port_id": "1", "name": "Port", "physical_port_number": null, "link_status": "unknown", "link_state": null, "current_link_speed_mbps": null, "port_type": "", "health": null, "associated_address": null},
+        {"adapter_id": "DA000000", "adapter_model": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "port_id": "2", "name": "Port", "physical_port_number": null, "link_status": "unknown", "link_state": null, "current_link_speed_mbps": null, "port_type": "", "health": null, "associated_address": null},
+        {"adapter_id": "DA000000", "adapter_model": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "port_id": "3", "name": "Port", "physical_port_number": null, "link_status": "unknown", "link_state": null, "current_link_speed_mbps": null, "port_type": "", "health": null, "associated_address": null},
+        {"adapter_id": "DA000000", "adapter_model": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "port_id": "4", "name": "Port", "physical_port_number": null, "link_status": "unknown", "link_state": null, "current_link_speed_mbps": null, "port_type": "", "health": "OK", "associated_address": null}
+      ],
+      "summary": {
+        "groups": [
+          {"speed_mbps": null, "model": null, "manufacturer": null, "link_type": "ethernet", "quantity": 10, "link_up_count": 3}
+        ],
+        "adapter_count": 4,
+        "port_count": 10,
+        "primary_speed_mbps": null
+      },
+      "dns_servers": [],
+      "adapters": [
+        {"id": "DC080000", "name": "HPE Ethernet 10Gb 2-port 562SFP+ Adapter", "manufacturer": "Hewlett Packard Enterprise", "model": "HPE Ethernet 10Gb 2-port 562SFP+ Adptr", "part_number": null, "serial_number": "MYI13808RF", "firmware_version": "10.54.7", "mac": null, "link_status": "down", "speed_mbps": null, "port_count": 2},
+        {"id": "DC081000", "name": "HPE Ethernet 10Gb 2-port 562SFP+ Adapter", "manufacturer": "Hewlett Packard Enterprise", "model": "HPE Ethernet 10Gb 2-port 562SFP+ Adptr", "part_number": null, "serial_number": "MYI13808QL", "firmware_version": "10.54.7", "mac": null, "link_status": "up", "speed_mbps": null, "port_count": 2},
+        {"id": "DE082000", "name": "Network Adapter", "manufacturer": "Broadcom", "model": "BCM57414", "part_number": "P26264-001", "serial_number": "VNM2290CXG", "firmware_version": "226.1.107.0", "mac": null, "link_status": "down", "speed_mbps": null, "port_count": 2},
+        {"id": "DA000000", "name": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "manufacturer": "Broadcom", "model": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "part_number": "BCM95719N1905HC", "serial_number": "1CH0150001", "firmware_version": "20.33.41", "mac": null, "link_status": "up", "speed_mbps": null, "port_count": 4}
+      ],
+      "virtual_switches": [],
+      "driver_map": [],
+      "interfaces": [
+        {"id": "9", "name": "9", "kind": "server_nic", "mac": "8c:84:74:e9:be:84", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
+        {"id": "10", "name": "10", "kind": "server_nic", "mac": "8c:84:74:e9:be:85", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
+        {"id": "11", "name": "11", "kind": "server_nic", "mac": "8c:84:74:e9:be:86", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
+        {"id": "12", "name": "12", "kind": "server_nic", "mac": "8c:84:74:e9:be:87", "mtu": null, "speed_mbps": null, "link_status": "up", "is_primary": true, "addresses": []},
+        {"id": "13", "name": "13", "kind": "server_nic", "mac": "d4:f5:ef:69:87:50", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
+        {"id": "14", "name": "14", "kind": "server_nic", "mac": "d4:f5:ef:69:87:58", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
+        {"id": "77", "name": "77", "kind": "server_nic", "mac": "d4:f5:ef:69:85:b0", "mtu": null, "speed_mbps": null, "link_status": "up", "is_primary": false, "addresses": []},
+        {"id": "78", "name": "78", "kind": "server_nic", "mac": "d4:f5:ef:69:85:b8", "mtu": null, "speed_mbps": null, "link_status": "up", "is_primary": false, "addresses": []},
+        {"id": "141", "name": "141", "kind": "server_nic", "mac": "00:62:0b:20:3a:f0", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
+        {"id": "142", "name": "142", "kind": "server_nic", "mac": "00:62:0b:20:3a:f1", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []}
+      ],
+      "portgroups": []
+    },
+    "hardware": {
+      "vendor": "HPE",
+      "model": "ProLiant DL380 Gen11",
+      "serial": "SGH504HNZK",
+      "uuid": "35323550-3433-4753-4835-3034484E5A4B",
+      "sku": "P52534-B21",                                 // HPE Product SKU
+      "bios_version": "U54 v2.16 (03/01/2024)",
+      "bios_date": "2024-03-01",
+      "power_state": "On",
+      "health": "Warning",                                 // 본 케이스는 Warning (PSU 1 장애)
+      "asset_tag": null,
+      "system_type": "Physical",
+      "part_number": null,
+      "last_reset_time": null,
+      "boot_progress": "OSRunning",
+      "tpm": {"interface_type": "TPM2_0", "firmware_version": "1.512", "state": "Enabled"},
+      "oem": {                                             // HPE 전용 OEM 확장 (Dell oem 과 다름)
+        "post_state": "FinishedPost",                      // HPE — POST 상태
+        "server_signature": null,                          // HPE — 서버 시그니처
+        "aggregate_server_health": "Critical",             // HPE — 종합 health (BMC rollup)
+        "fan_redundancy": "Redundant",                     // HPE — Fan 이중화
+        "psu_redundancy": "NonRedundant",                  // HPE — PSU 이중화 (1대 장애로 비이중화)
+        "subsystem_health": {                              // HPE — 서브시스템별 health
+          "fans": "OK",
+          "memory": "OK",
+          "network": "OK",
+          "power": "Critical",                             // power Critical (PSU 1 장애)
+          "processors": "OK",
+          "storage": "OK",
+          "temperatures": "OK"
+        }
+      }
+    },
+    "memory": {
+      "total_mb": 524288,                                  // 512 GB
+      "total_basis": "physical_installed",
+      "installed_mb": 524288,
+      "visible_mb": null,
+      "free_mb": null,
+      "slots": [
+        {"id": "proc1dimm1", "name": "proc1dimm1", "locator": "PROC 1 DIMM 1", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D8690F", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc1dimm3", "name": "proc1dimm3", "locator": "PROC 1 DIMM 3", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "527E27F9", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc1dimm5", "name": "proc1dimm5", "locator": "PROC 1 DIMM 5", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D86918", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc1dimm7", "name": "proc1dimm7", "locator": "PROC 1 DIMM 7", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D866F3", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc1dimm10", "name": "proc1dimm10", "locator": "PROC 1 DIMM 10", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "527E1D8C", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc1dimm12", "name": "proc1dimm12", "locator": "PROC 1 DIMM 12", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D86914", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc1dimm14", "name": "proc1dimm14", "locator": "PROC 1 DIMM 14", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D86976", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc1dimm16", "name": "proc1dimm16", "locator": "PROC 1 DIMM 16", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D8720D", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm1", "name": "proc2dimm1", "locator": "PROC 2 DIMM 1", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D87472", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm3", "name": "proc2dimm3", "locator": "PROC 2 DIMM 3", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D866D1", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm5", "name": "proc2dimm5", "locator": "PROC 2 DIMM 5", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D874A3", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm7", "name": "proc2dimm7", "locator": "PROC 2 DIMM 7", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D866D0", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm10", "name": "proc2dimm10", "locator": "PROC 2 DIMM 10", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D8630C", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm12", "name": "proc2dimm12", "locator": "PROC 2 DIMM 12", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D86912", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm14", "name": "proc2dimm14", "locator": "PROC 2 DIMM 14", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D8746D", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
+        {"id": "proc2dimm16", "name": "proc2dimm16", "locator": "PROC 2 DIMM 16", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D8746E", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"}
+      ],
+      "summary": {
+        "groups": [
+          {"unit_capacity_gb": 32, "type": "DDR5", "speed_mhz": 4400, "manufacturer": "Samsung", "part_number": "M321R4GA3EB0-CWMXJ", "quantity": 16, "group_total_gb": 512}
+        ],
+        "grand_total_gb": 512
+      }
+    },
+    "storage": {
+      "physical_disks": [
+        {"id": "0", "device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "serial": "S6ESNT0WC10211", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK", "failure_predicted": false, "predicted_life_percent": 100},
+        {"id": "1", "device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "serial": "S6ESNC0W535206", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK", "failure_predicted": false, "predicted_life_percent": 100},
+        {"id": "2", "device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "serial": "S6ESNC0W535202", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK", "failure_predicted": false, "predicted_life_percent": 99},
+        {"id": "3", "device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "serial": "S6ESNN0X204289", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK", "failure_predicted": false, "predicted_life_percent": 100}
+      ],
+      "summary": {
+        "groups": [
+          {"unit_capacity_gb": 1788, "model": "SAMSUNGMZ7L31T9HBLT-00A07", "media_type": "SSD", "protocol": "SATA", "quantity": 4, "group_total_gb": 7152}
+        ],
+        "grand_total_gb": 7152
+      },
+      "filesystems": [],
+      "controllers": [
+        {"id": "DE00C000", "name": "HPE MR416i-o Gen11", "health": "OK", "controller_model": "HPE MR416i-o Gen11", "controller_firmware": "52.32.3-6333", "controller_manufacturer": "HPE", "controller_health": "OK", "drives": [{"device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK"}, {"device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK"}, {"device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK"}, {"device": "1.92TB 6.0G SATA SSD", "model": "SAMSUNGMZ7L31T9HBLT-00A07", "total_mb": 1831420, "media_type": "SSD", "protocol": "SATA", "health": "OK"}]}
+      ],
+      "datastores": [],
+      "hbas": [],
+      "logical_volumes": [
+        {"id": "237", "name": "OS_DISK_RAID1", "controller_id": "DE00C000", "member_drive_ids": ["1", "2"], "raid_level": "RAID1", "total_mb": 1830880, "health": "OK", "state": "Enabled", "boot_volume": null},
+        {"id": "238", "name": "DATA", "controller_id": "DE00C000", "member_drive_ids": ["0", "3"], "raid_level": "RAID1", "total_mb": 1830880, "health": "OK", "state": "Enabled", "boot_volume": null}
+      ],
+      "infiniband": []
+    },
+    "firmware": [
+      {"id": "1", "name": "iLO 6", "version": "1.73 Dec 04 2025", "updateable": true, "component": "1", "pending": false, "category": "bmc"},
+      {"id": "2", "name": "System ROM", "version": "U54 v2.16 (03/01/2024)", "updateable": true, "component": "2", "pending": false, "category": "other"},
+      {"id": "3", "name": "Intelligent Platform Abstraction Data", "version": "10.0.0 Build 27", "updateable": true, "component": "3", "pending": false, "category": "other"},
+      {"id": "4", "name": "System Programmable Logic Device", "version": "0x12", "updateable": true, "component": "4", "pending": false, "category": "other"},
+      {"id": "5", "name": "Power Supply Firmware", "version": "2.00", "updateable": true, "component": "5", "pending": false, "category": "psu"},
+      {"id": "6", "name": "Power Supply Firmware", "version": "2.00", "updateable": true, "component": "6", "pending": false, "category": "psu"},
+      {"id": "7", "name": "Server Platform Services (SPS) Firmware", "version": "6.1.4.204.0", "updateable": true, "component": "7", "pending": false, "category": "service_module"},
+      {"id": "8", "name": "Redundant System ROM", "version": "U54 v2.70 (10/31/2025)", "updateable": true, "component": "8", "pending": false, "category": "other"},
+      {"id": "9", "name": "Intelligent Provisioning", "version": "4.35.4", "updateable": true, "component": "9", "pending": false, "category": "other"},
+      {"id": "10", "name": "HPE Smart Storage Energy Pack 1 Firmware", "version": "0.70", "updateable": false, "component": "10", "pending": false, "category": "other"},
+      {"id": "11", "name": "PCIe Riser 1 Programmable Logic Device", "version": "10", "updateable": true, "component": "11", "pending": false, "category": "other"},
+      {"id": "12", "name": "Processor 1 S3M Firmware", "version": "0x1E", "updateable": false, "component": "12", "pending": false, "category": "other"},
+      {"id": "13", "name": "Processor 1 PUcode Firmware", "version": "0x3B000040", "updateable": false, "component": "13", "pending": false, "category": "other"},
+      {"id": "14", "name": "Processor 2 S3M Firmware", "version": "0x1E", "updateable": false, "component": "14", "pending": false, "category": "other"},
+      {"id": "15", "name": "Processor 2 PUcode Firmware", "version": "0x3B000040", "updateable": false, "component": "15", "pending": false, "category": "other"},
+      {"id": "16", "name": "TPM Firmware", "version": "1.512", "updateable": false, "component": "16", "pending": false, "category": "tpm"},
+      {"id": "17", "name": "HPE MR416i-o Gen11", "version": "52.32.3-6333", "updateable": true, "component": "17", "pending": false, "category": "other"},
+      {"id": "18", "name": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "version": "20.33.41", "updateable": false, "component": "18", "pending": false, "category": "other"},
+      {"id": "19", "name": "HPE Ethernet 10Gb 2-port 562SFP+ Adapter", "version": "10.54.7", "updateable": false, "component": "19", "pending": false, "category": "nic"},
+      {"id": "20", "name": "HPE Ethernet 10Gb 2-port 562SFP+ Adapter", "version": "10.54.7", "updateable": false, "component": "20", "pending": false, "category": "nic"},
+      {"id": "21", "name": "Broadcom P225p NetXtreme-E Dual-port 10Gb/25Gb Ethernet PCIe Adapter - NIC", "version": "226.1.107.0", "updateable": true, "component": "21", "pending": false, "category": "nic"},
+      {"id": "22", "name": "Embedded Video Controller", "version": "2.5", "updateable": false, "component": "22", "pending": false, "category": "other"},
+      {"id": "23", "name": "1.92TB 6.0G SATA SSD", "version": "JXTC404Q", "updateable": true, "component": "f6de0320-2e0f-489a-b238-6dd8ae7c3811:532340a5-4d41-5553-4e47-4d5aea4d6624", "pending": false, "category": "drive"},
+      {"id": "24", "name": "1.92TB 6.0G SATA SSD", "version": "JXTC404Q", "updateable": true, "component": "f6de0320-2e0f-489a-b238-6dd8ae7c3811:532340a5-4d41-5553-4e47-4d5aea4d6624", "pending": false, "category": "drive"},
+      {"id": "25", "name": "1.92TB 6.0G SATA SSD", "version": "JXTC304Q", "updateable": true, "component": "f6de0320-2e0f-489a-b238-6dd8ae7c3811:532340a5-4d41-5553-4e47-4d5aea4d6624", "pending": false, "category": "drive"},
+      {"id": "26", "name": "1.92TB 6.0G SATA SSD", "version": "JXTC304Q", "updateable": true, "component": "f6de0320-2e0f-489a-b238-6dd8ae7c3811:532340a5-4d41-5553-4e47-4d5aea4d6624", "pending": false, "category": "drive"},
+      {"id": "27", "name": "8 SFF 24G x1NVMe/SAS UBM6 BC BP", "version": "1.04", "updateable": true, "component": "27", "pending": false, "category": "drive"},
+      {"id": "28", "name": "8 SFF 24G x1NVMe/SAS UBM6 BC BP", "version": "1.04", "updateable": true, "component": "28", "pending": false, "category": "drive"}
+    ],
+    "power": {
+      "power_supplies": [
+        {"name": "HpeServerPowerSupply", "model": "P38995-B21", "serial": "5XLNV0KLLJO5S5", "manufacturer": "LTEON", "power_capacity_w": 800, "firmware_version": "2.00", "health": "Critical", "state": "UnavailableOffline"},  // PSU 1 장애 — Critical + Offline
+        {"name": "HpeServerPowerSupply", "model": "P38995-B21", "serial": "5XLNV0KLLJO6RE", "manufacturer": "LTEON", "power_capacity_w": 800, "firmware_version": "2.00", "health": "OK", "state": "Enabled"}
+      ],
+      "power_control": {"power_consumed_watts": 481, "power_capacity_watts": 800, "interval_in_min": 20, "min_consumed_watts": 479, "avg_consumed_watts": 481, "max_consumed_watts": 496},
+      "summary": {"psu_count": 2, "psu_active": 1, "redundant": true, "total_capacity_w": 1600, "capacity_unknown_count": 0, "critical_count": 1, "warning_count": 0, "ok_count": 1, "unknown_health_count": 0, "health_rollup": "Critical", "consumed_watts": 481, "consumed_capacity_pct": 30.1}
+    },
+    "users": [],
+    "cpu": {
+      "sockets": 2,
+      "cores_physical": 64,                                // 32 cores × 2 socket
+      "logical_threads": 128,                              // HT 활성
+      "model": "Intel(R) Xeon(R) Gold 6430",
+      "max_speed_mhz": 4000,
+      "architecture": "x86",
+      "summary": {
+        "groups": [
+          {"model": "Intel(R) Xeon(R) Gold 6430", "manufacturer": "Intel(R) Corporation", "max_speed_mhz": 4000, "architecture": "x86", "sockets": 2, "cores_per_socket": 32, "total_cores": 64}
+        ]
+      }
+    }
+  },
+  "schema_version": "1"
+}

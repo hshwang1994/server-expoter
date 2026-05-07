@@ -2,6 +2,28 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-07 (실 장비 개더링 — schema/output_examples/ 한글 주석본 신설)
+
+- 환경: Jenkins 에이전트 10.100.64.155 (Ansible 2.20.3 / Python 3.12 venv `/opt/ansible-env/`)
+- 코드 배포: 로컬 main → rsync → 에이전트 `~/se-realtest-2026-05-07/` (임시)
+- 자격증명: vault/{linux,windows,esxi}.yml + vault/redfish/{vendor}.yml (변경 없음)
+- 시도 endpoint 합계: **20대** (OS 7 + ESXi 3 + Redfish 10)
+- 성공: **19대** (Cisco 10.100.15.1 만 root 503 failed)
+- 채널별 결과:
+  - OS Linux 6대 모두 success (rhel810/920/960 + ubuntu2404 + rocky960 + 베어메탈 Dell)
+    - rhel810 = raw fallback (Python 3.6.8 → setup 모듈 미동작 → raw 모듈 사용)
+    - 베어메탈 = vendor=dell DMI 자동 감지 (hosting_type=baremetal)
+  - OS Windows 1대 success (Server 2022 / WinRM 5985 HTTP)
+  - ESXi 3대 모두 success (7.0.3 build 20842708 on Cisco UCS C220)
+  - Redfish 5 vendor 4대 success (Dell iDRAC10 / HPE iLO6 / Lenovo XCC3 / Cisco CIMC 4.1) + 1 failed (Cisco 503)
+- envelope shape: 모든 19개 success envelope 13 필드 정상 (rule 13 R5 / rule 96 R1-B 보존)
+- 산출물:
+  - `schema/output_examples/` 신설 + 10 jsonc + README
+  - `schema/baseline_v1/*_annotated.jsonc` 8개 삭제 (사용자 명시)
+  - `tests/evidence/2026-05-07-real-gather.md` 작성
+- 검증: pytest **335/335 PASS** + verify_harness_consistency PASS + verify_vendor_boundary PASS
+- 호출자 영향: 0 (envelope 13 / sections 10 / field_dictionary 65 / baseline_v1 *.json / examples/*.json 모두 변경 없음)
+
 ## 2026-05-06 (cycle-020 phase 4 — Lenovo XCC 권한 cache 손상 fix + verify-fallback)
 
 - 환경: 사이트 실측 (10.50.11.232 Lenovo XCC SR650 V2)

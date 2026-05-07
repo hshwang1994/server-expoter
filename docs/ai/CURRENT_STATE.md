@@ -1,5 +1,56 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-07 (실 장비 개더링 → schema/output_examples/ 신설 / baseline_v1 annotated 8개 정리)
+
+### 사용자 명시 (cycle 진입)
+- "실제 개더링할수있는 장비를 대상으로 개더링하고 그 값을 대상으로 json출력 예시를 업데이트해라"
+- "schema/baseline_v1이 json출력예시 디렉터리가 아니라면 별도로 디렉터리를 만들고 schema/baseline_v1에 생성한 파일은 지워라"
+- "한글로 할때 모든 json 키값에대한 설명을 주석으로 달아라. 만약 키값이 중복된다면 제일 상위에있는 값 1개만 달아도됨"
+- 자격증명 평문 OK / vault 사용 / 권장값 (Jenkins 에이전트 SSH + vault + 신규 디렉터리 + annotated 삭제) 모두 진행
+
+### 적용 변경
+
+| 항목 | 변경 |
+|---|---|
+| **신규 디렉터리** | `schema/output_examples/` — 호출자용 JSON 출력 예시 (한글 주석본) |
+| **신규 파일 (10 jsonc + 1 README)** | os_linux_rhel810_raw_fallback / os_linux_ubuntu2404 / os_linux_baremetal_dell / os_windows2022 / esxi_vmware / redfish_dell_idrac10 / redfish_hpe_ilo6 / redfish_lenovo_xcc / redfish_cisco_cimc / redfish_failed |
+| **삭제 (8개)** | `schema/baseline_v1/*_annotated.jsonc` 8개 (cycle 2026-05-06 b65e162e 산출물 — baseline_v1 가 출력 예시가 아님) |
+| **보존** | `schema/baseline_v1/*_baseline.json` 8개 / `schema/examples/*.json` 4개 / sections.yml / field_dictionary.yml |
+
+### 실 장비 개더링 결과 (Jenkins 에이전트 10.100.64.155)
+
+| 채널 | 시도 | 성공 | 대표 envelope |
+|---|---|---|---|
+| OS Linux | 6 (RHEL 3종 + Ubuntu + Rocky + 베어메탈) | 6 | RHEL 8.10 raw fallback (Python 3.6) / Ubuntu 24.04 / 베어메탈 Dell DMI |
+| OS Windows | 1 | 1 | Windows Server 2022 (WinRM 5985 HTTP) |
+| ESXi | 3 | 3 | ESXi 7.0.3 on Cisco UCS |
+| Redfish | 10 | 9 (Cisco 15.1 = 503 failed) | Dell iDRAC10 / HPE iLO6 / Lenovo XCC3 / Cisco CIMC / Cisco failed |
+
+### 호출자 영향
+
+- envelope 13 필드 / sections 10 / field_dictionary 65 → **변경 없음** (rule 13 R5 / rule 96 R1-B Additive only)
+- baseline_v1 *_baseline.json 8 → 변경 없음 (Jenkins Stage 4 회귀 그대로)
+- examples *.json 4 → 변경 없음
+
+### 검증
+
+- JSONC valid (10 파일): [PASS] 모두 envelope 13 필드 (target_type ... schema_version)
+- `verify_harness_consistency.py`: [PASS] rules 28 / skills 51 / agents 60 / policies 10
+- `verify_vendor_boundary.py`: [PASS] vendor 하드코딩 0건
+- `pytest tests/`: [PASS] 335/335
+- `check_project_map_drift.py --update`: schema fingerprint 갱신 (521534b09b45 → a15de0936932)
+
+### Evidence
+
+- `tests/evidence/2026-05-07-real-gather.md` 작성 — 실행 절차 + 발견 사항 + 호출자 영향
+
+### 후속 작업
+
+- 펌웨어 / 환경 변경 시 본 디렉터리 재 캡처 (update-vendor-baseline skill 또는 직접 갱신)
+- 6개월 동안 갱신 0건 시 stale 가능 — `EXTERNAL_CONTRACTS.md` 동기화 권장
+
+---
+
 ## 일자: 2026-05-06 (post-cycle P2/P3 batch — 22 후보 일괄 처리 / 5 묶음 / ADR 작성)
 
 ### 사용자 명시 (cycle 진입 — P2/P3 batch)

@@ -1,0 +1,244 @@
+// =============================================================================
+// os_windows2022.jsonc
+//
+// 대상      : Windows Server 2022 Standard Evaluation VM (10.100.64.135, hostname=horizon-cs.gooddi.lab)
+// 채널      : os-gather (Windows WinRM)
+// 특이사항  : WinRM HTTP 5985 (HTTPS 5986 미동작 — winrm-cert 부재)
+//             - PowerShell remoting / pywinrm 0.5.0 / NTLM 인증
+//             - vendor=vmware (VM 이라 hosting hardware 인 VMware)
+//             - hardware 섹션 success (Windows WMI 가 BIOS 정보 제공 — Linux OS 채널과 차이)
+//             - firewall_profiles (Domain/Private/Public) + pagefile (Windows 고유)
+// 캡처 일시 : 2026-05-07
+// =============================================================================
+{
+  "target_type": "os",
+  "collection_method": "agent",                            // WinRM 도 agent 분류 (Ansible 관점에서 동일)
+  "ip": "10.100.64.135",
+  "hostname": "horizon-cs.gooddi.lab",                     // FQDN (도메인 가입 환경)
+  "vendor": "vmware",
+  "status": "success",
+  "sections": {
+    "system": "success",
+    "hardware": "success",                                 // Windows 는 WMI 로 BIOS / hardware 정보 추출 (Linux OS 채널과 차이)
+    "bmc": "not_supported",
+    "cpu": "success",
+    "memory": "success",
+    "storage": "success",
+    "network": "success",
+    "firmware": "not_supported",
+    "users": "success",
+    "power": "not_supported"
+  },
+  "diagnosis": {
+    "reachable": true,
+    "port_open": true,
+    "protocol_supported": true,
+    "auth_success": true,
+    "failure_stage": null,
+    "failure_reason": null,
+    "details": {
+      "channel": "os",
+      "adapter_candidate": "os_windows_generic",
+      "detected_os": "windows",                            // detect 단계가 5985/5986 응답으로 windows 분류
+      "selected_port": "5985",                             // HTTP — HTTPS (5986) 미동작 환경
+      "checked_ports": [5985, 5986],
+      "auth": {
+        "attempted_count": 2,
+        "used_label": "windows_current",                   // vault/windows.yml 의 administrator 계정
+        "used_role": "primary",
+        "fallback_used": false
+      }
+    }
+  },
+  "meta": {
+    "started_at": "2026-05-06T23:46:38.773863Z",
+    "finished_at": "2026-05-06T23:47:32.924072Z",
+    "duration_ms": 54080,
+    "adapter_id": "os_windows_generic",
+    "adapter_version": null,
+    "ansible_version": "2.20.3"
+  },
+  "correlation": {
+    "serial_number": "VMware-42 34 e4 39 a7 73 eb 5a-e4 72 c8 37 fe e7 55 10",
+    "system_uuid": "39E43442-73A7-5AEB-E472-C837FEE75510",
+    "bmc_ip": null,
+    "host_ip": "10.100.64.135"
+  },
+  "errors": [],
+  "data": {
+    "firmware": [],
+    "memory": {
+      "total_mb": 8192,
+      "total_basis": "physical_installed",
+      "installed_mb": 8192,
+      "visible_mb": 8192,
+      "free_mb": 5671,
+      "slots": [
+        {
+          "capacity_mb": 8192,
+          "type": null,                                    // Windows WMI 는 type 정보 제공 안 함
+          "speed_mhz": 4800,
+          "slot": "RAM slot #0",                           // Windows 전용 — 슬롯 위치 라벨
+          "manufacturer": "VMware Virtual RAM",
+          "part_number": "VMW-8192MB",
+          "serial": null                                   // Windows 전용 — DIMM serial
+        }
+      ],
+      "summary": {
+        "groups": [
+          {"unit_capacity_gb": 8, "type": null, "speed_mhz": 4800, "manufacturer": "VMware Virtual RAM", "part_number": "VMW-8192MB", "quantity": 1, "group_total_gb": 8}
+        ],
+        "grand_total_gb": 8
+      }
+    },
+    "hardware": {                                          // Windows 채널 전용 (Linux 는 null)
+      "vendor": "VMware, Inc.",                            // DMI System Manufacturer
+      "model": "VMware20,1",                               // System Model
+      "serial": "VMware-42 34 e4 39 a7 73 eb 5a-e4 72 c8 37 fe e7 55 10",
+      "uuid": "39E43442-73A7-5AEB-E472-C837FEE75510",
+      "sku": null,                                         // System SKU (Windows 는 보통 null)
+      "asset_tag": null,                                   // 자산 태그
+      "system_family": null,                               // System Family (Win32_ComputerSystem.SystemFamily)
+      "chassis_type": "Other",                             // Chassis type (Other / Tower / Rack 등)
+      "bios_version": "VMW201.00V.24519234.B64.2501240220",
+      "bios_vendor": "VMware, Inc.",                       // BIOS Vendor
+      "bios_date": "2025-01-23",                           // BIOS 날짜 (ISO date)
+      "total_memory_bytes": 8588939264,                    // 전체 메모리 (bytes)
+      "oem": {}                                            // OEM 확장 (Windows 는 비어있음)
+    },
+    "network": {
+      "driver_map": [],                                    // Windows 는 보통 빈 list (Get-NetAdapter 만 사용)
+      "ports": [],
+      "adapters": [],                                      // Windows 는 PCI 어댑터 list 별도 안 만듦
+      "portgroups": [],
+      "dns_servers": ["10.100.64.251"],
+      "virtual_switches": [],
+      "interfaces": [
+        {
+          "id": "vmxnet3 Ethernet Adapter",                // Windows InterfaceDescription
+          "name": "Ethernet0",                             // Windows Name
+          "kind": "os_nic",
+          "mac": "00-50-56-B4-88-84",                      // Windows 표기는 - 구분 (Linux 는 :)
+          "mtu": 1500,
+          "speed_mbps": 10000,
+          "link_status": "up",                             // Linux 는 "linkup", Windows 는 "up" (정규화 차이)
+          "is_primary": true,
+          "addresses": [
+            {"family": "ipv4", "address": "10.100.64.135", "prefix_length": 24, "subnet_mask": "255.255.255.0", "gateway": "10.100.64.254"}
+          ]
+        }
+      ],
+      "default_gateways": [{"family": "ipv4", "address": "10.100.64.254"}],
+      "summary": {
+        "groups": [
+          {"speed_mbps": 10000, "link_type": null, "quantity": 1, "link_up_count": 1}
+        ]
+      }
+    },
+    "bmc": null,
+    "storage": {
+      "summary": {
+        "groups": [
+          {"unit_capacity_gb": 299, "model": "VMware Virtual disk SCSI Disk Device", "media_type": "HDD", "protocol": "SAS", "quantity": 1, "group_total_gb": 299}
+        ],
+        "grand_total_gb": 299
+      },
+      "controllers": [],
+      "physical_disks": [
+        {
+          "id": "\\\\.\\PHYSICALDRIVE0",                   // Windows 디바이스 경로 (\\\\.\\PHYSICALDRIVEx)
+          "device": "\\\\.\\PHYSICALDRIVE0",
+          "model": "VMware Virtual disk SCSI Disk Device",
+          "total_mb": 307196,
+          "media_type": "HDD",                             // Windows MSFT_PhysicalDisk MediaType
+          "protocol": "SAS",                               // BusType
+          "health": "healthy"                              // Windows MSFT_PhysicalDisk HealthStatus (Linux 는 null)
+        }
+      ],
+      "datastores": [],
+      "hbas": [],
+      "logical_volumes": [],
+      "infiniband": [],
+      "filesystems": [
+        {
+          "device": "C:",                                  // Windows 드라이브 letter
+          "mount_point": "C:\\",                           // 마운트 포인트 (Windows 는 drive root)
+          "filesystem": "NTFS",
+          "total_mb": 306557.0,
+          "used_mb": 14923.099999999977,                   // 부동소수점 — Windows WMI 는 byte 기반 환산
+          "available_mb": 291633.9,
+          "usage_percent": 4.9,
+          "status": "mounted"
+        }
+      ]
+    },
+    "users": [
+      {
+        "name": "Administrator",
+        "uid": "S-1-5-21-1722837857-2260200517-4292547533-500",  // Windows SID (Linux UID 와 형식 다름)
+        "groups": ["Administrators"],
+        "home": "C:\\Users\\Administrator",
+        "last_access_time": "2026-05-06T23:47:20Z"
+      }
+    ],
+    "power": null,
+    "system": {
+      "kernel": "20348",                                   // Windows build number (kernel 자리에 build 번호)
+      "runtime": {
+        "timezone": "America/Los_Angeles",
+        "ntp_active": true,
+        "ntp_synchronized": true,
+        "firewall_tool": "windows_firewall",               // Windows 전용
+        "firewall_state": "disabled",
+        "listening_ports": ["135", "139", "445", "5985", "47001", "49664", "49665", "49666", "49667", "49668", "49669", "49670", "50187"],
+        "swap_total_mb": 1920,
+        "swap_used_mb": 225,
+        "swap_free_mb": 1695,
+        "firewall_profiles": [                             // Windows 전용 — 3 프로필 (Domain/Private/Public)
+          {
+            "profile": "Domain",                           // 프로필 이름
+            "enabled": false,                              // 프로필 활성 여부
+            "default_inbound": "NotConfigured",            // 기본 inbound 동작
+            "default_outbound": "NotConfigured"            // 기본 outbound 동작
+          },
+          {"profile": "Private", "enabled": false, "default_inbound": "NotConfigured", "default_outbound": "NotConfigured"},
+          {"profile": "Public", "enabled": false, "default_inbound": "NotConfigured", "default_outbound": "NotConfigured"}
+        ],
+        "pagefiles": [                                     // Windows 전용 — pagefile 정보
+          {
+            "name": "C:\\pagefile.sys",                    // pagefile 경로
+            "size_mb": 1920,                               // 크기
+            "used_mb": 225,                                // 사용량
+            "peak_mb": 265                                 // 최대 사용량
+          }
+        ],
+        "ntp_last_sync": "2026-05-06T23:47:16Z"            // Windows 전용 — 마지막 NTP 동기화 시각
+      },
+      "system_uuid": "39E43442-73A7-5AEB-E472-C837FEE75510",
+      "architecture": "x86_64",
+      "distribution": "Microsoft Windows Server 2022 Standard Evaluation",  // Windows 는 풀 이름
+      "os_family": "Windows",
+      "version": "21H2",                                   // Windows release ID
+      "hosting_type": "virtual",
+      "uptime_seconds": 732923,
+      "serial_number": "VMware-42 34 e4 39 a7 73 eb 5a-e4 72 c8 37 fe e7 55 10",
+      "fqdn": "horizon-cs.gooddi.lab",
+      "selinux": null                                      // Windows 는 SELinux 미해당
+    },
+    "cpu": {
+      "sockets": 1,
+      "cores_physical": 4,
+      "logical_threads": 4,
+      "model": "Intel(R) Xeon(R) Silver 4510",
+      "manufacturer": "Intel",
+      "max_speed_mhz": 2400,
+      "architecture": "x86_64",
+      "summary": {
+        "groups": [
+          {"model": "Intel(R) Xeon(R) Silver 4510", "manufacturer": "Intel", "max_speed_mhz": 2400, "l2_cache_kb": 2048, "l3_cache_kb": 30720, "sockets": 1, "cores_per_socket": 4, "total_cores": 4}
+        ]
+      }
+    }
+  },
+  "schema_version": "1"
+}

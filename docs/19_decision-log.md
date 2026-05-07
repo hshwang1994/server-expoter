@@ -6,7 +6,56 @@
 > 검증 라운드(Round) 결과, 사용자 의심 분석, 정책 변경 같은 큰 결정은 모두 이 문서에 시간순으로 추가된다.
 > 코드만 읽고는 알 수 없는 맥락(왜 이 fallback 이 있는지 등)이 여기 있다.
 
-> 최종 갱신: 2026-05-06
+> 최종 갱신: 2026-05-07
+
+## 2026-05-07 — schema/output_examples/ 신설 + baseline_v1 annotated 정리 (실 장비 개더링)
+
+### 컨텍스트
+
+사용자 (hshwang1994) 명시 (2026-05-07):
+
+> "실제 개더링할수있는 장비를 대상으로 개더링하고 그 값을 대상으로 json출력 예시를 업데이트해라. 만약 schema/baseline_v1이 json출력예시 디렉터리가 아니라면 별도로 디렉터리를 만들고 schema/baseline_v1에 생성한 파일은 지워라. 만약 의도가맞다면 업데이트만 해라. 그리고 한글로 할때 모든 json 키값에대한 설명을 주석으로 달아라."
+
+직전 cycle 2026-05-06 b65e162e 가 baseline_v1 안에 한글 주석본 8개 (`*_annotated.jsonc`) 를 추가했으나, baseline_v1 정본 의도 (회귀 기준선 — Jenkins Stage 4 pytest 입력) 와 충돌. 사용자가 위치 부적합 지적.
+
+### 결정
+
+**A. baseline_v1 != 출력 예시 → 신규 디렉터리** `schema/output_examples/` 신설.
+
+**B. 자격증명** — vault 사용 + 평문 노출 OK (사용자 명시 "기존 볼트를 사용하고, 그것이 평문에 담겨도된다").
+
+**C. 실행 위치** — Jenkins 에이전트 10.100.64.155 SSH 접속 후 직접 ansible-playbook 실행. 결과 rsync 회수.
+
+**D. 디렉터리 분류**:
+
+| 디렉터리 | 정본 의도 | 누가 사용 |
+|---|---|---|
+| `schema/baseline_v1/` | **회귀 기준선** (Jenkins Stage 4 pytest 입력) | 자동화 회귀 |
+| `schema/output_examples/` (신설) | **호출자 / 운영자 reference** — 한글 주석 + 실 응답 | 사람 |
+| `schema/examples/` | 시나리오 별 예시 (success/partial/failed/not_supported) | 호출자 (시나리오 설명) |
+
+### 산출물
+
+- 신설: `schema/output_examples/{README.md, 10 jsonc 파일}`
+- 삭제: `schema/baseline_v1/*_annotated.jsonc` 8개 (사용자 명시)
+- 보존: baseline_v1 *_baseline.json 8개 / examples *.json 4개 / sections.yml / field_dictionary.yml
+
+### 검증
+
+- pytest 335/335 PASS / verify_harness PASS / verify_vendor_boundary PASS
+- envelope 13 필드 / sections 10 / field_dictionary 65 — 변경 없음 (rule 13 R5 / rule 96 R1-B Additive only)
+- 호출자 시스템 파싱 변경 0
+
+### Evidence
+
+- `tests/evidence/2026-05-07-real-gather.md` (실행 절차 + 발견 사항 + 호출자 영향)
+
+### 후속
+
+- 펌웨어 / 환경 변경 시 본 디렉터리 재 캡처 — `update-vendor-baseline` skill 또는 직접 갱신
+- 6개월 갱신 0건 시 stale 가능 — `EXTERNAL_CONTRACTS.md` 동기화 권장
+
+---
 
 ## 2026-05-06 (cycle 2026-05-06-multi-session-compatibility) — status 의도 결정 (Case A 채택)
 
