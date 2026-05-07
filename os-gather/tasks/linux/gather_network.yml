@@ -90,13 +90,14 @@
               {%- if ipv4 and ipv4 != '127.0.0.1' and d.macaddress is defined -%}
                 {%- set nm = d.ipv4.netmask | default('') if d.ipv4 is defined else '' -%}
                 {%- if nm -%}
-                  {%- set ns = namespace(bits=0) -%}
+                  {# cycle 2026-05-07-post fix: val 을 namespace 에 포함 — 이전에는 inner for(bit) 안 set val 이 outer scope 미반영 → /23, /30 같은 비표준 mask 잘못 계산. /24 만 우연히 정상. #}
+                  {%- set ns = namespace(bits=0, val=0) -%}
                   {%- for octet in nm.split('.') -%}
-                    {%- set val = octet | int -%}
+                    {%- set ns.val = octet | int -%}
                     {%- for bit in [128,64,32,16,8,4,2,1] -%}
-                      {%- if val >= bit -%}
+                      {%- if ns.val >= bit -%}
                         {%- set ns.bits = ns.bits + 1 -%}
-                        {%- set val = val - bit -%}
+                        {%- set ns.val = ns.val - bit -%}
                       {%- endif -%}
                     {%- endfor -%}
                   {%- endfor -%}

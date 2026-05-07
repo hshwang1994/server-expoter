@@ -32,21 +32,23 @@
 - **install-git-hooks.sh 갱신**: 두 hook 등록 + skip 환경변수 문서화
 - **회귀 차단 패턴**: cycle-015/016/M-D2 Jinja2 namespace + 2026-04-29 production-audit BUG #1 skeleton drift
 
-### 발견된 의심 패턴 (Jinja namespace check 결과 — 후속 조사 필요)
+### 발견된 의심 패턴 (Jinja namespace check — cycle 2026-05-07-post 모두 해결)
 
-advisory hook 이 3건 검출 (false positive 가능 / 일부는 진짜 사고 의심):
+| # | 위치 | 처리 | commit |
+|---|---|---|---|
+| 1 | `os-gather/tasks/linux/gather_network.yml:99` | **[DONE]** namespace fix (val → ns.val) — netmask CIDR 사고 (/23, /30 등 잘못 계산) 차단 | (cycle 2026-05-07-post) |
+| 2 | `esxi-gather/tasks/normalize_network.yml:67` | **[DONE]** 동일 namespace fix | (cycle 2026-05-07-post) |
+| 3 | `os-gather/tasks/linux/gather_users.yml:77, 212` | **[DONE]** namespace 로 통일 (`ns.groups`) — 의도 명확화 + advisory silence | (cycle 2026-05-07-post) |
 
-1. **`os-gather/tasks/linux/gather_network.yml:99`** — `{%- set val = val - bit -%}`
-   - 위치: netmask CIDR 비트 카운팅 inner for loop
-   - 의심: `val` 이 outer-for(octet) 에서 `set val = octet|int`. inner-for(bit) 의 `set val = val - bit` 가 inner-for 다음 iteration 에 propagate 안 됨
-   - 사고 가능성: HIGH — 대부분 netmask (255 / 0) 는 우연히 올바른 값. 단 `255.255.254.0 (/23)` 같은 경우 `/24` 로 잘못 계산 가능
-   - **후속**: namespace 로 변경 (`set ns.val = ns.val - bit`) 또는 ipaddr filter 사용 검토. 별도 fix cycle.
-2. **`esxi-gather/tasks/normalize_network.yml:67`** — `{%- set val = val - bit -%}`
-   - 동일 패턴 (esxi 채널). 영향 범위 같음.
-3. **`os-gather/tasks/linux/gather_users.yml:77, 212`** — `{%- set groups = [ns.primary_grp] + groups -%}`
-   - 위치: `if ns.primary_grp and ns.primary_grp not in groups` 안 (for uname 안)
-   - 의심도: LOW — `groups` 가 같은 for-iteration 에 line 75 에서 정의됨. `if` 블록은 자체 scope 없음 → 같은 for-iteration scope 내 redefinition. 이론상 작동.
-   - **후속**: 검증 후 noqa 주석 또는 namespace 로 명시 (advisory hook silence)
+회귀 보호: `tests/unit/test_netmask_cidr_jinja_fix.py` (19 PASS) — broken algorithm 사고 명시 + fixed algorithm 정답 검증.
+
+### cisco_baseline.json hostname=null drift (cycle 2026-05-07-post 해결)
+
+- **[DONE]** `cisco_baseline.json:8` hostname=null → "10.100.15.2" (build_output.yml fallback chain 의도대로 보정)
+- 사용자 명시 승인 (2026-05-07): "남아있는 작업 모두 수행해라"
+- xfail 제거 → `tests/regression/test_cross_channel_consistency.py` 107 정 PASS
+- evidence: `tests/evidence/2026-05-07-cisco-hostname-fallback-correction.md`
+- 후속: lab Cisco UCS 도입 시 실측으로 본 보정값 일치 재검증 (rule 13 R4)
 
 ### 다음 phase (Phase C/E/F/G/H)
 

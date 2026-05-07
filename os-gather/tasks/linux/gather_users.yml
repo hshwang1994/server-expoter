@@ -68,18 +68,19 @@
             {%- set is_sys = (uid<1000 and uid!=0) or uname in ['nobody','nfsnobody']
                               or home.startswith('/var/') or home=='/nonexistent' -%}
             {%- if not is_sys or uname=='root' -%}
-              {%- set ns = namespace(primary_grp='') -%}
+              {# cycle 2026-05-07-post: groups 도 namespace 에 포함 — if-block 안 redefinition 은 기존에도 정상 작동했지만 의도 명확화 + Jinja namespace hook advisory silence #}
+              {%- set ns = namespace(primary_grp='', groups=[]) -%}
               {%- for gn, gd in (getent_group|default({})).items() -%}
                 {%- if gd[1]|int == gid -%}{%- set ns.primary_grp = gn -%}{%- endif -%}
               {%- endfor -%}
-              {%- set groups = ug.get(uname,[]) -%}
-              {%- if ns.primary_grp and ns.primary_grp not in groups -%}
-                {%- set groups = [ns.primary_grp] + groups -%}
+              {%- set ns.groups = ug.get(uname,[]) -%}
+              {%- if ns.primary_grp and ns.primary_grp not in ns.groups -%}
+                {%- set ns.groups = [ns.primary_grp] + ns.groups -%}
               {%- endif -%}
               {%- set _ = users.append({
                 'name':             uname,
                 'uid':              udata[1]|string,
-                'groups':           groups,
+                'groups':           ns.groups,
                 'home':             home if home else none,
                 'last_access_time': _l_last_logins.get(uname,none)
               }) -%}
@@ -203,18 +204,19 @@
             {%- set is_sys = (uid < 1000 and uid != 0) or uname in ['nobody','nfsnobody']
                               or home.startswith('/var/') or home == '/nonexistent' -%}
             {%- if not is_sys or uname == 'root' -%}
-              {%- set ns = namespace(primary_grp='') -%}
+              {# cycle 2026-05-07-post: groups 도 namespace 에 포함 — if-block 안 redefinition 은 기존에도 정상 작동했지만 의도 명확화 + Jinja namespace hook advisory silence #}
+              {%- set ns = namespace(primary_grp='', groups=[]) -%}
               {%- for gn, gd in (_l_raw_group | default({})).items() -%}
                 {%- if gd[1] | int == gid -%}{%- set ns.primary_grp = gn -%}{%- endif -%}
               {%- endfor -%}
-              {%- set groups = ug.get(uname, []) -%}
-              {%- if ns.primary_grp and ns.primary_grp not in groups -%}
-                {%- set groups = [ns.primary_grp] + groups -%}
+              {%- set ns.groups = ug.get(uname, []) -%}
+              {%- if ns.primary_grp and ns.primary_grp not in ns.groups -%}
+                {%- set ns.groups = [ns.primary_grp] + ns.groups -%}
               {%- endif -%}
               {%- set _ = users.append({
                 'name':             uname,
                 'uid':              udata[1] | string,
-                'groups':           groups,
+                'groups':           ns.groups,
                 'home':             home if home else none,
                 'last_access_time': _l_raw_last_logins.get(uname, none)
               }) -%}

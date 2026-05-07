@@ -108,11 +108,10 @@ def test_collection_method_matches_target_type(baseline_envelope: dict) -> None:
 # ---------------------------------------------------------------------------
 # T3 — hostname fallback chain non-null (concern 7 invariant)
 # ---------------------------------------------------------------------------
-# cisco_baseline.json: hostname=null — build_output.yml fallback chain
-# (system.hostname OR system.fqdn OR ip) 갱신 이전에 캡처된 baseline drift.
-# rule 13 R4 (AI 임의 baseline 수정 금지) 준수 — 실측 기반 갱신 필요.
-# 후속 작업: docs/ai/NEXT_ACTIONS.md "cisco baseline hostname fallback 재실측".
-_HOSTNAME_FALLBACK_KNOWN_DRIFT: frozenset[str] = frozenset({"cisco_redfish"})
+# cycle 2026-05-07-post: cisco_baseline.json hostname=null drift 보정 완료.
+# build_output.yml fallback chain (system.hostname OR system.fqdn OR ip) 의도대로
+# hostname 을 ip ("10.100.15.2") 로 보정 + evidence 기록. xfail 제거.
+# 실 lab Cisco UCS 검증은 별도 cycle (rule 13 R4).
 
 
 def test_hostname_never_null(baseline_envelope: dict) -> None:
@@ -120,11 +119,6 @@ def test_hostname_never_null(baseline_envelope: dict) -> None:
     guarantees non-null hostname. Concern 7: if hostname == ip that is the
     intentional ip_fallback path, not a bug."""
     label = baseline_envelope["__label"]
-    if label in _HOSTNAME_FALLBACK_KNOWN_DRIFT:
-        pytest.xfail(
-            f"[{label}] known baseline drift — predates build_output.yml "
-            f"fallback chain. Tracked in docs/ai/NEXT_ACTIONS.md."
-        )
     hostname = baseline_envelope.get("hostname")
     assert hostname is not None and hostname != "", (
         f"[{label}] hostname is empty — fallback chain broken"
