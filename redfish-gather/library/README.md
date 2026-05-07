@@ -1,0 +1,66 @@
+# redfish-gather/library/ — Redfish API 엔진 (stdlib only)
+
+> ~2400 줄 단일 Python 모듈. urllib / ssl / json 만 사용 (rule 10 R2 — 외부 라이브러리 금지).
+
+## 파일
+
+- `redfish_gather.py` — 단일 모듈, ~2400 줄
+- `redfish_gather_test_runner.py` — 로컬 개발 테스트 러너 (선택)
+
+## 함수 흐름 인덱스 (호출 endpoint 별)
+
+| 함수 | 위치 (line) | 호출 endpoint |
+|---|---:|---|
+| `_detect_vendor_from_service_root` | 533 | GET `/redfish/v1/` (ServiceRoot 무인증) |
+| `_extract_oem_hpe / dell / lenovo / supermicro / cisco` | 770~867 | (helper — vendor 별 OEM 추출) |
+| `gather_system` | 989 | GET `/redfish/v1/Systems/{id}` + Bios |
+| `gather_bmc` | 1098 | GET `/redfish/v1/Managers/{id}` + EthernetInterfaces |
+| `gather_processors` | 1228 | GET `/redfish/v1/Systems/{id}/Processors` (collection + N) |
+| `gather_memory` | 1277 | GET `/redfish/v1/Systems/{id}/Memory` (collection + N) |
+| `gather_storage` | 1560 | GET `/redfish/v1/Systems/{id}/Storage` + Volumes + Drives |
+| `gather_network` | 1589 | GET `/redfish/v1/Systems/{id}/EthernetInterfaces` |
+| `gather_network_adapters_chassis` | 1624 | GET `/redfish/v1/Chassis/{id}/NetworkAdapters` + NetworkPorts |
+| `gather_firmware` | 1763 | GET `/redfish/v1/UpdateService/FirmwareInventory` |
+| `gather_power` | 1891 | GET `/redfish/v1/Chassis/{id}/Power` 또는 PowerSubsystem |
+
+각 함수 docstring 에 endpoint 명시 (cycle 2026-05-07 보강).
+
+## vendor 분기 정본 위치 (rule 12 R1 Allowed 영역)
+
+| 위치 | 분기 | 근거 |
+|---|---|---|
+| `_OEM_EXTRACTORS` (line 979) | vendor → OEM extractor 함수 매핑 | Redfish API spec 자체가 vendor namespace 정의 (`Oem.Hpe`, `Oem.Dell`...) |
+| `_FALLBACK_VENDOR_MAP` | vendor_aliases.yml load 실패 시 fallback | rule 12 R1 Allowed |
+| `_detect_from_product` | vendor 시그니처 매핑 (`'idrac' in p` 등) | BMC product name 으로 vendor 추론 |
+| `bmc_names` dict | BMC 표시명 매핑 (dell→iDRAC) | UI / 메시지용 |
+| `_ACCOUNT_CREATE_STRATEGY` (line 2110) | vendor → 계정 생성 strategy (cycle 2026-05-07 추가) | AccountService PATCH/POST 차이 |
+| `account_service_provision()` 본문 (line 2369~2470) | inline if/elif vendor 분기 | 사이트 실측 + 펌웨어 별 사고 매트릭스 |
+
+이 외 영역 (common / 3-channel) 의 vendor 하드코딩 금지 (rule 12 R1).
+검증: `python scripts/ai/verify_vendor_boundary.py`.
+
+## 외부 의존성 정책 (rule 10 R2)
+
+| 카테고리 | 사용 가능 |
+|---|---|
+| stdlib | urllib / ssl / json / socket / time / re / sys / os / typing |
+| 외부 라이브러리 | **금지** (requests / urllib3 / paramiko 등 추가 안 함) |
+
+이유: Agent 환경에 라이브러리 누락 발생 시 핵심 수집 자체 실패. stdlib 만으로 robustness 확보.
+
+## 디버깅 진입점
+
+| 사고 | 확인 |
+|---|---|
+| Redfish endpoint 응답 파싱 실패 | `gather_*` 함수 + `tests/redfish-probe/probe_redfish.py` |
+| vendor 잘못 감지됨 | `_detect_vendor_from_service_root` + `_FALLBACK_VENDOR_MAP` |
+| OEM 데이터 누락 | `_OEM_EXTRACTORS` + adapter `tasks/vendors/{vendor}/normalize_oem.yml` |
+| AccountService 분기 | `_ACCOUNT_CREATE_STRATEGY` + `account_service_provision` |
+
+## 관련 문서
+
+- `docs/10_adapter-system.md` — Adapter 시스템 + priority 정책 (cycle 2026-05-07 보강)
+- `docs/13_redfish-live-validation.md` — 실장비 검증
+- `docs/14_add-new-gather.md` 절차 B — 신 vendor / 새 세대 추가 (cycle 2026-05-07 보강)
+- `docs/22_compatibility-matrix.md` — vendor × generation × section
+- `docs/23_debugging-entrypoints.md` — 디버깅 매트릭스 (cycle 2026-05-07 신설)
