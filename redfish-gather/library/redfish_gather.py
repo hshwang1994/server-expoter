@@ -2110,6 +2110,33 @@ def _compute_final_status(collected, failed, errors=None):
 # HPE / Lenovo / Supermicro: POST /Accounts 표준
 # Cisco : AccountService 표준 미지원 (errors[]에 not_supported 기록 후 종료)
 
+# rule 95 R1 #4 (debugging visibility — cycle 2026-05-07 Phase H 보강):
+# vendor → 신규 계정 생성 strategy 매핑 (account_service_provision 분기 정본).
+# 본 dict 는 코드 분기를 변경하지 않음 — 의도 가시화 + log/도구가 사용.
+# source: 사이트 실측 + Dell SWC0296 + Cisco CIMC 사이트 실측 (10.100.15.2).
+_ACCOUNT_CREATE_STRATEGY = {                                                   # nosec rule12-r1
+    'dell':       'patch_slot',     # nosec rule12-r1 — PATCH /Accounts/{N=2..17}
+    'hpe':        'post_standard',  # nosec rule12-r1 — POST /AccountService/Accounts
+    'lenovo':     'post_standard',  # nosec rule12-r1
+    'supermicro': 'post_standard',  # nosec rule12-r1
+    'cisco':      'post_id_role_remap',  # nosec rule12-r1 — POST + Id 1-15 + RoleId enum remap
+    'huawei':     'post_standard',  # nosec rule12-r1 — lab 부재 / web sources
+    'inspur':     'post_standard',  # nosec rule12-r1
+    'fujitsu':    'post_standard',  # nosec rule12-r1
+    'quanta':     'post_standard',  # nosec rule12-r1
+}
+
+
+def _account_create_method_for_vendor(vendor):
+    """vendor → 신규 계정 생성 strategy 이름 (rule 95 R1 #4 debugging helper).
+
+    실제 분기는 account_service_provision() 본문 inline if/elif 가 수행.
+    본 함수는 가시성 / 로깅 / 도구 (-vvv 시 정상 어떻게 분기될지) 용도.
+
+    Returns: 'patch_slot' | 'post_standard' | 'post_id_role_remap' | 'unknown'
+    """
+    return _ACCOUNT_CREATE_STRATEGY.get(vendor, 'unknown')
+
 def account_service_get(bmc_ip, username, password, timeout, verify_ssl):
     """GET /redfish/v1/AccountService + Accounts 컬렉션 enumerate.
 
