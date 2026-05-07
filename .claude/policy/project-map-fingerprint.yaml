@@ -4,11 +4,11 @@
 adapters: c63a033173be
 callback_plugins: 304a4ae22088
 common: 61969a5bf835
-esxi-gather: 50df19596560
+esxi-gather: ef8cec144572
 filter_plugins: c77b89dd1f1b
 lookup_plugins: 68f78b116603
 module_utils: 32d2047adc60
-os-gather: 60cb3a5ab846
+os-gather: 80e2b7fc11cc
 redfish-gather: 4e849a7c021c
-schema: fcf52063700b
-tests: cc72c9745c95
+schema: 20d4663b22d8
+tests: 6e099b4e1cb1
