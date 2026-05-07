@@ -354,11 +354,11 @@ main
 | 기능 | OS (Linux/Windows) | ESXi | Redfish |
 |------|-------------------|------|---------|
 | 구현 완료 | O | O | O |
-| Adapter 수 | 7개 | 4개 | 14개 |
+| Adapter 수 | 7개 | 4개 | 28개 (cycle 2026-05-07 실측) |
 | 지원 섹션 | 6개 | 6개 | 9개 |
 | Precheck | 포트 감지 | 4단계 | 4단계 |
 | Graceful Degradation | O | O | O |
-| 벤더 지원 | N/A | VMware | Dell, HPE, Lenovo, Supermicro, Cisco |
+| 벤더 지원 | N/A | VMware | Dell, HPE, Lenovo, Supermicro, Cisco + (lab 부재) Huawei, Inspur, Fujitsu, Quanta |
 | 실장비 검증 | O | O (문서) | O (3대: Dell/HPE/Lenovo) |
 
 ---

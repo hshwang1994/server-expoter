@@ -1,5 +1,74 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-07 (post-cycle harness self-improvement — AI 환경 즉시 가능 3 작업 일괄 [DONE])
+
+### 사용자 명시 (cycle 진입)
+- "AI 환경에서 즉시 가능한 작업 (P2/P3 후보 0 잔존) 모두 수행해라 남아있는 작업 없도록"
+
+### 본 cycle 결과 요약
+
+| Phase | 작업 | 결과 |
+|---|---|---|
+| 1 | 7 advisory hook 전체 codebase false-positive 스캔 | **CLEAN** — 138 yml/j2 / 3 skeleton 파일 모두 위반 0 |
+| 2 | harness 자기개선 (rule 28 측정 12 대상 drift) | **DRIFT 4건 fix** — adapter 카운트 stale (rule 00/12/50 + CLAUDE.md) / vendor 5→9 stale |
+| 3 | Dell R770 NEXT_ACTIONS 등재 (rule 50 R2 단계 10 / rule 96 R1-C) | **[DONE]** — 4 후속 항목 등재 |
+| 4 | Jinja namespace hook blocking 격상 결정 | **PENDING** — 추가 1 cycle advisory 운영 후 결정 권장 (false-positive 0 확인됨) |
+
+### Phase 1: advisory hook 7종 false-positive 스캔 (CLEAN)
+
+| Hook | 검사 대상 | 스캔 범위 | 결과 |
+|---|---|---|---|
+| pre_commit_jinja_namespace_check | yml/yaml/j2 self-ref 누적 | 138 파일 | **0 false-positive** |
+| pre_commit_fragment_skeleton_sync | 3 skeleton 파일 동기화 | init_fragments / build_empty_data / build_failed_output | **0 drift (10 sections 정합)** |
+| pre_commit_status_logic_check | build_status.yml ↔ 매트릭스 | self-test 7 cases | PASS |
+| pre_commit_docs20_sync_check | rule 13 R7 정본 4종 ↔ docs/20 | self-test 6 cases | PASS |
+| pre_commit_additive_only_check | diff Additive only | self-test 5 cases | PASS |
+| post_commit_compatibility_matrix_check | adapter capabilities ↔ docs/22 | self-test 6 cases | PASS |
+| pre_commit_ticket_consistency | ticket 6 절 형식 | self-test 11 cases | PASS |
+
+→ **blocking 격상 검토 가능 (1 cycle 추가 운영 후 결정 권장)**
+
+### Phase 2: harness drift 검사 (rule 28 12 대상)
+
+| # | 대상 | 결과 |
+|---|---|---|
+| 1 | output_schema (sections + field_dictionary 65) | [OK] — 39 Must + 20 Nice + 6 Skip 실측 일치 |
+| 2 | project_map | [OK] — fingerprint 일치 |
+| 3 | vendor_adapter_matrix | **[DRIFT-FIX]** — 27→39 adapter / Redfish 16→28 / vendor 5→9 stale (rule 00 / 12 / 50 + CLAUDE.md 4 곳 fix) |
+| 4 | callback_endpoints | [OK] — Jenkinsfile 2종 (cycle-015 _grafana 제거) |
+| 5 | jenkinsfile_cron | [OK] — cron triggers 0 (호출자 트리거) |
+| 6 | harness_surface | [OK] — rules 28 / skills 51 / agents 60 / hooks 28 / policies 10 / verify_harness PASS |
+| 7 | vendor_baseline | [OK] — 8 baseline 파일 (cisco hostname drift cycle 2026-05-07-post fix) |
+| 8 | fragment_topology | [OK] — 129 fragment refs (3 channel) |
+| 9 | branch_gap | [OK] — origin/main ahead=0 behind=0 |
+| 10 | vendor_boundary | [OK] — verify_vendor_boundary PASS |
+| 11 | external_contracts | [OK] — TTL 90d 안 |
+| 12 | compatibility_matrix | [OK] — 270 cell (153 OK + 87 OK★ + 27 N/A + 3 GAP) |
+
+### Phase 3: Dell R770 lab 부재 — NEXT_ACTIONS 자동 등재 (rule 96 R1-C)
+
+**배경**: `dell_idrac10.yml` (priority=120, cycle 2026-05-01 신설)에 R770 model_pattern 매칭됐지만 **lab 부재 / web sources only** 상태. 사용자 사이트 R770 도입 시 4 후속 항목 의무.
+
+| # | 후속 항목 | 진입 조건 | 정본 |
+|---|---|---|---|
+| 1 | 사이트 fixture 캡처 | 사용자 R770 BMC 접근 가능 시 | `capture-site-fixture` skill |
+| 2 | baseline JSON 추가 | 실측 후 (rule 13 R4) | `schema/baseline_v1/dell_idrac10_baseline.json` |
+| 3 | lab 도입 후 별도 cycle | R770 lab/사이트 도입 결정 시 | `dell_idrac10 lab 검증` round |
+| 4 | origin 주석 갱신 | fixture 캡처 후 | `adapters/redfish/dell_idrac10.yml:6-13` "tested_against" 항목 |
+
+### Phase 4: Jinja namespace hook blocking 격상 결정 (PENDING)
+
+- **현재 상태**: advisory + false-positive 0 (138 파일 스캔)
+- **결정 기준**: rule 22 R7 본문 "1 cycle 모니터링 후 false-positive 0 시 blocking 격상 검토"
+- **권장**: 추가 1~2 cycle 운영 후 결정 (cycle refactor-review 종료 직후라 hook 적용 commit 부족 — false-positive 통계 신뢰도 부족)
+- **ADR 작성 trigger**: blocking 격상 시 → rule 22 본문 변경 + 표면 카운트 변경 발생 시 (rule 70 R8 trigger 1 + 2)
+
+### 다음 cycle 권장 (외부 의존)
+
+이전 cycle 잔여 그대로 — AI 환경 외 영역 (lab 도입 / 사이트 fixture / 사용자 결정).
+
+---
+
 ## 일자: 2026-05-07 (cycle refactor-review — **종료 / 8 Phase + 잔여 후속 4 task 모두 [DONE]**)
 
 ### cycle 종료 통계 (commit 5e946584 → 2e77d0e8, 11 commit)

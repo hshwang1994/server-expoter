@@ -1,5 +1,71 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-07 (post-cycle harness self-improvement — AI 환경 즉시 가능 3 작업 [DONE])
+
+### 사용자 명시 (cycle 진입)
+- "AI 환경에서 즉시 가능한 작업 (P2/P3 후보 0 잔존) 모두 수행해라 남아있는 작업 없도록"
+
+### 적용 변경 (4 영역)
+
+| 영역 | 변경 | commit |
+|---|---|---|
+| **Phase 1** advisory hook 7종 false-positive 스캔 | `scripts/ai/scan_advisory_hooks.py` 신설 (138 파일 스캔, false-positive 0) | (이 commit) |
+| **Phase 2** harness drift fix | rule 00 / 12 / 50 + CLAUDE.md adapter 카운트 stale fix (27→39, vendor 5→9) | (이 commit) |
+| **Phase 3** Dell R770 NEXT_ACTIONS | rule 96 R1-C / rule 50 R2 단계 10 — 4 후속 항목 등재 | (이 commit) |
+| **Phase 4** Jinja namespace blocking 격상 | PENDING (1~2 cycle 추가 운영 권장 — false-positive 0 확인) | — |
+
+### Phase 1 결과 — advisory hook 7종 모두 CLEAN
+
+| Hook | 검사 대상 | 결과 |
+|---|---|---|
+| pre_commit_jinja_namespace_check | 138 yml/yaml/j2 파일 self-ref 누적 | **0 issues** |
+| pre_commit_fragment_skeleton_sync | 3 skeleton 파일 (init_fragments / build_empty_data / build_failed_output) | **0 drift** |
+| pre_commit_status_logic_check | 7 self-test cases | PASS |
+| pre_commit_docs20_sync_check | 6 self-test cases (rule 13 R7 정본 4종) | PASS |
+| pre_commit_additive_only_check | 5 self-test cases (rule 96 R1-B) | PASS |
+| post_commit_compatibility_matrix_check | 6 self-test cases (rule 28 #12) | PASS |
+| pre_commit_ticket_consistency | 11 self-test cases (rule 26 R10 cold-start 6 절) | PASS |
+
+### Phase 2 결과 — harness drift fix
+
+drift 발견 + fix 4 위치:
+- `.claude/rules/00-core-repo.md:14-15` — vendor 5종→9종 / Adapter 27→39
+- `.claude/rules/12-adapter-vendor-boundary.md:11-12` — adapter 25→39 / vendor 5→9
+- `.claude/rules/50-vendor-adapter-policy.md:15-18` — vendor 5→9 / adapter 27→39
+- `CLAUDE.md:357,361` — Redfish adapter 14→28 / vendor 5종→9종
+
+기타 11 측정 대상 (rule 28 R1) 모두 [OK].
+
+### Phase 3 결과 — Dell R770 NEXT_ACTIONS 등재
+
+`adapters/redfish/dell_idrac10.yml:32` model_patterns에 R770 명시됨 (lab 부재 / web sources only). rule 96 R1-C에 따라 NEXT_ACTIONS.md에 4 후속 항목 등재:
+1. 사이트 fixture 캡처
+2. baseline JSON 추가 (`schema/baseline_v1/dell_idrac10_baseline.json`)
+3. lab 도입 후 별도 cycle
+4. origin 주석 갱신 (tested_against)
+
+### Phase 4 결과 — Jinja namespace blocking 격상 PENDING
+
+- false-positive 0 (138 파일) 확인 → blocking 격상 자격 충족
+- 단, hook 도입 후 commit 통계 부족 → 추가 1~2 cycle advisory 운영 권장
+- ADR trigger 발생 시 (격상 결정 후) rule 22 본문 변경 + 격상 ADR 작성
+
+### 검증
+
+- `verify_harness_consistency.py`: PASS (rules 28 / skills 51 / agents 60 / policies 10)
+- `verify_vendor_boundary.py`: PASS (vendor 하드코딩 0건)
+- `check_project_map_drift.py`: PROJECT_MAP fingerprint 일치
+- 7 advisory hook self-test: 모두 PASS (40+ cases)
+- envelope shape / vault / cron / 의존성 변경 0
+
+### 호출자 영향
+
+- envelope 13 필드 / sections 10 / field_dictionary 65 → **변경 없음**
+- adapter / baseline / vault → **변경 없음**
+- 본 cycle은 docs/rule만 갱신 (실측 결과 반영)
+
+---
+
 ## 일자: 2026-05-07 (refactor-review cycle — 7 우려사항 8 Phase 처리)
 
 ### 사용자 명시 (cycle 진입)

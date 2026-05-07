@@ -12,10 +12,10 @@
 
 ## 현재 관찰된 현실
 
-- 5 vendor (Dell / HPE / Lenovo / Supermicro / Cisco) + generic fallback
+- 9 vendor (Dell / HPE / Lenovo / Supermicro / Cisco + Huawei / Inspur / Fujitsu / Quanta) + generic fallback — 후 4종은 cycle-019 신규 (lab 부재, web sources)
 - 단일 main 브랜치 운영. branch는 `main` + `feature/*` + `fix/*` + `vendor/*` (벤더 추가 시) + `docs/*` + `harness/*`
 - vendor별 plugin 모듈 없음 — adapter YAML + OEM tasks + vault만
-- 27 adapter (Redfish 16 + OS 7 + ESXi 4 — cycle-008 기준)
+- 39 adapter (Redfish 28 + OS 7 + ESXi 4 — cycle 2026-05-07 실측)
 
 ## 목표 규칙
 
