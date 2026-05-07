@@ -1,5 +1,42 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-07 (refactor-review cycle — 7 우려사항 8 Phase 처리)
+
+### 사용자 명시 (cycle 진입)
+- 7 우려: 가독성 / 디버깅 / 디렉터리 / 벤더 분리 / 신 세대 / 회귀 / hostname=IP
+- 결정: P0~P5 전체 / hostname 문서화만 / adapter -vvv 로그만 (envelope schema 변경 없음)
+
+### 산출물
+
+| Phase | 영역 | commit |
+|---|---|---|
+| A | tests/regression/ + capture-site-fixture skill | a196162b |
+| B | pre_commit_jinja_namespace + skeleton_sync hooks | 8044b7bf |
+| C | docs/23 신설 + docs/10 priority 정책 + adapter_loader -vvv | a6f1439f |
+| E | docs/20 7절 hostname fallback chain | fb34d8e1 |
+| F | docs/14 절차 B 신 vendor 가이드 | a4cc1b4e |
+| H | redfish_gather.py `_ACCOUNT_CREATE_STRATEGY` 매핑 | 9c33d6fd |
+| G | 5개 README (common/normalize/schema/tests/library) | 3eced3d1 |
+| 8 | ADR-2026-05-07 + PROJECT_MAP fingerprint | (이 commit) |
+
+### 통계
+- pytest: 32 → **441 PASS + 1 xfail** (cisco hostname drift known)
+- hooks: 26 → **28** (+2 회귀 차단)
+- docs: docs/22 → **docs/23** 신설 (+1)
+- README: 0 → **5** (디렉터리 진입 가이드)
+- 회귀 차단 검증: 107 cross-channel × 8 baseline
+- envelope schema 변경 / 호출자 영향 / 의존성 추가 / vault 변경 / cron 변경 모두 **0**
+
+### 발견된 후속 사고 (NEXT_ACTIONS)
+- cisco_baseline.json hostname=null drift (lab 실측 후 baseline 갱신)
+- gather_network.yml:99 / esxi normalize_network.yml:67 — Jinja2 namespace val=val-bit netmask 사고 의심 (특정 mask 영향)
+- gather_users.yml:77, 212 — set groups self-ref (이론상 작동 — noqa 대상)
+
+### Round 검증
+- 회귀 정합 모두 PASS — rule 24 6/6 체크 통과
+
+---
+
 ## 일자: 2026-05-07 (실 장비 개더링 → schema/output_examples/ 신설 / baseline_v1 annotated 8개 정리)
 
 ### 사용자 명시 (cycle 진입)
