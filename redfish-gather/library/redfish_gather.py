@@ -692,11 +692,14 @@ def _resolve_first_member_uri(bmc_ip, coll_uri, username, password, timeout, ver
 def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
     """ServiceRoot(무인증)에서 벤더 식별 + Systems/Managers/Chassis URI 해석.
 
-    Returns: (vendor, system_uri, manager_uri, chassis_uri, errors)
+    Returns: (vendor, system_uri, manager_uri, chassis_uri, errors, service_root)
+        service_root: 무인증/인증 ServiceRoot 응답 dict 원본 (None 가능).
+            cycle 2026-05-11 추가 (T-01 HPE adapter 오선택 fix) —
+            _extract_probe_facts() 가 ServiceRoot 에서 model/firmware hint 추출 시 사용.
     """
     root, errors = _fetch_service_root(bmc_ip, username, password, timeout, verify_ssl)
     if root is None:
-        return 'unknown', None, None, None, errors
+        return 'unknown', None, None, None, errors, None
 
     vendor = _detect_vendor_from_service_root(root)
     if vendor is None:
@@ -706,14 +709,14 @@ def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
     systems_uri  = _safe(root, 'Systems',  '@odata.id')
     if not systems_uri:
         errors.append(_err('vendor_detect', 'ServiceRoot 에 Systems 링크 없음'))
-        return vendor, None, None, None, errors
+        return vendor, None, None, None, errors, root
 
     system_uri, st, serr = _resolve_first_member_uri(
         bmc_ip, systems_uri, username, password, timeout, verify_ssl
     )
     if not system_uri:
         errors.append(_err('vendor_detect', f'Systems 컬렉션 실패: {serr}'))
-        return vendor, None, None, None, errors
+        return vendor, None, None, None, errors, root
 
     # Managers / Chassis는 실패해도 errors에 등재하지 않음 — 후속 섹션에서 재시도/스킵
     manager_uri, _, _ = _resolve_first_member_uri(
@@ -758,7 +761,62 @@ def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
             errors.append(_err('vendor_detect',
                 f'WWW-Authenticate realm fallback로 vendor={realm_vendor} 식별 (ServiceRoot/Resources 본문 부족)'))
 
-    return vendor, system_uri, manager_uri, chassis_uri, errors
+    return vendor, system_uri, manager_uri, chassis_uri, errors, root
+
+
+def _extract_probe_facts(root, vendor):                                       # nosec rule12-r1
+    """ServiceRoot 무인증 응답에서 adapter selection 용 facts 추출.
+
+    detect_vendor.yml 의 probe 단계는 무인증 (`username=""`) 으로 호출 — 본 수집의
+    `gather_system()` / `gather_bmc()` 등은 모두 401 fail → `data.system` / `data.bmc`
+    empty dict. 결과: facts.model / facts.firmware 가 비어 priority 가 가장 높은
+    adapter 가 model/firmware 무관하게 선택됨 (T-01: HPE DL380 Gen11 가 hpe_ilo7
+    Gen12-only adapter 로 오선택 사고).
+
+    본 함수는 ServiceRoot (무인증 / 인증 fallback) 에서 vendor 별 semantic 을 알고
+    safe 한 hint 만 추출. detect_vendor.yml 이 data.bmc/data.system 비어 있을 때
+    fallback 으로 사용 (Additive — 기존 path 변경 0).
+
+    vendor 별 ServiceRoot semantic 차이 (rule 96 R1 외부 계약):
+      HPE: ServiceRoot.Product = 서버 모델 (예: "ProLiant DL380 Gen11"),
+           Oem.Hpe.Manager[0].ManagerFirmwareVersion = iLO 펌웨어 (예: "1.73"),
+           Oem.Hpe.Manager[0].ManagerType = iLO 세대 (예: "iLO 6").
+           Oem.Hp namespace (iLO 4 시기) fallback.
+      Dell/Lenovo/Cisco/Supermicro/Huawei/Inspur/Fujitsu/Quanta:
+           ServiceRoot.Product 가 BMC 제품명 ("Integrated Dell Remote Access
+           Controller" 등) — 서버 모델 아님. 무분별 추출 시 model_patterns 매치
+           실패로 잘못된 adapter 선택 (예: dell_idrac10 의 PowerEdge R7xx
+           model_patterns 가 BMC 명 ↔ 미매치 → 모든 dell adapter disqualify →
+           generic fallback). 빈 dict 반환 — 기존 priority-based selection 유지.
+
+    Returns: dict — 채워진 hint 만 포함. 빈 dict 가능.
+        {model_hint: str, firmware_hint: str, manager_type: str}
+
+    nosec rule12-r1: Redfish API spec 자체가 OEM namespace (Oem.Hpe / Oem.Hp) 정의 —
+    라이브러리에서 vendor 분기 허용 (rule 12 R1 Allowed 영역, _extract_oem_* 와 동일 정신).
+    """
+    if not isinstance(root, dict):
+        return {}
+    facts = {}
+    if vendor == 'hpe':                                                       # nosec rule12-r1
+        product = _safe(root, 'Product')
+        if isinstance(product, str) and product.strip():
+            facts['model_hint'] = product.strip()
+        managers = (_safe(root, 'Oem', 'Hpe', 'Manager')                       # nosec rule12-r1
+                    or _safe(root, 'Oem', 'Hp', 'Manager'))                    # nosec rule12-r1
+        mgr0 = None
+        if isinstance(managers, list) and managers and isinstance(managers[0], dict):
+            mgr0 = managers[0]
+        elif isinstance(managers, dict):
+            mgr0 = managers
+        if mgr0 is not None:
+            fw_ver = _safe(mgr0, 'ManagerFirmwareVersion')
+            if isinstance(fw_ver, str) and fw_ver.strip():
+                facts['firmware_hint'] = fw_ver.strip()
+            mgr_type = _safe(mgr0, 'ManagerType')
+            if isinstance(mgr_type, str) and mgr_type.strip():
+                facts['manager_type'] = mgr_type.strip()
+    return facts
 
 
 # ── 섹션별 수집 ───────────────────────────────────────────────────────────────
@@ -2976,7 +3034,7 @@ def main():
             )
 
         # detect_vendor 로 vendor 정규화 (분기 라우팅 용도)
-        vendor, _, _, _, det_errors = detect_vendor(
+        vendor, _, _, _, det_errors, _ = detect_vendor(
             bmc_ip, username, password, timeout, verify_ssl
         )
         result = account_service_provision(
@@ -2996,16 +3054,24 @@ def main():
     # ── 기존 gather mode (cycle 2026-05-01: unsupported 분류 추가) ──────
     all_errors, collected, failed, unsupported = [], [], [], []
 
-    vendor, system_uri, manager_uri, chassis_uri, det_errors = detect_vendor(
+    vendor, system_uri, manager_uri, chassis_uri, det_errors, service_root = detect_vendor(
         bmc_ip, username, password, timeout, verify_ssl
     )
     all_errors.extend(det_errors)
+
+    # T-01 (cycle 2026-05-11): ServiceRoot 무인증 응답에서 adapter selection 용 facts 추출.
+    # detect_vendor.yml 의 probe 단계 (무인증) 에서 data.bmc/data.system 가 empty 이면
+    # adapter_loader 가 priority 만으로 선택 — vendor-specific generation 정확 매칭 불가.
+    # probe_facts 가 model_hint/firmware_hint/manager_type 을 제공해 adapter 선택 정확도 보강.
+    # rule 96 R1-B Additive only — envelope shape 신 키 추가는 본 probe 경로 한정 +
+    # 호출자 시스템 (Jenkins downstream) 은 본 키 모름 → 파싱 변경 0.
+    probe_facts = _extract_probe_facts(service_root, vendor)
 
     if not system_uri:
         module.exit_json(
             changed=False, status='failed', vendor=vendor,
             collected=[], failed_sections=['all'], unsupported_sections=[],
-            errors=all_errors, data={},
+            errors=all_errors, data={}, probe_facts=probe_facts,
         )
 
     result_data = _collect_all_sections(
@@ -3020,7 +3086,7 @@ def main():
         changed=False, status=final_status, vendor=vendor,
         collected=clean, failed_sections=list(set(failed)),
         unsupported_sections=list(set(unsupported)),
-        errors=all_errors, data=result_data,
+        errors=all_errors, data=result_data, probe_facts=probe_facts,
     )
 
 
