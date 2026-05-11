@@ -51,9 +51,12 @@ pipeline {
     }
 
     environment {
-        INVENTORY_JSON = "${params.inventory_json}"
-        REPO_ROOT      = "${WORKSPACE}"
-        ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
+        INVENTORY_JSON          = "${params.inventory_json}"
+        REPO_ROOT               = "${WORKSPACE}"
+        ANSIBLE_CONFIG          = "${WORKSPACE}/ansible.cfg"
+        // __pycache__ 권한 충돌 차단 — 외부 root 진입 흔적으로 .pyc 가 root 소유로 굳을 경우
+        // jenkins user 가 갱신 못 해 plugin path 로드 실패 (errno 13). bytecode 캐시 자체를 끔.
+        PYTHONDONTWRITEBYTECODE = '1'
     }
 
     options {
