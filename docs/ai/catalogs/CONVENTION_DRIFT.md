@@ -204,3 +204,27 @@
   - 사이트 BMC facts.firmware 실측 형식 확정 → 1.20+ 2-part 변형 발견 시 firmware_patterns 추가 정정
   - reverse regression 검토 (rule 25 R7-A-1 — 사용자 실측 > spec)
 - **관련**: rule 92 R2 (Additive only), rule 96 R1 (origin 주석), rule 25 R7-A-1, `module_utils/adapter_common.py` L260-267
+
+## DRIFT-015 (2026-05-11, resolved cycle adapter-selection-review)
+
+- **발견 위치**: `adapters/redfish/supermicro_x12.yml` L27 `priority: 90`
+- **분류**: adapter priority 일관성 (rule 12 R2 / rule 50 R3)
+- **설명**: 사용자 검증 요청 ("어떤 adapter 를 쓸지 결정하는 단계 문제 발생 이력 — 지금 잘 돼있나") rule 95 R1 자동 스캔 부수 발견. Supermicro generation 별 priority 가 `X11=100`, **`X12=90`**, `X13=100`, `X14=110` 으로 X12 만 역전. 동일 vendor (Supermicro) 내 model_patterns 분리로 동시 매칭 시나리오 없어 사고 0 이지만, lab 도입 후 facts empty 케이스 (T-01 시뮬레이션 — `model_patterns` 보너스 +25 skip) 시 X11(100) / X13(100) > X12(90) → X12 사이트가 X11 또는 X13 adapter 로 잘못 매칭 위험.
+- **영향**:
+  - 현재: 사고 0 (Supermicro lab 부재 + 사이트 model 정확 매칭 시 영향 없음)
+  - 잠재: facts empty + model 추출 실패 시 priority tie-break 으로 잘못된 generation 선택
+- **resolved (cycle adapter-selection-review)**:
+  - `adapters/redfish/supermicro_x12.yml` L27 `priority: 90 → 100` (Additive only — model_patterns 매칭 정확 시 결과 동일)
+  - origin 주석 갱신 — Last sync 2026-05-11 + DRIFT-015 사유 + Phase 2 (firmware_patterns) 보류 결정 명시
+  - `tests/unit/test_supermicro_adapter_selection.py` 신규 (12 시나리오 회귀)
+  - `test_drift_015_x12_priority_consistency` — 회귀 차단 (X11=X12=X13=100 / X14=110 / generic=10)
+- **Phase 2 (firmware_patterns 추가) 보류 결정**:
+  - 근거 1: `module_utils/adapter_common.py` L258-267 점검 결과 — firmware empty 시 disqualify 안 됨 (안전), 단 firmware 가 web sources 가설과 미스매치 시 -9999 (graceful fallback `supermicro_bmc` priority 10)
+  - 근거 2: AST2500 (X11) vs AST2600 (X12+) firmware 형식 거의 동일 (`X.YY.ZZ` 또는 `0X.YY.ZZ`) — web sources 만으로 generation 분리 정확도 약함
+  - 근거 3: lab 부재 (rule 96 R1-A) — 사이트 실 firmware 캡처 후 패턴 보정 의무
+  - → NEXT_ACTIONS 등재 (capture-site-fixture skill + Supermicro lab 도입 cycle)
+- **후속 (NEXT_ACTIONS, lab 도입 후)**:
+  - 사이트 BMC fixture 캡처 → firmware_patterns 실측 검증 (rule 96 R1-C 항목 1)
+  - baseline JSON 추가 (4 generation × 1 vendor) — rule 13 R4
+  - DRIFT-015 close trigger: 사이트 검증 후 firmware_patterns 일치 confirm
+- **관련**: rule 12 R2, rule 50 R3, rule 95 R1 #4 (adapter score 동률), rule 96 R1-A / R1-C, `module_utils/adapter_common.py:272-287`, `lookup_plugins/adapter_loader.py:232-237`

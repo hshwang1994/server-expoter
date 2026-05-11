@@ -2,6 +2,59 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-11 (cycle adapter-selection-review — Supermicro AST2500/AST2600 firmware 형식 web sources)
+
+> 사용자 명시 검증 요청 ("어떤 adapter 를 쓸지 결정하는 단계 문제 발생 이력 — 지금 잘 돼있나") 후속.
+> Phase 2 (firmware_patterns 추가) 는 **보류** — lab 부재 + web sources 가설 부정확 위험. NEXT_ACTIONS 등재.
+
+### Supermicro X11~X14 BMC firmware 형식 — web sources 7건
+
+| # | source URL | 영역 | 확인일 |
+|---|---|---|---|
+| 1 | https://www.supermicro.com/manuals/other/RedfishUserGuide.pdf | Supermicro Redfish User Guide 6.1 — X12+ Redfish 표준 명시 | 2026-05-11 |
+| 2 | https://www.supermicro.com/manuals/superserver/IPMI/IPMI_Users_Guide_X11.pdf | X11 IPMI Users Guide — AST2500 BMC firmware 패턴 | 2026-05-11 |
+| 3 | https://www.supermicro.com/manuals/other/BMC_Users_Guide_X12_H12.pdf | BMC Users Guide X12/H12 1.0a — AST2600 BMC | 2026-05-11 |
+| 4 | https://www.supermicro.com/manuals/other/BMC_IPMI_X13_H13_B13.pdf | BMC IPMI X13/H13/B13 Manual 1.0b — AST2600 동일 | 2026-05-11 |
+| 5 | https://www.supermicro.com/manuals/other/BMC_IPMI_X14_H14.pdf | BMC IPMI X14/H14 Manual 1.1 — AST2600 + Redfish 1.21.0 / schema bundle 2024.3 | 2026-05-11 |
+| 6 | https://ftp.abacus.cz/support/FW/MB/SUPERMICRO/IPMI/X12_AST2600_ROT-5101_beta/ReleaseNote-X12_64M_ROT_AST26_0103.txt | X12 AST2600 ROT release note — firmware "01.03.03" 사례 명시 | 2026-05-11 |
+| 7 | https://www.supermicro.com/manuals/other/redfish-ref-guide-html/Content/general-content/firmware-inventory-update-service.htm | Firmware Inventory and Update Service 명세 | 2026-05-11 |
+
+### 외부 계약 추정 (lab 부재 — 사이트 실측 시 정정 의무)
+
+| 영역 | 추정 (web sources 기반) | 근거 |
+|---|---|---|
+| X11/H11 BMC chip | AST2500 | source 2 |
+| X12+ (X12/H12/X13/H13/B13/X14/H14) BMC chip | AST2600 | source 3, 4, 5 |
+| X11 firmware 형식 | 3-part `X.YY.ZZ` (예: `1.73.10`) 또는 2-part `X.YY` 구펌웨어 | source 2 |
+| X12+ firmware 형식 | 3-part `0?1.YY.ZZ` (예: `01.03.03`) | source 6 (release note 직접 명시) |
+| Manufacturer string | "Supermicro" / "Super Micro Computer, Inc." | 기존 adapter (X11~X14) 동일 |
+| Manager URI | `/redfish/v1/Managers/1` | source 1, 5 |
+| OEM namespace | `Oem.Supermicro` | source 1 |
+
+### Phase 2 (firmware_patterns 추가) 보류 결정 근거 (cycle 2026-05-11)
+
+본 cycle 검증 결과 firmware_patterns 추가는 다음 위험으로 보류:
+
+1. **AST2500 vs AST2600 firmware 형식 거의 동일** — `X.YY.ZZ` vs `0X.YY.ZZ` 차이만으로는 generation 분리 정확도 약함 (X11 firmware "1.73.10" 가 X12 패턴 `^0?1\.[0-9]+\.[0-9]+` 에도 매칭)
+2. **사이트 실 firmware 와 web sources 가설 차이 위험** — 미스매치 시 `match_score=-9999` (`module_utils/adapter_common.py:267`) → graceful fallback `supermicro_bmc` (priority 10) 로 떨어짐 → 잘못된 generation adapter 선택보다는 안전하지만, 잘 매칭하면 +25 보너스 + specificity +20 점수 향상 효과 있음
+3. **lab 부재 영역 — rule 96 R1-A** — 실측 fixture 없이 정규식 가설은 위험 부담 큼
+
+→ NEXT_ACTIONS 등재. 사이트 도입 후 `capture-site-fixture` skill 로 실 firmware 캡처 + 패턴 보정 별도 cycle.
+
+### 외부 계약 변동 trigger
+
+- Supermicro 신 generation 출시 (X15+ — H15+) — 본 카탈로그 갱신
+- AST2700 (차세대 BMC chip) 도입 — firmware 형식 변경 가능성
+- 사이트 실측 응답이 추정값과 다를 경우 (rule 25 R7-A-1 — 사용자 실측 > spec)
+
+### 적용 위치
+
+- `adapters/redfish/supermicro_x{11,12,13,14}.yml` — origin 주석 갱신 (X12 만 본 cycle 갱신, 나머지 3개는 Phase 2 진입 시)
+- `adapters/redfish/supermicro_bmc.yml` — generic fallback (priority 10) 영향 0
+- `tests/unit/test_supermicro_adapter_selection.py` (신규) — 회귀 차단
+
+---
+
 ## 일자: 2026-05-11 (cycle hpe-csus-add — HPE Compute Scale-up Server 3200 web sources 등재)
 
 > 사용자 명시 (2026-05-11): "hpe csus 장비도 개더링이 필요하다."

@@ -8,6 +8,76 @@
 
 > 최종 갱신: 2026-05-11
 
+## 2026-05-11 — Adapter 선택 단계 검증 + Supermicro X12 priority 일관성 fix (DRIFT-015)
+
+### 사용자 명시 (2026-05-11)
+
+- "어떤 adapter 를 쓸지 결정하는 단계에서 문제 발생 이력이 있다 — 지금 잘 돼있는지 검토해라. 필요하다면 web을 모두 검색해도됨."
+- AskUserQuestion 응답: 잠재 위험 2건 fix 포함 (Recommended) + web 검색 승인
+
+### 컨텍스트
+
+T-01 (commit `8c0fe0f6`, HPE DL380 Gen11 → hpe_ilo7 오선택) + DRIFT-014 (commit `1387b505`, hpe_ilo7 firmware 2-part 매치 실패) 이 RESOLVED 되었지만 사용자 검증 요청에 따라 **rule 95 R1 자동 스캔** 추가 수행. Supermicro X11~X14 priority 매트릭스에서 잠재 위험 2건 발견:
+
+1. **X12 priority 90 — 역전** (X11=100, X12=90, X13=100, X14=110)
+2. **X11~X14 firmware_patterns 부재** — model_patterns 만으로 매칭
+
+3개 Explore agent 병렬 조사 + Supermicro 공식 docs / DMTF web 검색 후 결정.
+
+### 결정
+
+#### Phase 1 (적용 — 본 cycle)
+
+- **`adapters/redfish/supermicro_x12.yml` L27 `priority: 90 → 100`** (X11/X13 와 일관성). model_patterns 정확 매칭 시 결과 동일 (Additive). lab 부재라 사이트 영향 0.
+- origin 주석 갱신 — Last sync 2026-05-11 + DRIFT-015 사유 + Phase 2 보류 결정 명시.
+
+#### Phase 2 (보류 — NEXT_ACTIONS 등재)
+
+Supermicro X11~X14 firmware_patterns 추가는 **보류**. 근거:
+
+1. **firmware empty 시 disqualify 안 됨** (`module_utils/adapter_common.py:258-267` 점검 결과 — 안전)
+2. **AST2500 (X11) vs AST2600 (X12+) firmware 형식 거의 동일** — `X.YY.ZZ` vs `0X.YY.ZZ` 만 차이. web sources 만으로 generation 분리 정확도 약함 (X11 firmware "1.73.10" 가 X12 패턴 `^0?1\.[0-9]+\.[0-9]+` 에도 매칭)
+3. **lab 부재 (rule 96 R1-A)** — 실 firmware 형식 확정 전 정규식 가설은 미스매치 시 `match_score=-9999` (graceful fallback 발생, 사고 0 이지만 기능 손실) 위험
+
+→ Phase 2 는 사이트 BMC IP 확보 후 `capture-site-fixture` skill 로 실측 fixture 캡처 + 별도 cycle.
+
+### 대안 거절 사유
+
+| 대안 | 거절 사유 |
+|---|---|
+| Phase 2 도 본 cycle 에 포함 (web sources 가설 적용) | lab 부재 + AST2500/AST2600 형식 거의 동일 → 사이트 미스매치 시 graceful fallback 발생. 잘못된 generation adapter 선택보다는 안전하지만 정확도 부족. 사용자 의도 ("잘 돼있는지 검토") 의 회귀 위험 회피 우선 |
+| X12 priority 90 유지 (의도된 값일 수 있음) | 주석 부재 + X11/X13 와 일관성 깨짐. lab 도입 후 재검토 시 priority 90 의 의도 추적 불가. 일관성 우선 |
+| X12 priority 110 (X14 와 동급) | X12 가 X14 보다 우선될 이유 없음. X14 가 최신 generation 이라 110 유지 |
+
+### 적용 변경
+
+| 영역 | 변경 |
+|---|---|
+| `adapters/redfish/supermicro_x12.yml` | priority `90 → 100` + origin 주석 갱신 |
+| `tests/unit/test_supermicro_adapter_selection.py` | 신규 (12 시나리오 + DRIFT-015 priority 회귀 차단) |
+| `docs/ai/catalogs/CONVENTION_DRIFT.md` | DRIFT-015 등재 |
+| `docs/ai/catalogs/EXTERNAL_CONTRACTS.md` | Supermicro AST2500/AST2600 sources 7건 + Phase 2 보류 근거 |
+| `docs/ai/CURRENT_STATE.md` | 본 cycle 결과 + Additive 검증 + 영향 vendor 매트릭스 |
+| `docs/ai/NEXT_ACTIONS.md` | Supermicro lab 도입 cycle 4 후속 (rule 96 R1-C) + Phase 2 가설 보존 |
+
+### 검증
+
+- pytest 신규 12 시나리오 + DRIFT-015 priority test PASS
+- 기존 626 회귀 영향 0 (test_adapter_selection_t01 + test_probe_facts_extraction PASS)
+- ansible syntax-check redfish-gather/site.yml PASS
+- verify_harness_consistency + verify_vendor_boundary PASS
+
+### 관련
+
+- rule 12 R2 (adapter 점수 일관성), rule 50 R3 (priority 역전 금지) + R2 단계 10
+- rule 95 R1 #4 (adapter score 동률) + #11 (외부 계약 drift)
+- rule 96 R1-A (lab 부재 web sources) + R1-C (NEXT_ACTIONS 자동 등재)
+- `module_utils/adapter_common.py:258-287` (점수 공식)
+- `lookup_plugins/adapter_loader.py:232-237` (tie-break stable sort)
+- DRIFT-014 (직전 cycle hpe-ilo7-gen12-match-fix), T-01 (commit `8c0fe0f6`)
+
+---
+
 ## 2026-05-11 — HPE Compute Scale-up Server 3200 (CSUS 3200) adapter 추가 (lab 부재)
 
 ### 사용자 명시 (2026-05-11)

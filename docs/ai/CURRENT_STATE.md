@@ -1,6 +1,59 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (cycle 2026-05-11-jenkins-test-followup — T-01 / T-02 [DONE])
+## 일자: 2026-05-11 (cycle adapter-selection-review — adapter 선택 단계 검증 + DRIFT-015 fix [DONE])
+
+### 컨텍스트
+- 사용자 검증 요청: "어떤 adapter 를 쓸지 결정하는 단계에서 문제 발생 이력이 있다 — 지금 잘 돼있는지 검토해라."
+- 3개 Explore agent 병렬 조사 + Supermicro 공식 docs / DMTF web 검색
+
+### 검증 결과
+
+**현재 adapter 선택 시스템: PASS** — 과거 사고 모두 RESOLVED:
+- T-01 (commit `8c0fe0f6`) — HPE DL380 Gen11 → hpe_ilo7 오선택 (probe_facts 추출 추가로 해소)
+- DRIFT-014 (commit `1387b505`) — hpe_ilo7 firmware 2-part 매치 실패 (firmware_patterns 확장으로 해소)
+- Jenkins #140/#141 — 5-host (HPE+Lenovo+Dell×2+Cisco) 회귀 SUCCESS
+
+### 추가 발견 (rule 95 R1 자동 스캔)
+
+| # | 발견 | 처리 |
+|---|---|---|
+| 1 | Supermicro X12 priority 역전 (X11=100, X12=**90**, X13=100, X14=110) — rule 12 R2 / rule 50 R3 위반 후보 | **본 cycle fix** (DRIFT-015) |
+| 2 | Supermicro X11~X14 firmware_patterns 부재 — model_patterns 만 사용 | **Phase 2 보류** — lab 부재 + web sources 가설 부정확 위험. NEXT_ACTIONS 등재 |
+
+### 본 cycle 결과 요약
+
+| 영역 | 변경 |
+|---|---|
+| `adapters/redfish/supermicro_x12.yml` | priority `90 → 100` (X11/X13 일관성) + origin 주석 갱신 (Last sync 2026-05-11 + DRIFT-015 사유 + Phase 2 보류 결정) |
+| `tests/unit/test_supermicro_adapter_selection.py` | 신규 12 시나리오 + DRIFT-015 priority 일관성 회귀 차단 |
+| `docs/ai/catalogs/CONVENTION_DRIFT.md` | DRIFT-015 등재 (Phase 2 보류 결정 + lab 도입 후 후속 명시) |
+| `docs/ai/catalogs/EXTERNAL_CONTRACTS.md` | Supermicro AST2500/AST2600 firmware sources 7건 + Phase 2 보류 근거 |
+| `docs/ai/NEXT_ACTIONS.md` | Supermicro lab 도입 cycle 4 후속 (rule 96 R1-C) |
+| `docs/19_decision-log.md` | X12 priority 일관성 + Phase 2 보류 의사결정 기록 |
+
+### Additive only 검증 (rule 92 R2 / rule 96 R1-B)
+
+| 검증 항목 | 결과 |
+|---|---|
+| envelope 13 필드 / shape 변경 | 0 — adapter priority 만 변경 |
+| 기존 path 유지 | OK — model_patterns 정확 매칭 시 결과 동일 (priority 90 → 100 로 X12 점수 +10000) |
+| sections 10 / field_dictionary 65 의미 변경 | 0 |
+| 호출자 시스템 파싱 변경 | 0 |
+
+### 영향 vendor 매트릭스
+
+| Vendor | priority 변경 영향 | 회귀 |
+|---|---|---|
+| Supermicro X11 | 100 (변경 없음) | 신규 test 매칭 PASS |
+| Supermicro X12 | 90 → **100** | 신규 test 매칭 PASS (DRIFT-015 fix 회귀 차단) |
+| Supermicro X13/X14 | 100/110 (변경 없음) | 신규 test 매칭 PASS |
+| Supermicro generic (bmc) | 10 (변경 없음) | Unknown model fallback PASS |
+| Dell / HPE / Lenovo / Cisco | 영향 0 | 기존 test_adapter_selection_t01 + test_probe_facts_extraction PASS |
+| Huawei / Inspur / Fujitsu / Quanta | 영향 0 | vendor + model_patterns 분리 보장 |
+
+---
+
+## 이전 일자: 2026-05-11 (cycle 2026-05-11-jenkins-test-followup — T-01 / T-02 [DONE])
 
 ### 컨텍스트
 - 사용자 명시: "Jenkins 들어가서 개더링 테스트해봐 잘되는지" 후속 — build #133~#139 에서 발견된 issue 후속 작업

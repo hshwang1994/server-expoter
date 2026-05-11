@@ -1,6 +1,49 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-05-11 (cycle hpe-csus-add — HPE CSUS 3200 adapter 추가 [DONE] + 4 후속 등재)
+## 일자: 2026-05-11 (cycle adapter-selection-review — Supermicro firmware_patterns 검증 후속 [PENDING])
+
+### 사용자 명시 (2026-05-11)
+- "어떤 adapter 를 쓸지 결정하는 단계에서 문제 발생 이력이 있다 — 지금 잘 돼있는지 검토해라. 필요하다면 web을 모두 검색해도됨."
+- AskUserQuestion 응답: 잠재 위험 2건 (Supermicro X12 priority 역전 + X11~X14 firmware_patterns 부재) **이번 plan 에 fix 포함** + web 검색 승인
+
+### 본 cycle 결과 (Phase 1 완료, Phase 2 보류)
+
+- **Phase 1 [DONE]**: `adapters/redfish/supermicro_x12.yml` priority `90 → 100` (DRIFT-015 fix)
+- **Phase 2 [PENDING]**: Supermicro X11~X14 firmware_patterns 추가 — lab 부재 + web sources 가설 부정확 위험으로 보류
+
+### lab 도입 후 별도 cycle 권장 — Supermicro X11~X14 (rule 96 R1-C 4 항목)
+
+| # | 항목 | trigger | 책임 |
+|---|---|---|---|
+| 1 | 사이트 fixture 캡처 (4 generation: X11/X12/X13/X14) | Supermicro BMC IP 확보 | `capture-site-fixture` skill (`tests/fixtures/supermicro_x{11,12,13,14}/`) |
+| 2 | baseline JSON 추가 (`schema/baseline_v1/supermicro_x{11,12,13,14}_baseline.json`) | 실장비 검증 후 | rule 13 R4 + `update-vendor-baseline` skill |
+| 3 | firmware_patterns 추가 + verify (Phase 2) | fixture + baseline 확보 후 | `web-evidence-collector` agent + 사이트 실측 firmware 형식 확정 → 정규식 보정 |
+| 4 | DRIFT-015 close 조건 confirm | Phase 2 적용 + 회귀 PASS | `verify-adapter-boundary` skill |
+
+### Phase 2 진입 trigger (자율 결정 가능)
+
+- Supermicro 사이트 BMC IP 1대 이상 확보
+- 또는 Supermicro lab 도입 (사용자 명시 우선순위 결정 시)
+
+### Phase 2 상세 — 최초 가설 (참조용, 사이트 실측 후 정정)
+
+```yaml
+# adapters/redfish/supermicro_x11.yml — AST2500 BMC firmware 가설
+firmware_patterns:
+  - "^1\\.[0-9]+(\\.[0-9]+)?$"   # 1.73 또는 1.73.10
+  - "^2\\.[0-9]+(\\.[0-9]+)?$"   # 2.x 일부 변형
+
+# adapters/redfish/supermicro_x12.yml — AST2600 BMC firmware 가설 (X13/X14 동일)
+firmware_patterns:
+  - "^0?1\\.[0-9]+\\.[0-9]+$"     # 01.03.03 또는 1.3.3
+  - "^0?2\\.[0-9]+\\.[0-9]+$"     # 향후 BMC 2.x
+```
+
+> 주의: 위 가설은 web sources 기반 (rule 96 R1-A). 사이트 실측 firmware 와 미스매치 시 `match_score=-9999` (`module_utils/adapter_common.py:267`) → graceful fallback `supermicro_bmc` (priority 10) 로 떨어짐. 사이트 검증 후 정확한 패턴 적용 필수.
+
+---
+
+## 이전 일자: 2026-05-11 (cycle hpe-csus-add — HPE CSUS 3200 adapter 추가 [DONE] + 4 후속 등재)
 
 ### 사용자 명시 (2026-05-11)
 - "hpe csus 장비도 개더링이 필요하다."
