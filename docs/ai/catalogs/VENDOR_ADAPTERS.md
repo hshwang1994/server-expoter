@@ -71,7 +71,7 @@
 | `supermicro_x14.yml` | redfish_supermicro_x14 | 110 | X14 + H14 (Granite Rapids/Turin + Redfish 1.21.0) | 부재 |
 | `supermicro_x13.yml` | redfish_supermicro_x13 | 100 | X13 + H13 + B13 (Eagle/Sapphire Rapids/Genoa) | 부재 |
 | `supermicro_x11.yml` | redfish_supermicro_x11 | 100 | X11 + H11 (AST2500) | 부재 |
-| `supermicro_x12.yml` | redfish_supermicro_x12 | 90 | X12 + H12 (Whitley/Tatlow + AST2600) | 부재 |
+| `supermicro_x12.yml` | redfish_supermicro_x12 | 100 | X12 + H12 (Whitley/Tatlow + AST2600) — DRIFT-015 (cycle 2026-05-11 adapter-selection-review): 90→100 X11/X13 일관성 | 부재 |
 | `supermicro_ars.yml` | redfish_supermicro_ars | 80 | **ARS (ARM) — cycle 2026-05-07 M-B3 신설** | 부재 |
 | `supermicro_x10.yml` | redfish_supermicro_x10 | 75 | **X10 (AST2400) — cycle 2026-05-07 M-B1 신설** | 부재 |
 | `supermicro_x9.yml` | redfish_supermicro_x9 | 50 | X9 (legacy) | 부재 |
