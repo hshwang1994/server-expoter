@@ -9,7 +9,12 @@
 - schema/sections.yml — sections 10
 - schema/field_dictionary.yml — Must/Nice/Skip
 
-Advisory (exit 0): 위반 의심 시 경고. 호환성 cycle 외 영역 변경은 별도 cycle 권장.
+Blocking (exit 1) — cycle 2026-05-11 격상.
+이전 cycle 2026-05-06-post 도입 시 advisory (exit 0). 5 cycle 운영 false-positive 0
+확인 후 cycle 2026-05-11 advisory hook 격상 (3/4) 단계적 격상에서 blocking 격상.
+
+envelope/schema 정본 삭제 line 감지 시 commit 차단. 호환성 cycle 외 영역 변경은
+별도 cycle 권장 (escape hatch ADDITIVE_SKIP_NEW_CYCLE=1).
 
 비활성화 환경변수:
     ADDITIVE_SKIP=1            — 본 hook skip
@@ -21,7 +26,8 @@ Usage:
     python scripts/ai/hooks/pre_commit_additive_only_check.py --self-test
 
 Exit codes:
-    0 = 통과 (advisory)
+    0 = 통과
+    1 = 위반 (BLOCKING — cycle 2026-05-11 격상)
 """
 
 from __future__ import annotations
@@ -170,7 +176,7 @@ def main() -> int:
         return 0
 
     print(
-        "[additive only] rule 92 R2 / rule 96 R1-B 위반 후보 — envelope/schema 정본 삭제 line 의심 (advisory):",
+        "[additive only] rule 92 R2 / rule 96 R1-B 위반 — envelope/schema 정본 삭제 line 감지 (BLOCKING — cycle 2026-05-11 격상):",
         file=sys.stderr,
     )
     for f, dels, adds in violations:
@@ -186,7 +192,7 @@ def main() -> int:
     print("       ADDITIVE_SKIP_NEW_CYCLE=1 git commit ...", file=sys.stderr)
     print("  → 강제 skip: ADDITIVE_SKIP=1 git commit ...", file=sys.stderr)
 
-    return 0
+    return 1
 
 
 if __name__ == "__main__":

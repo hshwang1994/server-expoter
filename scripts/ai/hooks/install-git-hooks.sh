@@ -7,7 +7,7 @@
 #               + pre_commit_docs20_sync_check (rule 13 R7 — cycle 2026-05-07 advisory / cycle 2026-05-11 BLOCKING 격상)
 #               + pre_commit_status_logic_check (rule 13 R8 — cycle 2026-05-06-post advisory / cycle 2026-05-11 BLOCKING 격상)
 #               + pre_commit_ticket_consistency (cold-start 6 절)
-#               + pre_commit_additive_only_check (rule 92 R2 / 96 R1-B)
+#               + pre_commit_additive_only_check (rule 92 R2 / 96 R1-B — cycle 2026-05-06-post advisory / cycle 2026-05-11 BLOCKING 격상)
 #               + pre_commit_jinja_namespace_check (rule 22 R7 — cycle 2026-05-07 advisory / cycle 2026-05-11 BLOCKING 격상)
 #               + pre_commit_fragment_skeleton_sync (rule 22 R7 — cycle 2026-05-07)
 # - commit-msg: commit_msg_check (rule 90)
@@ -98,7 +98,7 @@ echo "  DOCS20_SYNC_SKIP_COSMETIC=1   — cosmetic only commit (rule 13 R7 Allow
 echo "  STATUS_LOGIC_SKIP=1           — pre_commit_status_logic_check skip (rule 13 R8, BLOCKING cycle 2026-05-11)"
 echo "  STATUS_LOGIC_SKIP_COSMETIC=1  — cosmetic only commit (rule 13 R8 Allowed)"
 echo "  TICKET_CONSISTENCY_SKIP=1     — pre_commit_ticket_consistency skip (cold-start 6 절)"
-echo "  ADDITIVE_SKIP=1               — pre_commit_additive_only_check skip (rule 92 R2 / 96 R1-B)"
+echo "  ADDITIVE_SKIP=1               — pre_commit_additive_only_check skip (rule 92 R2 / 96 R1-B, BLOCKING cycle 2026-05-11)"
 echo "  ADDITIVE_SKIP_NEW_CYCLE=1     — 새 cycle (호환성 외) 명시 skip"
 echo "  COMPAT_MATRIX_CHECK_SKIP=1    — post_commit_compatibility_matrix_check skip (rule 28 #12)"
 echo "  POST_MERGE_GAP_SKIP=1         — post_merge_gap_check skip"
