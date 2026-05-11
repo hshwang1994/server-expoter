@@ -62,6 +62,7 @@ docs/ai/incoming-review/*-*.md
 # cycle-018 (2026-05-01) 추가
 .jenkins_*.log
 .jenkins_builds.json
+.console-*.txt
 _console_*.log
 _jenkins.cookie
 _buildnum.txt
