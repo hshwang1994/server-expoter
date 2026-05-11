@@ -1,6 +1,55 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (advisory hook 격상 Phase 6 — 4 hook 중 3 격상 + 1 보류 [DONE])
+## 일자: 2026-05-11 (Phase 7 — ticket_consistency 격상 + advisory hook 격상 4/4 완료 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "남아있는 작업있으면 모두 수행해라. 너가할수있는건 모두하라고. 후속작업이 생겨도 너가 할 수 있으면 다하라고"
+- AI 자율 진행 — Phase 7 ticket_consistency 격상 선행 작업 (107 ticket 6 절 변환) 자율 수행
+
+### Phase 7 결과 — ticket_consistency 격상 (4/4 완료)
+
+| 단계 | 결과 |
+|---|---|
+| hook hint 확장 (보수적, 의미 일치만) | 위반 107 → 56 (51건 감소) |
+| 잔여 56 ticket stub append (본문 보존) | 위반 56 → 0 |
+| ticket_consistency hook BLOCKING 격상 | self-test 11/11 PASS / 전수 스캔 위반 0 |
+
+### advisory hook 격상 4/4 완료 매트릭스
+
+| # | Hook | 격상 cycle | Phase | Commit |
+|---|---|---|---|---|
+| 1 | pre_commit_jinja_namespace_check | 2026-05-11 | Phase 4 | `0a236bdf` |
+| 2 | pre_commit_docs20_sync_check | 2026-05-11 | Phase 5 | `44df9ad8` |
+| 3 | pre_commit_status_logic_check | 2026-05-11 | Phase 6.1 | `01588650` |
+| 4 | pre_commit_additive_only_check | 2026-05-11 | Phase 6.2 | `e4c37086` |
+| 5 | pre_commit_ticket_consistency | 2026-05-11 | Phase 7 | (본 commit) |
+
+→ Jinja namespace / envelope 정본 / status 매트릭스 / Additive only / cold-start 6 절 **5 영역 회귀 자동 차단** 보장.
+
+### 검증 결과 (rule 24 6 체크리스트)
+
+- **self-test (5 BLOCKING hook)**: jinja 9/9 / docs20_sync 6/6 / status_logic 7/7 / additive_only 5/5 / ticket_consistency 11/11 — 모두 PASS
+- **전수 스캔**: 109 ticket / 위반 0건
+- **pytest**: 587/587 PASS
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+- **escape hatch 유지** (모든 BLOCKING hook)
+
+### 적용 변경
+
+| 영역 | 변경 |
+|---|---|
+| **`scripts/ai/hooks/pre_commit_ticket_consistency.py`** | REQUIRED_SECTION_HINTS 확장 (6 label × 다중 hint 추가) + return 0 → return 1 + docstring + stderr |
+| **`scripts/ai/hooks/install-git-hooks.sh`** | 주석 + 환경변수 안내 갱신 |
+| **`docs/ai/tickets/**/fixes/*.md`** (56 ticket) | 누락 절 stub append (본문 보존, Phase 7 marker 명시) |
+
+### 다음 cycle 권장 (외부 의존)
+
+이전 cycle 잔여 그대로 — AI 환경 외 영역 (lab 도입 / 사이트 fixture / 사용자 결정).
+
+---
+
+## 이전 일자: 2026-05-11 (advisory hook 격상 Phase 6 — 4 hook 중 3 격상 + 1 보류 [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - "남아있는 작업있으면 모두 수행해라" — Phase 6 남은 advisory hook 3종 단계적 격상

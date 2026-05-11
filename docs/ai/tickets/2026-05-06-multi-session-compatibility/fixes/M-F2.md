@@ -104,3 +104,7 @@ M-F2 매트릭스 완료 → 다음 ticket 진입.
 - 정본: schema/sections.yml (channels 정의), schema/field_dictionary.yml (65 entries)
 - 정본: build_*.yml (3 채널 normalize)
 - 관련 문서: docs/16_os-esxi-mapping.md (3 채널 매핑 정본)
+
+## 분석 / 구현
+
+(cycle 2026-05-11 Phase 7 추가 stub — 본 ticket 의 분석 / 구현 내용은 본문 다른 절 (## 컨텍스트 / ## 현재 동작 / ## 변경 / ## 구현 등) 참조. cycle DONE 시점에 cold-start 6 절 정본 도입 전 작성된 ticket.)

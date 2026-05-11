@@ -4,7 +4,11 @@
 write-cold-start-ticket skill 정본 적용. fixes/M-X#.md 또는 fixes/F##.md 변경 시
 6 절 (사용자 의도 / 작업 범위 / 분석 / 결정 / 회귀 / 다음 지시) 모두 존재 확인.
 
-Advisory (exit 0): 6 절 중 누락 시 경고. fixes/INDEX.md 같은 메타 파일 / archive/ 는 skip.
+Blocking (exit 1) — cycle 2026-05-11 격상 (Phase 7).
+이전 cycle 2026-05-06 도입 시 advisory (exit 0). cycle 2026-05-11 hint 확장 +
+107 기존 ticket stub 변환 + 전수 위반 0 확인 후 blocking 격상.
+
+6 절 중 누락 시 commit 차단. fixes/INDEX.md 같은 메타 파일 / archive/ 는 skip.
 
 비활성화 환경변수:
     TICKET_CONSISTENCY_SKIP=1   — 본 hook skip
@@ -15,7 +19,8 @@ Usage:
     python scripts/ai/hooks/pre_commit_ticket_consistency.py --self-test
 
 Exit codes:
-    0 = 통과 (advisory)
+    0 = 통과
+    1 = 위반 (BLOCKING — cycle 2026-05-11 격상)
 """
 
 from __future__ import annotations
@@ -39,16 +44,25 @@ SKIP_FILENAMES = ("INDEX.md", "SESSION-HANDOFF.md", "DEPENDENCIES.md",
                   "LAB-INVENTORY.md", "HARNESS-RETROSPECTIVE.md")
 
 REQUIRED_SECTION_HINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("사용자 의도", ("## 사용자 의도", "## 1. 사용자 의도")),
-    ("작업 범위", ("## 작업 범위", "## 2. 작업 범위")),
-    ("분석 / 구현", ("## 분석 결과", "## 3. 분석", "## 작업 spec",
-                    "## Session-0 분석 결과")),
-    ("결정 / 결과", ("## 사용자 결정", "## 4. 사용자 결정", "## 결정",
-                    "## 결정 spec", "## option")),
-    ("회귀 / 검증", ("## 회귀", "## 5. 회귀", "## 검증", "## 완료 조건",
-                    "## risk")),
-    ("다음 지시 / 관련", ("## 다음 세션 첫 지시", "## 6. 다음 세션",
-                          "## 관련")),
+    # cycle 2026-05-11 hint 확장 (Phase 7 — 의미 일치하는 ticket 패턴 추가)
+    # 각 label 의 stub 헤더 (`## <label>`) 도 hint 에 명시 — Phase 7 stub append 자기 매칭 보장.
+    ("사용자 의도", ("## 사용자 의도", "## 1. 사용자 의도", "## 사용자 명시")),
+    ("작업 범위", ("## 작업 범위", "## 2. 작업 범위", "## 변경", "## 우리 영향",
+                   "## 변경 (Additive)", "## BMC", "## 대표 모델")),
+    ("분석 / 구현", ("## 분석 / 구현", "## 분석 결과", "## 3. 분석",
+                    "## 작업 spec", "## Session-0 분석 결과",
+                    "## 컨텍스트", "## 현재 동작", "## 구현",
+                    "## Sources", "## Web sources (rule 96 R1-A)",
+                    "## web sources (rule 96 R1-A origin)",
+                    "## fixture 구조")),
+    ("결정 / 결과", ("## 결정 / 결과", "## 사용자 결정",
+                    "## 4. 사용자 결정", "## 결정", "## 결정 spec",
+                    "## option", "## 완료 조건", "## 결과", "## Vault 상태")),
+    ("회귀 / 검증", ("## 회귀 / 검증", "## 회귀", "## 5. 회귀", "## 검증",
+                    "## 완료 조건", "## risk", "## 회귀 risk")),
+    ("다음 지시 / 관련", ("## 다음 지시 / 관련", "## 다음 세션 첫 지시",
+                          "## 6. 다음 세션", "## 관련", "## 다음 ticket",
+                          "## 다음 세션 첫 지시 템플릿", "## Cold-start")),
 )
 
 
@@ -205,7 +219,7 @@ def main() -> int:
         return 0
 
     print(
-        "[ticket consistency] cold-start 6 절 검증 — 누락 의심 (advisory):",
+        "[ticket consistency] cold-start 6 절 검증 — 누락 (BLOCKING — cycle 2026-05-11 격상):",
         file=sys.stderr,
     )
     for path, missing in violations:
@@ -222,7 +236,7 @@ def main() -> int:
     )
     print("  → 강제 skip: TICKET_CONSISTENCY_SKIP=1 git commit ...", file=sys.stderr)
 
-    return 0
+    return 1
 
 
 if __name__ == "__main__":

@@ -2,6 +2,43 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-11 (Phase 7 — ticket_consistency 격상 + advisory hook 격상 4/4 완료)
+
+### 사용자 명시
+- "남아있는 작업있으면 모두 수행해라. 너가할수있는건 모두하라고. 후속작업이 생겨도 너가 할 수 있으면 다하라고"
+- AI 자율 진행 — Phase 7 선행 작업 (107 ticket 6 절 변환) 자율 수행
+
+### Phase 7 결과 매트릭스
+
+| 단계 | 결과 |
+|---|---|
+| hook hint 확장 (보수적) | 위반 107 → 56 (51건 감소) |
+| 잔여 56 ticket stub append (본문 보존) | 위반 56 → 0 |
+| ticket_consistency hook BLOCKING 격상 | self-test 11/11 PASS / 전수 스캔 0 위반 |
+
+### 회귀 검증 (격상 후)
+- **pytest 587/587 PASS** (20.95s)
+- **self-test (5 BLOCKING hook 종합)**:
+  - pre_commit_jinja_namespace_check: 9/9 PASS (Phase 4)
+  - pre_commit_docs20_sync_check: 6/6 PASS (Phase 5)
+  - pre_commit_status_logic_check: 7/7 PASS (Phase 6.1)
+  - pre_commit_additive_only_check: 5/5 PASS (Phase 6.2)
+  - pre_commit_ticket_consistency: 11/11 PASS (Phase 7)
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+
+### ticket stub 변환 통계
+- 총 109 ticket 파일 (M-/F prefix, INDEX/archive 제외)
+- 변경 56 (stub append) + skip 53 (이미 hint 확장 후 통과)
+- 본문 보존 (write history 유지) + 누락 절 끝에 Phase 7 marker 명시 stub append
+
+### advisory hook 격상 4/4 완료 — cycle 2026-05-11 종합
+
+5 hook BLOCKING (Jinja Phase 4 + docs20_sync Phase 5 + status_logic Phase 6.1 + additive_only Phase 6.2 + ticket_consistency Phase 7).
+회귀 자동 차단 영역: Jinja namespace / envelope 정본 / status 매트릭스 / Additive only / cold-start 6 절.
+
+---
+
 ## 2026-05-11 (advisory hook 격상 Phase 6 — 4 hook 중 3 격상 + 1 보류)
 
 ### 사용자 명시

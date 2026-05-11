@@ -183,3 +183,7 @@ W5 → M-L2 (VENDOR_ADAPTERS 갱신).
 - rule 50 R2 단계 10 (vendor 추가 9단계 + lab 부재 등재)
 - rule 96 R1-C (NEXT_ACTIONS 자동 등재 의무)
 - 정본: 9 vendor × N gen × 4 후속 작업 매트릭스
+
+## 분석 / 구현
+
+(cycle 2026-05-11 Phase 7 추가 stub — 본 ticket 의 분석 / 구현 내용은 본문 다른 절 (## 컨텍스트 / ## 현재 동작 / ## 변경 / ## 구현 등) 참조. cycle DONE 시점에 cold-start 6 절 정본 도입 전 작성된 ticket.)

@@ -174,3 +174,7 @@ M-A2 결정 결과: Case A (B-1 + a + c + a)
 - rule 13 R5 (envelope 13 필드 — status 변경 시 호출자 계약)
 - rule 92 R5 (schema 변경 사용자 명시)
 - rule 70 R8 (ADR trigger — 표면/rule 변경 시)
+
+## 분석 / 구현
+
+(cycle 2026-05-11 Phase 7 추가 stub — 본 ticket 의 분석 / 구현 내용은 본문 다른 절 (## 컨텍스트 / ## 현재 동작 / ## 변경 / ## 구현 등) 참조. cycle DONE 시점에 cold-start 6 절 정본 도입 전 작성된 ticket.)

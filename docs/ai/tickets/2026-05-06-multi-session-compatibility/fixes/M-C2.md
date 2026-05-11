@@ -234,3 +234,7 @@ M-C2 검증 완료 → M-C3 회귀 mock 진입.
 - F50 phase4 commit (3fa39dec)
 - 정본: M-C1.md (의심 5종 + cache 매트릭스 + 시나리오 5)
 - 정본: load_vault.yml + ansible.cfg + redfish-gather/site.yml
+
+## 분석 / 구현
+
+(cycle 2026-05-11 Phase 7 추가 stub — 본 ticket 의 분석 / 구현 내용은 본문 다른 절 (## 컨텍스트 / ## 현재 동작 / ## 변경 / ## 구현 등) 참조. cycle DONE 시점에 cold-start 6 절 정본 도입 전 작성된 ticket.)

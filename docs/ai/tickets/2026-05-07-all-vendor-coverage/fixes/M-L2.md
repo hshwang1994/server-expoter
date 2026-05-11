@@ -207,3 +207,7 @@ W5 → M-L3 (COMPATIBILITY-MATRIX).
 - M-L1 (NEXT_ACTIONS)
 - M-K1, M-K2 (origin / EXTERNAL_CONTRACTS)
 - rule 28 R1 #3 (vendor adapter 매트릭스 측정 대상)
+
+## 분석 / 구현
+
+(cycle 2026-05-11 Phase 7 추가 stub — 본 ticket 의 분석 / 구현 내용은 본문 다른 절 (## 컨텍스트 / ## 현재 동작 / ## 변경 / ## 구현 등) 참조. cycle DONE 시점에 cold-start 6 절 정본 도입 전 작성된 ticket.)

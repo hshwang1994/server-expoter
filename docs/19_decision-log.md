@@ -8,6 +8,72 @@
 
 > 최종 갱신: 2026-05-11
 
+## 2026-05-11 — Phase 7 ticket_consistency hook BLOCKING 격상 (4/4 완료)
+
+### 사용자 명시 (2026-05-11)
+- "남아있는 작업있으면 모두 수행해라. 너가할수있는건 모두하라고. 후속작업이 생겨도 너가 할 수 있으면 다하라고"
+- AI 자율 진행 — Phase 7 ticket_consistency 격상 선행 작업 (107 ticket 6 절 변환) 자율 수행
+
+### 결정
+
+advisory hook 격상 4/4 완료 보장 위해 Phase 7 선행 작업 자율 진행:
+
+1. **hook hint 확장 (보수적)** — `pre_commit_ticket_consistency.py` REQUIRED_SECTION_HINTS 에 의미 일치하는 ticket 패턴 추가:
+   - 사용자 의도: `## 사용자 명시` 추가
+   - 작업 범위: `## 변경` / `## 우리 영향` / `## 변경 (Additive)` / `## BMC` / `## 대표 모델` 추가
+   - 분석 / 구현: `## 컨텍스트` / `## 현재 동작` / `## 구현` / `## Sources` / `## Web sources` / `## fixture 구조` 추가
+   - 결정 / 결과: `## 완료 조건` / `## 결과` / `## Vault 상태` 추가
+   - 회귀 / 검증: `## 회귀 risk` 추가
+   - 다음 지시 / 관련: `## 다음 ticket` / `## 다음 세션 첫 지시 템플릿` / `## Cold-start` 추가
+   - 각 label 의 self stub 헤더 (`## <label>` 형식) 도 hint 추가 (stub append 자기 매칭 보장)
+
+2. **잔여 56 ticket stub 변환** — hint 확장 후에도 누락 절 있는 ticket 본문 끝에 placeholder stub append:
+   - cycle 2026-05-11 Phase 7 stub: "본 ticket 은 cycle DONE 시점에 cold-start 6 절 정본 도입 전 작성. 원본 의도 / 분석 / 결정 등은 본문 + commit log + cycle CURRENT_STATE entry 참조."
+   - 본문 보존 (write history 유지) + 누락 절만 끝에 stub 추가
+
+3. **격상**: `pre_commit_ticket_consistency.py` line 225 `return 0` → `return 1` + docstring + stderr 메시지 갱신
+4. **install-git-hooks.sh** 주석 + 환경변수 안내 "cold-start 6 절" → "BLOCKING cycle 2026-05-11"
+
+### 적용 변경
+
+| 영역 | 변경 |
+|---|---|
+| `scripts/ai/hooks/pre_commit_ticket_consistency.py` | REQUIRED_SECTION_HINTS 확장 (6 label × 다중 hint) + return 0 → return 1 + docstring + stderr |
+| `scripts/ai/hooks/install-git-hooks.sh` | 주석 + 환경변수 안내 |
+| `docs/ai/tickets/**/fixes/*.md` (56 ticket) | 누락 절 stub append (본문 보존) |
+
+### 검증
+
+- **self-test**: 11/11 PASS (hint 확장 후 재실행)
+- **전수 스캔**: 109 ticket / 위반 **0건** (Phase 7 stub 변환 후)
+- **pytest**: 587/587 PASS
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+- **escape hatch**: `TICKET_CONSISTENCY_SKIP=1` 유지
+
+### rule 70 R8 trigger 적용
+
+- trigger 1 (rule 본문 의미 변경): rule 26 R10 본문 변경 0 (6 절 자체는 변경 없음 — hook hint 확장만)
+- trigger 2 (표면 카운트 변경): 0건 (hook 개수 28 유지)
+- trigger 3 (보호 경로 정책 변경): 0건
+- → ADR 의무 아님. 본 decision-log entry 만 governance trace.
+
+### 효과 — advisory hook 격상 4/4 완료
+
+| Hook | 격상 cycle | Phase |
+|---|---|---|
+| pre_commit_jinja_namespace_check | 2026-05-11 | Phase 4 |
+| pre_commit_docs20_sync_check | 2026-05-11 | Phase 5 |
+| pre_commit_status_logic_check | 2026-05-11 | Phase 6.1 |
+| pre_commit_additive_only_check | 2026-05-11 | Phase 6.2 |
+| pre_commit_ticket_consistency | 2026-05-11 | Phase 7 |
+
+→ Jinja namespace / envelope 정본 / status 매트릭스 / Additive only / cold-start 6 절 **5 영역 회귀 자동 차단** 보장.
+
+→ 모든 advisory hook BLOCKING 격상 완료. 향후 도입되는 advisory hook 은 다음 cycle 격상 패턴 동일 적용.
+
+---
+
 ## 2026-05-11 — advisory hook 격상 Phase 6 일괄 (2/4 + 1/4 보류)
 
 ### 사용자 명시 (2026-05-11)

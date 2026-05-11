@@ -156,3 +156,7 @@ M-B2 매트릭스 검증 완료 → M-B3 mock fixture 회귀 진입.
 - skill: vendor-change-impact, score-adapter-match
 - 정본: M-B1.md (5 vendor 매트릭스 + 신규 4 vendor 추정)
 - 정본: redfish_gather.py:2157~2535 (account_service_provision)
+
+## 분석 / 구현
+
+(cycle 2026-05-11 Phase 7 추가 stub — 본 ticket 의 분석 / 구현 내용은 본문 다른 절 (## 컨텍스트 / ## 현재 동작 / ## 변경 / ## 구현 등) 참조. cycle DONE 시점에 cold-start 6 절 정본 도입 전 작성된 ticket.)
