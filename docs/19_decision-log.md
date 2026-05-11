@@ -87,6 +87,89 @@ CSUS3200 매칭 패턴이 부재하여 현재 `hpe_ilo.yml` (priority=10) generi
 
 ---
 
+## 2026-05-11 — HPE iLO 7 Gen12 2-part firmware version 매치 보강 (cycle hpe-ilo7-gen12-match-fix)
+
+### 컨텍스트
+
+직전 cycle `hpe-csus-add` (commit `a123b1cc`) mock 검증의 부수 발견 — mock S1
+시나리오에서 `facts = {vendor: HPE, model: "ProLiant DL380 Gen12", firmware: "1.10"}`
+입력 시 `hpe_ilo7.yml` (priority=120) 이 매치하지 못하고 `hpe_ilo4.yml`
+(priority=50) 이 선택되는 갭 재현 확인.
+
+원인 (`module_utils/adapter_common.py` L260-267):
+- `firmware_patterns` 매치 실패 + facts.firmware 비어있지 않으면 **-9999 disqualify**.
+- iLO 7 기존 regex `["iLO.*7", "^\\d+\\.\\d+\\.\\d+"]` 는 3-part version 만 가정.
+- 2-part "1.10" → 둘 다 매치 X → iLO 7 disqualify.
+- iLO 6 `^1\.[5-9]` (한자리 minor) / iLO 5 `^2\.[0-9]` / iLO 4 `^1\.[0-9]` 중
+  iLO 4 의 `^1\.[0-9]` 만 "1.1" prefix 매치 → iLO 4 유일 생존.
+
+위험: 사이트 iLO 7 Gen12 BMC 신규 도입 시 facts.firmware 추출 path
+(Manager.FirmwareVersion 만, System.FirmwareVersion 부재) 에 따라 2-part short version
+보고 가능 → iLO 4 (SmartStorage legacy / Oem.Hp namespace) adapter 선택 →
+Gen12 OEM 정보 (Oem.Hpe.SystemInformation 등) 수집 실패.
+
+### 결정
+
+1. **`hpe_ilo7.yml` L43 firmware_patterns 확장 (Additive only, rule 92 R2)**:
+   - 기존: `["iLO.*7", "^\\d+\\.\\d+\\.\\d+"]`
+   - 변경: `["iLO.*7", "^\\d+\\.\\d+\\.\\d+", "^1\\.1[0-9]"]`
+   - `^1\.1[0-9]` (1.10~1.19) 명시 — 충돌 검증:
+     - iLO 4 `^1\.[0-9]` (한자리 minor 1.0~1.9): 충돌 0
+     - iLO 6 `^1\.[5-9]` (한자리 minor 1.5~1.9): 충돌 0
+2. **origin 주석 보강** (rule 96 R1) — mock 갭 재현 기록 + 미래 1.20+ 2-part 사이트 실측 cycle 위임 명시
+3. **회귀 보존 5 시나리오 검증** (`scripts/ai/verify_hpe_ilo7_fix.py` 신규):
+   - S1 (1.10) → iLO 7 (fix 효과)
+   - S2 (1.16.00) → iLO 7 (3-part 회귀)
+   - S3 (1.73 Gen11) → iLO 6 (회귀)
+   - S4 (3.10.00 CSUS) → CSUS3200 (회귀)
+   - S5 (2.10.00 SDFlex) → SDFlex (회귀)
+
+### 대안 거절 사유
+
+| 대안 | 거절 사유 |
+|---|---|
+| `"^\\d+\\.\\d+(\\.\\d+)?"` (2-part + 3-part broad) | iLO 5 / iLO 6 / CSUS3200 / SDFlex 모두 1.x or 2-part 와 광범위 충돌 — priority 위계만으로 회피 가능하지만 model_patterns 누락 시 disqualify 안 됨. 명시적 `^1\.1[0-9]` 가 안전 |
+| `^1\.[1-9][0-9]` (1.10~1.99 두자리 minor) | iLO 4 spec 명시 firmware 한자리 minor 만 — 그러나 실제 iLO 4 펌웨어 1.50~1.99 변형 가능성 미확인. lab 부재 — 보수적 `^1\.1[0-9]` 채택 |
+| model_patterns 만으로 매치 (firmware_patterns 제거) | firmware regex 매치 실패 시 -9999 disqualify 메커니즘 회피 가능하지만 model_patterns 가 없는 iLO 4/5/6 와 동일 점수 매트릭스 — disqualify 메커니즘 자체가 안전판 |
+
+### 적용 변경
+
+| 영역 | 변경 |
+|---|---|
+| `adapters/redfish/hpe_ilo7.yml` L34-43 | firmware_patterns 확장 + 주석 보강 (3 line 추가, model_patterns 무변경) |
+| `scripts/ai/verify_hpe_ilo7_fix.py` | 신규 — mock 5 시나리오 점수 회귀 검증 |
+| `docs/19_decision-log.md` | 본 entry |
+| `docs/ai/catalogs/VENDOR_ADAPTERS.md` | iLO 7 행 firmware_patterns 갱신 |
+| `docs/ai/catalogs/CONVENTION_DRIFT.md` | drift entry (firmware regex 3-part 가정 ↔ 일부 BMC 2-part 보고) |
+| `docs/ai/CURRENT_STATE.md` | cycle entry |
+
+### 검증
+
+- 정적: `python -c "import yaml; yaml.safe_load(open('adapters/redfish/hpe_ilo7.yml'))"` PASS
+- 동적: `python scripts/ai/verify_hpe_ilo7_fix.py` — 5/5 PASS
+  - S1: iLO 7 120570 > iLO 4 50345 → iLO 7 선택 (fix 효과)
+  - S2: iLO 7 120570 → iLO 7 (3-part 회귀)
+  - S3: iLO 6 100345 → iLO 6 (Gen11 회귀)
+  - S4: CSUS 96570 → CSUS 3200 (회귀)
+  - S5: SDFlex 95570 → SDFlex 280 (회귀)
+- 회귀: `pytest tests/` 590/590 PASS
+- 하네스: `verify_harness_consistency.py` (28 rules / 51 skills / 60 agents / 10 policies) + `verify_vendor_boundary.py` PASS
+
+### rule 70 R8 trigger 적용
+
+- trigger 1 (rule 본문 의미 변경): 0
+- trigger 2 (표면 카운트 변경): 0
+- trigger 3 (보호 경로 정책 변경): 0
+- → ADR 의무 아님. 본 entry + VENDOR_ADAPTERS / CONVENTION_DRIFT 로 governance trace
+
+### 후속 (NEXT_ACTIONS — lab 도입 후)
+
+- iLO 7 Gen12 사이트 fixture 캡처 (`tests/fixtures/redfish/hpe_ilo7/` — facts.firmware 실측 형식 확정)
+- 1.20+ 2-part 변형 발견 시 firmware_patterns 추가 정정
+- 사이트 사고 발생 시 reverse regression 검토 (rule 25 R7-A-1 — 사용자 실측 > spec)
+
+---
+
 ## 2026-05-11 — Phase 7 ticket_consistency hook BLOCKING 격상 (4/4 완료)
 
 ### 사용자 명시 (2026-05-11)

@@ -1,6 +1,43 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (cycle hpe-csus-add — HPE Compute Scale-up Server 3200 adapter 추가 [DONE])
+## 일자: 2026-05-11 (cycle hpe-ilo7-gen12-match-fix — iLO 7 2-part firmware 매치 보강 [DONE])
+
+### 컨텍스트
+- 직전 cycle `hpe-csus-add` mock 검증 부수 발견 — iLO 7 adapter 가 facts.firmware = "1.10" 같은 2-part short version 매치 실패 → iLO 4 (priority=50) 잘못 선택
+- 원인: `firmware_patterns` 매치 실패 + facts.firmware 비어있지 않으면 -9999 disqualify (`module_utils/adapter_common.py` L260-267)
+
+### 본 cycle 결과 요약
+
+| 영역 | 변경 |
+|---|---|
+| `adapters/redfish/hpe_ilo7.yml` | firmware_patterns 확장 Additive — `["iLO.*7", "^\\d+\\.\\d+\\.\\d+", "^1\\.1[0-9]"]` |
+| `scripts/ai/verify_hpe_ilo7_fix.py` | 신규 — mock 5 시나리오 점수 회귀 검증 도구 |
+| 충돌 검증 | iLO 4 `^1\.[0-9]` 한자리 minor / iLO 6 `^1\.[5-9]` 한자리 minor 모두 충돌 0 |
+| 회귀 5 시나리오 | S1=iLO7 (fix) / S2=iLO7 (3-part 회귀) / S3=iLO6 / S4=CSUS3200 / S5=SDFlex 모두 PASS |
+| pytest | 590/590 PASS (HPE 영역 74/74) |
+| 하네스 | verify_harness_consistency (28R/51S/60A/10P) + verify_vendor_boundary PASS |
+| 문서 갱신 | docs/19 + VENDOR_ADAPTERS + CONVENTION_DRIFT-014 + CURRENT_STATE |
+
+### 검증 결과 (rule 24 6 체크리스트)
+
+| 항목 | 결과 |
+|---|---|
+| 정적 검증 | YAML parse OK / pytest 590 PASS / verify_harness OK / verify_vendor_boundary OK |
+| 발견 버그 | 0건 (Additive only — model_patterns / 다른 HPE adapter 영향 0) |
+| 문서 갱신 | 4 파일 (R3 매핑 cover) |
+| 후속 작업 | NEXT_ACTIONS — 사이트 BMC facts.firmware 실측 형식 확정 (1.20+ 2-part 변형 발견 시 정정) |
+| 태그 | (선택 — 후속 사이트 검증 cycle 에서) |
+| 회귀 | mock 5 + pytest 590 + 하네스 모두 PASS |
+
+### rule 70 R8 trigger
+- trigger 1 (rule 의미 변경): 0
+- trigger 2 (표면 카운트 변경): 0
+- trigger 3 (보호 경로 정책): 0
+- → ADR 의무 아님. docs/19 + CONVENTION_DRIFT-014 로 governance trace 충분
+
+---
+
+## 이전 일자: 2026-05-11 (cycle hpe-csus-add — HPE Compute Scale-up Server 3200 adapter 추가 [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - "hpe csus 장비도 개더링이 필요하다."

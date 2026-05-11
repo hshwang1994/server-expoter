@@ -3,7 +3,7 @@
 # Vendor: HPE / Hewlett Packard Enterprise
 # Firmware: iLO 7 — 1.x (Gen12 ProLiant 신 generation)
 # Origin: HPE iLO 7 Redfish API documentation (Gen12, 2025-02 출시)
-# Last sync: 2026-05-01 (web sources only — lab 부재)
+# Last sync: 2026-05-11 (cycle hpe-ilo7-gen12-match-fix — 2-part firmware "1.10" 매치 보강)
 # Notes: ProLiant Gen12 (DL360 Gen12 / DL380 Gen12 / DL580 Gen12 / ML350 Gen12).
 # Sources (rule 96 R1-A — lab 부재):
 #   - https://servermanagementportal.ext.hpe.com/docs/redfishservices/ilos/ilo7
@@ -31,9 +31,16 @@ priority: 120
 
 match:
   vendor: ["HPE", "Hewlett Packard Enterprise"]
-  # Gen12 펌웨어 — 3-part version 형식 ("1.12.00" / "1.16.00") + "iLO 7" 시그니처.
-  # iLO 6 은 2-part ("1.73") — `\\d+\\.\\d+\\.\\d+` 로 충돌 회피.
-  firmware_patterns: ["iLO.*7", "^\\d+\\.\\d+\\.\\d+"]
+  # Gen12 펌웨어 — 3-part version ("1.12.00" / "1.16.00") + "iLO 7" 시그니처.
+  # 추가 (cycle 2026-05-11 hpe-ilo7-gen12-match-fix):
+  #   - 일부 Gen12 BMC 는 2-part short version "1.10" / "1.16" 만 보고
+  #     (facts.firmware 추출 path 가 Manager.FirmwareVersion 만일 때).
+  #   - `^1\.1[0-9]` (1.10~1.19) 추가 — iLO 4 `^1\.[0-9]` 한자리 minor 와 충돌 0,
+  #     iLO 6 `^1\.[5-9]` 한자리 minor 와도 충돌 0.
+  #   - 미래 Gen12 firmware 1.20+ 2-part 시 본 regex 재검토 (사이트 실측 cycle).
+  # 점수 메커니즘: firmware_patterns 매치 실패 + facts.firmware 비어있지 않으면
+  # -9999 disqualify (module_utils/adapter_common.py L260-267).
+  firmware_patterns: ["iLO.*7", "^\\d+\\.\\d+\\.\\d+", "^1\\.1[0-9]"]
   model_patterns:
     - "ProLiant DL360 Gen12"
     - "ProLiant DL380 Gen12"

@@ -39,7 +39,7 @@
 
 | Adapter | adapter_id | priority | Vendor / Generation | lab |
 |---|---|---|---|---|
-| `hpe_ilo7.yml` | redfish_hpe_ilo7 | **120** | iLO7 (Gen12, 1대) | **PASS** |
+| `hpe_ilo7.yml` | redfish_hpe_ilo7 | **120** | iLO7 (Gen12, 1대) — cycle 2026-05-11 `hpe-ilo7-gen12-match-fix`: 2-part firmware "1.10" 매치 보강 (Additive `^1\.1[0-9]`) | **PASS** |
 | `hpe_ilo6.yml` | redfish_hpe_ilo6 | 100 | iLO6 (Gen11 + 사이트 Gen12) | Round 11 부분 |
 | `hpe_csus_3200.yml` | redfish_hpe_csus_3200 | 96 | **Compute Scale-up Server 3200 (CSUS, RMC + PDHC, DDR5, 2023+) — cycle 2026-05-11 신설** | 부재 (web sources 7건) |
 | `hpe_superdome_flex.yml` | redfish_hpe_superdome_flex | 95 | Superdome Flex (RMC + iLO5 dual-manager) | 부재 |

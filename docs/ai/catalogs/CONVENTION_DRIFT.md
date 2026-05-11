@@ -186,3 +186,21 @@
   - lab-tracker agent (opus) — lab 보유/부재 추적
   - web-evidence-collector agent (opus) + web-evidence-fetch skill — lab 부재 영역 web sources 의무 (rule 96 R1-A)
 - **관련**: rule 25 R7-A-1, rule 96 R1-A, ADR-2026-05-01-harness-reinforcement
+
+## DRIFT-014 (2026-05-11, resolved cycle hpe-ilo7-gen12-match-fix)
+
+- **발견 위치**: `adapters/redfish/hpe_ilo7.yml` L36 ↔ 일부 Gen12 BMC firmware 보고 형식
+- **분류**: external-contract-drift (rule 96 R1)
+- **설명**: 직전 cycle `hpe-csus-add` mock 검증 부수 발견 — iLO 7 adapter 의 `firmware_patterns = ["iLO.*7", "^\\d+\\.\\d+\\.\\d+"]` 가 3-part version (예 "1.16.00") 만 가정. 일부 Gen12 BMC 는 facts.firmware 추출 path (Manager.FirmwareVersion 만) 에 따라 2-part short version "1.10" 만 보고 → `firmware_patterns` 매치 실패 → -9999 disqualify (`module_utils/adapter_common.py` L260-267) → iLO 7 (priority=120) 대신 iLO 4 (priority=50) 가 잘못 선택. mock S1 시나리오 재현 확인.
+- **영향**:
+  - Gen12 BMC 응답 path drift 시 SmartStorage legacy (iLO 4 strategy) + Oem.Hp namespace 시도 → Gen12 Oem.Hpe.* 정보 수집 실패
+  - 사이트 실 BMC firmware 형식 미확정 (lab 부재 — web sources `1.16.00` / `1.12.00` 3-part 가정만 알려짐)
+- **resolved (cycle hpe-ilo7-gen12-match-fix)**:
+  - `hpe_ilo7.yml` firmware_patterns 확장 (Additive only, rule 92 R2): `["iLO.*7", "^\\d+\\.\\d+\\.\\d+", "^1\\.1[0-9]"]`
+  - `^1\.1[0-9]` (1.10~1.19) 명시 — iLO 4 `^1\.[0-9]` / iLO 6 `^1\.[5-9]` 한자리 minor 와 충돌 0
+  - mock 5 시나리오 회귀 (S1=iLO7 / S2=iLO7 / S3=iLO6 / S4=CSUS3200 / S5=SDFlex) 모두 PASS
+  - `scripts/ai/verify_hpe_ilo7_fix.py` 신규 — 본 회귀 재현 도구
+- **후속 (NEXT_ACTIONS, lab 도입 후)**:
+  - 사이트 BMC facts.firmware 실측 형식 확정 → 1.20+ 2-part 변형 발견 시 firmware_patterns 추가 정정
+  - reverse regression 검토 (rule 25 R7-A-1 — 사용자 실측 > spec)
+- **관련**: rule 92 R2 (Additive only), rule 96 R1 (origin 주석), rule 25 R7-A-1, `module_utils/adapter_common.py` L260-267
