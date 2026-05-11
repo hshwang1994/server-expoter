@@ -45,14 +45,17 @@
              (_rf_raw_collect.status | default('failed')) != 'failed' }}
       no_log: true
 
-# 후보 순차 시도 — 성공 시 try_one_account.yml 의 when 가드로 이후 후보 skip
+# 후보 순차 시도 — 성공 시 loop iteration 자체 skip (include_tasks 호출 안 됨).
+# try_one_account.yml 내부 block-level when 은 방어막으로 유지.
 - name: "redfish | collect_standard | try accounts in order"
   ansible.builtin.include_tasks: try_one_account.yml
   loop: "{{ _rf_accounts | default([]) }}"
   loop_control:
     loop_var: _try_account
     label:    "{{ _try_account.label | default('unlabeled') }}"
-  when: (_rf_accounts | default([])) | length > 0
+  when:
+    - (_rf_accounts | default([])) | length > 0
+    - not (_rf_collect_ok | default(false) | bool)
 
 # vendor 정규화 (성공 후보 기준 — vendor_aliases.yml 기반, detect_vendor 가 이미 채움)
 - name: "redfish | collect_standard | set vendor"
