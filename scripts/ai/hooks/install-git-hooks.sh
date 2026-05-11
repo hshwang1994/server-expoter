@@ -4,7 +4,7 @@
 # 설치 항목:
 # - pre-commit: pre_commit_harness_drift + pre_commit_skill_guard
 #               + pre_commit_jenkinsfile_guard
-#               + pre_commit_docs20_sync_check (rule 13 R7)
+#               + pre_commit_docs20_sync_check (rule 13 R7 — cycle 2026-05-07 advisory / cycle 2026-05-11 BLOCKING 격상)
 #               + pre_commit_status_logic_check (rule 13 R8)
 #               + pre_commit_ticket_consistency (cold-start 6 절)
 #               + pre_commit_additive_only_check (rule 92 R2 / 96 R1-B)
@@ -93,7 +93,7 @@ echo "비활성화 환경변수:"
 echo "  HARNESS_DRIFT_SKIP=1          — pre_commit_harness_drift skip"
 echo "  SKILL_GUARD_SKIP=1            — pre_commit_skill_guard skip"
 echo "  JENKINSFILE_GUARD_SKIP=1      — pre_commit_jenkinsfile_guard skip"
-echo "  DOCS20_SYNC_SKIP=1            — pre_commit_docs20_sync_check skip (rule 13 R7)"
+echo "  DOCS20_SYNC_SKIP=1            — pre_commit_docs20_sync_check skip (rule 13 R7, BLOCKING cycle 2026-05-11)"
 echo "  DOCS20_SYNC_SKIP_COSMETIC=1   — cosmetic only commit (rule 13 R7 Allowed)"
 echo "  STATUS_LOGIC_SKIP=1           — pre_commit_status_logic_check skip (rule 13 R8)"
 echo "  STATUS_LOGIC_SKIP_COSMETIC=1  — cosmetic only commit (rule 13 R8 Allowed)"

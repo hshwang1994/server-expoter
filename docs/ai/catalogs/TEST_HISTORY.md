@@ -2,6 +2,26 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-11 (docs20_sync hook advisory → BLOCKING 격상 — advisory hook 격상 1/4)
+
+### 회귀 검증
+- **pytest 587/587 PASS** (18.06s) — 격상 전후 동일
+- **self-test (pre_commit_docs20_sync_check)**: 6/6 PASS (격상 후 재실행 — 정본 1개 / 정본 2개+docs20 / 정본 외 / 빈 staged / Windows path / 정본 4종 전수)
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+- **escape hatch**: `DOCS20_SYNC_SKIP=1` / `DOCS20_SYNC_SKIP_COSMETIC=1` 유지 (R7 Allowed 절 호환)
+
+### 격상 작업 (2 파일 변경)
+- `scripts/ai/hooks/pre_commit_docs20_sync_check.py` — line 170 `return 0` → `return 1` + docstring (Advisory → Blocking) + stderr 메시지 갱신
+- `scripts/ai/hooks/install-git-hooks.sh` — line 7 + 96 주석 / 환경변수 안내 "rule 13 R7" → "rule 13 R7, BLOCKING cycle 2026-05-11"
+
+### false-positive 0 검증 절차
+- git log 5 cycle 전수 검토 (since cycle 2026-05-06 도입)
+- 정본 4종 변경 commit (build_output.yml / build_status.yml / sections.yml / field_dictionary.yml) 모두 `docs/20_json-schema-fields.md` 동반 변경 확인
+- 단일 위반 후보 (M-A3 commit `78611714`): build_status.yml 주석 강화 = cosmetic (R7 Allowed 절 — `DOCS20_SYNC_SKIP_COSMETIC=1` escape hatch 적용 가능)
+
+---
+
 ## 2026-05-11 (harness-cycle 자기개선 — PROJECT_MAP fingerprint + NEXT_ACTIONS stale fix)
 
 ### 회귀 검증 (cycle 종료 시)

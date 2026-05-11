@@ -1,6 +1,51 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (harness-cycle 자기개선 — PROJECT_MAP fingerprint 갱신 + NEXT_ACTIONS stale entry 정합 [DONE])
+## 일자: 2026-05-11 (docs20_sync hook advisory → BLOCKING 격상 — advisory hook 격상 1/4 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "A. advisory hook 격상 (1개씩) — 권장사항으로 진행" — 4 advisory hook 중 첫 격상 대상은 권장 (docs20_sync — 가장 먼저 도입 / envelope 정본 보호 핵심)
+
+### 격상 기준 충족 (Jinja 격상 패턴 동일)
+
+| 기준 | 결과 |
+|---|---|
+| 운영 기간 | cycle 2026-05-06 도입 → 2026-05-11 까지 **5 cycle** (M-A1~A6 / M-B~L / M-A7 / M-A7-followup / harness-cycle) |
+| false-positive 통계 | git log 5 cycle 전수 — 정본 4종 변경 commit 모두 `docs/20` 동반 변경. M-A3 commit `78611714` 1건만 build_status.yml 주석 강화 (cosmetic = R7 Allowed 절 / `DOCS20_SYNC_SKIP_COSMETIC=1` escape hatch) |
+| self-test | 6/6 PASS (정본 1개 / 정본 2개+docs20 / 정본 외 / 빈 staged / Windows path / 정본 4종 전수) |
+
+### 적용 변경 (2 파일)
+
+| 파일 | 변경 |
+|---|---|
+| **`scripts/ai/hooks/pre_commit_docs20_sync_check.py`** | line 170 `return 0 → return 1` (advisory → blocking) + docstring + stderr 메시지 갱신 |
+| **`scripts/ai/hooks/install-git-hooks.sh`** | line 7 + 96 주석 / 환경변수 안내 "rule 13 R7" → "rule 13 R7, BLOCKING cycle 2026-05-11" |
+
+### 검증 결과 (rule 24 6 체크리스트)
+
+- **self-test**: 6/6 PASS (격상 후 재실행)
+- **pytest**: 587/587 PASS
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+- **escape hatch**: `DOCS20_SYNC_SKIP=1` / `DOCS20_SYNC_SKIP_COSMETIC=1` 유지
+
+### rule 70 R8 trigger
+
+- trigger 1 (rule 본문 의미 변경): 적용 없음 (rule 13 R7 본문 변경 없음)
+- trigger 2 (표면 카운트 변경): 적용 없음 (hook 개수 28 유지)
+- trigger 3 (보호 경로 정책 변경): 적용 없음
+- → ADR 의무 아님. docs/19 decision-log entry 만 governance trace.
+
+### 남은 advisory hook (3종 — 단계적 격상)
+
+- `pre_commit_status_logic_check` (rule 13 R8) — 격상 후보
+- `pre_commit_additive_only_check` (rule 92 R2 / 96 R1-B) — 격상 후보
+- `pre_commit_ticket_consistency` (cold-start 6 절) — multi-worker 미사용으로 후순위
+
+각각 1 cycle 추가 advisory 운영 + false-positive 0 재확인 후 단계적 격상.
+
+---
+
+## 이전 일자: 2026-05-11 (harness-cycle 자기개선 — PROJECT_MAP fingerprint 갱신 + NEXT_ACTIONS stale entry 정합 [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - "E. 하네스 자기개선 cycle" — harness-cycle skill 6단계 파이프라인 1회 트리거

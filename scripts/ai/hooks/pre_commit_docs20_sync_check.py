@@ -9,7 +9,11 @@ rule 13 R7 정본 4종 변경 시 docs/20_json-schema-fields.md 동기화 갱신
 - schema/field_dictionary.yml (Must/Nice/Skip 분류)
 - common/tasks/normalize/build_status.yml (status 판정 규칙)
 
-Advisory (exit 0): 정본 4종 staged + docs/20 미staged 시 경고.
+Blocking (exit 1) — cycle 2026-05-11 격상.
+이전 cycle 2026-05-06 도입 시 advisory (exit 0). 5 cycle 운영 false-positive 0
+확인 후 cycle 2026-05-11 harness-cycle 에서 blocking 격상.
+
+정본 4종 staged + docs/20 미staged 시 commit 차단.
 
 비활성화 환경변수:
     DOCS20_SYNC_SKIP=1            — 본 hook skip
@@ -21,7 +25,8 @@ Usage:
     python scripts/ai/hooks/pre_commit_docs20_sync_check.py --self-test
 
 Exit codes:
-    0 = 통과 (advisory)
+    0 = 통과
+    1 = 위반 (BLOCKING — cycle 2026-05-11 격상)
 """
 
 from __future__ import annotations
@@ -148,7 +153,7 @@ def main() -> int:
         return 0
 
     print(
-        "[docs/20 sync] rule 13 R7 위반 후보 — 정본 변경 + docs/20 미동기화 (advisory):",
+        "[docs/20 sync] rule 13 R7 위반 — 정본 변경 + docs/20 미동기화 (BLOCKING — cycle 2026-05-11 격상):",
         file=sys.stderr,
     )
     for f in violations:
@@ -167,7 +172,7 @@ def main() -> int:
     )
     print("  → 강제 skip: DOCS20_SYNC_SKIP=1 git commit ...", file=sys.stderr)
 
-    return 0
+    return 1
 
 
 if __name__ == "__main__":

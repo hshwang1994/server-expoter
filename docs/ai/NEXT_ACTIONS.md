@@ -270,6 +270,24 @@ adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증
 - **변경 영역**: `scripts/ai/hooks/pre_commit_jinja_namespace_check.py` (return 0 → return 1) + docstring + install-git-hooks.sh 주석
 - **rule 70 R8 trigger 적용**: 0건 (rule 본문 변경 0 / 표면 카운트 변경 0 / 보호 경로 변경 0) → ADR 의무 아님. docs/19_decision-log.md entry 만 추가
 
+### ~~Phase 5: docs20_sync hook blocking 격상 결정 (PENDING)~~ **[DONE 2026-05-11]**
+
+- **격상 일자**: 2026-05-11 (advisory hook 격상 1/4 — 단계적 격상 시작)
+- **운영 기간**: cycle 2026-05-06 advisory → cycle 2026-05-11 blocking (5 cycle — M-A1~A6 / M-B~L / M-A7 / M-A7-followup / harness-cycle)
+- **false-positive 통계**: git log 5 cycle 전수 검토 — 정본 4종 변경 commit 모두 docs/20 동반 변경. M-A3 commit `78611714` 1건만 build_status.yml 주석 강화 = cosmetic (R7 Allowed 절 / `DOCS20_SYNC_SKIP_COSMETIC=1` escape hatch 적용 가능)
+- **변경 영역**: `scripts/ai/hooks/pre_commit_docs20_sync_check.py` (return 0 → return 1) + docstring + stderr 메시지 + install-git-hooks.sh 주석/환경변수 안내
+- **rule 70 R8 trigger 적용**: 0건 (rule 13 R7 본문 변경 0 / 표면 카운트 변경 0 / 보호 경로 변경 0) → ADR 의무 아님. docs/19_decision-log.md entry 만 추가
+- **검증**: self-test 6/6 PASS / pytest 587/587 PASS / verify_harness_consistency PASS / verify_vendor_boundary 위반 0
+
+### Phase 6: 남은 advisory hook 3종 단계적 격상 (PENDING)
+
+- 격상 패턴 (Jinja / docs20_sync 동일):
+  1. **pre_commit_status_logic_check** (rule 13 R8 — cycle 2026-05-06-post 도입) — 다음 cycle 격상 후보 1순위 (envelope 정본 4종 + status 매트릭스 ↔ build_status.yml)
+  2. **pre_commit_additive_only_check** (rule 92 R2 / 96 R1-B — cycle 2026-05-06-post 도입) — 다음 cycle 격상 후보 2순위 (호환성 cycle envelope shape 변경 0 보장)
+  3. **pre_commit_ticket_consistency** (cold-start 6 절 — cycle 2026-05-06 도입) — 후순위 (multi-worker 미사용으로 cycle 운영 부담 적음)
+- 각각 1 cycle 추가 advisory 운영 + false-positive 0 재확인 후 단계적 격상.
+- 권장: cycle 사이 사용자 / 사이트 / 호환성 cycle 사이에 1개씩 진행 (동시 격상 시 회귀 사고 확률 ↑).
+
 ### 다음 cycle 권장 (외부 의존)
 
 이전 cycle 잔여 그대로 — AI 환경 외 영역 (lab 도입 / 사이트 fixture / 사용자 결정).
