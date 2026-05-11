@@ -1,34 +1,174 @@
 # VENDOR_ADAPTERS — server-exporter
 
-> 5 vendor x 채널별 adapter 매트릭스 (rule 28 #3 측정 대상, TTL 14일).
-> 실측 (`grep adapter_id|priority adapters/`) — 2026-04-29 (cycle-012 후속 갱신).
+> 9 vendor x 채널별 adapter 매트릭스 (rule 28 #3 측정 대상, TTL 14일).
+> 실측 (`ls adapters/redfish/*.yml | wc -l`) — 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Phase 3 M-L2).
 >
-> **cycle-010 변경**: 27 adapter (redfish 16 + os 7 + esxi 4) 모두에서 placeholder `version: "1.0.0"` 1줄 일괄 삭제 (T3-04 04-A 채택). 매트릭스 자체 (adapter_id / priority / vendor) 영향 없음.
->
-> **cycle-012 변경 (recovery_accounts 메타 도입)**: 16개 Redfish adapter에 `recovery_accounts: [{vault_label, role}]` list 추가 — P1 후보 순차 인증 (vault accounts list) + P2 AccountService dryrun 기반 자동 복구 절차 메타. OS/ESXi 채널은 `try_credentials` 패턴 (vault 1차 → 2차 fallback) 적용, envelope `meta.auth.fallback_used` 노출. dryrun 기본값 `true` (BMC 잠금 위험 회피, 사용자 명시 OFF 전환은 OPS-5).
+> **cycle 2026-05-07 변경**: 27 adapter → 30 adapter
+>   - Phase 1: supermicro_x10 신설 (M-B1) + supermicro_ars 신설 (M-B3) + 4 신규 vendor OEM tasks 신설 (M-J1 Cisco 추가 = 5 신설)
+>   - Phase 3 M-K1: 30 adapter origin 주석 일관성 검증 (verify_adapter_origin_check.py --all --redfish-only PASS 30/30)
+>   - Phase 3 M-J1: Cisco vendor task (`redfish-gather/tasks/vendors/cisco/`) 신설 — 9 vendor OEM 모두 cover
 
-## Redfish 채널 (16 adapters)
+## adapter 카운트 history
 
-| Adapter | adapter_id | priority | Vendor | 비고 |
+| 시점 | adapter 수 (Redfish) | 변경 |
+|---|---|---|
+| cycle 2026-04-29 (production-audit) | 16 | (이전 baseline) |
+| cycle 2026-05-01 (gather-coverage) | 27 | +11 신규 vendor / generation (idrac10/ilo7/xcc3/superdome_flex/x12/x13/x14/cisco_ucs_xseries/huawei/inspur/fujitsu/quanta) |
+| cycle 2026-05-06 (multi-session) | 28 | +1 hpe_superdome_flex 정밀 분리 |
+| **cycle 2026-05-07 (all-vendor-coverage) Phase 3** | **30** | **+2 supermicro_x10 / supermicro_ars** |
+
+→ 본 카탈로그는 Redfish adapter 만. OS (7) / ESXi (4) 별도 적용.
+
+## Redfish 채널 (30 adapters — cycle 2026-05-07 종료 시점)
+
+### Dell (4 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
 |---|---|---|---|---|
-| `dell_idrac9.yml` | redfish_dell_idrac9 | 100 | Dell | iDRAC9 (5.x / 6.x / 7.x) |
-| `dell_idrac8.yml` | redfish_dell_idrac8 | 50 | Dell | iDRAC8 (2.40+) |
-| `dell_idrac.yml` | redfish_dell_idrac | 10 | Dell | generic Dell fallback |
-| `hpe_ilo6.yml` | redfish_hpe_ilo6 | 100 | HPE | iLO6 (Gen11) |
-| `hpe_ilo5.yml` | redfish_hpe_ilo5 | 90 | HPE | iLO5 (Gen10/10+) — cycle-008 100→90 차등 |
-| `hpe_ilo4.yml` | redfish_hpe_ilo4 | 50 | HPE | iLO4 (Gen9, 2.30+) |
-| `hpe_ilo.yml` | redfish_hpe_ilo | 10 | HPE | generic HPE fallback |
-| `lenovo_xcc.yml` | redfish_lenovo_xcc | 100 | Lenovo | XCC (XClarity Controller) |
-| `lenovo_imm2.yml` | redfish_lenovo_imm2 | 50 | Lenovo | 구 IMM2 (IBM 인수 전) |
-| `lenovo_bmc.yml` | redfish_lenovo_bmc | 10 | Lenovo | generic Lenovo fallback — cycle-008 신규 |
-| `supermicro_x11.yml` | redfish_supermicro_x11 | 100 | Supermicro | X11 generation |
-| `supermicro_x9.yml` | redfish_supermicro_x9 | 50 | Supermicro | X9 generation |
-| `supermicro_bmc.yml` | redfish_supermicro_bmc | 10 | Supermicro | generic SMC fallback |
-| `cisco_cimc.yml` | redfish_cisco_cimc | 100 | Cisco | CIMC (UCS C-Series, M4 Round 11 검증) |
-| `cisco_bmc.yml` | redfish_cisco_bmc | 10 | Cisco | generic Cisco fallback — cycle-008 신규 |
-| `redfish_generic.yml` | redfish_generic | 0 | (any) | fallback |
+| `dell_idrac10.yml` | redfish_dell_idrac10 | **120** | iDRAC10 (R770/Gen17, 사이트 5대) | **PASS** |
+| `dell_idrac9.yml` | redfish_dell_idrac9 | 100 | iDRAC9 (5.x / 6.x / 7.x) | 부재 |
+| `dell_idrac8.yml` | redfish_dell_idrac8 | 50 | iDRAC8 (2.40+) | 부재 |
+| `dell_idrac.yml` | redfish_dell_idrac | 10 | generic Dell fallback (iDRAC7 legacy cover) | 부재 |
 
-총 16 adapter (5 vendor + generic fallback). cycle-008 +2 (lenovo_bmc + cisco_bmc).
+### HPE (6 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `hpe_ilo7.yml` | redfish_hpe_ilo7 | **120** | iLO7 (Gen12, 1대) | **PASS** |
+| `hpe_ilo6.yml` | redfish_hpe_ilo6 | 100 | iLO6 (Gen11 + 사이트 Gen12) | Round 11 부분 |
+| `hpe_superdome_flex.yml` | redfish_hpe_superdome_flex | 95 | Superdome Flex (RMC + iLO5 dual-manager) | 부재 |
+| `hpe_ilo5.yml` | redfish_hpe_ilo5 | 90 | iLO5 (Gen10/10+) | 부재 |
+| `hpe_ilo4.yml` | redfish_hpe_ilo4 | 50 | iLO4 (Gen9, 2.30+) | 부재 |
+| `hpe_ilo.yml` | redfish_hpe_ilo | 10 | generic HPE fallback (iLO 1/2/3 legacy) | 부재 |
+
+### Lenovo (4 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `lenovo_xcc3.yml` | redfish_lenovo_xcc3 | **120** | XCC3 (1.17+, 사이트 1대 — Accept-only header 정책) | **PASS** |
+| `lenovo_xcc.yml` | redfish_lenovo_xcc | 100 | XCC + XCC2 (firmware_patterns 분기) | 부재 |
+| `lenovo_imm2.yml` | redfish_lenovo_imm2 | 50 | IMM2 (구 IMM2, IBM 인수 전) | 부재 |
+| `lenovo_bmc.yml` | redfish_lenovo_bmc | 10 | generic Lenovo fallback (IBM legacy BMC) | 부재 |
+
+### Cisco (3 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `cisco_ucs_xseries.yml` | redfish_cisco_ucs_xseries | **110** | UCS X-series (standalone CIMC, 사이트 1대) | **PASS** |
+| `cisco_cimc.yml` | redfish_cisco_cimc | 100 | CIMC (UCS C-series M4~M8 + S-series + B-series) | M4 lab tested 10.100.15.2 |
+| `cisco_bmc.yml` | redfish_cisco_bmc | 10 | generic Cisco fallback (CIMC 1.x~3.x legacy) | 부재 |
+
+### Supermicro (8 adapter — cycle 2026-05-07 +2 신설)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `supermicro_x14.yml` | redfish_supermicro_x14 | 110 | X14 + H14 (Granite Rapids/Turin + Redfish 1.21.0) | 부재 |
+| `supermicro_x13.yml` | redfish_supermicro_x13 | 100 | X13 + H13 + B13 (Eagle/Sapphire Rapids/Genoa) | 부재 |
+| `supermicro_x11.yml` | redfish_supermicro_x11 | 100 | X11 + H11 (AST2500) | 부재 |
+| `supermicro_x12.yml` | redfish_supermicro_x12 | 90 | X12 + H12 (Whitley/Tatlow + AST2600) | 부재 |
+| `supermicro_ars.yml` | redfish_supermicro_ars | 80 | **ARS (ARM) — cycle 2026-05-07 M-B3 신설** | 부재 |
+| `supermicro_x10.yml` | redfish_supermicro_x10 | 75 | **X10 (AST2400) — cycle 2026-05-07 M-B1 신설** | 부재 |
+| `supermicro_x9.yml` | redfish_supermicro_x9 | 50 | X9 (legacy) | 부재 |
+| `supermicro_bmc.yml` | redfish_supermicro_bmc | 10 | generic Supermicro fallback | 부재 |
+
+**Note: X11 / X13 priority 100 동률** — model_patterns 분리 (X11/H11 vs X13/H13/B13)로 tie-break.
+
+### Huawei (1 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `huawei_ibmc.yml` | redfish_huawei_ibmc | 80 | iBMC 1.x ~ 5.x + Atlas (firmware_patterns + model_patterns) | 부재 (cycle 2026-05-01) |
+
+### Inspur (1 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `inspur_isbmc.yml` | redfish_inspur_isbmc | 80 | ISBMC (NF/TS 시리즈) | 부재 (cycle 2026-05-01) |
+
+### Fujitsu (1 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `fujitsu_irmc.yml` | redfish_fujitsu_irmc | 80 | iRMC S2 / S4 / S5 / S6 + PRIMEQUEST | 부재 (cycle 2026-05-01) |
+
+### Quanta (1 adapter)
+
+| Adapter | adapter_id | priority | Vendor / Generation | lab |
+|---|---|---|---|---|
+| `quanta_qct_bmc.yml` | redfish_quanta_qct_bmc | 80 | QCT BMC (OpenBMC bmcweb, S/D/T/J series) | 부재 (cycle 2026-05-01) |
+
+### Generic fallback (1 adapter)
+
+| Adapter | adapter_id | priority | 용도 |
+|---|---|---|---|
+| `redfish_generic.yml` | redfish_generic | 0 | 매치 안 되는 vendor — DMTF Redfish 표준 fallback |
+
+총 30 adapter (9 vendor + generic fallback).
+
+## priority 일관성 검증 (rule 12 R2)
+
+각 vendor 내부 priority 차등 — 역전 없음:
+
+| Vendor | priority 순서 |
+|---|---|
+| Dell | 10 < 50 < 100 < 120 (generic < idrac8 < idrac9 < idrac10) [PASS] |
+| HPE | 10 < 50 < 90 < 95 < 100 < 120 (generic < ilo4 < ilo5 < superdome_flex < ilo6 < ilo7) [PASS] |
+| Lenovo | 10 < 50 < 100 < 120 (bmc < imm2 < xcc < xcc3) [PASS] |
+| Cisco | 10 < 100 < 110 (bmc < cimc < ucs_xseries) [PASS] |
+| Supermicro | 10 < 50 < 75 < 80 < 90 < 100 < 100 < 110 (bmc < x9 < x10 < ars < x12 < x11/x13 < x14) [PASS — model_patterns tie-break] |
+| Huawei | 80 (단일) [PASS] |
+| Inspur | 80 (단일) [PASS] |
+| Fujitsu | 80 (단일) [PASS] |
+| Quanta | 80 (단일) [PASS] |
+| generic | 0 (fallback) |
+
+**[PASS]** 모든 vendor priority 역전 없음.
+
+## OEM tasks 매트릭스 (M-J1 통합)
+
+| vendor | OEM tasks 디렉터리 | 상태 |
+|---|---|---|
+| Dell | `redfish-gather/tasks/vendors/dell/` | [DONE] (placeholder pattern — 이전 cycle) |
+| HPE | `redfish-gather/tasks/vendors/hpe/` | [DONE] (M-G1 Superdome 분기 보강) |
+| Lenovo | `redfish-gather/tasks/vendors/lenovo/` | [DONE] |
+| Supermicro | `redfish-gather/tasks/vendors/supermicro/` | [DONE] (M-B2 보강) |
+| **Cisco** | `redfish-gather/tasks/vendors/cisco/` | **[NEW] cycle 2026-05-07 M-J1 신설 (collect_oem.yml + normalize_oem.yml)** |
+| Huawei | `redfish-gather/tasks/vendors/huawei/` | [DONE] (Phase 1 M-C2 신설) |
+| Inspur | `redfish-gather/tasks/vendors/inspur/` | [DONE] (Phase 1 M-D1 신설) |
+| Fujitsu | `redfish-gather/tasks/vendors/fujitsu/` | [DONE] (Phase 1 M-E2 신설) |
+| Quanta | `redfish-gather/tasks/vendors/quanta/` | [DONE] (Phase 1 M-F1 신설) |
+
+→ 9 vendor 모두 OEM tasks 디렉터리 보유 (cycle 2026-05-07 M-J1 종료 시점).
+
+## recovery_accounts 메타 (cycle-012 + M-A 보강)
+
+각 Redfish adapter에 `credentials.recovery_accounts:` 블록 — vault accounts list 순서대로 후보 인증 + AccountService dryrun 복구 매핑. 형식:
+
+```yaml
+credentials:
+  profile: "dell"
+  fallback_profiles: []
+  recovery_accounts:
+    - { vault_label: dell_recovery_root, role: recovery }
+```
+
+**커버리지 (30/30)**: 모든 Redfish adapter 가 credentials 블록 보유. cycle 2026-05-11 M-A5 결과 9 vendor 모두 primary infraops/Password123! + recovery vendor 공장 기본 (rule 27 R6 / docs/21).
+
+**dryrun 정책 (cycle 2026-04-30 갱신)**: `_rf_account_service_dryrun: false` (기본 — 사용자 명시 승인으로 OFF 전환). 실 PATCH/POST 호출되어 BMC 에 infraops 자동 생성/enable 됨. 시뮬레이션 강제는 `-e _rf_account_service_dryrun=true` override. ADR-2026-04-30-account-service-dryrun-off 참조.
+
+**Cisco 한정**: AccountService 미지원 (Round 11 실측). dryrun 의미 없음 — 운영자 수동 복구 절차 매뉴얼 별도 (DEC-3 매트릭스).
+
+## origin 주석 일관성 (cycle 2026-05-07 M-K1)
+
+검증 도구: `python scripts/ai/hooks/adapter_origin_check.py --all --redfish-only`
+
+| 검증 항목 | 결과 |
+|---|---|
+| origin sources 1개 이상 (vendor docs / DMTF / GitHub / 사이트 evidence) | 30/30 PASS |
+| 사이트 검증 adapter (dell_idrac10/hpe_ilo7/lenovo_xcc3/cisco_ucs_xseries) — `lab tested` / `Lab status: PASS` / commit hash 표기 | 4/4 PASS |
+| lab 부재 adapter — `부재` / `web sources` 명시 | 25/25 PASS |
+| lab 부재 adapter — `Next action:` / `lab 도입 후 별도 cycle` 라인 | 25/25 PASS |
+| Generic fallback (redfish_generic.yml) — vendor 면제 | 1/1 PASS |
 
 ## OS 채널 (7 adapters)
 
@@ -51,35 +191,14 @@
 | `esxi_6x.yml` | ESXi 6.x |
 | `esxi_generic.yml` | fallback |
 
-## recovery_accounts 메타 (cycle-012)
+## 갱신 history (cycle 단위)
 
-각 Redfish adapter에 `recovery_accounts:` 블록 — vault accounts list 순서대로 후보 인증 + AccountService dryrun 복구 매핑. 형식:
-
-```yaml
-recovery_accounts:
-  - { vault_label: <vault key>, role: recovery }
-  - { vault_label: <vault key>, role: recovery }
-```
-
-**커버리지 (16/16)**: dell_idrac×3, hpe_ilo×4, lenovo_xcc/imm2/bmc, supermicro_x11/x9/bmc, cisco_cimc/bmc, redfish_generic.
-
-**dryrun 정책 (cycle 2026-04-30 갱신)**: `_rf_account_service_dryrun: false` (기본 — 사용자 명시 승인으로 OFF 전환). 실 PATCH/POST 호출되어 BMC에 infraops 자동 생성/enable 됨. 시뮬레이션 강제는 `-e _rf_account_service_dryrun=true` override. ADR-2026-04-30-account-service-dryrun-off 참조.
-
-**Cisco 한정**: AccountService 미지원 (Round 11 실측). dryrun 의미 없음 — 운영자 수동 복구 절차 매뉴얼 별도 (DEC-3 매트릭스).
-
-## 점수 일관성 검증 (rule 12 R2)
-
-각 vendor 내부 priority 차등 — 역전 없음:
-
-| Vendor | 차등 |
-|---|---|
-| Dell | 10 < 50 < 100 (generic < idrac8 < idrac9) [PASS] |
-| HPE | 10 < 50 < 90 < 100 (generic < ilo4 < ilo5 < ilo6) — cycle-008 차등 적용 [PASS] |
-| Lenovo | 10 < 50 < 100 (bmc < imm2 < xcc) — cycle-008 generic 추가 [PASS] |
-| Supermicro | 10 < 50 < 100 (bmc < x9 < x11) [PASS] |
-| Cisco | 10 < 100 (bmc < cimc) — cycle-008 generic 추가 [PASS] |
-
-**[PASS]** 모든 vendor priority 역전 없음.
+| cycle | adapter 변경 (Redfish) | OEM tasks 변경 |
+|---|---|---|
+| 2026-04-29 (production-audit) | 16 | Dell/HPE/Lenovo/Supermicro placeholder |
+| 2026-05-01 (gather-coverage) | 27 (+11) | (변경 없음) |
+| 2026-05-06 (multi-session) | 28 (+1 hpe_superdome_flex) | (변경 없음) |
+| **2026-05-07 (all-vendor-coverage)** | **30 (+2: supermicro_x10/ars)** | **+5 (Cisco M-J1 / Huawei M-C2 / Inspur M-D1 / Fujitsu M-E2 / Quanta M-F1)** |
 
 ## 갱신 trigger (rule 28 #3)
 
@@ -87,14 +206,21 @@ recovery_accounts:
 - adapters/*.yml 수정
 - vendor_aliases.yml 수정
 - 새 vendor 추가 (rule 50 R2)
+- 새 OEM tasks 디렉터리 추가 (vendor task)
 
 ## 측정 명령
 
 ```bash
 ls adapters/redfish/*.yml | wc -l
 for f in adapters/redfish/*.yml; do
-  echo "$(basename $f): $(grep -E '^priority:' $f)"
+  base=$(basename "$f")
+  prio=$(grep -E '^priority:' "$f" | head -1)
+  aid=$(grep -E '^adapter_id:' "$f" | head -1)
+  printf '%-32s | %-26s | %s\n' "$base" "$aid" "$prio"
 done
+
+# origin 주석 일관성 검증
+python scripts/ai/hooks/adapter_origin_check.py --all --redfish-only
 ```
 
 ## 정본 reference
@@ -104,3 +230,5 @@ done
 - `docs/13_redfish-live-validation.md`
 - `docs/10_adapter-system.md`
 - `docs/ai/references/redfish/vendor-bmc-guides.md`
+- `docs/ai/catalogs/EXTERNAL_CONTRACTS.md` (9 vendor × N gen × source URL 매트릭스 — M-K2)
+- `docs/ai/catalogs/COMPATIBILITY-MATRIX.md` (vendor × generation × section — M-L3)

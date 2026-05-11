@@ -39,15 +39,15 @@
 | **M-I3** | bmc / firmware section — `_OEM_NAMESPACE_FALLBACK_CHAIN` constant + `_extract_oem_unified()` (9 vendor × 14 namespace alias) | P1 | I2 | **[DONE]** | Phase2-Agent | 2026-05-11 |
 | **M-I4** | network section — `_detect_nic_ocp_slot()` + `_detect_nic_sriov_capable()` helpers | P2 | I3 | **[DONE]** | Phase2-Agent | 2026-05-11 |
 | **M-I5** | system/cpu/memory/users — `_normalize_role_id()` (9 vendor → 5 표준) + `_normalize_dimm_label()` | P2 | I4 | **[DONE]** | Phase2-Agent | 2026-05-11 |
-| **M-J1** | OEM namespace mapping (9 vendor) redfish_gather.py 분기 매트릭스 + Cisco vendor task 신설 | P1 | B4, C3, D2, E3, F2, G2, H1~H4, I5 | [PENDING] | W5 | — |
-| **M-K1** | 모든 신규/보강 adapter origin 주석 일관성 검증 (rule 96 R1-A) | P1 | J1 | [PENDING] | W5 | — |
-| **M-K2** | docs/ai/catalogs/EXTERNAL_CONTRACTS.md 갱신 (9 vendor × N gen × N section × source URL) | P1 | K1 | [PENDING] | W5 | — |
-| **M-L1** | docs/ai/NEXT_ACTIONS.md 갱신 (lab 도입 후 별도 cycle 등재 — rule 50 R2 단계 10 + rule 96 R1-C) | P1 | K2 | [PENDING] | W5 | — |
-| **M-L2** | docs/ai/catalogs/VENDOR_ADAPTERS.md 갱신 (29 adapter 매트릭스) | P2 | L1 | [PENDING] | W5 | — |
-| **M-L3** | docs/ai/catalogs/COMPATIBILITY-MATRIX.md 갱신 (rule 28 R1 #12) | P2 | L2 | [PENDING] | W5 | — |
-| **M-L4** | docs/13_redfish-live-validation.md 갱신 (사이트 검증 4 + lab 부재 명시) | P1 | L3 | [PENDING] | W5 | — |
+| **M-J1** | Cisco vendor task `redfish-gather/tasks/vendors/cisco/{collect,normalize}_oem.yml` 신설 (Oem.Cisco/Cisco_RackUnit fallback) — 9 vendor 모두 cover. 사이트 검증 4 adapter strategy 변경 0 (별도 cycle) | P1 | B4, C3, D2, E3, F2, G2, H1~H4, I5 | **[DONE]** | Phase3-Agent | 2026-05-11 |
+| **M-K1** | adapter_origin_check.py `--all --redfish-only` 모드 + ORIGIN_PATTERNS 확장 + 9 adapter 헤더 보강 (Lab status / Next action). 30/30 PASS | P1 | J1 | **[DONE]** | Phase3-Agent | 2026-05-11 |
+| **M-K2** | EXTERNAL_CONTRACTS.md append (cycle 2026-05-11 절) — 9 vendor × N gen 매트릭스 + DMTF reference + OEM namespace mapping + 갱신 정책 | P1 | K1 | **[DONE]** | Phase3-Agent | 2026-05-11 |
+| **M-L1** | NEXT_ACTIONS.md cycle 2026-05-07 Phase 3 entry — 9 vendor × N gen × 4 후속 작업 매트릭스 + 우선순위 + 후속 cycle 7단계 절차 | P1 | K2 | **[DONE]** | Phase3-Agent | 2026-05-11 |
+| **M-L2** | VENDOR_ADAPTERS.md 전체 재작성 (16 → 30 adapter) — priority 일관성 + OEM tasks 9 vendor + recovery_accounts 30/30 + origin 일관성 표 | P2 | L1 | **[DONE]** | Phase3-Agent | 2026-05-11 |
+| **M-L3** | COMPATIBILITY-MATRIX.md `catalogs/` 위치 신설 — 9 vendor × N gen × 10 sections + Storage/Power/OEM/Network 변형 매트릭스 + Phase 2 helper 매트릭스 | P2 | L2 | **[DONE]** | Phase3-Agent | 2026-05-11 |
+| **M-L4** | docs/13_redfish-live-validation.md §16 (cycle 2026-05-07) — 사이트 검증 4 + lab 부재 25+ row + web sources 의무 + cycle 산출 요약 | P1 | L3 | **[DONE]** | Phase3-Agent | 2026-05-11 |
 
-총 **38 ticket**.
+총 **38 ticket** — **38/38 [DONE]** (cycle 종료 2026-05-11).
 
 ---
 

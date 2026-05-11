@@ -427,6 +427,105 @@ ServiceRoot를 조회했으므로 chassis_uri를 함께 반환하면 HTTP 호출
 
 ---
 
+## 16. cycle 2026-05-07 — all-vendor-coverage (Phase 1/2/3)
+
+> cycle 2026-05-07-all-vendor-coverage Phase 3 M-L4 — 38 ticket 통합 + 사이트 검증 4 + lab 부재 명시.
+> Worker: W5 (Phase 3). Phase 1 (23 ticket) + Phase 2 (5 ticket) + Phase 3 (7 ticket) = 38 ticket.
+
+### 16.1 Round 2026-05-07 — 사이트 검증 4 vendor × 1 generation
+
+> 본 Round 는 사용자 사이트 BMC 1대 이상 보유 vendor / generation 의 실 검증 결과.
+> 검증 commit: `0a485823` (cycle 2026-05-06 multi-session-compatibility 종료 commit).
+
+#### 결과 매트릭스
+
+| vendor | generation | 사이트 BMC | 검증 commit | 결과 |
+|---|---|---|---|---|
+| Dell | iDRAC10 | 5대 (10.100.15.27 / 28 / 31 / 33 / 34) | `0a485823` | [PASS] — 8 Redfish endpoint 모두 SUCCESS |
+| HPE | iLO7 | 1대 (10.50.11.231) | `0a485823` | [PASS] |
+| Lenovo | XCC3 | 1대 (10.50.11.232) | `0a485823` | [PASS] — Accept-only header 정책 (cycle 2026-04-30 reverse regression) |
+| Cisco | UCS X-series | 1대 (10.100.15.2) | `0a485823` | [PASS] — standalone CIMC |
+
+#### 검증 항목
+
+- ServiceRoot ~ AccountService 9 endpoint 모두 SUCCESS
+- 8 Redfish + 7 OS + 3 ESXi 통합 검증 commit `0a485823` 에 PASS 기록
+- 본 검증 시점 baseline_v1 4 vendor (Dell/HPE/Lenovo/Cisco) 갱신
+
+#### 사이트 사고 / 학습 (cycle 2026-04-30 reverse regression)
+
+- Lenovo XCC3 펌웨어 1.17.0 — Accept + OData-Version + User-Agent 추가 시 reject
+- "Accept 만" 으로 hotfix (rule 25 R7-A-1 — 사용자 실측 > spec)
+- 본 정책은 다른 사이트 (Lenovo XCC2 / iLO5+ / Supermicro X12+) 도 동일 가능성 — 보수적 header 정책 의무
+
+### 16.2 lab 부재 영역 (cycle 2026-05-07 명시)
+
+> 사용자 명시 (2026-05-07 Q2/Q3): Supermicro 사이트 BMC 0대 + Huawei/Inspur/Fujitsu/Quanta lab 도입 timeline 장기 (미정).
+> 본 영역 코드 path 는 web sources 기반 (rule 96 R1-A) — 사이트 도입 시 별도 cycle 검증.
+
+#### lab 부재 vendor / generation 매트릭스
+
+| vendor | generation | lab status | 코드 path | NEXT_ACTIONS 등재 |
+|---|---|---|---|---|
+| Dell | iDRAC7 (legacy) | 부재 | adapter dell_idrac.yml + M-H1 mock | [PENDING] — Dell iDRAC7 lab cycle |
+| Dell | iDRAC8 | 부재 | adapter dell_idrac8.yml + M-H1 mock | [PENDING] (PowerSubsystem fallback W1 검증) |
+| Dell | iDRAC9 | 부재 | adapter dell_idrac9.yml + M-H1 mock (3 variants — 3.x/5.x/7.x) | [PENDING] |
+| HPE | iLO (legacy 1/2/3) | 부재 (Redfish 미지원) | adapter hpe_ilo.yml + IPMI fallback 별도 검토 | [SKIP] |
+| HPE | iLO4 | 부재 | adapter hpe_ilo4.yml + M-H2 mock | [PENDING] (SimpleStorage W2 + Power W3 검증) |
+| HPE | iLO5 | 부재 | adapter hpe_ilo5.yml + M-H2 mock | [PENDING] |
+| HPE | iLO6 | partial (Round 11 + 사이트 Gen12) | adapter hpe_ilo6.yml + M-H2 mock | [PENDING] (PowerSubsystem dual + SmartStorage fallback) |
+| HPE | Superdome Flex (Gen 1/2 + 280) | 부재 | adapter hpe_superdome_flex.yml (priority=95) + M-G1 OEM 분기 + M-G2 mock | [PENDING] (RMC + Partition0 + iLO5 dual-manager) |
+| Lenovo | BMC (IBM 시기) | 부재 (Redfish 미지원) | adapter lenovo_bmc.yml | [SKIP] |
+| Lenovo | IMM (legacy) | 부재 (Redfish 미지원) | (별도 분기 없음 — lenovo_bmc fallback) | [SKIP] |
+| Lenovo | IMM2 | 부재 | adapter lenovo_imm2.yml + M-H3 mock | [PENDING] (SimpleStorage W4 + Power W5 검증) |
+| Lenovo | XCC | 부재 | adapter lenovo_xcc.yml (firmware_patterns XCC + XCC2) + M-H3 mock | [PENDING] |
+| Lenovo | XCC2 | 부재 | (위 동일) | [PENDING] |
+| Cisco | BMC (legacy) | 부재 (Redfish 미지원) | adapter cisco_bmc.yml | [SKIP] |
+| Cisco | CIMC C-series 1.x ~ 4.x | partial (M4 lab tested) | adapter cisco_cimc.yml (firmware_patterns 4.x~6.x) + M-H4 mock (4 variants) | [PENDING] (M5~M8 web sources only) |
+| Cisco | UCS S-series | 부재 | adapter cisco_cimc.yml (model_patterns UCS-S3260) | [PENDING] (M-H4 — Storage 강화 검증) |
+| Cisco | UCS B-series | 부재 (UCS Manager 매개) | adapter cisco_cimc.yml + 별도 cycle | [PENDING] — UCS Manager 통합 cycle |
+| Supermicro | BMC (legacy) ~ X14 (7 gen) | 부재 (Q2 — 사이트 0대) | adapter 8개 + OEM tasks 보강 (M-B2) + mock (M-B4) | [PENDING] — Supermicro lab 도입 cycle |
+| Supermicro | H11 ~ H14 (AMD) | 부재 | adapter X11~X14 model_patterns 확장 (M-B3) | [PENDING] |
+| Supermicro | **X10 (cycle 2026-05-07 신설)** | 부재 | adapter supermicro_x10.yml (priority=75 — M-B1) | [PENDING] |
+| Supermicro | **ARS (ARM, cycle 2026-05-07 신설)** | 부재 | adapter supermicro_ars.yml (priority=80 — M-B3) | [PENDING] |
+| Huawei | iBMC 1.x ~ 5.x + Atlas | 부재 (cycle 2026-05-01 명시) | adapter huawei_ibmc.yml (M-C1) + OEM tasks (M-C2) + mock (M-C3) | [PENDING] |
+| Inspur | ISBMC | 부재 (cycle 2026-05-01) | adapter inspur_isbmc.yml + OEM tasks (M-D1) + mock (M-D2) | [PENDING] |
+| Fujitsu | iRMC S2 | 부재 (Redfish 미지원 가능성) | adapter fujitsu_irmc.yml (firmware_patterns) | [SKIP] |
+| Fujitsu | iRMC S4 / S5 / S6 | 부재 (cycle 2026-05-01) | (위 동일) + OEM tasks (M-E2) + mock (M-E3) | [PENDING] |
+| Quanta | QCT BMC (S/D/T/J) | 부재 (cycle 2026-05-01) | adapter quanta_qct_bmc.yml + OEM tasks (M-F1) + mock (M-F2) | [PENDING] |
+
+### 16.3 web sources 의무 (rule 96 R1-A)
+
+본 lab 부재 영역의 모든 adapter / OEM tasks / mock 은 다음 sources 기반:
+
+| source | 영역 |
+|---|---|
+| vendor 공식 docs | 9 vendor 공식 매뉴얼 (URL — adapter 헤더 주석 `# source: ...`) |
+| DMTF Redfish spec | DSP0268 v1.0 ~ v1.13+ (PowerSubsystem / Storage / AccountService schema) |
+| GitHub community / issue | Inspur / Quanta / Huawei / Fujitsu (영문 docs 약함 영역) |
+| 사이트 실측 | 본 Round 16.1 (Dell/HPE/Lenovo/Cisco × 1 generation) |
+
+cycle 2026-05-07 M-K1 검증: 30/30 adapter origin 주석 일관성 PASS (verify 도구: `python scripts/ai/hooks/adapter_origin_check.py --all --redfish-only`).
+
+### 16.4 본 cycle (2026-05-07 all-vendor-coverage) 산출 요약
+
+| 항목 | 변경 |
+|---|---|
+| adapter (Redfish) | 28 → 30 (+supermicro_x10 M-B1 / +supermicro_ars M-B3) |
+| vault encrypted | 5 → 9 (+huawei M-A1 / +inspur M-A2 / +fujitsu M-A3 / +quanta M-A4) |
+| vendor OEM tasks | 4 → 9 (+cisco M-J1 / +huawei M-C2 / +inspur M-D1 / +fujitsu M-E2 / +quanta M-F1) |
+| mock fixture | 4 → 22+ generation |
+| catalog 갱신 | NEXT_ACTIONS (M-L1) / VENDOR_ADAPTERS (M-L2) / COMPATIBILITY-MATRIX (M-L3) / EXTERNAL_CONTRACTS (M-K2) / docs/13 (M-L4) |
+| baseline_v1 | 변경 0 (lab 부재 vendor SKIP — rule 13 R4) |
+| schema/sections.yml + field_dictionary.yml | 변경 0 (Q7 — schema 변경 0) |
+| OEM namespace 매트릭스 | 5 → 9 vendor (M-I3 helper + M-J1 Cisco vendor task) |
+| origin 주석 일관성 (M-K1) | 30/30 PASS |
+| Phase 2 helpers | +7 (`_gather_smart_storage` / `_merge_power_dual` / `_extract_oem_unified` / `_detect_nic_ocp_slot` / `_detect_nic_sriov_capable` / `_normalize_role_id` / `_normalize_dimm_label`) |
+| redfish_gather.py | +338 lines (stdlib only — rule 10 R2) |
+| ticket | 38/38 DONE (Phase 1/2/3 통합) |
+
+---
+
 ## 다음 단계
 
 | 다음 작업 | 문서 |
@@ -435,6 +534,10 @@ ServiceRoot를 조회했으므로 chassis_uri를 함께 반환하면 HTTP 호출
 | 호환성 매트릭스 | [22_compatibility-matrix.md](22_compatibility-matrix.md) |
 | Adapter 시스템 (점수 계산) | [10_adapter-system.md](10_adapter-system.md) |
 | 결정 추적 | [19_decision-log.md](19_decision-log.md) |
+| lab 도입 후 별도 cycle | [docs/ai/NEXT_ACTIONS.md](ai/NEXT_ACTIONS.md) (M-L1) |
+| vendor adapter 매트릭스 | [docs/ai/catalogs/VENDOR_ADAPTERS.md](ai/catalogs/VENDOR_ADAPTERS.md) (M-L2) |
+| compatibility matrix 상세 | [docs/ai/catalogs/COMPATIBILITY-MATRIX.md](ai/catalogs/COMPATIBILITY-MATRIX.md) (M-L3) |
+| 외부 계약 매트릭스 | [docs/ai/catalogs/EXTERNAL_CONTRACTS.md](ai/catalogs/EXTERNAL_CONTRACTS.md) (M-K2) |
 
 ## 자주 헷갈리는 점
 

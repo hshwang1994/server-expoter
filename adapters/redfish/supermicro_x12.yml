@@ -19,6 +19,8 @@
 #   - Storage Volumes 표준 지원 (SimpleStorage fallback 불필요 가능)
 #   - PowerSubsystem 표준 지원
 #   - 신 firmware update parameters (read-only 영향 없음 — server-exporter GET only)
+# Lab status: 부재 — web sources only (rule 96 R1-A — 사이트 BMC 0대, cycle 2026-05-07 Q2)
+# Next action: X12/H12 (Whitley/Tatlow + AST2600) lab 도입 후 별도 cycle (Storage Volumes + PowerSubsystem 응답 형식 확정)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_supermicro_x12
 channel: redfish

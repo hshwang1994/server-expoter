@@ -14,6 +14,8 @@
 # Compatibility 가정:
 #   - X12 와 동일 BMC chip (AST2600) → schema 기본 호환
 #   - 신 firmware update parameters (server-exporter read-only 영향 없음)
+# Lab status: 부재 — web sources only (rule 96 R1-A — 사이트 BMC 0대, cycle 2026-05-07 Q2)
+# Next action: X13/H13/B13 (Eagle / Sapphire Rapids / Genoa) lab 도입 후 별도 cycle (B13 Building Blocks platform schema 검증)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_supermicro_x13
 channel: redfish

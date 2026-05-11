@@ -1,5 +1,135 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Phase 3 W5 — M-J1, K1~K2, L1~L4 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- Phase 3 OEM namespace + origin + catalog 7 ticket sequential 완료.
+
+### 본 작업 결과 요약
+
+| Ticket | 작업 | 결과 |
+|---|---|---|
+| M-J1 | Cisco vendor task 신설 (`redfish-gather/tasks/vendors/cisco/`) + 9 vendor OEM namespace 매트릭스 검증 | **[DONE]** — Cisco OEM tasks (best-effort + rescue) + Additive (UCS X-series 사이트 검증 envelope shape 변경 0 — adapter strategy 미변경) |
+| M-K1 | 30 adapter origin 주석 일관성 검증 + `adapter_origin_check.py --all --redfish-only` 신설 | **[DONE]** — 30/30 PASS (헤더 보강 9 adapter — site marker / Next action 추가) |
+| M-K2 | EXTERNAL_CONTRACTS.md 갱신 — 9 vendor × N gen × source URL 매트릭스 | **[DONE]** — Append (기존 742줄 보존 + 2026-05-11 절 추가) |
+| M-L1 | NEXT_ACTIONS.md 갱신 — lab 도입 후 별도 cycle 등재 (본 entry) | **[DONE]** |
+| M-L2 | VENDOR_ADAPTERS.md 갱신 — 30 adapter 매트릭스 | **[DONE]** |
+| M-L3 | COMPATIBILITY-MATRIX.md 갱신 — vendor × generation × section | **[DONE]** — catalogs/ 위치 신설 |
+| M-L4 | docs/13_redfish-live-validation.md 갱신 — Round 2026-05-07 사이트 검증 4 + lab 부재 명시 | **[DONE]** |
+
+### lab 도입 후 별도 cycle 권장 (cycle 2026-05-07 all-vendor-coverage Phase 3 산출)
+
+> 사용자 명시 (2026-05-07 Q3): lab 도입 timeline 장기 (미정).
+> 본 절은 코드 path 가 깔린 영역의 실 lab 검증 후속 작업 추적 (rule 50 R2 단계 10 + rule 96 R1-C).
+
+#### 4 후속 작업 매트릭스 (vendor × generation 별)
+
+##### Dell (iDRAC10 외 — 3 generation lab 미도입)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| iDRAC7 (legacy) | [PENDING] | [PENDING] | [PENDING] — "Dell iDRAC7 lab 검증" | [PENDING] |
+| iDRAC8 | [PENDING] | [PENDING] | [PENDING] — "Dell iDRAC8 lab 검증" (PowerSubsystem fallback W1 검증) | [PENDING] |
+| iDRAC9 | [PENDING] | [PENDING] | [PENDING] — "Dell iDRAC9 lab 검증" (3 variants — 3.x / 5.x / 7.x) | [PENDING] |
+| iDRAC10 | [DONE] | [DONE] | [DONE] (사이트 검증 commit `0a485823`) | [DONE] (M-A5 primary infraops/Password123! + recovery root/calvin) |
+
+##### HPE (iLO7 외 — 4 generation lab 미도입 + Superdome)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| iLO (legacy 1/2/3) | [SKIP] (Redfish 미지원) | [SKIP] | [SKIP] — IPMI fallback 별도 검토 | [SKIP] |
+| iLO4 | [PENDING] | [PENDING] | [PENDING] — "HPE iLO4 lab 검증" (SimpleStorage W2 + Power W3 검증) | [PENDING] |
+| iLO5 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| iLO6 | [PARTIAL] (Round 11 DL380 Gen11 + 사이트 Gen12) | [PENDING] | [PENDING] — PowerSubsystem dual + SmartStorage fallback 추가 검증 | [PENDING] |
+| iLO7 | [DONE] | [DONE] | [DONE] | [DONE] (M-A5 primary infraops + recovery admin/admin) |
+| Superdome Flex (Gen 1/2 + 280) | [PENDING] | [PENDING] | [PENDING] — "HPE Superdome Flex lab 검증" (RMC + Partition0 + iLO5 dual-manager) | [PENDING] |
+
+##### Lenovo (XCC3 외 — 3 generation lab 미도입 + 2 SKIP)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| BMC (IBM 시기) | [SKIP] (Redfish 미지원) | [SKIP] | [SKIP] | [SKIP] |
+| IMM (legacy) | [SKIP] (Redfish 미지원) | [SKIP] | [SKIP] | [SKIP] |
+| IMM2 | [PENDING] | [PENDING] | [PENDING] (SimpleStorage W4 + Power W5 검증) | [PENDING] |
+| XCC | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| XCC2 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| XCC3 | [DONE] | [DONE] | [DONE] (Accept-only header 정책 — cycle 2026-04-30 reverse regression) | [DONE] (M-A5 primary infraops + recovery USERID/PASSW0RD) |
+
+##### Cisco (UCS X-series 외 — 3 generation lab 미도입 + 1 SKIP)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| BMC (legacy) | [SKIP] (Redfish 미지원) | [SKIP] | [SKIP] | [SKIP] |
+| CIMC C-series 1.x ~ 4.x | [PARTIAL] (M4 lab tested 10.100.15.2) | [PARTIAL] (cisco_baseline.json) | [PENDING] (M5~M8 web sources only — 4 variants) | [PENDING] |
+| UCS S-series | [PENDING] | [PENDING] | [PENDING] (M-H4 model_patterns 추가 — Storage 강화 검증) | [PENDING] |
+| UCS B-series | [SKIP] (UCS Manager 매개 — 별도 cycle) | [SKIP] | [PENDING] — "Cisco UCS Manager 통합 cycle" | [SKIP] |
+| UCS X-series (standalone CIMC) | [DONE] | [DONE] | [DONE] (commit `0a485823`) | [DONE] (M-A5 primary infraops + recovery admin/password) |
+| UCS X-series (Intersight IMM 모드) | [SKIP] (server-exporter 범위 외) | [SKIP] | [PENDING] — "Intersight 통합 cycle" | [SKIP] |
+| Cisco OEM tasks (vendor task) | **[NEW] cycle 2026-05-07 M-J1 신설** | (placeholder — 표준 strategy 유지) | [PENDING] — UCS X-series 사이트 회귀 후 `standard+oem` 변경 검토 | (해당 없음) |
+
+##### Supermicro (사이트 BMC 0대 — cycle 2026-05-07 Q2 명시)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| BMC (legacy) | [PENDING] | [PENDING] | [PENDING] — "Supermicro lab 도입 cycle" | [PENDING] |
+| X9 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| X10 | [PENDING] (cycle 2026-05-07 M-B1 신설) | [PENDING] | [PENDING] | [PENDING] |
+| X11 + H11 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| X12 + H12 (Whitley/Tatlow + AST2600) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| X13 + H13 + B13 (Eagle + Sapphire Rapids + Genoa) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| X14 + H14 (Granite Rapids + Turin + Redfish 1.21.0) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| ARS (ARM) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+
+##### Huawei iBMC (lab 부재 — cycle 2026-05-01 사용자 명시)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| iBMC 1.x (2014-2016) | [PENDING] (가능성 낮음 — Redfish 약함) | [PENDING] | [PENDING] | [PENDING] |
+| iBMC 2.x (2016-2019) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| iBMC 3.x (2019-2021) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| iBMC 4.x (2021-2023) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| iBMC 5.x (2023+) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| Atlas AI 서버 | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+
+##### Inspur ISBMC (lab 부재 — cycle 2026-05-01 사용자 명시)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| ISBMC (NF/TS) | [PENDING] | [PENDING] | [PENDING] (Oem.Inspur vs Oem.Inspur_System fallback 검증) | [PENDING] (M-A2 primary infraops + recovery admin/admin) |
+
+##### Fujitsu iRMC (lab 부재 — cycle 2026-05-01 사용자 명시)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| iRMC S2 | [SKIP] (Redfish 미지원 가능성) | [SKIP] | [SKIP] | [SKIP] |
+| iRMC S4 | [PENDING] | [PENDING] | [PENDING] | [PENDING] (M-A3 primary infraops + recovery admin/admin) |
+| iRMC S5 (PRIMERGY M5) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+| iRMC S6 (PRIMERGY M6/M7 + PRIMEQUEST) | [PENDING] | [PENDING] | [PENDING] | [PENDING] |
+
+##### Quanta QCT (lab 부재 — cycle 2026-05-01 사용자 명시)
+
+| generation | 사이트 fixture | baseline | lab cycle | vault 결정 |
+|---|---|---|---|---|
+| QCT BMC (S/D/T/J series) | [PENDING] | [PENDING] | [PENDING] — OpenBMC bmcweb 응답 검증 + Oem.Quanta_Computer_Inc vs Oem.QCT fallback | [PENDING] (M-A4 primary infraops + recovery admin/admin) |
+
+#### 우선순위 (사용자 명시 Q3 — 장기 미정)
+
+- 사이트 BMC 도입 가능 vendor 우선 (사용자 협의 후)
+- Supermicro / Huawei / Inspur / Fujitsu / Quanta 는 사이트 도입 미정 — 코드 path 만 깔림 (본 cycle 종료 시점)
+- 사이트 도입 시 우선순위는 별도 사용자 결정
+
+#### 후속 cycle 진입 절차 (7 단계)
+
+1. lab 도입 vendor / generation 결정 (사용자 협의)
+2. `capture-site-fixture` skill 로 사이트 fixture 캡처
+3. probe_redfish.py 또는 deep_probe_redfish.py 로 실장비 검증
+4. baseline_v1/{vendor}_baseline.json 생성 (rule 13 R4)
+5. tests/evidence/<날짜>-<vendor>-<generation>.md 작성
+6. docs/13_redfish-live-validation.md Round 갱신
+7. 본 NEXT_ACTIONS 표 [PENDING] → [DONE] 갱신
+
+---
+
 ## 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Session-1 — M-A1~A6 vendor default 계정 path 보장 [DONE])
 
 ### 사용자 명시 (2026-05-11)

@@ -20,6 +20,8 @@
 #   - "iBMC 3.x" (2019-2021, DSP0268 v1.8+, PowerSubsystem 부분)
 #   - "iBMC 4.x" (2021-2023, DSP0268 v1.10+, 표준 가까움)
 #   - "iBMC 5.x" (2023+, DSP0268 v1.13+, Atlas 분기)
+# Lab status: 부재 — web sources only (rule 96 R1-A — cycle 2026-05-01 사용자 명시)
+# Next action: FusionServer Pro V5/V6 + Atlas lab 도입 후 별도 cycle (iBMC 1.x~5.x 응답 형식 + Oem.Huawei sub-namespace 검증)
 # Compatibility 가정 (web sources):
 #   - manufacturer: "Huawei" / "Huawei Technologies Co., Ltd."
 #   - Manager URI 추정: /redfish/v1/Managers/iBMC (사이트 검증 필요)

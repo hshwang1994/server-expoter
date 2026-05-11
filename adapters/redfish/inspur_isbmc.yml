@@ -17,6 +17,8 @@
 #   - OEM namespace: Oem.Inspur (부분 사용 가능)
 #   - 표준 Redfish + IPMI 2.0
 # Vault: 미생성 (사용자 명시 2026-05-01)
+# Lab status: 부재 — web sources only (rule 96 R1-A — cycle 2026-05-01 사용자 명시)
+# Next action: NF/TS 시리즈 lab 도입 후 별도 cycle (ISBMC 펌웨어 응답 형식 확정 + Oem.Inspur vs Oem.Inspur_System fallback 검증)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_inspur_isbmc
 channel: redfish

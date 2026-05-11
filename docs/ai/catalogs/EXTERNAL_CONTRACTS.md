@@ -730,6 +730,145 @@ cycle-015 첫 연결성 검증에서 사용자 라벨 vs 실 Manufacturer drift 
 - **server-exporter 영향**: 현재 Health 만 raw passthrough → 호출자 시스템이 vendor 별 해석 책임
 - **대응**: 호환성 영역 외 (새 데이터 — 별도 cycle)
 
+## 일자: 2026-05-11 (cycle 2026-05-07 Phase 3 M-K2 — 9 vendor × N gen × source URL 매트릭스)
+
+> Phase 3 M-K2 — cycle 2026-05-07-all-vendor-coverage 의 9 vendor 통합 매트릭스.
+> Worker: W5 (Phase 3). 30 adapter origin 주석 일관성 (M-K1) 결과 통합. rule 96 R1+R1-A+R4+R5.
+
+### 사이트 검증 4 vendor × 1 generation (cycle 2026-05-06 commit `0a485823`)
+
+| vendor | generation | 사이트 BMC | 검증 commit | source URL | DSP0268 |
+|---|---|---|---|---|---|
+| Dell | iDRAC10 | 5대 (10.100.15.27/28/31/33/34) | `0a485823` | https://developer.dell.com/apis/2978/versions/ | v1.13+ |
+| HPE | iLO7 | 1대 (10.50.11.231) | `0a485823` | https://hewlettpackard.github.io/ilo-rest-api-docs/ | v1.13+ |
+| Lenovo | XCC3 | 1대 (10.50.11.232) | `0a485823` | https://lenovopress.lenovo.com/ + Lenovo XCC3 Redfish docs | v1.13+ |
+| Cisco | UCS X-series | 1대 (10.100.15.2) | `0a485823` | https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/x/ + Intersight Managed Mode | v1.13+ |
+
+### 9 vendor × N generation 매트릭스 (cycle 2026-05-07 종료 시점)
+
+#### Dell iDRAC (5 adapter)
+
+| generation | 펌웨어 매트릭스 | source URL | DSP0268 | lab |
+|---|---|---|---|---|
+| iDRAC7 (legacy) | 1.30+ ~ 2.x | https://developer.dell.com/apis/2978/ (archive) | v1.0+ | 부재 |
+| iDRAC8 | 2.30+ ~ 4.x | https://developer.dell.com/apis/2978/ + cycle 2026-05-06 M-D3 W1 PowerSubsystem fallback | v1.4+ | 부재 |
+| iDRAC9 | 3.x ~ 7.x | https://developer.dell.com/apis/2978/versions/3/docs/ | v1.6+ ~ v1.13+ | 부재 |
+| iDRAC10 | 6.x+ (Gen17) | https://developer.dell.com/apis/2978/versions/ | v1.13+ | **PASS** |
+
+#### HPE iLO + Superdome (6 adapter)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| iLO (legacy 1/2/3) | — | HPE archive + IPMI fallback 별도 | 미지원 또는 v1.0 부분 | 부재 |
+| iLO4 | 2.50+ | https://hewlettpackard.github.io/ilo-rest-api-docs/ilo4/ | v1.0+ | 부재 |
+| iLO5 | 1.40+ | https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/ | v1.4+ | 부재 |
+| iLO6 | 1.20+ (Gen11) | https://hewlettpackard.github.io/ilo-rest-api-docs/ilo6/ | v1.10+ | Round 11 부분 (DL380 Gen11 + 사이트 Gen12) |
+| iLO7 | 1.00+ (Gen12) | (사이트 검증 commit `0a485823`) | v1.13+ | **PASS** |
+| Superdome Flex | RMC 2.x ~ 3.x + iLO5 dual-manager | https://github.com/HewlettPackard/sdflexutils + HPE Superdome admin guide | v1.6+ | 부재 |
+
+#### Lenovo BMC/IMM/XCC (4 adapter)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| BMC (IBM legacy) | — | IBM xSeries archive | 미지원 | 부재 |
+| IMM2 | 1.x ~ 2.x | https://pubs.lenovo.com/imm2/ + cycle 2026-05-06 M-D3 W4 SimpleStorage fallback | v1.0+ ~ v1.1 | 부재 |
+| XCC + XCC2 | 1.x ~ 2.x | https://lenovopress.lenovo.com/.../xcc-redfish | v1.4+ ~ v1.10+ | 부재 |
+| XCC3 | 1.17+ | (사이트 검증 commit `0a485823`) — Accept-only header 정책 (rule 25 R7-A-1) | v1.13+ | **PASS** |
+
+#### Cisco UCS / CIMC (3 adapter)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| BMC (legacy) | — | UCS C-series archive + xml-api fallback | 미지원 또는 v1.0 부분 | 부재 |
+| CIMC C-series + S-series + B-series | 4.x ~ 6.x | https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/c/sw/api/ + F125 advisory (3.x 이하 cisco_bmc fallback) | v1.6+ ~ v1.10+ | 부재 (M4 lab tested 10.100.15.2) |
+| UCS X-series (standalone CIMC) | (사이트 검증) | https://www.cisco.com/c/en/us/td/docs/unified_computing/ucs/x/ + Intersight Managed Mode docs | v1.13+ | **PASS** |
+| UCS X-series (Intersight IMM 모드) | — | Intersight cloud (별도 채널 / 별도 cycle) | — | (server-exporter 범위 외) |
+
+#### Supermicro BMC (7 adapter — X10 신설 후)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| BMC (legacy) | — | https://www.supermicro.com/manuals/superserver/IPMI/ | v1.0+ | 부재 |
+| X9 | 1.x ~ 3.x | https://www.supermicro.com/manuals/other/RedfishUserGuide.pdf + X9 IPMI legacy | v1.0 | 부재 |
+| X10 | 1.x ~ 3.x (M-B1 cycle 2026-05-07 신설) | 위 동일 + AST2400 | v1.0+ | 부재 |
+| X11 + H11 (AMD) | 1.x ~ 3.x | 위 동일 + AST2500 | v1.4+ | 부재 |
+| X12 + H12 | 1.x+ | https://www.supermicro.com/manuals/other/RedfishUserGuide.pdf + AST2600 (Whitley/Tatlow) | v1.6+ | 부재 |
+| X13 + H13 + B13 | 1.x+ | https://www.supermicro.com/manuals/other/BMC_IPMI_X13_H13_B13.pdf | v1.8+ | 부재 |
+| X14 + H14 | 1.x+ (Redfish 1.21.0) | https://www.supermicro.com/manuals/other/BMC_IPMI_X14_H14.pdf | v1.10+ ~ v1.13+ | 부재 |
+| ARS (ARM, 선택) | 1.x+ | https://www.supermicro.com/manuals/other/ + ARM specific notes | v1.10+ | 부재 |
+
+#### Huawei iBMC (1 adapter)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| iBMC 1.x ~ 5.x + Atlas | 다양 | https://support.huawei.com/enterprise/en/doc/EDOC1000163550/ + https://github.com/Huawei/Huawei-iBMC-Cmdlets | v1.0+ ~ v1.13+ | 부재 (cycle 2026-05-01 사용자 명시) |
+
+#### Inspur ISBMC (1 adapter)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| ISBMC (NF/TS 시리즈) | 1.x+ | https://www.inspur.com/eportal/ + manualzz NF5280M5 9.14 Redfish | v1.0+ | 부재 (cycle 2026-05-01 사용자 명시) |
+
+#### Fujitsu iRMC (1 adapter)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| iRMC S2 | — | https://support.ts.fujitsu.com/ (legacy archive) | 미지원 또는 v1.0 부분 | 부재 |
+| iRMC S4 | 9.x+ | https://github.com/fujitsu/iRMCtools + iRMC-REST-API | v1.0+ ~ v1.4+ | 부재 |
+| iRMC S5 | 1.x+ | https://manualzz.com/doc/37690590/irmc-restful-api-v5.0 (PRIMERGY iRMC S5 RESTful API Spec) | v1.6+ | 부재 |
+| iRMC S6 | 1.x+ | https://support.ts.fujitsu.com/IndexDownload.asp (S6 User Guide) | v1.10+ | 부재 |
+
+#### Quanta QCT (1 adapter)
+
+| generation | 펌웨어 | source | DSP0268 | lab |
+|---|---|---|---|---|
+| QCT BMC (OpenBMC bmcweb) — S/D/T/J series | 다양 | https://www.qct.io/product/ + https://catalog.redhat.com/ + https://bmc-toolbox.github.io/ (multi-vendor abstraction) | v1.4+ ~ v1.10+ | 부재 |
+
+### OEM namespace mapping (M-I3 + M-J1 통합 매트릭스)
+
+| vendor | namespace 우선 | namespace fallback | 정본 위치 |
+|---|---|---|---|
+| Dell | `Oem.Dell` | (없음) | redfish_gather.py `_OEM_NAMESPACE_FALLBACK_CHAIN` |
+| HPE | `Oem.Hpe` | `Oem.Hp` (iLO4 legacy) | 동상 |
+| Lenovo | `Oem.Lenovo` | (없음) | 동상 |
+| Cisco | `Oem.Cisco` | `Oem.Cisco_RackUnit` | 동상 + redfish-gather/tasks/vendors/cisco/ (M-J1 신설) |
+| Supermicro | `Oem.Supermicro` | (없음) | 동상 |
+| Huawei | `Oem.Huawei` | (없음) | 동상 + redfish-gather/tasks/vendors/huawei/ |
+| Inspur | `Oem.Inspur` | `Oem.Inspur_System` | 동상 + redfish-gather/tasks/vendors/inspur/ |
+| Fujitsu | `Oem.ts_fujitsu` | `Oem.Fujitsu` | 동상 + redfish-gather/tasks/vendors/fujitsu/ |
+| Quanta | `Oem.Quanta_Computer_Inc` | `Oem.QCT` | 동상 + redfish-gather/tasks/vendors/quanta/ |
+
+### DMTF Redfish 표준 reference
+
+| 영역 | spec |
+|---|---|
+| Data Model | DSP0268 (v1.0 ~ v1.13+) |
+| Resource & Schema Guide | DSP2046 |
+| Schema Bundle | DSP8010 |
+| AccountService | https://redfish.dmtf.org/schemas/v1/AccountService.json |
+| PowerSubsystem | https://redfish.dmtf.org/schemas/v1/PowerSubsystem.json (v1.8+ ~ v1.13+) |
+| Storage | https://redfish.dmtf.org/schemas/v1/Storage.json |
+| SimpleStorage (legacy) | https://redfish.dmtf.org/schemas/v1/SimpleStorage.v1_3_0.json |
+| Power (legacy) | https://redfish.dmtf.org/schemas/v1/Power.v1_8_0.json |
+
+### 갱신 정책 (rule 96 R5)
+
+- 펌웨어 업그레이드 / 신규 vendor 도입 시 본 매트릭스 갱신 의무 (cycle 단위)
+- 6개월 주기 origin URL dead link 검증
+- DRIFT 발견 시 (origin 주석 ↔ 실 응답 차이) FAILURE_PATTERNS.md + CONVENTION_DRIFT.md 동반 기록
+- 사이트 검증 (PASS) row 갱신은 별도 cycle (capture-site-fixture skill 결과 반영)
+
+### cycle 2026-05-07 산출 영향
+
+| 항목 | 변경 |
+|---|---|
+| adapter (Redfish) | 28 → 30 (+supermicro_x10 / +supermicro_ars) |
+| vendor OEM tasks | 4 → 9 (+cisco/huawei/inspur/fujitsu/quanta) |
+| OEM namespace mapping | 9 vendor 통합 매트릭스 (M-I3 helper + M-J1 Cisco vendor task) |
+| origin 주석 일관성 | 30/30 PASS (M-K1 verify_adapter_origin_check.py --all --redfish-only) |
+| EXTERNAL_CONTRACTS row | 30+ row (9 vendor × N generation) |
+| schema/sections.yml + field_dictionary.yml | 변경 0 (Q7 — schema 변경 0) |
+
 ## 정본 reference
 
 - `redfish-gather/library/redfish_gather.py` (정본 — 약 350줄, stdlib only)

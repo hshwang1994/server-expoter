@@ -23,6 +23,8 @@
 # Note: redfish_generic.yml (priority=0) 가 OpenBMC 기반 BMC 부분 cover.
 #   본 adapter 는 vendor 시그니처 명확한 경우 우선.
 # M-F1 cycle 2026-05-07-all-vendor-coverage: OEM tasks 신설 (standard+oem strategy)
+# Lab status: 부재 — web sources only (rule 96 R1-A — cycle 2026-05-01 사용자 명시)
+# Next action: QuantaGrid D54Q / D52BQ lab 도입 후 별도 cycle (OpenBMC bmcweb 응답 형식 + Oem.Quanta_Computer_Inc vs Oem.QCT fallback 검증)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_quanta_qct_bmc
 channel: redfish
