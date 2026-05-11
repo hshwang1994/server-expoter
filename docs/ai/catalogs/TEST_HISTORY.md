@@ -2,6 +2,28 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-11 (cycle field-channel-refinement)
+
+### 실행 결과
+- `pytest tests/ -x`: **621 PASS / 0 FAIL** (22.02s)
+- `python scripts/ai/measure_field_usage_matrix.py --self-test`: **19 PASS / 0 FAIL** (신규 측정 스크립트)
+- `python scripts/ai/measure_field_usage_matrix.py --update-md`: 520 cells 측정 완료
+- `python scripts/ai/hooks/output_schema_drift_check.py`: PASS (sections=10 / fd_paths=65 / fd_section_prefixes=16)
+- `python scripts/ai/hooks/envelope_change_check.py`: advisory 1건 (false-positive — envelope shape 변경 없음)
+- `python scripts/ai/verify_harness_consistency.py`: PASS (rules=28 / skills=51 / agents=60 / policies=10)
+
+### Schema 변경 영향 회귀
+- `schema/field_dictionary.yml` 3 entries channel 정밀화 (memory.visible_mb / memory.installed_mb / system.runtime)
+- envelope 13 필드 보존 확인 (rule 13 R5)
+- baseline 8개 변경 0건 (Additive only — rule 92 R2)
+
+### 매트릭스 측정 통계
+- 4 상태 분포: present 302 / null 28 / empty 66 / not_supported 70 / missing 54 = 520
+- 분류 1 후보: 16 → 13 (channel 정밀화 3건 적용)
+- 분류 2 후보: 14
+- 분류 3? 후보: 1 (Dell OEM 한정 — 의도된 동작)
+- Drift 검출: 12 → 8 (남은 8건은 conditional / 환경 한정 — channel 유지)
+
 ## 2026-05-11 (Phase 7 — ticket_consistency 격상 + advisory hook 격상 4/4 완료)
 
 ### 사용자 명시

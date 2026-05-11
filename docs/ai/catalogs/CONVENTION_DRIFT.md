@@ -19,6 +19,27 @@
 
 ---
 
+## DRIFT-016 (2026-05-11, resolved cycle field-channel-refinement)
+
+- **발견 위치**: `schema/field_dictionary.yml` 의 다음 3 entries
+  - `memory.installed_mb` (line 267-277) — channel `[redfish, os, esxi]` 선언
+  - `memory.visible_mb` (line 279-288) — channel `[redfish, os, esxi]` 선언
+  - `system.runtime` (line 950+) — channel `[os]` 선언
+- **분류**: convention-violation (channel 선언 ↔ baseline 실측 불일치)
+- **설명**: `field_dictionary.yml` 의 `channel:` 배열이 8 baseline 실측과 불일치. 사용자 명시 — "Redfish memory.visible_mb 같은 항상 null 인 필드 정리".
+  - `memory.visible_mb × redfish`: Redfish API spec 미정의 (Memory.v1_*.json 에 VisibleMiB 없음) — 4 redfish baseline 모두 null
+  - `memory.installed_mb × esxi`: ESXi 는 ansible_memtotal_mb 만 (DIMM slot 없음)
+  - `system.runtime`: OS 채널 선언이지만 3 OS baseline 모두 missing. ESXi baseline 만 present (DRIFT-B)
+- **영향**: 호출자 시스템이 channel 배열을 lookup 으로 사용 시 잘못된 가정 가능
+- **제안**: channel 배열 정밀화 + help_ko 갱신 + add-new-vendor skill 에 분류 검증 단계 추가
+- **상태**: resolved (cycle field-channel-refinement Phase 3 적용)
+  - `memory.visible_mb` `[redfish, os, esxi]` → `[os, esxi]`
+  - `memory.installed_mb` `[redfish, os, esxi]` → `[redfish, os]`
+  - `system.runtime` `[os]` → `[esxi]`
+- **관련**: rule 13 R7 / rule 28 R1 #13 / rule 70 R8 / rule 92 R2 / rule 96 R1-B / ADR-2026-05-11-field-channel-declaration-refinement / `docs/ai/catalogs/FIELD_USAGE_MATRIX.md` / `scripts/ai/measure_field_usage_matrix.py`
+
+---
+
 ## DRIFT-001 (2026-04-27)
 
 - **발견 위치**: 본 하네스 도입 시점 catalog (Plan 3) ↔ 실 코드 (`schema/field_dictionary.yml`)

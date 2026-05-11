@@ -136,3 +136,15 @@ targets:
       - "새 vendor 추가 (rule 50 R2)"
       - "벤더 펌웨어 업그레이드"
       - "schema/sections.yml 변경 (sections 10 영향)"
+
+  field_usage_matrix:
+    id: 13
+    description: "FIELD_USAGE_MATRIX (field × baseline × 4 상태) — field_dictionary 65 entries × 8 baseline 실측 사용 실태 + 분류 1/2/3 후보 + channel drift"
+    measure_command: "python scripts/ai/measure_field_usage_matrix.py --update-md"
+    storage:
+      - "docs/ai/catalogs/FIELD_USAGE_MATRIX.md"
+    ttl_days: 14
+    invalidation_triggers:
+      - "schema/field_dictionary.yml 변경"
+      - "schema/baseline_v1/*.json 변경"
+      - "adapters/{redfish,os,esxi}/*.yml capabilities 변경"

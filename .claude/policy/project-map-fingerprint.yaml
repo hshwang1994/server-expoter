@@ -10,5 +10,5 @@ lookup_plugins: 68f78b116603
 module_utils: 32d2047adc60
 os-gather: 70e90fa6dd45
 redfish-gather: 5fb8d0fdf004
-schema: 20d4663b22d8
+schema: 5bda4810b8c6
 tests: 3b2ab734dc53

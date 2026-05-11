@@ -1,5 +1,37 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-11 (cycle field-channel-refinement — field_dictionary channel 정밀화 + FIELD_USAGE_MATRIX 신설 [DONE])
+
+### 컨텍스트
+- 사용자 명시: "개더링 시 실제 사용하는 JSON 값 분류 — Redfish memory.visible_mb 같은 항상 null 인 필드 정리. 분류 3 (수집 불가 / 서버 미지원 / 코드 버그)"
+- 사용자 결정 (AskUserQuestion 4 항목): channel filtering 정밀화 + 전수 (65 × 8) + 분류 cycle 안에서 즉시 fix + add-new-vendor skill 단계 추가
+
+### 결과 (5 Phase 완료)
+
+- **Phase 0**: `docs/ai/catalogs/FIELD_USAGE_MATRIX.md` 골격 — rule 70 R1 신규 catalog
+- **Phase 1**: `scripts/ai/measure_field_usage_matrix.py` 신규 (520 cells 자동 측정 + 19 self-test PASS)
+  - 측정 대상 #13 등록 (`.claude/policy/measurement-targets.yaml` + rule 28 R1 표 13종)
+- **Phase 2**: 자동 매트릭스 사람 검토 — 분류 1 13건 / 분류 2 14건 / 분류 3? 1건 (Dell OEM 한정 — 재분류) / NEXT_ACTIONS 등재 2건
+- **Phase 3**: `schema/field_dictionary.yml` channel 정밀화 3건
+  - `memory.visible_mb` `[redfish, os, esxi]` → `[os, esxi]` (사용자 핵심 사례 해소 — Redfish spec 미정의)
+  - `memory.installed_mb` `[redfish, os, esxi]` → `[redfish, os]` (ESXi 미수집)
+  - `system.runtime` `[os]` → `[esxi]` (DRIFT-B 해소)
+- **Phase 4**: docs/20 동기화 (rule 13 R7) + `add-new-vendor` skill 단계 10 (필드 분류 검증) + ADR-2026-05-11-field-channel-declaration-refinement
+
+### 회귀 검증
+- pytest: 621 PASS / 0 FAIL
+- output_schema_drift_check / envelope_change_check / verify_harness_consistency: ALL PASS
+- 매트릭스 결과: 분류 1 58 → 13 (false-positive 45 제거) / drift 12 → 8
+
+### NEXT_ACTIONS 후속 cycle
+- F1: meta.duration_ms × cisco baseline null 갱신 (재캡처)
+- F2: cpu.summary × rhel810 빌더 추가
+- F3: Supermicro baseline 확보
+- F4: 베어메탈 Windows / ESXi baseline 확보
+- F5: OS channel system.runtime 구현
+
+---
+
 ## 일자: 2026-05-11 (cycle adapter-selection-review — adapter 선택 단계 검증 + DRIFT-015 fix [DONE])
 
 ### 컨텍스트

@@ -5,7 +5,7 @@
 ## 적용 대상
 
 - AI가 코드 변경/설계/리팩토링 중 "현재 상태"를 참조하는 모든 장면
-- 11종 측정 대상 (`.claude/policy/measurement-targets.yaml` 참조)
+- 13종 측정 대상 (`.claude/policy/measurement-targets.yaml` 참조)
 
 ## 배경
 
@@ -17,7 +17,7 @@
 
 ### R1. 측정 대상 카탈로그 (Best-Practice 고정)
 
-서버-exporter 11종 (정본: `.claude/policy/measurement-targets.yaml`):
+서버-exporter 13종 (정본: `.claude/policy/measurement-targets.yaml`):
 
 | # | 대상 | TTL | 무효화 trigger |
 |---|---|---|---|
@@ -33,6 +33,7 @@
 | 10 | 벤더 경계 위반 | 커밋마다 | 커밋 |
 | 11 | 외부 시스템 계약 (Redfish path 등) | 90일 | 펌웨어 업그레이드 / API path 변경 |
 | 12 | COMPATIBILITY-MATRIX (vendor × gen × section) | 14일 | adapter capabilities 변경 / 새 vendor / 펌웨어 업그레이드 |
+| 13 | FIELD_USAGE_MATRIX (field × baseline × 4 상태) | 14일 | field_dictionary.yml 수정 / baseline_v1/*.json 수정 / adapter capabilities 변경 |
 
 ### R2. AI 실측 수행 절차
 

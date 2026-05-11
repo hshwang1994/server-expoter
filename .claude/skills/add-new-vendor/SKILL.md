@@ -77,8 +77,16 @@ Round X 추가 (Huawei iBMC 3.x 검증)
 5. **adapter score 디버깅** — `score-adapter-match` skill로 새 vendor adapter가 의도대로 선택되는지
 6. **실장비 검증** — Round 검증 (rule 40 R2)
 7. **baseline 갱신** — `update-vendor-baseline` skill
-8. **PR 생성** — squash 머지 (rule 93 R5)
-9. **REQUIREMENTS.md 갱신** — 검증 완료된 펌웨어 목록 추가
+8. **필드 분류 검증** (cycle 2026-05-11 field-channel-refinement 신설):
+   ```
+   python scripts/ai/measure_field_usage_matrix.py --update-md
+   ```
+   - 새 vendor baseline 추가 후 `docs/ai/catalogs/FIELD_USAGE_MATRIX.md` 자동 갱신
+   - 분류 1 후보 (모든 baseline null) 신규 발견 시 channel 정밀화 별도 cycle 검토
+   - DRIFT-B 검출 시 (미선언 channel 에서 present) field_dictionary `channel:` 추가
+   - 분류 3? 의심 발견 시 즉시 코드 fix (rule 95 R3 회귀 의무) 또는 NEXT_ACTIONS 등재
+9. **PR 생성** — squash 머지 (rule 93 R5)
+10. **REQUIREMENTS.md 갱신** — 검증 완료된 펌웨어 목록 추가
 
 ## site.yml 수정 불필요
 
@@ -104,7 +112,7 @@ Round X 추가 (Huawei iBMC 3.x 검증)
 - rule 96 R1 (origin 주석)
 - (cycle-011: rule 60 해제 — vault encrypt는 cycle-012에서 운영 권장으로 채택)
 - rule 40 (baseline 회귀)
-- skill: `probe-redfish-vendor`, `update-vendor-baseline`, `score-adapter-match`, `vendor-change-impact`
+- skill: `probe-redfish-vendor`, `update-vendor-baseline`, `score-adapter-match`, `vendor-change-impact`, `measure_field_usage_matrix.py` (단계 8 — 필드 분류 검증)
 - agent: `vendor-onboarding-worker` (이 skill의 메인 실행자), `adapter-author`
 - 정본: `docs/14_add-new-gather.md`, `docs/13_redfish-live-validation.md`
 - reference: `docs/ai/references/redfish/redfish-spec.md` (BMC 매핑)

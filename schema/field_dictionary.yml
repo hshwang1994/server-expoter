@@ -267,25 +267,33 @@ fields:
   memory.installed_mb:
     type: "integer|null"
     priority: must
-    channel: [redfish, os, esxi]
+    channel: [redfish, os]
+    # cycle 2026-05-11 field-channel-refinement: ESXi channel 제거.
+    # 근거: esxi_baseline.json 의 installed_mb=null (ansible_memtotal_mb 만 수집,
+    # DIMM 슬롯 정보 없음). field_usage_matrix 분류 1 (수집 불가).
     help_ko: >-
       물리적으로 장착된 메모리 용량 (MB).
-      Redfish 채널에서 주로 제공. OS 채널에서는 null일 수 있음.
+      Redfish 채널에서 주로 제공. OS 채널에서는 dmidecode 권한 부족 시 null 가능.
+      ESXi 채널은 미수집 (ansible_memtotal_mb 만 제공) — channel 에서 제외 (cycle 2026-05-11).
       total_mb와 동일한 값일 수 있으나, total_basis가 다르면 의미가 다름.
     help_en: >-
       Physically installed memory capacity (MB).
-      Primarily provided by Redfish. May be null in OS channel.
+      Primarily provided by Redfish. May be null in OS channel (dmidecode permission).
+      ESXi channel excluded (cycle 2026-05-11) — ansible_memtotal_mb only.
 
   memory.visible_mb:
     type: "integer|null"
     priority: must
-    channel: [redfish, os, esxi]
+    channel: [os, esxi]
+    # cycle 2026-05-11 field-channel-refinement: Redfish channel 제거.
+    # 근거: Redfish spec 미정의 (Memory.v1_*.json 에 VisibleMiB 필드 없음).
+    # 4 redfish baseline (dell/hpe/lenovo/cisco) 모두 null. field_usage_matrix 분류 1.
     help_ko: >-
       운영체제 또는 하이퍼바이저가 인식하는 메모리 용량 (MB).
-      OS/ESXi 채널에서 주로 제공. Redfish 채널에서는 null.
+      OS/ESXi 채널 전용. Redfish 는 BMC API spec 미정의 — channel 에서 제외 (cycle 2026-05-11).
     help_en: >-
       OS or hypervisor visible memory capacity (MB).
-      Primarily provided by OS/ESXi. null in Redfish channel.
+      OS/ESXi channels only. Redfish excluded (cycle 2026-05-11) — not defined in BMC spec.
 
   # ──────────────────────────────────────────────────────────────────────────
   # storage
@@ -759,14 +767,18 @@ fields:
     enum: ["port", "protocol", "auth"]
     priority: nice
     channel: [redfish, os, esxi]
+    # cycle 2026-05-11 field-channel-refinement: conditional 필드 — channel 유지.
+    # success status baseline 에서 항상 null (실패하지 않음). 실패 status fixture
+    # 추가 시 채워짐. field_usage_matrix 자동 분류 1 (모든 baseline null) 은
+    # success-only baseline 한계 — conditional 분류 (channel 축소 안 함).
     help_ko: >-
-      실패 시 어느 단계에서 실패했는지.
+      실패 시 어느 단계에서 실패했는지. **conditional 필드** — status=failed 시만 채워짐.
       port=포트 연결 실패, protocol=프로토콜 미지원, auth=인증 실패.
-      null=실패하지 않았거나 단계 확인 불가.
+      null=실패하지 않았거나 단계 확인 불가 (success status baseline 에서 항상 null).
     help_en: >-
-      Failure stage indicator.
+      Failure stage indicator. **Conditional field** — populated only when status=failed.
       port=port connection failed, protocol=not supported, auth=auth failed.
-      null=no failure or stage unknown.
+      null=no failure or stage unknown (always null in success-status baselines).
 
   # ══════════════════════════════════════════════════════════════════════════
   # Do Not Help (skip) — 의미가 자명하여 등록하되 설명은 최소한
@@ -950,12 +962,19 @@ fields:
   "system.runtime":
     type: "object"
     priority: nice
-    channel: [os]
+    channel: [esxi]
+    # cycle 2026-05-11 field-channel-refinement: OS channel → ESXi channel 로 변경.
+    # 근거 (field_usage_matrix 실측):
+    #   - esxi_baseline.json 의 system.runtime present (ESXi 만 실측 구현)
+    #   - 3 OS baseline (rhel810/ubuntu/windows) 모두 missing (코드 미구현)
+    # NEXT_ACTIONS F5 등재: OS channel system.runtime 구현 추가 시 channel 재확장.
     help_ko: >-
-      OS 운영 런타임 정보. timezone, ntp_active/synchronized, firewall_tool/state,
+      운영 런타임 정보. timezone, ntp_active/synchronized, firewall_tool/state,
       listening_ports, swap_total/used/free (Linux) 또는 pagefiles[] (Windows).
+      현재 ESXi 채널 만 구현 — OS 채널 구현은 향후 cycle (cycle 2026-05-11 channel 변경).
       best-effort: 수집 불가 시 null/[].
     help_en: >-
       OS runtime info. timezone, ntp_active/synchronized, firewall_tool/state,
       listening_ports, swap_total/used/free (Linux) or pagefiles[] (Windows).
+      Currently ESXi channel only (cycle 2026-05-11) — OS channel impl pending.
       Best-effort: null/[] when unavailable.

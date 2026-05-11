@@ -242,13 +242,19 @@ if response["data"]["hardware"].get("health") == "Critical":
 "memory": {
   "total_mb":     655360,                // 합계 메모리 (이 케이스 640 GB)
   "total_basis":  "physical_installed",  // 합계의 산출 기준
-  "installed_mb": 655360,                // 물리 장착 (Redfish 가 채움)
-  "visible_mb":   null,                  // OS / ESXi 가 보는 양 (해당 채널만 채움)
+  "installed_mb": 655360,                // 물리 장착 (Redfish / OS 채널)
+  "visible_mb":   null,                  // OS / ESXi 가 보는 양 (Redfish 미수집 — spec 미정의)
   "free_mb":      null,                  // 가용량 (OS 채널 전용)
   "slots":        [ /* DIMM 개별 정보 */ ],
   "summary":      { /* 같은 단위 DIMM 묶은 집계 */ }
 }
 ```
+
+**Channel 매핑 (cycle 2026-05-11 field-channel-refinement)**:
+- `installed_mb` channel: `[redfish, os]` — ESXi 는 ansible_memtotal_mb 만 (DIMM slot 미수집) → channel 제외
+- `visible_mb` channel: `[os, esxi]` — Redfish API spec 미정의 (`Memory.v1_*.json` 에 `VisibleMiB` 없음) → channel 제외
+- `free_mb` channel: `[os]` — OS 채널 전용
+- 정본: `schema/field_dictionary.yml` 의 memory.installed_mb / memory.visible_mb / memory.free_mb 의 `channel:` 배열
 
 `total_basis` 값으로 어느 채널 기준인지 안다.
 
@@ -398,6 +404,7 @@ hostname = system.hostname  OR  system.fqdn  OR  ip_fallback
 | 벤더별 회귀 기준선 JSON | `schema/baseline_v1/{vendor}_baseline.json` |
 | 섹션 정의 원본 | `schema/sections.yml` |
 | 필드 사전 원본 | `schema/field_dictionary.yml` |
+| **필드 × baseline 사용 실태 매트릭스 (4 상태)** | **`docs/ai/catalogs/FIELD_USAGE_MATRIX.md` (cycle 2026-05-11 신규, 측정 대상 #13)** |
 | 출력 조립 코드 | `common/tasks/normalize/build_output.yml` |
 | 채널 흐름 | `docs/06_gather-structure.md`, `docs/07_normalize-flow.md` |
 | 진단 단계 상세 | `docs/11_precheck-module.md` |

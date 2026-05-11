@@ -1,5 +1,30 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-11 (cycle field-channel-refinement 후속 [PENDING])
+
+### 본 cycle 결과 (Phase 1~5 완료)
+
+- **분류 1 16 cells** 중 8 cells → `field_dictionary.yml` channel 정밀화 적용
+- **분류 2 14 cells** → help_ko 갱신 (vendor/환경별 동작 명시)
+- **분류 3? 의심 1 cell** (`boot_volume × redfish`) → Dell OEM 한정 (분류 2 재분류)
+- **NEXT_ACTIONS 후보 2 cells** (아래)
+
+### 본 cycle 외 별도 fix 필요 (cycle field-channel-refinement-followup)
+
+| # | 항목 | trigger | 책임 |
+|---|---|---|---|
+| F1 | `meta.duration_ms × cisco_baseline.json` null 갱신 | cisco 실장비 재캡처 시 (started_at/finished_at 차이 = 약 226000ms 채움) | rule 13 R4 + `update-vendor-baseline` skill |
+| F2 | `cpu.summary × rhel810_raw_fallback` summary 빌더 코드 추가 | RHEL 8.10 raw fallback 환경 1대 확보 후 | `os-gather/tasks/linux/gather_cpu.yml` raw fallback 경로 |
+| F3 | Supermicro baseline 확보 (cycle field-channel 정확도 향상) | Supermicro 사이트 BMC IP 확보 | `update-vendor-baseline` skill (rule 13 R4) |
+| F4 | 베어메탈 Windows baseline 확보 | 베어메탈 Windows Server 확보 | `windows_baseline.json` 의 memory.slots 채워짐 검증 |
+
+### Phase 2 진입 trigger (자율 결정 가능)
+
+- F1 / F2 / F3 / F4 중 trigger 1개 이상 충족 시 별도 cycle 진입
+- Phase 1 cycle (본 cycle) 의 `FIELD_USAGE_MATRIX.md` 정합성 재검증 — `python scripts/ai/measure_field_usage_matrix.py --update-md`
+
+---
+
 ## 일자: 2026-05-11 (cycle adapter-selection-review — Supermicro firmware_patterns 검증 후속 [PENDING])
 
 ### 사용자 명시 (2026-05-11)
