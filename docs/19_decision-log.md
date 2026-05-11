@@ -8,6 +8,85 @@
 
 > 최종 갱신: 2026-05-11
 
+## 2026-05-11 — HPE Compute Scale-up Server 3200 (CSUS 3200) adapter 추가 (lab 부재)
+
+### 사용자 명시 (2026-05-11)
+- "hpe csus 장비도 개더링이 필요하다."
+- AskUserQuestion 응답: CSUS = HPE Compute Scale-up Server 3200 / lab 부재 — web sources only / BMC 정보 모름
+- 사용자 승인 결정 3종 (priority=96 / vault profile=hpe 재사용 / OEM regex 확장 Additive) 모두 본 cycle 적용
+
+### 컨텍스트
+
+CSUS3200 매칭 패턴이 부재하여 현재 `hpe_ilo.yml` (priority=10) generic fallback 됨 → Oem.Hpe.PartitionInfo / FlexNodeInfo / GlobalConfiguration (nPAR 정보) 수집 누락. HPE 공식 자료 명시 *"built on the proven HPE Superdome Flex architecture"* (HPE psnow doc/a50009596enw) 로 Superdome Flex 와 동일 RMC + Oem.Hpe namespace 가정 가능.
+
+### 결정
+
+1. **별도 adapter 파일 신설** (rule 50 R2 "새 모델 = 새 adapter") — `adapters/redfish/hpe_csus_3200.yml` 신규
+2. **priority = 96** — Superdome Flex (95) 직상, iLO 6 (100) 직하. model_patterns 분리로 ProLiant 영향 0 (rule 12 R2 일관성)
+3. **HPE 공통 OEM tasks 재사용** — `redfish-gather/tasks/vendors/hpe/{collect,normalize}_oem.yml` 의 model regex 확장 (Additive only, rule 92 R2):
+   - 기존: `(?i)Superdome|Flex`
+   - 변경: `(?i)Superdome|Flex|Compute Scale-up|CSUS`
+   - fragment field name (`oem_hpe_superdome`) 유지 — envelope shape 영향 0 (rule 13 R5)
+4. **vault profile = "hpe" 재사용** (rule 50 R2 단계 4) — 별도 `vault/redfish/hpe_csus.yml` 분리는 NEXT_ACTIONS 등재
+5. **baseline / fixture SKIP** (rule 50 R2 단계 10 — lab 부재). NEXT_ACTIONS.md 에 4 항목 등재 (rule 96 R1-C)
+6. **firmware_patterns 추정**: `^[34]\\.[0-9]+\\..*` (RMC 3.x/4.x — Superdome Flex 2.x/3.x 후속, 사이트 실측 시 정정)
+
+### 대안 거절 사유
+
+| 대안 | 거절 사유 |
+|---|---|
+| Superdome Flex adapter 의 model_patterns 만 확장 | CSUS3200 은 DDR5 신라인 + RMC firmware 세대 다름. 펌웨어/모델 매트릭스 추적 흐려짐. Round 검증 후 별도 baseline 필요 |
+| 새 HPE sub-vendor 신설 (`hpe_csus` 별도) | HPE 동일 vendor (Manufacturer = "HPE / Hewlett Packard Enterprise"). vendor_aliases.yml 변경 불필요 |
+| OEM tasks 별도 분리 (collect_csus_oem.yml 신설) | Oem.Hpe namespace 동일 + PartitionInfo/FlexNodeInfo 상속. 재사용이 단순 + Additive 검증 용이 |
+
+### 적용 변경
+
+| 영역 | 변경 |
+|---|---|
+| `adapters/redfish/hpe_csus_3200.yml` | 신규 (priority=96, web sources 7건 origin 주석) |
+| `redfish-gather/tasks/vendors/hpe/collect_oem.yml` | model regex 확장 (Additive) + 주석 갱신 |
+| `redfish-gather/tasks/vendors/hpe/normalize_oem.yml` | model regex 확장 (Additive) + 주석 갱신 |
+| `.claude/ai-context/vendors/hpe.md` | CSUS3200 절 추가 |
+| `docs/ai/catalogs/VENDOR_ADAPTERS.md` | HPE 6 → 7 adapter / 30 → 31 total / priority 일관성 갱신 |
+| `docs/13_redfish-live-validation.md` | 16.3 / 16.3.1 항목 추가 |
+| `docs/ai/CURRENT_STATE.md` | adapter count 30 → 31 / HPE 6 → 7 |
+| `docs/ai/NEXT_ACTIONS.md` | CSUS3200 lab 도입 후 cycle 4 항목 (rule 96 R1-C) |
+| `docs/ai/catalogs/EXTERNAL_CONTRACTS.md` | HPE CSUS 3200 source 7종 URL 등재 |
+
+### Web Sources (rule 96 R1-A — lab 부재 vendor 의무, 확인 2026-05-11)
+
+1. [HPE CSUS 3200 FAQ](https://cdrdv2-public.intel.com/792357/FAQ%20-%20HPE%20Compute%20Scale-up%20Server%203200.pdf) — RMC + 표준 Redfish API
+2. [HPE psnow architecture and RAS](https://www.hpe.com/psnow/doc/a50009596enw) — "built on the proven HPE Superdome Flex architecture"
+3. [HPE store product page](https://buy.hpe.com/us/en/compute/mission-critical-x86-servers/compute-scale-up-servers/compute-scale-up-servers/hpe-compute-scale-up-server-3200/p/1014774076) — 4-socket / DDR5
+4. [HPE Server Management Portal](https://servermanagementportal.ext.hpe.com/) — RMC Redfish 표준
+5. [HPE Support sd00001798en_us](https://support.hpe.com/hpesc/public/docDisplay?docId=sd00001798en_us) — CSUS 3200 / Superdome Flex 공통 support
+6. [Redfish DMTF DSP0266 v1.15](https://redfish.dmtf.org/schemas/DSP0266_1.15.0.html) — 표준 schema
+7. [iLO 5 API Reference](https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/) — Oem.Hpe namespace reference
+
+### 검증
+
+- 정적: `ansible-playbook --syntax-check redfish-gather/site.yml` / yamllint / verify_harness_consistency / verify_vendor_boundary
+- 동적: score-adapter-match mock — CSUS 3200 / ProLiant Gen11 (회귀) / Superdome Flex 280 (회귀) 각각 올바른 adapter 선택 확인
+- 회귀: HPE baseline (`hpe_baseline.json` — DL380 Gen11 iLO 6) 통과 (model_patterns 분리로 영향 0)
+
+### rule 70 R8 trigger 적용
+
+- trigger 1 (rule 본문 의미 변경): 0 (rule 변경 없음)
+- trigger 2 (표면 카운트 변경 — `.claude/policy/surface-counts.yaml`): 0 (하네스 surface 카운트 — adapter 카운트는 별도)
+- trigger 3 (보호 경로 정책 변경): 0
+- → ADR 의무 아님. 본 decision-log entry + VENDOR_ADAPTERS / hpe.md 갱신으로 governance trace
+
+### lab 도입 후 NEXT_ACTIONS 4 항목 (rule 96 R1-C)
+
+| # | 항목 | trigger | 책임 |
+|---|---|---|---|
+| 1 | 사이트 fixture 캡처 | BMC IP 확보 | capture-site-fixture skill |
+| 2 | baseline JSON 추가 (`schema/baseline_v1/hpe_csus_3200_baseline.json`) | 실장비 검증 후 | rule 13 R4 + update-vendor-baseline skill |
+| 3 | lab 도입 cycle (`hpe-csus-3200-lab-validation` round) | 별도 round 진입 | Round 검증 + 펌웨어 매트릭스 확정 |
+| 4 | vault 분리 결정 (`vault/redfish/hpe_csus.yml`) | 사용자 명시 승인 시 | 현재 hpe 재사용 — 사용자 결정 시 분리 |
+
+---
+
 ## 2026-05-11 — Phase 7 ticket_consistency hook BLOCKING 격상 (4/4 완료)
 
 ### 사용자 명시 (2026-05-11)

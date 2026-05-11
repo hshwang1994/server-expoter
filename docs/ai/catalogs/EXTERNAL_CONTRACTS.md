@@ -2,6 +2,50 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-11 (cycle hpe-csus-add — HPE Compute Scale-up Server 3200 web sources 등재)
+
+> 사용자 명시 (2026-05-11): "hpe csus 장비도 개더링이 필요하다."
+> Worker: AI 단일 세션. lab 부재 + web sources only (rule 96 R1-A).
+
+### HPE Compute Scale-up Server 3200 (CSUS 3200) — web sources 7건
+
+| # | source URL | 영역 | 확인일 |
+|---|---|---|---|
+| 1 | https://cdrdv2-public.intel.com/792357/FAQ%20-%20HPE%20Compute%20Scale-up%20Server%203200.pdf | RMC + 표준 Redfish API 명시 (HPE CSUS 3200 FAQ) | 2026-05-11 |
+| 2 | https://www.hpe.com/psnow/doc/a50009596enw | "built on the proven HPE Superdome Flex architecture" — 아키텍처 + RAS 강조 | 2026-05-11 |
+| 3 | https://buy.hpe.com/us/en/compute/mission-critical-x86-servers/compute-scale-up-servers/compute-scale-up-servers/hpe-compute-scale-up-server-3200/p/1014774076 | HPE store 제품 페이지 — 4-socket / DDR5 / Xeon SP 사양 | 2026-05-11 |
+| 4 | https://servermanagementportal.ext.hpe.com/ | HPE Server Management Portal — RMC Redfish API 표준 reference | 2026-05-11 |
+| 5 | https://support.hpe.com/hpesc/public/docDisplay?docId=sd00001798en_us | HPE Support — CSUS 3200 + Superdome Flex 공통 support 영역 | 2026-05-11 |
+| 6 | https://redfish.dmtf.org/schemas/DSP0266_1.15.0.html | Redfish DMTF Specification v1.15 — 표준 schema | 2026-05-11 |
+| 7 | https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/ | iLO 5 API Reference — Oem.Hpe namespace reference (Superdome / CSUS 공유) | 2026-05-11 |
+
+### 외부 계약 추정 (lab 부재 — 사이트 실측 시 정정 의무)
+
+| 영역 | 추정 | 근거 |
+|---|---|---|
+| Manufacturer string | "HPE" / "Hewlett Packard Enterprise" | HPE 표준 (다른 HPE adapter 동일) |
+| Model string | "Compute Scale-up Server 3200" / "HPE Compute Scale-up Server 3200" / "CSUS 3200" | HPE 공식 제품명 (web sources 1, 3) |
+| Manager type | RMC (Rack Management Controller) | web sources 1, 4 |
+| Systems id pattern | "Partition0" / "Partition*" | Superdome Flex 상속 (web sources 2 + sdflexutils 실측 — Superdome Flex 와 동일 아키텍처) |
+| RMC firmware version | 3.x ~ 4.x | Superdome Flex 2.x/3.x 후속 (lab 실측 시 정정) |
+| Oem.Hpe.PartitionInfo | Systems 영역 | Superdome Flex 상속 (강한 추정 — HPE 공식 architecture 일치) |
+| Oem.Hpe.FlexNodeInfo | Chassis 영역 | Superdome Flex 상속 (lab 실측 시 정정) |
+| Oem.Hpe.GlobalConfiguration | Systems/Managers 영역 | Superdome Flex 상속 (lab 실측 시 정정) |
+
+### 외부 계약 변동 trigger
+
+- HPE RMC firmware 4.x / 5.x upgrade
+- HPE 제품 모델명 표기 변경 (예: "Compute Scale-up Server 3200" → "ProLiant Compute Scale-up 3200")
+- DMTF Redfish PowerSubsystem / Storage schema 신 버전 도입
+- 사이트 실측 응답이 추정값과 다를 경우 (rule 25 R7-A-1 — 사용자 실측 > spec)
+
+### 적용 위치
+
+- `adapters/redfish/hpe_csus_3200.yml` (origin 주석 7 source URL)
+- `redfish-gather/tasks/vendors/hpe/{collect,normalize}_oem.yml` (regex 확장 + source URL 갱신)
+
+---
+
 ## 일자: 2026-05-06 (M-D2 — COMPATIBILITY-MATRIX Gap 7 / BLOCK 6 web 검증)
 
 > 사용자 명시 (2026-05-06): "지금 추가한 코드 및 현재돼있는 코드가 지금 프로젝트에 지원하는 모든 밴더 모든 세대 모든 장비에도 지원해야해."

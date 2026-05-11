@@ -106,10 +106,13 @@ def _all_redfish_adapters() -> list[Path]:
 
 
 def test_adapter_directory_has_expected_count() -> None:
-    """29 adapter (generic 제외) 가 존재. drift 감지 — adapter 추가/삭제 시 회귀 알림."""
+    """30 adapter (generic 제외) 가 존재. drift 감지 — adapter 추가/삭제 시 회귀 알림.
+
+    cycle 2026-05-11 hpe-csus-add: 29 → 30 (hpe_csus_3200 신설).
+    """
     adapters = _all_redfish_adapters()
-    assert len(adapters) == 29, (
-        f"adapters/redfish/ 비-generic adapter 개수 drift: {len(adapters)} (기대 29). "
+    assert len(adapters) == 30, (
+        f"adapters/redfish/ 비-generic adapter 개수 drift: {len(adapters)} (기대 30). "
         f"adapter 추가/삭제 시 본 테스트 + docs/21 §6.5 + CLAUDE.md 카운트 동반 갱신."
     )
 

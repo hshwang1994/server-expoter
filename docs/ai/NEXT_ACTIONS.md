@@ -1,6 +1,36 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Phase 3 W5 — M-J1, K1~K2, L1~L4 [DONE])
+## 일자: 2026-05-11 (cycle hpe-csus-add — HPE CSUS 3200 adapter 추가 [DONE] + 4 후속 등재)
+
+### 사용자 명시 (2026-05-11)
+- "hpe csus 장비도 개더링이 필요하다."
+- 사용자 응답 — CSUS = Compute Scale-up Server 3200 / lab 부재 / BMC 미확보
+
+### 본 cycle 결과
+
+- `adapters/redfish/hpe_csus_3200.yml` 신설 (priority=96, web sources 7건)
+- HPE OEM tasks (`{collect,normalize}_oem.yml`) model regex 확장 Additive only
+- 30 → 31 Redfish adapter / HPE 6 → 7 adapter
+- 문서 7개 갱신 (rule 70 R1 매핑)
+
+### lab 도입 후 별도 cycle 권장 — HPE CSUS 3200 (rule 96 R1-C 4 항목)
+
+| # | 항목 | trigger | 책임 |
+|---|---|---|---|
+| 1 | 사이트 fixture 캡처 | BMC IP 확보 | capture-site-fixture skill (`tests/fixtures/hpe_csus_3200/`) |
+| 2 | baseline JSON 추가 (`schema/baseline_v1/hpe_csus_3200_baseline.json`) | 실장비 검증 후 | rule 13 R4 + update-vendor-baseline skill |
+| 3 | lab 도입 cycle (`hpe-csus-3200-lab-validation` round) | 별도 round 진입 | Round 검증 + 펌웨어 매트릭스 확정 + Partition0 응답 캡처 |
+| 4 | vault 분리 결정 (`vault/redfish/hpe_csus.yml`) | 사용자 명시 승인 시 | 현재 hpe 재사용 — 사용자 결정 시 분리 + rotate-vault skill |
+
+### 우선순위 결정 (사용자 결정 보류 — lab 도입 시 trigger)
+
+CSUS3200 lab 도입 cycle 의 진입 trigger:
+- 사이트 BMC IP 확보 (capture-site-fixture 즉시 적용 가능)
+- 또는 사이트 우선순위 결정 (사용자 명시 — 다른 lab 부재 vendor 와 비교)
+
+---
+
+## 이전 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Phase 3 W5 — M-J1, K1~K2, L1~L4 [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - Phase 3 OEM namespace + origin + catalog 7 ticket sequential 완료.
@@ -43,6 +73,7 @@
 | iLO6 | [PARTIAL] (Round 11 DL380 Gen11 + 사이트 Gen12) | [PENDING] | [PENDING] — PowerSubsystem dual + SmartStorage fallback 추가 검증 | [PENDING] |
 | iLO7 | [DONE] | [DONE] | [DONE] | [DONE] (M-A5 primary infraops + recovery admin/admin) |
 | Superdome Flex (Gen 1/2 + 280) | [PENDING] | [PENDING] | [PENDING] — "HPE Superdome Flex lab 검증" (RMC + Partition0 + iLO5 dual-manager) | [PENDING] |
+| **CSUS 3200 (Compute Scale-up Server, cycle 2026-05-11 신설)** | **[PENDING]** | **[PENDING]** | **[PENDING] — "HPE CSUS 3200 lab 검증" (RMC + PDHC + Partition0 + nPAR + DDR5 firmware 매트릭스)** | **[PENDING] (현재 hpe 재사용 — 사용자 명시 승인 시 별도 vault/redfish/hpe_csus.yml 분리)** |
 
 ##### Lenovo (XCC3 외 — 3 generation lab 미도입 + 2 SKIP)
 

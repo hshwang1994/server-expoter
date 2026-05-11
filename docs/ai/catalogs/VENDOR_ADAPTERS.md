@@ -1,7 +1,11 @@
 # VENDOR_ADAPTERS — server-exporter
 
 > 9 vendor x 채널별 adapter 매트릭스 (rule 28 #3 측정 대상, TTL 14일).
-> 실측 (`ls adapters/redfish/*.yml | wc -l`) — 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Phase 3 M-L2).
+> 실측 (`ls adapters/redfish/*.yml | wc -l`) — 2026-05-11 (cycle hpe-csus-add).
+>
+> **cycle 2026-05-11 변경**: 30 adapter → 31 adapter
+>   - `hpe_csus_3200.yml` 신설 (priority=96, HPE Compute Scale-up Server 3200, lab 부재 — web sources 7건)
+>   - HPE OEM tasks (collect_oem.yml / normalize_oem.yml) model regex 확장 Additive only (`Superdome|Flex` → `Superdome|Flex|Compute Scale-up|CSUS`)
 >
 > **cycle 2026-05-07 변경**: 27 adapter → 30 adapter
 >   - Phase 1: supermicro_x10 신설 (M-B1) + supermicro_ars 신설 (M-B3) + 4 신규 vendor OEM tasks 신설 (M-J1 Cisco 추가 = 5 신설)
@@ -15,11 +19,12 @@
 | cycle 2026-04-29 (production-audit) | 16 | (이전 baseline) |
 | cycle 2026-05-01 (gather-coverage) | 27 | +11 신규 vendor / generation (idrac10/ilo7/xcc3/superdome_flex/x12/x13/x14/cisco_ucs_xseries/huawei/inspur/fujitsu/quanta) |
 | cycle 2026-05-06 (multi-session) | 28 | +1 hpe_superdome_flex 정밀 분리 |
-| **cycle 2026-05-07 (all-vendor-coverage) Phase 3** | **30** | **+2 supermicro_x10 / supermicro_ars** |
+| cycle 2026-05-07 (all-vendor-coverage) Phase 3 | 30 | +2 supermicro_x10 / supermicro_ars |
+| **cycle 2026-05-11 (hpe-csus-add)** | **31** | **+1 hpe_csus_3200 (Compute Scale-up Server 3200, lab 부재)** |
 
 → 본 카탈로그는 Redfish adapter 만. OS (7) / ESXi (4) 별도 적용.
 
-## Redfish 채널 (30 adapters — cycle 2026-05-07 종료 시점)
+## Redfish 채널 (31 adapters — cycle 2026-05-11 hpe-csus-add 종료 시점)
 
 ### Dell (4 adapter)
 
@@ -30,12 +35,13 @@
 | `dell_idrac8.yml` | redfish_dell_idrac8 | 50 | iDRAC8 (2.40+) | 부재 |
 | `dell_idrac.yml` | redfish_dell_idrac | 10 | generic Dell fallback (iDRAC7 legacy cover) | 부재 |
 
-### HPE (6 adapter)
+### HPE (7 adapter — cycle 2026-05-11 +1 hpe_csus_3200)
 
 | Adapter | adapter_id | priority | Vendor / Generation | lab |
 |---|---|---|---|---|
 | `hpe_ilo7.yml` | redfish_hpe_ilo7 | **120** | iLO7 (Gen12, 1대) | **PASS** |
 | `hpe_ilo6.yml` | redfish_hpe_ilo6 | 100 | iLO6 (Gen11 + 사이트 Gen12) | Round 11 부분 |
+| `hpe_csus_3200.yml` | redfish_hpe_csus_3200 | 96 | **Compute Scale-up Server 3200 (CSUS, RMC + PDHC, DDR5, 2023+) — cycle 2026-05-11 신설** | 부재 (web sources 7건) |
 | `hpe_superdome_flex.yml` | redfish_hpe_superdome_flex | 95 | Superdome Flex (RMC + iLO5 dual-manager) | 부재 |
 | `hpe_ilo5.yml` | redfish_hpe_ilo5 | 90 | iLO5 (Gen10/10+) | 부재 |
 | `hpe_ilo4.yml` | redfish_hpe_ilo4 | 50 | iLO4 (Gen9, 2.30+) | 부재 |
@@ -112,7 +118,7 @@
 | Vendor | priority 순서 |
 |---|---|
 | Dell | 10 < 50 < 100 < 120 (generic < idrac8 < idrac9 < idrac10) [PASS] |
-| HPE | 10 < 50 < 90 < 95 < 100 < 120 (generic < ilo4 < ilo5 < superdome_flex < ilo6 < ilo7) [PASS] |
+| HPE | 10 < 50 < 90 < 95 < 96 < 100 < 120 (generic < ilo4 < ilo5 < superdome_flex < csus_3200 < ilo6 < ilo7) [PASS] |
 | Lenovo | 10 < 50 < 100 < 120 (bmc < imm2 < xcc < xcc3) [PASS] |
 | Cisco | 10 < 100 < 110 (bmc < cimc < ucs_xseries) [PASS] |
 | Supermicro | 10 < 50 < 75 < 80 < 90 < 100 < 100 < 110 (bmc < x9 < x10 < ars < x12 < x11/x13 < x14) [PASS — model_patterns tie-break] |
@@ -198,7 +204,8 @@ credentials:
 | 2026-04-29 (production-audit) | 16 | Dell/HPE/Lenovo/Supermicro placeholder |
 | 2026-05-01 (gather-coverage) | 27 (+11) | (변경 없음) |
 | 2026-05-06 (multi-session) | 28 (+1 hpe_superdome_flex) | (변경 없음) |
-| **2026-05-07 (all-vendor-coverage)** | **30 (+2: supermicro_x10/ars)** | **+5 (Cisco M-J1 / Huawei M-C2 / Inspur M-D1 / Fujitsu M-E2 / Quanta M-F1)** |
+| 2026-05-07 (all-vendor-coverage) | 30 (+2: supermicro_x10/ars) | +5 (Cisco M-J1 / Huawei M-C2 / Inspur M-D1 / Fujitsu M-E2 / Quanta M-F1) |
+| **2026-05-11 (hpe-csus-add)** | **31 (+1 hpe_csus_3200)** | **HPE regex 확장 Additive (Superdome|Flex → Superdome|Flex|Compute Scale-up|CSUS)** |
 
 ## 갱신 trigger (rule 28 #3)
 

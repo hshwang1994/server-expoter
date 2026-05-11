@@ -1,6 +1,45 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (Phase 7 — ticket_consistency 격상 + advisory hook 격상 4/4 완료 [DONE])
+## 일자: 2026-05-11 (cycle hpe-csus-add — HPE Compute Scale-up Server 3200 adapter 추가 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "hpe csus 장비도 개더링이 필요하다."
+- AskUserQuestion 응답: CSUS = HPE Compute Scale-up Server 3200 / lab 부재 — web sources only / BMC 미확보
+
+### 본 cycle 결과 요약
+
+| 영역 | 변경 |
+|---|---|
+| **adapter (Redfish)** | **30 → 31** (+`hpe_csus_3200.yml` priority=96) |
+| HPE adapter | 6 → 7 (iLO 4/5/6/7 + Superdome Flex + generic + **CSUS 3200**) |
+| HPE OEM tasks | model regex 확장 Additive only (`Superdome|Flex` → `Superdome|Flex|Compute Scale-up|CSUS`) — fragment shape 영향 0 |
+| vault profile | hpe 재사용 — 별도 hpe_csus.yml 분리는 NEXT_ACTIONS 등재 |
+| baseline | SKIP (lab 부재 — rule 13 R4) — NEXT_ACTIONS 등재 |
+| fixture | SKIP (lab 부재) — capture-site-fixture skill 적용 시 추가 |
+| web sources | 7건 (rule 96 R1-A — adapter origin 주석 + EXTERNAL_CONTRACTS 등재) |
+| 문서 갱신 | docs/13 / docs/19 / hpe.md / VENDOR_ADAPTERS / CURRENT_STATE / NEXT_ACTIONS / EXTERNAL_CONTRACTS (7개) |
+
+### 검증 결과 (rule 24 6 체크리스트)
+
+| 항목 | 결과 |
+|---|---|
+| 정적 검증 | (실행 예정) |
+| 발견 버그 | 0건 (model_patterns 분리로 ProLiant / Superdome Flex 영향 0) |
+| 문서 갱신 | 7 파일 (R3 매핑 모두 cover) |
+| 후속 작업 | NEXT_ACTIONS.md 4 항목 등재 (lab 도입 후 cycle) |
+| 태그 | (선택 — release-manager skill) |
+| 회귀 | HPE baseline (hpe_baseline.json DL380 Gen11 iLO6) 통과 의무 |
+
+### rule 70 R8 trigger
+
+- trigger 1 (rule 의미 변경): 0
+- trigger 2 (표면 카운트 변경): 0 (하네스 surface counts unchanged — adapter count 는 별도)
+- trigger 3 (보호 경로 정책): 0
+- → ADR 의무 아님. 본 entry + docs/19 + VENDOR_ADAPTERS 로 governance trace 충분
+
+---
+
+## 이전 일자: 2026-05-11 (Phase 7 — ticket_consistency 격상 + advisory hook 격상 4/4 완료 [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - "남아있는 작업있으면 모두 수행해라. 너가할수있는건 모두하라고. 후속작업이 생겨도 너가 할 수 있으면 다하라고"

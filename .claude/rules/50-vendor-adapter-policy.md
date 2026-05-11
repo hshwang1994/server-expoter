@@ -15,7 +15,7 @@
 - 9 vendor (Dell / HPE / Lenovo / Supermicro / Cisco + Huawei / Inspur / Fujitsu / Quanta) + generic fallback — 후 4종은 cycle-019 신규 (lab 부재, web sources)
 - 단일 main 브랜치 운영. branch는 `main` + `feature/*` + `fix/*` + `vendor/*` (벤더 추가 시) + `docs/*` + `harness/*`
 - vendor별 plugin 모듈 없음 — adapter YAML + OEM tasks + vault만
-- 41 adapter (Redfish 30 + OS 7 + ESXi 4 — cycle 2026-05-11 실측)
+- 42 adapter (Redfish 31 + OS 7 + ESXi 4 — cycle 2026-05-11 실측 hpe-csus-add)
 
 ## 목표 규칙
 

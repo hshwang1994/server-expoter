@@ -13,23 +13,34 @@
 |---|---|---|
 | `adapters/redfish/hpe_ilo7.yml` | 120 | iLO7 (Gen12, 2026-05-01 신규) |
 | `adapters/redfish/hpe_ilo6.yml` | 100 | iLO6 |
+| `adapters/redfish/hpe_csus_3200.yml` | 96 | **Compute Scale-up Server 3200 (CSUS 3200) — 2026-05-11 신규, lab 부재** |
 | `adapters/redfish/hpe_superdome_flex.yml` | 95 | Superdome Flex / Flex 280 (2026-05-06 신규, lab 부재) |
 | `adapters/redfish/hpe_ilo5.yml` | 90 | iLO5 |
-| `adapters/redfish/hpe_synergy.yml` | 60 | HPE Synergy frame |
 | `adapters/redfish/hpe_ilo4.yml` | 50 | iLO4 (Gen9 legacy) |
 | `adapters/redfish/hpe_ilo.yml` | 10 | generic HPE fallback |
 
-## Superdome 시리즈 (cycle 2026-05-06 추가 — M-E1/M-E2)
+## Superdome / Compute Scale-up Server 시리즈 (cycle 2026-05-06 / 2026-05-11 추가)
 
 ### 모델 / BMC
 
-| 모델 | 출시 | 아키텍처 | management | Redfish |
-|---|---|---|---|---|
-| Superdome Flex 280 | 2020+ | x86 (Intel Xeon SP) | RMC + iLO 5 (per node) | YES (RMC host, 표준) |
-| Superdome Flex | 2017+ | x86 (Intel Xeon SP) | eRMC/RMC + iLO 5 (per compute module) | YES (RMC host, 표준) |
-| Superdome 2 (legacy) | 2010~2017 | Itanium / IA-64 | OA (Onboard Administrator) | NO — `redfish_generic.yml` fallback |
-| Superdome X (legacy) | 2014~ | x86 (Xeon E7) | iLO 4 + OA | 부분 — `hpe_ilo4.yml` (50) fallback |
-| Integrity Superdome (legacy) | ~2010 | Itanium | OA only | NO — `redfish_generic.yml` (N/A) |
+| 모델 | 출시 | 아키텍처 | management | Redfish | adapter |
+|---|---|---|---|---|---|
+| **Compute Scale-up Server 3200 (CSUS 3200)** | **2023+** | **x86 (Intel Xeon SP, DDR5)** | **RMC + PDHC + RMP** | **YES (RMC host, 표준)** | **`hpe_csus_3200.yml` (96)** |
+| Superdome Flex 280 | 2020+ | x86 (Intel Xeon SP) | RMC + iLO 5 (per node) | YES (RMC host, 표준) | `hpe_superdome_flex.yml` (95) |
+| Superdome Flex | 2017+ | x86 (Intel Xeon SP) | eRMC/RMC + iLO 5 (per compute module) | YES (RMC host, 표준) | `hpe_superdome_flex.yml` (95) |
+| Superdome 2 (legacy) | 2010~2017 | Itanium / IA-64 | OA (Onboard Administrator) | NO — `redfish_generic.yml` fallback | (N/A) |
+| Superdome X (legacy) | 2014~ | x86 (Xeon E7) | iLO 4 + OA | 부분 — `hpe_ilo4.yml` (50) fallback | (legacy) |
+| Integrity Superdome (legacy) | ~2010 | Itanium | OA only | NO — `redfish_generic.yml` (N/A) | (N/A) |
+
+### CSUS 3200 특이사항 (lab 부재 — web sources 추정)
+
+- HPE 공식 인용: *"built on the proven HPE Superdome Flex architecture"* (HPE psnow doc/a50009596enw)
+- 4-socket × 1~4 chassis 모듈식 (최대 16-socket 단일 시스템)
+- 128 GB DDR5 DIMM 기준 128 GB ~ 32 TB shared memory
+- 관리 = RMC (primary) + PDHC (per-chassis) + RMP (redundancy). 표준 Redfish API + HPE OneView profile
+- Oem.Hpe namespace 공유 (PartitionInfo / FlexNodeInfo / GlobalConfiguration — Superdome Flex 와 동일 가정, lab 실측 시 정정)
+- vault profile `hpe` 재사용 — 사용자 명시 승인 시 향후 별도 분리 가능 (NEXT_ACTIONS 등재)
+- model regex 확장: `(?i)Superdome|Flex|Compute Scale-up|CSUS` (collect_oem.yml / normalize_oem.yml)
 
 ### Redfish 차이 (vs 일반 ProLiant iLO 5)
 
@@ -74,7 +85,9 @@
 - Round 7-10: iLO5 펌웨어 2.x 검증 완료
 - Round 11 (2026-04-28): iLO 6 v1.73 (10.50.11.231) Baseline 캡처
 - cycle 2026-05-06 (M-E2): Superdome Flex / Flex 280 adapter 추가 (lab 부재, web sources 14건)
+- cycle 2026-05-11 (hpe-csus-add): **HPE CSUS 3200 (Compute Scale-up Server 3200) adapter 추가 (lab 부재, web sources 7건)**
 - Baseline: `tests/baseline_v1/hpe_ilo5_baseline.json`, `tests/baseline_v1/hpe_baseline.json`
+- CSUS 3200 baseline: lab 도입 후 추가 예정 (NEXT_ACTIONS 등재)
 
 ## Reference
 

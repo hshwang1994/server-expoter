@@ -137,14 +137,15 @@ server-exporter/ (프로젝트 루트)
        ├── build_*.yml (10개: sections, status, errors, meta, correlation, output)
        └── supported_sections.yml, status_rules.yml
 
-[3] Adapter 시스템 (41개 YAML + adapters/registry.yml — cycle 2026-05-11 실측)
-   ├── adapters/redfish/ (30개: generic + dell×4 + hpe×6 + lenovo×4 + supermicro×8 + cisco×3
+[3] Adapter 시스템 (42개 YAML + adapters/registry.yml — cycle 2026-05-11 실측)
+   ├── adapters/redfish/ (31개: generic + dell×4 + hpe×7 + lenovo×4 + supermicro×8 + cisco×3
    │                       + huawei×1 + inspur×1 + fujitsu×1 + quanta×1)
    │   ※ cisco 3 = bmc + cimc + ucs_xseries (cycle 2026-05-01 ucs_xseries 신설 — cisco 그룹 내)
    │   - cycle 2026-05-01 신 generation 7개: dell_idrac10 (F41) + hpe_ilo7 (F47) + lenovo_xcc3 (F55)
    │     + supermicro_x12/x13/x14 (F61) + cisco_ucs_xseries (F69)
    │   - cycle 2026-05-06 M-E2: hpe_superdome_flex (priority=95, lab 부재 web sources 14건)
    │   - cycle 2026-05-07 M-B1~B4: supermicro x9 + x10 + ars + bmc 보강 (4 adapter — 6 generation)
+   │   - cycle 2026-05-11 hpe-csus-add: hpe_csus_3200 (priority=96, Compute Scale-up Server 3200, lab 부재 web sources 7건)
    │   - cycle 2026-05-01 신규 vendor 4개 (vault SKIP, 사용자 명시 승인): F44 huawei_ibmc /
    │     F45 inspur_isbmc / F46 fujitsu_irmc / F47 quanta_qct_bmc
    ├── adapters/os/ (7개: linux_*/windows_*)

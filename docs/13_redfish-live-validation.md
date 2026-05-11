@@ -488,6 +488,7 @@ ServiceRoot를 조회했으므로 chassis_uri를 함께 반환하면 HTTP 호출
 | Supermicro | H11 ~ H14 (AMD) | 부재 | adapter X11~X14 model_patterns 확장 (M-B3) | [PENDING] |
 | Supermicro | **X10 (cycle 2026-05-07 신설)** | 부재 | adapter supermicro_x10.yml (priority=75 — M-B1) | [PENDING] |
 | Supermicro | **ARS (ARM, cycle 2026-05-07 신설)** | 부재 | adapter supermicro_ars.yml (priority=80 — M-B3) | [PENDING] |
+| **HPE** | **Compute Scale-up Server 3200 (CSUS 3200, cycle 2026-05-11 신설)** | **부재 (lab 도입 시 별도 cycle)** | **adapter hpe_csus_3200.yml (priority=96) + HPE OEM tasks 재사용 (regex 확장 Additive)** | **[PENDING]** |
 | Huawei | iBMC 1.x ~ 5.x + Atlas | 부재 (cycle 2026-05-01 명시) | adapter huawei_ibmc.yml (M-C1) + OEM tasks (M-C2) + mock (M-C3) | [PENDING] |
 | Inspur | ISBMC | 부재 (cycle 2026-05-01) | adapter inspur_isbmc.yml + OEM tasks (M-D1) + mock (M-D2) | [PENDING] |
 | Fujitsu | iRMC S2 | 부재 (Redfish 미지원 가능성) | adapter fujitsu_irmc.yml (firmware_patterns) | [SKIP] |
@@ -506,6 +507,20 @@ ServiceRoot를 조회했으므로 chassis_uri를 함께 반환하면 HTTP 호출
 | 사이트 실측 | 본 Round 16.1 (Dell/HPE/Lenovo/Cisco × 1 generation) |
 
 cycle 2026-05-07 M-K1 검증: 30/30 adapter origin 주석 일관성 PASS (verify 도구: `python scripts/ai/hooks/adapter_origin_check.py --all --redfish-only`).
+
+### 16.3.1 cycle 2026-05-11 hpe-csus-add 추가 (lab 부재)
+
+사용자 요청 (2026-05-11): "hpe csus 장비도 개더링이 필요하다"
+
+- **HPE Compute Scale-up Server 3200 (CSUS 3200)** — HPE 공식 명시 *"built on the proven HPE Superdome Flex architecture"* (HPE psnow doc/a50009596enw)
+- **관리**: RMC (Rack Management Controller) primary + PDHC (per-chassis) + RMP (redundancy)
+- **Redfish**: 표준 (RMC = API host) + HPE OneView profile 동시 지원
+- **adapter**: `adapters/redfish/hpe_csus_3200.yml` (priority=96 — Superdome Flex 95 직상)
+- **OEM tasks**: HPE 공통 (`redfish-gather/tasks/vendors/hpe/{collect,normalize}_oem.yml`) 재사용
+- **regex 확장**: `(?i)Superdome|Flex` → `(?i)Superdome|Flex|Compute Scale-up|CSUS` (Additive only — rule 92 R2)
+- **vault profile**: `hpe` 재사용 (사용자 명시 승인 시 향후 분리)
+- **web sources 7건** (rule 96 R1-A — adapter 헤더 origin 주석)
+- **lab 도입 후 cycle**: `hpe-csus-3200-lab-validation` round (NEXT_ACTIONS 등재 — rule 96 R1-C)
 
 ### 16.4 본 cycle (2026-05-07 all-vendor-coverage) 산출 요약
 

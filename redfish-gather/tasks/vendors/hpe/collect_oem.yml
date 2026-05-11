@@ -8,18 +8,24 @@
 # Additive only (rule 92 R2) — 기존 iLO 시리즈 영역 변경 0 / Superdome 분기 추가만
 #
 # M-G1 cycle 2026-05-07-all-vendor-coverage: Superdome Flex (Gen 1/2 + 280) 분기 보강
+# M-CSUS3200 cycle 2026-05-11: HPE CSUS 3200 (Compute Scale-up Server 3200) 분기 확장
+#   — Superdome Flex 후속 (HPE 공식 "built on the proven HPE Superdome Flex architecture")
+#   — 동일 Oem.Hpe namespace + PartitionInfo/FlexNodeInfo/GlobalConfiguration 상속
+#   — model regex 확장 Additive only (rule 92 R2) — fragment shape 변경 0
 #
 # source: HPE Superdome Flex Server Admin Guide (확인 2026-05-11 — lab 부재)
 # source: https://support.hpe.com/hpesc/public/docDisplay (Superdome Flex/280 매뉴얼)
 # source: https://github.com/HewlettPackard/sdflexutils (sdflexutils 1.5.1)
 # source: https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/ (iLO 5 API reference)
-# lab: 부재 (사용자 명시 2026-05-01)
+# source: https://www.hpe.com/psnow/doc/a50009596enw (CSUS 3200 architecture and RAS — Superdome Flex 후속 명시)
+# source: https://cdrdv2-public.intel.com/792357/FAQ%20-%20HPE%20Compute%20Scale-up%20Server%203200.pdf (CSUS 3200 FAQ — RMC + 표준 Redfish)
+# lab: 부재 (사용자 명시 2026-05-01 / CSUS3200 사용자 명시 2026-05-11)
 #
-# OEM namespace: Oem.Hpe (iLO 시리즈 + Superdome 공통)
-# Superdome 특이 영역:
+# OEM namespace: Oem.Hpe (iLO 시리즈 + Superdome + CSUS 3200 공통)
+# Superdome / CSUS 3200 공통 특이 영역:
 #   - Oem.Hpe.PartitionInfo       (Systems) — nPAR 파티션 정보
-#   - Oem.Hpe.FlexNodeInfo        (Chassis) — Flex Node 구성
-#   - Oem.Hpe.GlobalConfiguration (Systems/Managers) — Superdome 전역 설정
+#   - Oem.Hpe.FlexNodeInfo        (Chassis) — Flex Node 구성 (CSUS 3200 도 상속 추정 — lab 실측 시 정정)
+#   - Oem.Hpe.GlobalConfiguration (Systems/Managers) — Superdome / CSUS 전역 설정
 
 # ── 1) iLO 시리즈 OEM 수집 placeholder (현행 유지 — 변경 0 / Additive) ───────────
 - name: "redfish | hpe | iLO 시리즈 OEM 수집 (placeholder — 향후 확장)"
@@ -28,10 +34,10 @@
     _hpe_oem_ilo_thermal: {}
   no_log: true
 
-# ── 2) Superdome Flex 분기 (M-G1) — model_patterns 매칭 시만 ─────────────────────
-- name: "redfish | hpe | Superdome Flex OEM 수집 (모델 매칭 시)"
+# ── 2) Superdome Flex / CSUS 3200 분기 (M-G1 + M-CSUS3200) — model_patterns 매칭 시만 ──
+- name: "redfish | hpe | Superdome Flex / CSUS 3200 OEM 수집 (모델 매칭 시)"
   block:
-    - name: "redfish | hpe | Superdome — PartitionInfo 추출 (Systems.Oem.Hpe.PartitionInfo)"
+    - name: "redfish | hpe | Superdome/CSUS — PartitionInfo 추출 (Systems.Oem.Hpe.PartitionInfo)"
       ansible.builtin.set_fact:
         _hpe_superdome_partition: >-
           {{
@@ -42,7 +48,7 @@
         - _rf_raw_collect.systems is defined
         - _rf_raw_collect.systems | length > 0
 
-    - name: "redfish | hpe | Superdome — FlexNodeInfo 추출 (Chassis.Oem.Hpe.FlexNodeInfo)"
+    - name: "redfish | hpe | Superdome/CSUS — FlexNodeInfo 추출 (Chassis.Oem.Hpe.FlexNodeInfo)"
       ansible.builtin.set_fact:
         _hpe_superdome_flex_node: >-
           {{
@@ -53,7 +59,7 @@
         - _rf_raw_collect.chassis is defined
         - _rf_raw_collect.chassis | length > 0
 
-    - name: "redfish | hpe | Superdome — GlobalConfiguration 추출 (Systems.Oem.Hpe.GlobalConfiguration)"
+    - name: "redfish | hpe | Superdome/CSUS — GlobalConfiguration 추출 (Systems.Oem.Hpe.GlobalConfiguration)"
       ansible.builtin.set_fact:
         _hpe_superdome_global: >-
           {{
@@ -64,17 +70,18 @@
         - _rf_raw_collect.systems is defined
         - _rf_raw_collect.systems | length > 0
   rescue:
-    - name: "redfish | hpe | Superdome OEM 영역 부재 (정상 — 일반 iLO 시리즈)"
+    - name: "redfish | hpe | Superdome/CSUS OEM 영역 부재 (정상 — 일반 iLO 시리즈)"
       ansible.builtin.set_fact:
         _hpe_superdome_partition: {}
         _hpe_superdome_flex_node: {}
         _hpe_superdome_global: {}
   when:
-    # Superdome 모델 시그니처 매칭 (lab 부재 — model_patterns 기반)
+    # Superdome / CSUS 3200 모델 시그니처 매칭 (lab 부재 — model_patterns 기반)
     # _rf_detected_model 이 없거나 매칭 안 되면 block 자체 skip (Additive)
-    - "(_rf_detected_model | default('')) | regex_search('(?i)Superdome|Flex')"
+    # M-CSUS3200 cycle 2026-05-11: "Compute Scale-up|CSUS" 추가 — fragment shape 동일 유지
+    - "(_rf_detected_model | default('')) | regex_search('(?i)Superdome|Flex|Compute Scale-up|CSUS')"
 
-- name: "redfish | hpe | Superdome 변수 기본값 보정 (when 미진입 / rescue 미진입)"
+- name: "redfish | hpe | Superdome/CSUS 변수 기본값 보정 (when 미진입 / rescue 미진입)"
   ansible.builtin.set_fact:
     _hpe_superdome_partition: "{{ _hpe_superdome_partition | default({}) }}"
     _hpe_superdome_flex_node: "{{ _hpe_superdome_flex_node | default({}) }}"
