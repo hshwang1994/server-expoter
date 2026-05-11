@@ -262,12 +262,13 @@ adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증
 | 3 | lab 도입 후 별도 cycle | R770 lab/사이트 도입 결정 시 | `dell_idrac10 lab 검증` round |
 | 4 | origin 주석 갱신 | fixture 캡처 후 | `adapters/redfish/dell_idrac10.yml:6-13` "tested_against" 항목 |
 
-### Phase 4: Jinja namespace hook blocking 격상 결정 (PENDING)
+### ~~Phase 4: Jinja namespace hook blocking 격상 결정 (PENDING)~~ **[DONE 2026-05-11]**
 
-- **현재 상태**: advisory + false-positive 0 (138 파일 스캔)
-- **결정 기준**: rule 22 R7 본문 "1 cycle 모니터링 후 false-positive 0 시 blocking 격상 검토"
-- **권장**: 추가 1~2 cycle 운영 후 결정 (cycle refactor-review 종료 직후라 hook 적용 commit 부족 — false-positive 통계 신뢰도 부족)
-- **ADR 작성 trigger**: blocking 격상 시 → rule 22 본문 변경 + 표면 카운트 변경 발생 시 (rule 70 R8 trigger 1 + 2)
+- **격상 일자**: 2026-05-11 (harness-cycle 자기개선)
+- **운영 기간**: cycle 2026-05-07 advisory → cycle 2026-05-11 blocking (5 cycle — M-A1~A6 / M-B~L / M-A7 / M-A7-followup / harness-cycle)
+- **false-positive 통계**: 141 YAML/J2 전수 스캔 0건 (cycle 2026-05-11 격상 직전 + 직후 재확인)
+- **변경 영역**: `scripts/ai/hooks/pre_commit_jinja_namespace_check.py` (return 0 → return 1) + docstring + install-git-hooks.sh 주석
+- **rule 70 R8 trigger 적용**: 0건 (rule 본문 변경 0 / 표면 카운트 변경 0 / 보호 경로 변경 0) → ADR 의무 아님. docs/19_decision-log.md entry 만 추가
 
 ### 다음 cycle 권장 (외부 의존)
 

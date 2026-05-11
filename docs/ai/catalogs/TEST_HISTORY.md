@@ -13,15 +13,27 @@
 - **envelope_change_check**: clean (envelope 13 필드 / data shape 변경 0)
 - **adapter_origin_check --all --redfish-only**: 30/30 PASS
 
-### Tier 1 자동 fix (2건)
+### Tier 1 자동 fix (8건)
 - `.claude/policy/project-map-fingerprint.yaml` — 3 디렉터리 fingerprint 갱신 (redfish-gather + adapters + tests)
 - `docs/ai/NEXT_ACTIONS.md:194-201` — "잔여 32 ticket [PENDING]" stale entry 갱신 ([DONE] 반영)
+- `docs/ai/NEXT_ACTIONS.md:265-270` (Phase 4) — Jinja namespace hook blocking 격상 결정 PENDING → [DONE]
+- `scripts/ai/hooks/pre_commit_jinja_namespace_check.py` — advisory → BLOCKING (5 cycle false-positive 0 / 141 파일 전수 스캔)
+- `scripts/ai/hooks/install-git-hooks.sh` — 주석 갱신
+- `docs/19_decision-log.md` — Jinja blocking 격상 governance trace entry
+- `docs/ai/catalogs/PROJECT_MAP.md` + `CLAUDE.md` — adapter count drift fix (39 → 41, Redfish 28 → 30, supermicro 5 → 8)
+- `.claude/rules/00 / 12 / 50` — 동일 adapter count 동기화 (rule "현재 관찰된 현실" 절만, 본문 의미 변경 0)
+
+### 추가 검증 (Jinja blocking 격상 직후)
+- **self-test 9/9 PASS** (격상 후 재실행 — cycle-016 self-ref / namespace / mutation / per-iteration / loop-var / loop-외 / comment / 중첩 / filter self-ref)
+- **141 YAML/J2 전수 스캔 0 blocked** (격상 후 재확인)
+- escape hatch (`JINJA_NAMESPACE_SKIP=1` / `JINJA_NAMESPACE_SKIP_FILE`) 유지
 
 ### Tier 2/3 발견 — 0건
 
 ### 영향
-- 코드 변경 / 테스트 추가 / vault 변경 / 의존성 변경 / envelope shape 변경 모두 **0** (Tier 1 catalog 정합 갱신만)
+- 코드 변경 / 테스트 추가 / vault 변경 / 의존성 변경 / envelope shape 변경 모두 **0** (Tier 1 catalog 정합 + hook 동작 격상만)
 - 호출자 시스템 영향 0
+- 향후 PR / commit Jinja2 namespace 회귀 (cycle-015 / -016 / M-D2 패턴) 자동 차단
 
 ---
 

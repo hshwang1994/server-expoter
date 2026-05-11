@@ -8,6 +8,60 @@
 
 > 최종 갱신: 2026-05-11
 
+## 2026-05-11 — Jinja namespace hook advisory → BLOCKING 격상 (harness-cycle)
+
+### 컨텍스트
+
+`scripts/ai/hooks/pre_commit_jinja_namespace_check.py` 는 cycle 2026-05-07 도입 시점 advisory (exit 0) 로 운영. 도입 근거 (cycle 2026-05-07-post NEXT_ACTIONS Phase 4): "1 cycle 모니터링 후 false-positive 0 시 blocking 격상 검토".
+
+### 결정 (2026-05-11)
+
+cycle 2026-05-11 harness-cycle 자기개선 단계에서 다음 기준 충족 확인 → blocking (exit 1) 격상:
+
+- **운영 기간**: cycle 2026-05-07 advisory → 2026-05-11 까지 **5 cycle** (M-A1~A6 / M-B~L / M-A7 / M-A7-followup / harness-cycle)
+- **false-positive 통계**: 141 YAML/J2 파일 전수 스캔 **0건** (cycle 2026-05-11 격상 직전 + 직후 재확인)
+- **self-test**: 9/9 PASS (cycle-016 self-ref 누적 / namespace 안전 / mutation / per-iteration local / loop-var / loop-외 / comment 안 / 중첩 self-ref / filter self-ref)
+
+### 적용 변경 (3 파일)
+
+| 파일 | 변경 |
+|---|---|
+| `scripts/ai/hooks/pre_commit_jinja_namespace_check.py:341` | `return 0  # advisory` → `return 1  # blocking` |
+| `scripts/ai/hooks/pre_commit_jinja_namespace_check.py:25-27` (docstring) | "Advisory (exit 0)" → "Blocking (exit 1) — cycle 2026-05-11 격상" |
+| `scripts/ai/hooks/pre_commit_jinja_namespace_check.py:316` (stderr) | "(advisory)" → "(BLOCKING — cycle 2026-05-11 격상)" |
+| `scripts/ai/hooks/install-git-hooks.sh` 주석 + 환경변수 안내 | "advisory" → "BLOCKING cycle 2026-05-11" |
+
+### 검증
+
+- self-test 9/9 PASS (격상 후 재실행)
+- 141 YAML/J2 전수 스캔 0 blocked (격상 후 재확인)
+- `JINJA_NAMESPACE_SKIP=1` / `JINJA_NAMESPACE_SKIP_FILE=path` 환경변수 escape hatch 유지
+
+### rule 70 R8 trigger 적용
+
+- trigger 1 (rule 본문 의미 변경): 적용 없음 (rule 22 본문 변경 없음 — hook 동작 변경만)
+- trigger 2 (표면 카운트 변경): 적용 없음 (hook 개수 28 유지)
+- trigger 3 (보호 경로 정책 변경): 적용 없음
+- → ADR 작성 의무 아님. 본 decision-log entry 만 governance trace.
+
+### 효과
+
+- 향후 PR / commit 에서 Jinja2 namespace scoping 회귀 (cycle-015 / -016 / M-D2 패턴) 자동 차단
+- escape hatch (skip 환경변수) 유지 → 의도된 false-positive 발생 시 우회 가능
+- 검출 패턴: `{% set var = var + ... %}` 같은 self-reference 누적 (per-iteration local 안전)
+
+### 검출되는 대표 회귀 패턴 (cycle 2026-05-07-post 해결)
+
+| # | 위치 | 사고 | 해결 |
+|---|---|---|---|
+| 1 | `os-gather/tasks/linux/gather_network.yml:99` | netmask CIDR 잘못 계산 (/23, /30) | namespace fix (val → ns.val) |
+| 2 | `esxi-gather/tasks/normalize_network.yml:67` | 동일 netmask 사고 | 동일 namespace fix |
+| 3 | `os-gather/tasks/linux/gather_users.yml:77, 212` | groups 집계 의도 모호 | namespace 로 통일 (ns.groups) |
+
+향후 본 hook 으로 동일 회귀 자동 차단.
+
+---
+
 ## 2026-05-11 — M-A7 adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합
 
 ### 컨텍스트

@@ -22,12 +22,18 @@
 | 11 | external_contracts | 2026-05-11 (M-K2) | TTL 90d 안 | NO |
 | 12 | compatibility_matrix | 2026-05-11 (M-L3) | TTL 14d 안 | NO |
 
-### Tier 1 자동 fix 적용 (2건)
+### Tier 1 자동 fix 적용 (8건)
 
 | 영역 | 변경 |
 |---|---|
 | **`.claude/policy/project-map-fingerprint.yaml`** | `check_project_map_drift.py --update` — 3 디렉터리 fingerprint 갱신 (redfish-gather: `4e849a7c021c` → `20d12f7e7f47` / adapters: `c63a033173be` → `1202c98777f2` / tests: `6e099b4e1cb1` → `cf8c9b1ac05a`) |
 | **`docs/ai/NEXT_ACTIONS.md` line 194-201** | "잔여 32 ticket [PENDING]" stale entry → "모두 [DONE]" 갱신 (cycle 2026-05-07-all-vendor-coverage 39 ticket 전체 종료 반영) |
+| **`docs/ai/NEXT_ACTIONS.md` line 265-270** (Phase 4) | Jinja namespace hook blocking 격상 결정 PENDING → [DONE 2026-05-11] |
+| **`scripts/ai/hooks/pre_commit_jinja_namespace_check.py`** | advisory (exit 0) → BLOCKING (exit 1) — cycle 2026-05-07-post 후 5 cycle false-positive 0 (141 파일 전수 스캔) |
+| **`scripts/ai/hooks/install-git-hooks.sh`** | 주석 + 환경변수 안내 "advisory" → "BLOCKING cycle 2026-05-11" |
+| **`docs/19_decision-log.md`** | Jinja namespace blocking 격상 entry 추가 (governance trace, rule 70 R8 trigger 없음 — ADR 의무 아님) |
+| **`docs/ai/catalogs/PROJECT_MAP.md`** + **`CLAUDE.md`** | adapter count drift fix (39 → 41 total / Redfish 28 → 30 / supermicro 5 → 8) — cycle 2026-05-07 M-B1~B4 후 stale |
+| **`.claude/rules/00-core-repo.md`** + **`12-adapter-vendor-boundary.md`** + **`50-vendor-adapter-policy.md`** | 동일 adapter count 동기화 (rule 본문 "현재 관찰된 현실" 절 — Default/Allowed/Forbidden 본문 의미 변경 0, rule 70 R8 trigger 1 적용 안 됨) |
 
 ### 검증 결과 (rule 24 6 체크리스트)
 

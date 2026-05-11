@@ -3,7 +3,7 @@
 > 디렉터리 구조 카탈로그. session_start hook이 fingerprint drift 자동 검사.
 > fingerprint: `.claude/policy/project-map-fingerprint.yaml`
 
-## 일자: 2026-05-01 (cycle-019 phase 2 후속 갱신 — 신규 vendor 4종 + 신 generation BMC 7종)
+## 일자: 2026-05-11 (cycle 2026-05-11 harness-cycle 갱신 — fingerprint 갱신 + 본문 카운트 동기화)
 
 ## 최상위 트리
 
@@ -12,9 +12,9 @@ server-exporter/
 ├── CLAUDE.md, README.md, GUIDE_FOR_AI.md, REQUIREMENTS.md  (정본)
 ├── ansible.cfg                                              (Ansible 설정)
 ├── Jenkinsfile, Jenkinsfile_portal                          (2종 4-Stage 파이프라인 — cycle-015 _grafana 제거)
-├── adapters/                # 38 vendor adapter YAML + registry.yml
-│   ├── redfish/             # 27 (generic + dell×4 + hpe×5 + lenovo×4 + supermicro×5 + cisco×3 + ucs_xseries
-│   │                          + huawei×1 + inspur×1 + fujitsu×1 + quanta×1) — cycle-019 +11
+├── adapters/                # 39 vendor adapter YAML + registry.yml — cycle 2026-05-07 실측
+│   ├── redfish/             # 28 (generic + dell×4 + hpe×5 + lenovo×4 + supermicro×8 + cisco×3 + ucs_xseries×1
+│   │                          + huawei×1 + inspur×1 + fujitsu×1 + quanta×1 + superdome_flex×1)
 │   ├── os/                  # 7 (linux_*/windows_*)
 │   └── esxi/                # 4 (generic + 6x/7x/8x)
 ├── callback_plugins/        # json_only.py (stdout callback, OUTPUT만 JSON)

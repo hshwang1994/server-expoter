@@ -22,9 +22,10 @@ aggregation) / cycle 2026-04-30 M-D2 (Fragment _errors_fragment) 등
 검사 대상:
 - *.yml, *.yaml, *.j2 파일의 inline Jinja2 (`{% set %}` 안의 for-block)
 
-Advisory (exit 0):
-- 의심 패턴 발견 시 stderr 경고만, commit 허용
-- 1 cycle 모니터링 후 false-positive 0 시 blocking 격상 검토
+Blocking (exit 1) — cycle 2026-05-11 격상:
+- cycle 2026-05-07-post 부터 5 cycle 운영 (M-A1~A6 / M-B~L / M-A7 / M-A7-followup / harness-cycle)
+- 141 YAML/J2 전수 스캔 false-positive 0 확정 (cycle 2026-05-11 harness-cycle)
+- 의심 패턴 발견 시 commit 차단 + stderr 안내
 
 비활성화 환경변수:
     JINJA_NAMESPACE_SKIP=1     — 본 hook skip
@@ -313,7 +314,7 @@ def main() -> int:
         return 0
 
     print(
-        "[jinja namespace] rule 22 R7 / rule 95 R1 — loop 내 set 의심 (advisory):",
+        "[jinja namespace] rule 22 R7 / rule 95 R1 — loop 내 set 의심 (BLOCKING — cycle 2026-05-11 격상):",
         file=sys.stderr,
     )
     print(
@@ -338,7 +339,7 @@ def main() -> int:
         file=sys.stderr,
     )
 
-    return 0  # advisory
+    return 1  # blocking (cycle 2026-05-11 격상 — 5 cycle false-positive 0 / 141 파일 스캔)
 
 
 if __name__ == "__main__":
