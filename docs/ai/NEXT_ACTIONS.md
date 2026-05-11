@@ -18,7 +18,7 @@
 | F2-b | ubuntu/windows baseline 의 cpu.summary 형식 일관성 (현 4 필드 → 8 필드 코드와 일치) | 실장비 재캡처 또는 baseline 일괄 갱신 cycle | `update-vendor-baseline` skill (rule 13 R4) | PENDING |
 | F3 | Supermicro baseline 확보 (cycle field-channel 정확도 향상) | Supermicro 사이트 BMC IP 확보 | `update-vendor-baseline` skill (rule 13 R4) | PENDING |
 | F4 | 베어메탈 Windows / ESXi baseline 확보 | 베어메탈 장비 확보 | `windows_baseline.json` 의 memory.slots / esxi_baseline 의 storage.physical_disks 검증 | PENDING |
-| F5 | OS channel `system.runtime` 구현 (현재 ESXi 만) | RHEL/Ubuntu/Windows raw fallback 에 timezone/ntp/firewall 수집 추가 | 별도 cycle (큰 작업 — gather_*.yml 3 OS 채널) | PENDING |
+| F5 | OS channel `system.runtime` 구현 (현재 ESXi 만) | Linux raw block + Windows win_shell 9 필드 통일 빌더 추가 | `gather_system.yml` Linux/Windows + field_dictionary channel `[os, esxi]` 확장 | **DONE (2026-05-11)** |
 
 ### Phase 2 진입 trigger (자율 결정 가능)
 

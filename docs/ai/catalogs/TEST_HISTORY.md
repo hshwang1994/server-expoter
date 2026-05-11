@@ -2,6 +2,26 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-11 (cycle field-channel-refinement-F5 — OS channel system.runtime 구현)
+
+### Linux 실장비 ssh probe (paramiko)
+- 10.100.64.161 (rhel810 / Python 3.6 raw fallback): timedatectl/systemctl/ss/free 출력 형식 확보
+- 10.100.64.167 (ubuntu2404): ufw / systemd-timesyncd 출력 확보
+- 10.100.64.169 (rocky960): chronyd / firewalld 출력 확보
+- 10.100.64.135 (Windows Server 2022): ssh 비활성 (port 22 closed) — 표준 PowerShell 명령으로 보수적 코드 작성
+
+### 실행 결과 (F5 적용 후)
+- `pytest tests/ -x`: **621 PASS / 0 FAIL** (21.68s)
+- `python scripts/ai/measure_field_usage_matrix.py --update-md`: 520 cells 재측정
+- `python scripts/ai/hooks/output_schema_drift_check.py`: PASS (sections=10 / fd_paths=65 / fd_section_prefixes=16)
+- `python scripts/ai/verify_harness_consistency.py`: PASS
+
+### 코드 변경
+- `os-gather/tasks/linux/gather_system.yml`: runtime gather (raw block) + parse + build fragment 9 필드 추가 (Python+raw fallback 공통)
+- `os-gather/tasks/windows/gather_system.yml`: runtime gather (win_shell) + parse + build fragment 9 필드 추가
+- `schema/field_dictionary.yml`: system.runtime channel `[esxi]` → `[os, esxi]` + help_ko 9 필드 통일 명시
+- baseline 3 갱신: rhel810/ubuntu (Linux 실측) + windows (placeholder)
+
 ## 2026-05-11 (cycle field-channel-refinement)
 
 ### 실행 결과

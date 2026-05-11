@@ -89,6 +89,71 @@
          else (ansible_product_uuid | default(none)) }}
   no_log: true
 
+# F5 cycle 2026-05-11: system.runtime — 9 필드 (timezone/ntp/firewall/listen/pagefile)
+# Linux 와 envelope shape 통일 — Windows pagefile 을 swap_*_mb 로 등가 표현.
+- name: "windows | system | gather runtime (timezone/ntp/firewall/listen/pagefile)"
+  ansible.windows.win_shell: |
+    $tz = $null
+    try { $tz = (Get-TimeZone -ErrorAction SilentlyContinue).Id } catch {}
+    $w32 = Get-Service W32Time -ErrorAction SilentlyContinue
+    $ntpActive = if ($w32 -and $w32.Status -eq 'Running') { 'yes' } else { 'no' }
+    $ntpSync = $null
+    try {
+      $status = w32tm /query /status 2>$null
+      if ($status -match 'Source:\s+\S') { $ntpSync = 'yes' } else { $ntpSync = 'no' }
+    } catch { $ntpSync = $null }
+    $fwAny = $false
+    try {
+      $profiles = Get-NetFirewallProfile -ErrorAction SilentlyContinue
+      if ($profiles) {
+        $fwAny = (($profiles | Where-Object { $_.Enabled -eq $true } | Measure-Object).Count) -gt 0
+      }
+    } catch {}
+    $fwState = if ($fwAny) { 'active' } else { 'inactive' }
+    $ports = @()
+    try {
+      $conns = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue
+      if ($conns) {
+        $ports = @($conns | Select-Object -ExpandProperty LocalPort | Sort-Object -Unique)
+      }
+    } catch {}
+    $pfTotal = $null; $pfUsed = $null; $pfFree = $null
+    try {
+      $pf = Get-CimInstance Win32_PageFileUsage -ErrorAction SilentlyContinue
+      if ($pf) {
+        $sumTotal = ($pf | Measure-Object -Property AllocatedBaseSize -Sum).Sum
+        $sumUsed  = ($pf | Measure-Object -Property CurrentUsage     -Sum).Sum
+        $pfTotal = [int]$sumTotal
+        $pfUsed  = [int]$sumUsed
+        $pfFree  = [int]($sumTotal - $sumUsed)
+      }
+    } catch {}
+    [PSCustomObject]@{
+      timezone         = $tz
+      ntp_active       = $ntpActive
+      ntp_synchronized = $ntpSync
+      firewall_tool    = 'windows_firewall'
+      firewall_state   = $fwState
+      listening_ports  = $ports
+      swap_total_mb    = $pfTotal
+      swap_used_mb     = $pfUsed
+      swap_free_mb     = $pfFree
+    } | ConvertTo-Json -Compress -Depth 4
+  register: _w_runtime_raw
+  changed_when: false
+  failed_when: false
+  no_log: true
+
+- name: "windows | system | parse runtime"
+  ansible.builtin.set_fact:
+    _w_runtime: >-
+      {%- if _w_runtime_raw.stdout is defined and (_w_runtime_raw.stdout | trim | length > 0) -%}
+      {{ _w_runtime_raw.stdout | from_json }}
+      {%- else -%}
+      {}
+      {%- endif -%}
+  no_log: true
+
 # 식별자 diagnostic — non-fatal, status/sections에 영향 없음
 - name: "windows | system | build identifier diagnostics"
   ansible.builtin.set_fact:
@@ -126,6 +191,40 @@
         fqdn:           "{{ ansible_fqdn | default(inventory_hostname) }}"
         serial_number:  "{{ _w_serial_val | default(none) }}"
         system_uuid:    "{{ _w_uuid_val | default(none) }}"
+        # F5 cycle 2026-05-11: system.runtime — 9 필드 (Linux 와 envelope shape 통일)
+        # Windows pagefile = Linux swap 등가 (swap_*_mb 로 등가 표현).
+        runtime:
+          timezone: >-
+            {%- set v = (_w_runtime.timezone | default('')) | string | trim -%}
+            {{ v if v else none }}
+          ntp_active: >-
+            {%- set v = (_w_runtime.ntp_active | default('')) | string | trim -%}
+            {%- if v == 'yes' -%}{{ true }}
+            {%- elif v == 'no' -%}{{ false }}
+            {%- else -%}{{ none }}
+            {%- endif -%}
+          ntp_synchronized: >-
+            {%- set v = (_w_runtime.ntp_synchronized | default('')) | string | trim -%}
+            {%- if v == 'yes' -%}{{ true }}
+            {%- elif v == 'no' -%}{{ false }}
+            {%- else -%}{{ none }}
+            {%- endif -%}
+          firewall_tool: >-
+            {%- set v = (_w_runtime.firewall_tool | default('')) | string | trim -%}
+            {{ v if v else none }}
+          firewall_state: >-
+            {%- set v = (_w_runtime.firewall_state | default('')) | string | trim -%}
+            {{ v if v else none }}
+          listening_ports: "{{ _w_runtime.listening_ports | default([]) }}"
+          swap_total_mb: >-
+            {%- set v = _w_runtime.swap_total_mb | default(none) -%}
+            {{ (v | int) if (v is not none) else none }}
+          swap_used_mb: >-
+            {%- set v = _w_runtime.swap_used_mb | default(none) -%}
+            {{ (v | int) if (v is not none) else none }}
+          swap_free_mb: >-
+            {%- set v = _w_runtime.swap_free_mb | default(none) -%}
+            {{ (v | int) if (v is not none) else none }}
     _sections_supported_fragment: ['system']
     _sections_collected_fragment: ['system']
     _sections_failed_fragment:    []

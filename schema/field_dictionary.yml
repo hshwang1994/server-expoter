@@ -962,19 +962,26 @@ fields:
   "system.runtime":
     type: "object"
     priority: nice
-    channel: [esxi]
-    # cycle 2026-05-11 field-channel-refinement: OS channel → ESXi channel 로 변경.
-    # 근거 (field_usage_matrix 실측):
-    #   - esxi_baseline.json 의 system.runtime present (ESXi 만 실측 구현)
-    #   - 3 OS baseline (rhel810/ubuntu/windows) 모두 missing (코드 미구현)
-    # NEXT_ACTIONS F5 등재: OS channel system.runtime 구현 추가 시 channel 재확장.
+    channel: [os, esxi]
+    # cycle 2026-05-11 field-channel-refinement F5: OS channel 추가 (Linux + Windows 빌더 구현).
+    # 9 필드 통일 shape (Linux/Windows/ESXi 동일):
+    #   timezone(str) / ntp_active(bool) / ntp_synchronized(bool) /
+    #   firewall_tool(str) / firewall_state(str) / listening_ports(int[]) /
+    #   swap_total_mb(int) / swap_used_mb(int) / swap_free_mb(int)
+    # Windows pagefile = Linux swap 등가 (swap_*_mb 로 표현 — Win32_PageFileUsage).
+    # 정본 빌더:
+    #   - os-gather/tasks/linux/gather_system.yml (raw 명령 — Python+raw fallback 양쪽)
+    #   - os-gather/tasks/windows/gather_system.yml (Win32_PageFileUsage / Get-NetFirewallProfile)
+    #   - esxi-gather (기존 — ESXi firewall 한정)
     help_ko: >-
       운영 런타임 정보. timezone, ntp_active/synchronized, firewall_tool/state,
-      listening_ports, swap_total/used/free (Linux) 또는 pagefiles[] (Windows).
-      현재 ESXi 채널 만 구현 — OS 채널 구현은 향후 cycle (cycle 2026-05-11 channel 변경).
+      listening_ports[], swap_total/used/free_mb (9 필드 통일).
+      Linux: firewalld/ufw/nftables/iptables 감지. Windows: windows_firewall + pagefile.
+      ESXi: firewall_tool="esxi_firewall" 만 (런타임 상세 미수집).
       best-effort: 수집 불가 시 null/[].
     help_en: >-
-      OS runtime info. timezone, ntp_active/synchronized, firewall_tool/state,
-      listening_ports, swap_total/used/free (Linux) or pagefiles[] (Windows).
-      Currently ESXi channel only (cycle 2026-05-11) — OS channel impl pending.
+      OS runtime info — 9 unified fields. timezone, ntp_active/synchronized,
+      firewall_tool/state, listening_ports, swap_total/used/free_mb.
+      Linux: firewalld/ufw/nftables/iptables detection. Windows: pagefile as swap_*_mb.
+      ESXi: firewall_tool only (runtime detail not collected).
       Best-effort: null/[] when unavailable.

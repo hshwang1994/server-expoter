@@ -1,5 +1,37 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-11 (cycle field-channel-refinement-F5 — OS channel system.runtime 구현 [DONE])
+
+### 컨텍스트
+- 사용자 명시: "F5도 진행해줘" + OS/하드웨어/ESXi 실장비 access 7+5+3대 제공
+- AI 가 paramiko 로 3 Linux 호스트 (rhel810/ubuntu2404/rocky960) ssh 명령 실측 → 정확한 출력 형식 확보
+
+### 결과 (6 Phase F5-A~F5-F 완료)
+
+- **F5-A/B**: ESXi system.runtime 9 필드 reference + Linux ssh probe (timedatectl/systemctl/ss/free 출력 형식 확보)
+- **F5-C**: `os-gather/tasks/linux/gather_system.yml` 에 runtime gather (raw block) + parse + build fragment 9 필드 추가 — Python+raw fallback 양쪽
+- **F5-D**: `os-gather/tasks/windows/gather_system.yml` 에 runtime gather (win_shell — Get-TimeZone/Get-Service W32Time/Get-NetFirewallProfile/Get-NetTCPConnection/Win32_PageFileUsage) + 9 필드 build fragment
+- **F5-E**: `schema/field_dictionary.yml` system.runtime channel `[esxi]` → `[os, esxi]` 확장 + help_ko 갱신 (9 필드 통일 명시). baseline 3 갱신 (rhel810 실측 / ubuntu 실측 / windows placeholder)
+- **F5-F**: pytest 621 PASS / output_schema_drift PASS / harness_consistency PASS
+
+### 9 필드 통일 envelope (Linux + Windows + ESXi 동일)
+- `timezone` (str) / `ntp_active` (bool) / `ntp_synchronized` (bool)
+- `firewall_tool` (str) / `firewall_state` (str)
+- `listening_ports` (int[])
+- `swap_total_mb` / `swap_used_mb` / `swap_free_mb` (int) — Windows pagefile = Linux swap 등가
+
+### Linux 실측 결과 (3 호스트)
+- rhel810 (10.100.64.161): TZ=America/New_York, chronyd active, firewalld active, ports=[22,53,111,631], swap=5119MB
+- ubuntu2404 (10.100.64.167): TZ=Etc/UTC, systemd-timesyncd active, ufw inactive, ports=[22,53], swap=4095MB
+- rocky960 (10.100.64.169): TZ=America/New_York, chronyd active, firewalld active, ports=[22] (rocky baseline 없음 — F3 별도)
+
+### NEXT_ACTIONS (남은 환경 한정)
+- F2-b: ubuntu/windows baseline 의 cpu.summary 4→8 필드 일관성
+- F3: Supermicro baseline 확보
+- F4: Windows 실측 baseline (ssh 비활성 — winrm 환경 필요)
+
+---
+
 ## 일자: 2026-05-11 (cycle field-channel-refinement — field_dictionary channel 정밀화 + FIELD_USAGE_MATRIX 신설 [DONE])
 
 ### 컨텍스트

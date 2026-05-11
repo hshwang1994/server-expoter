@@ -72,6 +72,84 @@
   failed_when: false
   no_log: true
 
+# =============================================================================
+# system.runtime (F5 cycle 2026-05-11): timezone / ntp / firewall / listen / swap
+# 양쪽 경로 (Python + raw fallback) 모두 raw 모듈로 수집 — timedatectl/systemctl
+# 같은 명령은 raw 가 가장 robust (setup facts 미의존).
+# =============================================================================
+- name: "linux | system | gather runtime (timezone/ntp/firewall/listen/swap)"
+  become: true
+  ansible.builtin.raw: |
+    export LANG=C
+    TZ=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || (readlink /etc/localtime 2>/dev/null | sed 's|.*/zoneinfo/||') || echo "")
+    echo "TZ=${TZ}"
+    NTPSYNC=$(timedatectl show -p NTPSynchronized --value 2>/dev/null || echo "")
+    echo "NTPSYNC=${NTPSYNC}"
+    NTPACTIVE="no"
+    for svc in chronyd chrony ntpd systemd-timesyncd ntp; do
+      if systemctl is-active $svc 2>/dev/null | grep -q "^active$"; then
+        NTPACTIVE="yes"; break
+      fi
+    done
+    echo "NTPACTIVE=${NTPACTIVE}"
+    FW_TOOL=""
+    FW_STATE=""
+    if command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active firewalld 2>/dev/null | grep -q "^active$"; then
+      FW_TOOL="firewalld"; FW_STATE="active"
+    elif command -v ufw >/dev/null 2>&1; then
+      UFW_OUT=$(sudo -n ufw status 2>/dev/null | head -1 || true)
+      if echo "$UFW_OUT" | grep -qi "Status: active"; then FW_TOOL="ufw"; FW_STATE="active"
+      elif echo "$UFW_OUT" | grep -qi "Status: inactive"; then FW_TOOL="ufw"; FW_STATE="inactive"
+      fi
+    elif command -v nft >/dev/null 2>&1; then
+      RULESET=$(sudo -n nft list ruleset 2>/dev/null || true)
+      if [ -n "$RULESET" ]; then FW_TOOL="nftables"; FW_STATE="active"
+      else FW_TOOL="nftables"; FW_STATE="inactive"
+      fi
+    elif command -v iptables >/dev/null 2>&1; then
+      FW_TOOL="iptables"
+      IPT_OUT=$(sudo -n iptables -L -n 2>/dev/null | head -5 || true)
+      if [ -n "$IPT_OUT" ]; then FW_STATE="active"; else FW_STATE="inactive"; fi
+    fi
+    echo "FW_TOOL=${FW_TOOL}"
+    echo "FW_STATE=${FW_STATE}"
+    echo "PORTS_BEGIN"
+    if command -v ss >/dev/null 2>&1; then
+      ss -tlnH 2>/dev/null | awk '{print $4}' | awk -F: '{print $NF}' | grep -E '^[0-9]+$' | sort -un
+    elif command -v netstat >/dev/null 2>&1; then
+      netstat -tln 2>/dev/null | awk 'NR>2 {print $4}' | awk -F: '{print $NF}' | grep -E '^[0-9]+$' | sort -un
+    fi
+    echo "PORTS_END"
+    SWAP_LINE=$(free -m 2>/dev/null | awk 'tolower($1) ~ /^swap/' || true)
+    if [ -z "$SWAP_LINE" ]; then SWAP_LINE="Swap: 0 0 0"; fi
+    echo "SWAP_TOTAL=$(echo $SWAP_LINE | awk '{print $2}')"
+    echo "SWAP_USED=$(echo $SWAP_LINE | awk '{print $3}')"
+    echo "SWAP_FREE=$(echo $SWAP_LINE | awk '{print $4}')"
+  register: _l_runtime_raw
+  changed_when: false
+  failed_when: false
+  no_log: true
+
+- name: "linux | system | parse runtime"
+  ansible.builtin.set_fact:
+    _l_runtime: >-
+      {%- set lines = _l_runtime_raw.stdout_lines | default([]) -%}
+      {%- set ns = namespace(in_ports=false, ports=[], kv={}) -%}
+      {%- for line in lines -%}
+        {%- set s = line | trim -%}
+        {%- if s == 'PORTS_BEGIN' -%}{%- set ns.in_ports = true -%}
+        {%- elif s == 'PORTS_END' -%}{%- set ns.in_ports = false -%}
+        {%- elif ns.in_ports -%}
+          {%- if s and s.isdigit() -%}{%- set _ = ns.ports.append(s | int) -%}{%- endif -%}
+        {%- elif '=' in s -%}
+          {%- set k, _, v = s.partition('=') -%}
+          {%- set _ = ns.kv.update({k: v}) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- set _ = ns.kv.update({'PORTS': ns.ports | sort | unique | list}) -%}
+      {{ ns.kv }}
+  no_log: true
+
 - name: "linux | system | parse raw results"
   when: _l_python_mode != 'python_ok'
   ansible.builtin.set_fact:
@@ -328,6 +406,40 @@
         # 2026-04-30 fix B80 raw fallback: Python 미동작 환경(Python 3.6/RHEL 8.10)에서
         # ansible_system_vendor undefined → _l_raw_vendor (sys_vendor sysfs)로 fallback.
         vendor:         "{{ ansible_system_vendor | default(_l_raw_vendor | default(none)) }}"
+        # F5 cycle 2026-05-11: system.runtime — 9 필드 (timezone/ntp/firewall/listen/swap)
+        # Linux raw 명령 (timedatectl/systemctl/ss/free) 결과 → _l_runtime 에 parse.
+        runtime:
+          timezone: >-
+            {%- set tz = (_l_runtime.TZ | default('')) | trim -%}
+            {{ tz if tz else none }}
+          ntp_active: >-
+            {%- set v = (_l_runtime.NTPACTIVE | default('')) | trim -%}
+            {%- if v == 'yes' -%}{{ true }}
+            {%- elif v == 'no' -%}{{ false }}
+            {%- else -%}{{ none }}
+            {%- endif -%}
+          ntp_synchronized: >-
+            {%- set v = (_l_runtime.NTPSYNC | default('')) | trim -%}
+            {%- if v == 'yes' -%}{{ true }}
+            {%- elif v == 'no' -%}{{ false }}
+            {%- else -%}{{ none }}
+            {%- endif -%}
+          firewall_tool: >-
+            {%- set v = (_l_runtime.FW_TOOL | default('')) | trim -%}
+            {{ v if v else none }}
+          firewall_state: >-
+            {%- set v = (_l_runtime.FW_STATE | default('')) | trim -%}
+            {{ v if v else none }}
+          listening_ports: "{{ _l_runtime.PORTS | default([]) }}"
+          swap_total_mb: >-
+            {%- set v = (_l_runtime.SWAP_TOTAL | default('')) | trim -%}
+            {{ (v | int) if (v and v != '0') else (0 if v == '0' else none) }}
+          swap_used_mb: >-
+            {%- set v = (_l_runtime.SWAP_USED | default('')) | trim -%}
+            {{ (v | int) if v else none }}
+          swap_free_mb: >-
+            {%- set v = (_l_runtime.SWAP_FREE | default('')) | trim -%}
+            {{ (v | int) if v else none }}
     _sections_supported_fragment: ['system']
     _sections_collected_fragment: >-
       {{ ['system'] if (ansible_distribution is defined

@@ -118,7 +118,7 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 | Channel | present | null | empty | not_supported | missing | total |
 |---|---|---|---|---|---|---|
 | redfish | 174 | 15 | 11 | 36 | 24 | 260 |
-| os | 101 | 10 | 35 | 24 | 25 | 195 |
+| os | 104 | 10 | 35 | 24 | 22 | 195 |
 | esxi | 29 | 2 | 20 | 10 | 4 | 65 |
 
 ## 분류 1 후보 (수집 불가 — channel 제거): 13
@@ -249,7 +249,7 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 | `network.driver_map[]` | os | _ | _ | e | _ | _ | _ | _ | _ | os:1 |
 | `storage.hbas[]` | redfish,os,esxi | _ | _ | O | _ | _ | _ | _ | _ | redfish:1,os:1 |
 | `storage.infiniband[]` | redfish,os,esxi | _ | _ | e | _ | _ | _ | _ | _ | redfish:1,os:1,esxi:1 |
-| `system.runtime` | esxi | - | - | O | - | - | _ | _ | _ | OK |
+| `system.runtime` | os,esxi | - | - | O | - | - | O | O | O | OK |
 
 **범례**: O=present / n=null / e=empty / -=not_supported / _=missing
 

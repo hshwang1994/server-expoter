@@ -62,7 +62,18 @@
       "selinux": "enabled",
       "fqdn": "rhel810-test01.gooddi.lab",
       "serial_number": "VMware-42 0c 9d 1e 5a 7b 90 31-c4 8d 7e f0 22 19 33 ab",
-      "system_uuid": "1e9d0c42-7b5a-3190-c48d-7ef0221933ab"
+      "system_uuid": "1e9d0c42-7b5a-3190-c48d-7ef0221933ab",
+      "runtime": {
+        "timezone": "America/New_York",
+        "ntp_active": true,
+        "ntp_synchronized": true,
+        "firewall_tool": "firewalld",
+        "firewall_state": "active",
+        "listening_ports": [22, 53, 111, 631],
+        "swap_total_mb": 5119,
+        "swap_used_mb": 0,
+        "swap_free_mb": 5119
+      }
     },
     "memory": {
       "total_mb": 4096,
