@@ -237,6 +237,63 @@ BMC AccountService POST/PATCH → infraops 계정 생성/복구
 - override: `-e _rf_account_service_dryrun=true` (시뮬레이션 모드 강제)
 - 신규 사이트 BMC 1대 처음 적용 시 권장: dryrun ON 으로 시뮬레이션 1회 → dryrun OFF 로 실 적용
 
+## 6.6. adapter label naming convention (cycle 2026-05-11 — M-A7)
+
+> 본 절은 cycle 2026-05-11 M-A7 (commit `a82afc4b`) 의 29 adapter 전수 정합 결과를 정본 reference 로 고정.
+
+### 1:1 정합 의무
+
+adapter (`adapters/redfish/{vendor}_*.yml`) 의 `credentials.recovery_accounts[*].vault_label` 은 vault (`vault/redfish/{vendor}.yml`) 의 `accounts[*].label` 와 **1:1 정합** 의무.
+
+- **정본** = vault `accounts[*].label` (운영자 결정)
+- adapter `vault_label` 은 vault 정본을 참조만 — adapter 가 vault 에 없는 label declare 시 `account_service.yml:31-41` label 매칭 chain 에서 skip 후 username fallback 으로 우회 (기능은 동작하나 label 매칭 활성화 안 됨 + 시도 회수 증가)
+- 회귀 검증: `tests/unit/test_adapter_vault_label_consistency.py` (29 adapter × vendor 별 허용 set 정적 검증)
+
+### naming convention (cycle 2026-05-11 정착)
+
+| label 패턴 | 의미 | 보유 vendor |
+|---|---|---|
+| `{vendor}_factory` | 공장 기본 자격 (vendor 매뉴얼 default — BMC 초기 상태에서 사용) | 9 vendor 모두 (Dell 제외 — `dell_fallback_2` 로 표기) |
+| `{vendor}_current` | 현재 운영 자격 (cycle 2026-04-29 ~ 2026-05-06 누적된 사이트 운영 default) | Dell / HPE / Lenovo / Cisco |
+| `{vendor}_fallback` / `{vendor}_fallback_N` | 히스토리컬 fallback (이전 cycle 운영 자격 또는 다중 history 보존) | Dell (`fallback_1`, `fallback_2`) / HPE / Lenovo |
+| `lab_{vendor}_root` | lab 환경 root 자격 (사이트 외 lab 검증 전용) | Dell only (`lab_dell_root`) |
+
+### vendor 별 적용 결과 (29 adapter 정합 완료)
+
+| vendor | adapter 수 | label entries | 정본 |
+|---|---|---|---|
+| Dell | 4 (idrac/idrac8/idrac9/idrac10) | `dell_fallback_1`, `dell_fallback_2`, `dell_current`, `lab_dell_root` | §6.5 매트릭스 |
+| HPE | 6 (ilo/ilo4/ilo5/ilo6/ilo7/superdome_flex) | `hpe_fallback`, `hpe_current`, `hpe_factory` | §6.5 매트릭스 |
+| Lenovo | 4 (bmc/imm2/xcc/xcc3) | `lenovo_fallback`, `lenovo_current`, `lenovo_factory` | §6.5 매트릭스 |
+| Supermicro | 8 (bmc/x9/x10/x11/x12/x13/x14/ars) | `supermicro_factory` | §6.5 매트릭스 |
+| Cisco | 3 (bmc/cimc/ucs_xseries) | `cisco_current`, `cisco_factory` | §6.5 매트릭스 |
+| Huawei | 1 (ibmc) | `huawei_factory` | §6.5 매트릭스 |
+| Inspur | 1 (isbmc) | `inspur_factory` | §6.5 매트릭스 |
+| Fujitsu | 1 (irmc) | `fujitsu_factory` | §6.5 매트릭스 |
+| Quanta | 1 (qct_bmc) | `quanta_factory` | §6.5 매트릭스 |
+
+총 29 adapter (`redfish_generic.yml` 제외 — generic fallback 은 vendor 미상으로 `recovery_accounts: []` 유지).
+
+### 변경 원칙 (rule 13 R5 + rule 96 R1-B — Additive only)
+
+adapter `recovery_accounts` 변경은 **Additive only** 의무:
+
+- **Allowed**: vault accounts 신규 추가 후 adapter 에 동일 label entry **추가** (Additive)
+- **Allowed**: adapter declare entry 순서 변경 (시도 순서는 vault accounts 순서로 결정 — adapter 순서 변경은 cosmetic)
+- **Forbidden**:
+  - adapter 의 기존 label entry **삭제 / 리네임** (호환성 cycle 외)
+  - vault 에 존재하지 않는 label declare (회귀 테스트 차단)
+  - envelope `data.bmc.account_service` shape 변경 (rule 13 R5)
+  - 호출자 시스템 파싱 변경 (rule 96 R1-B)
+
+### 신규 adapter 추가 시 체크리스트
+
+1. vault `vault/redfish/{vendor}.yml` 의 `accounts[*].label` 확인 (정본)
+2. adapter `credentials.recovery_accounts` 에 vault label 와 동일 entry 추가
+3. 각 entry 에 `role: recovery` 명시
+4. `tests/unit/test_adapter_vault_label_consistency.py` 회귀 PASS 확인
+5. (vendor 신규 시) §6.5 매트릭스 + 본 절 vendor 별 적용 결과 표 갱신
+
 ## 7. accounts 정규화 (P1 cycle 2026-04-28)
 
 vault file 내 accounts list 순서 = multi-account fallback 시도 순서. 별도 role 정렬 없음.

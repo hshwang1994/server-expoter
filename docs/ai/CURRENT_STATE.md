@@ -1,6 +1,34 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (M-A7 — adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 [DONE])
+## 일자: 2026-05-11 (M-A7-followup — vault_label 회귀 + docs/21 §6.6 naming convention [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "M-A7 후속 작업 2건 진행해줘" — 회귀 테스트 + docs/21 §6.6 naming convention 절 추가
+- 자율 진행 (Additive only / envelope 변경 0 / 사용자 결정 불필요)
+
+### 적용 변경 (2 파일 — Additive only)
+
+| 영역 | 변경 |
+|---|---|
+| **tests/unit/test_adapter_vault_label_consistency.py** | 신설 — 29 adapter × vendor 별 허용 label set 정적 검증 (90 test cases, parametrize) |
+| **docs/21_vault-operations.md §6.6** | 신설 — adapter label naming convention (`{vendor}_factory` / `{vendor}_current` / `{vendor}_fallback` / `lab_{vendor}_root`) + 1:1 정합 의무 + Additive only 의무 |
+
+### 검증 결과
+
+- **pytest**: 587/587 PASS (497 → 587 — 신규 회귀 90건 누적, M-A7 정합 drift 차단)
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0 (gather 코드 변경 없음)
+- **envelope shape 변경 0** (rule 13 R5 / rule 96 R1-B) — adapter 코드 변경 0
+
+### 정본 reference
+
+- `docs/21_vault-operations.md` §6.5 — 9 vendor recovery 매트릭스 (line 172-208, 정본)
+- `docs/21_vault-operations.md` §6.6 — adapter label naming convention (신설)
+- `tests/unit/test_adapter_vault_label_consistency.py` — 정적 회귀 (drift 차단)
+
+---
+
+## 이전 일자: 2026-05-11 (M-A7 — adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - "cycle 2026-05-06 multi-session-compatibility 진입" → 이미 [DONE] 확인 후 NEXT_ACTIONS M-A7 채택 (AI 자율 가능 영역)

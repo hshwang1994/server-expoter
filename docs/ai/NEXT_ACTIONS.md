@@ -167,9 +167,14 @@ primary infraops/Password123! 시도 → 401 (BMC 미설치)
 | 4 | origin 주석 갱신 | fixture 캡처 후 | `adapters/redfish/dell_idrac10.yml:6-13` "tested_against" 항목 |
 | 5 | dryrun ON 첫 적용 권장 | 사이트 R770 첫 수집 시 | `_rf_account_service_dryrun=true` 1회 시뮬레이션 |
 
-### ~~후속 cycle 권장 (M-A7 — label mismatch)~~ **[DONE 2026-05-11]**
+### ~~후속 cycle 권장 (M-A7 — label mismatch)~~ **[DONE 2026-05-11]** + M-A7-followup **[DONE 2026-05-11]**
 
 adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증 — **완료 (M-A7 cycle 2026-05-11)**.
+
+**M-A7-followup (cycle 2026-05-11 [DONE])**: 회귀 테스트 + naming convention 문서화
+- `tests/unit/test_adapter_vault_label_consistency.py` 신설 — 29 adapter × vendor 별 허용 label set 정적 검증 (90 test cases) → drift 차단
+- `docs/21_vault-operations.md` §6.6 신설 — adapter label naming convention (`{vendor}_factory` / `{vendor}_current` / `{vendor}_fallback` / `lab_{vendor}_root`) + 1:1 정합 의무 + Additive only 의무
+- pytest 587/587 PASS (497 → 587, 신규 회귀 90건 누적) / verify_harness_consistency / verify_vendor_boundary PASS / envelope 변경 0
 
 29 adapter (generic 제외) 의 `recovery_accounts` 를 vault 실 label 과 1:1 매핑. 사용자 결정 Q1=B (Dell/HPE/Lenovo 전수 declare 확장) + Q2=A (Supermicro/Cisco/Huawei/Inspur/Fujitsu/Quanta 본 cycle 함께 채움).
 
