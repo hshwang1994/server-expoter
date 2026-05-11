@@ -21,10 +21,32 @@
 
 ## Ticket 목록
 
-| ID | 제목 | 우선순위 | 영역 |
-|---|---|---|---|
-| **T-01** | HPE adapter 오선택 — DL380 Gen11 이 `hpe_ilo7` (Gen12) 로 매칭됨 | MED | redfish / adapter / detect_vendor |
-| **T-02** | `regex_search` + `when` 절 lint hook (rule 95) | LOW | scripts/ai/hooks + rule 95 |
+| ID | 제목 | 우선순위 | 영역 | 상태 |
+|---|---|---|---|---|
+| **T-01** | HPE adapter 오선택 — DL380 Gen11 이 `hpe_ilo7` (Gen12) 로 매칭됨 | MED | redfish / adapter / detect_vendor | **[RESOLVED]** cycle 2026-05-11 |
+| **T-02** | `regex_search` + `when` 절 lint hook (rule 95) | LOW | scripts/ai/hooks + rule 95 | **[RESOLVED]** cycle 2026-05-11 (advisory) |
+
+### T-01 RESOLVED 요약 (2026-05-11)
+
+- 변경 파일:
+  - `redfish-gather/library/redfish_gather.py` — `_extract_probe_facts(root, vendor)` 신규 + `detect_vendor()` 시그니처에 `service_root` 추가 + `main()` exit_json 에 `probe_facts` 노출
+  - `redfish-gather/tasks/detect_vendor.yml` — `data.bmc.firmware_version` / `data.system.model` empty 시 `probe_facts.model_hint` / `probe_facts.firmware_hint` / `probe_facts.manager_type` fallback
+  - `tests/unit/test_adapter_selection_t01.py` (신규) — 9 시나리오 매트릭스 (HPE Gen11/Gen12/Gen10 + Dell/Lenovo/Cisco 회귀)
+  - `tests/unit/test_probe_facts_extraction.py` (신규) — 9건 `_extract_probe_facts` 단위 (실 fixture 검증 + 타 vendor empty + edge cases)
+- 회귀: pytest 626/626 PASS (기존 608 + 신규 18)
+- Additive only (rule 96 R1-B): envelope shape 신 키 `probe_facts` 는 probe 응답 한정 — 호출자 시스템 파싱 변경 0
+- HPE 한정 분기 (rule 12 R1 Allowed — Redfish API spec OEM namespace): 타 vendor (8종) 는 빈 dict 반환 → 기존 priority-based selection 유지
+
+### T-02 RESOLVED 요약 (2026-05-11)
+
+- 변경 파일:
+  - `scripts/ai/hooks/pre_commit_regex_search_conditional_check.py` (신규) — POST-regex_* 위치 가드 검사 (5d6cf72c 사고 패턴 정확 차단)
+  - `.claude/rules/95-production-code-critical-review.md` — R1 #12 추가 (의심 패턴 11종 → 12종)
+  - `.claude/policy/surface-counts.yaml` — hooks 28 → 29
+  - `scripts/ai/hooks/install-git-hooks.sh` — pre-commit chain 등록 + `REGEX_WHEN_SKIP` / `REGEX_WHEN_BLOCKING` 환경변수 안내
+- self-test 10/10 PASS + 전체 codebase scan 0 false positive
+- advisory 단계 — 1주 안정 후 `REGEX_WHEN_BLOCKING=1` 또는 본 hook BLOCKING 격상 검토
+- `.claude/settings.json` 등록은 skip — settings.json 은 Claude Code hook (PostToolUse/Stop 등) 전용. git pre-commit 은 `install-git-hooks.sh` 로 등록 (올바른 layer)
 
 운영 영역 (AI 작업 외 — `NOTES.md` 참조):
 - Cisco 10.100.15.1 — TCP/443 OK + HTTP 503 (Redfish 서비스 down/busy)

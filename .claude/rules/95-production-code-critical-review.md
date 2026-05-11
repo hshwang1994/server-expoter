@@ -11,7 +11,7 @@
 
 ### R1. TDD/리뷰 작성 전 production 자동 스캔
 
-대상 코드의 모든 함수/태스크를 읽은 뒤 **의심 패턴 11종** 자동 스캔:
+대상 코드의 모든 함수/태스크를 읽은 뒤 **의심 패턴 12종** 자동 스캔:
 
 1. **Ansible default(omit) 누락** — vendor-specific 변수가 없을 때 정의되지 않은 변수 참조
 2. **set_fact 재정의로 인한 fragment 침범** — 다른 gather의 fragment 변수를 set_fact (rule 22)
@@ -24,6 +24,7 @@
 9. **adapter_loader self-reference** — adapter가 다른 adapter를 include하는데 순환
 10. **mutable/immutable 혼동** — Ansible vars dict의 deep copy 누락 (set_fact가 reference 공유)
 11. **외부 시스템 계약 drift** (rule 96 연동) — adapter YAML의 vendor 목록 ↔ 실제 BMC 펌웨어 지원 집합 drift. 스캔 방식: adapter의 vendor / firmware 메타가 실 펌웨어와 일치하는지 origin 주석 확인 의무 (불가 시 사용자 질의)
+12. **`regex_search` / `regex_findall` / `regex_replace` + `when` 절 None 가드 누락** — Ansible Jinja2 `regex_*` 가 미매치 시 None 반환 → strict mode conditional fail (`Conditional result (False) was derived from value of type 'NoneType'`). 가드: `(var | regex_search('p')) is not none` / `| length > 0` / `| default(false) | bool`. 가드는 regex_* 호출 **뒤** 에 와야 함 — `| default('')` 가 regex_search **앞** 에 있으면 INPUT 만 가드 (출력은 여전히 None, 5d6cf72c 사고 사례). 자동 검출 hook: `scripts/ai/hooks/pre_commit_regex_search_conditional_check.py` (advisory — cycle 2026-05-11 도입).
 
 ### R2. 개발자 답변도 검증 대상
 

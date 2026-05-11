@@ -1,6 +1,65 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (cycle hpe-ilo7-gen12-match-fix — iLO 7 2-part firmware 매치 보강 [DONE])
+## 일자: 2026-05-11 (cycle 2026-05-11-jenkins-test-followup — T-01 / T-02 [DONE])
+
+### 컨텍스트
+- 사용자 명시: "Jenkins 들어가서 개더링 테스트해봐 잘되는지" 후속 — build #133~#139 에서 발견된 issue 후속 작업
+- 직전 세션 fix 5건 commit 후 잔여 2 ticket: T-01 (HPE adapter 오선택) + T-02 (regex_search lint hook)
+- 사용자 명시 "다른 세대장비 다른 장비 등등 문제 발생되지 않도록 잘해달라" — 전 vendor 회귀 검증 필수
+
+### 본 cycle 결과 요약
+
+| 영역 | 변경 |
+|---|---|
+| **T-01 fix (Python)** | `redfish-gather/library/redfish_gather.py` — `_extract_probe_facts(root, vendor)` 신규 + `detect_vendor()` 가 `service_root` 함께 반환 + `main()` exit_json 에 `probe_facts` top-level field 노출 |
+| **T-01 fix (Ansible)** | `redfish-gather/tasks/detect_vendor.yml` — `data.bmc.firmware_version` / `data.system.model` empty 시 `probe_facts.model_hint` / `probe_facts.firmware_hint` / `probe_facts.manager_type` fallback |
+| **T-01 tests** | `tests/unit/test_adapter_selection_t01.py` (9 시나리오) + `tests/unit/test_probe_facts_extraction.py` (9 단위) — 모두 PASS |
+| **T-02 fix** | `scripts/ai/hooks/pre_commit_regex_search_conditional_check.py` 신규 (POST-regex_* 가드 위치 검사 — 5d6cf72c 사고 패턴 정확 차단) + `.claude/rules/95-production-code-critical-review.md` R1 #12 추가 + `surface-counts.yaml` hooks 28 → 29 + `install-git-hooks.sh` 등록 |
+| **T-02 self-test** | 10/10 PASS + 전체 codebase scan 0 false positive |
+| pytest | **626/626 PASS** (기존 608 + 신규 18) |
+| 하네스 | verify_harness_consistency (28R/51S/60A/10P) + verify_vendor_boundary PASS |
+| PROJECT_MAP fingerprint | 갱신 (drift 해소) |
+
+### Additive only 검증 (rule 92 R2 / rule 96 R1-B)
+
+| 검증 항목 | 결과 |
+|---|---|
+| envelope 13 필드 / shape 변경 | 0 — `probe_facts` 는 detect_vendor.yml 의 probe 응답 한정. 호출자 envelope (build_output.yml) 영향 0 |
+| 기존 path 유지 | OK — `data.bmc.firmware_version` / `data.system.model` 우선 (인증 성공 시), fallback 만 추가 |
+| sections 10 / field_dictionary 65 의미 변경 | 0 |
+| 호출자 시스템 파싱 변경 | 0 — `probe_facts` 는 무인증 probe 응답 한정 top-level field |
+
+### 영향 vendor 매트릭스 (rule 25 R7 — 전수 회귀)
+
+| Vendor | probe_facts 추출 | 영향 |
+|---|---|---|
+| HPE | model_hint + firmware_hint + manager_type | **목표** — DL380 Gen11 → hpe_ilo6 정확 선택 (test 통과) |
+| Dell | 빈 dict | 영향 0 (idrac10 우선 priority 유지) |
+| Lenovo | 빈 dict | 영향 0 (xcc3 우선 priority 유지) |
+| Cisco | 빈 dict | 영향 0 (ucs_xseries model_patterns 매치) |
+| Supermicro | 빈 dict | 영향 0 |
+| Huawei / Inspur / Fujitsu / Quanta | 빈 dict | 영향 0 |
+
+### 검증 결과 (rule 24 6 체크리스트)
+
+| 항목 | 결과 |
+|---|---|
+| 정적 검증 | py_compile OK / yaml parse OK / pytest 626 PASS / verify_harness OK / verify_vendor_boundary OK / hook self-test 10/10 |
+| 발견 버그 | 0건 (Additive only + HPE 한정 분기 + POST-regex_* 가드 위치 정밀화) |
+| 문서 갱신 | evidence (RESOLVED #1 + #4) + INDEX (T-01/T-02 완료) + CURRENT_STATE + rule 95 + surface-counts |
+| 후속 작업 | (1) Jenkins 빌드 회귀 검증 (push 후 hshwang-gather loc=git target_type=redfish bmc_ip=10.50.11.231) — 다음 세션 / (2) Cisco 10.100.15.1 + 10.100.15.3 운영 점검 (AI 외) / (3) regex_search hook BLOCKING 격상 (1주 후 검토) |
+| 태그 | (선택 — 본 fix 는 사이트 검증 후) |
+| 회귀 | pytest 626 + adapter 시뮬레이션 9 + probe_facts 단위 9 + 하네스 + vendor boundary + harness consistency 모두 PASS |
+
+### rule 70 R8 trigger
+- trigger 1 (rule 의미 변경): 1건 — rule 95 R1 #12 추가 (의심 패턴 11종 → 12종)
+- trigger 2 (표면 카운트 변경): 0건 — hooks 28 → 29 는 trigger 2 list (rules/skills/agents/policies) 에 미포함
+- trigger 3 (보호 경로 정책): 0
+- → trigger 1 — ADR 작성 의무. `docs/ai/decisions/ADR-2026-05-11-regex-search-when-guard-hook.md` 신규
+
+---
+
+## 이전 일자: 2026-05-11 (cycle hpe-ilo7-gen12-match-fix — iLO 7 2-part firmware 매치 보강 [DONE])
 
 ### 컨텍스트
 - 직전 cycle `hpe-csus-add` mock 검증 부수 발견 — iLO 7 adapter 가 facts.firmware = "1.10" 같은 2-part short version 매치 실패 → iLO 4 (priority=50) 잘못 선택

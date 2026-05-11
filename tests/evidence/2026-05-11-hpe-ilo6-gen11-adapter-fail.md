@@ -160,9 +160,8 @@ when:
 
 ### 잔여 후속 작업 (다음 cycle)
 
-1. **adapter 오선택 (LOW)**: DL380 Gen11 (iLO 6) 가 `redfish_hpe_ilo7` (Gen12 adapter) 로 매칭됨 — detect_vendor probe 가 무인증으로 model/firmware 추출 못 함 → facts empty → priority 가장 높은 hpe_ilo7 (120) 선택. 정확한 매칭은 hpe_ilo6 여야. 현재 sections 8/10 수집 정상이지만 OEM 단계에서 Gen12 specific path 사용 가능.
-   - 조사: probe 무인증 응답의 어느 path에서 model/firmware 추출 가능한지 (ServiceRoot.Vendor / Oem.Hpe.Manager 등)
-2. **Cisco 10.100.15.1 운영 점검**: TCP/443 OK + HTTP 503 → Redfish 서비스 down/busy (운영 영역)
-3. **Cisco 10.100.15.3 운영 점검**: ICMP/TCP timeout → host down or firewall (운영 영역)
-4. **rule 95 hook**: `is not none` 패턴 lint — `regex_search` / `regex_findall` 의 conditional 사용 시 None 가드 강제 (pre_commit hook 권장)
+1. ~~**adapter 오선택 (LOW)**: DL380 Gen11 (iLO 6) 가 `redfish_hpe_ilo7` (Gen12 adapter) 로 매칭됨~~ — **[RESOLVED] cycle 2026-05-11 T-01 fix**: `redfish_gather.py` `_extract_probe_facts(root, vendor)` 신규 함수 + `detect_vendor()` 가 ServiceRoot 응답 함께 반환 + `main()` 이 `probe_facts` top-level field 노출 (Additive — envelope shape 신 키 추가는 probe 응답 한정). `detect_vendor.yml` 이 `data.bmc.firmware_version` / `data.system.model` 가 비었을 때 `probe_facts.model_hint` (= ServiceRoot.Product) / `probe_facts.firmware_hint` (= Oem.Hpe.Manager[0].ManagerFirmwareVersion) / `probe_facts.manager_type` 로 fallback. 회귀: pytest 608/608 + 9건 adapter 선택 시뮬레이션 + 9건 _extract_probe_facts 단위 — DL380 Gen11 → hpe_ilo6 정확 선택 확인, Gen12 → hpe_ilo7 유지, 타 vendor (Dell/Lenovo/Cisco/Supermicro/Huawei/Inspur/Fujitsu/Quanta) 영향 0.
+2. **Cisco 10.100.15.1 운영 점검**: TCP/443 OK + HTTP 503 → Redfish 서비스 down/busy (운영 영역 — AI 작업 외)
+3. **Cisco 10.100.15.3 운영 점검**: ICMP/TCP timeout → host down or firewall (운영 영역 — AI 작업 외)
+4. ~~**rule 95 hook**: `is not none` 패턴 lint~~ — **[RESOLVED] cycle 2026-05-11 T-02 fix**: `scripts/ai/hooks/pre_commit_regex_search_conditional_check.py` 신규 hook (advisory) + rule 95 R1 #12 추가 + `install-git-hooks.sh` 등록 + `surface-counts.yaml` hooks 29 갱신. POST-regex_* 가드 위치 정밀화 (`| default('')` 가 regex_search **앞** 에 있으면 INPUT 만 가드 — 5d6cf72c 사고 사례 정확 차단). self-test 10/10 + 전체 codebase 0 false positive. 1주 안정 후 BLOCKING 격상 검토.
 
