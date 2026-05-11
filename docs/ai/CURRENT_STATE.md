@@ -1,6 +1,34 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-07 (post-cycle harness self-improvement — AI 환경 즉시 가능 3 작업 [DONE])
+## 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Session-1 — M-A1~A6 [DONE])
+
+### 사용자 명시 (2026-05-11 cycle 진입)
+- "Dell R770 사이트를 참고해서 지금 Dell R770가 지원되는지 확인해줘. 벤더 default 계정 생성이 안되고있어."
+- 결정: M-A1~A6 전체 / vault password `Goodmit0802!` / primary infraops 비밀번호 `Password123!` / R770 lab 후속은 vault만 처리
+
+### 적용 변경 (vault 9 + docs 1)
+
+| 영역 | 변경 |
+|---|---|
+| **5 기존 vendor vault** | primary `infraops/Passw0rd1!Infra` → `infraops/Password123!` 통일 + Supermicro recovery 신규 (ADMIN/ADMIN) + HPE/Lenovo/Cisco 공장 기본 recovery append (Additive — rule 92 R2) |
+| **4 신규 vendor vault** | `vault/redfish/huawei.yml` (Administrator/Admin@9000) / `inspur.yml` `fujitsu.yml` `quanta.yml` (admin/admin) 신설 — lab 부재 (rule 96 R1-A web sources) |
+| **docs/21** | §6.5 9 vendor recovery 매트릭스 + Password123! 정책 + account_service 자동 생성 메커니즘 절 추가 |
+
+### 검증 결과
+
+- 9 vault 모두 encrypted (`$ANSIBLE_VAULT;1.1;AES256` header hit)
+- decrypt round-trip 9건 PASS — primary `infraops/Password123!` 9건 + recovery 합계 17건 (Dell 4 / HPE 3 / Lenovo 3 / Cisco 2 / Supermicro 1 / Huawei 1 / Inspur 1 / Fujitsu 1 / Quanta 1)
+- adapter `dell_idrac10.yml` recovery_accounts label (`dell_root_calvin`) ↔ vault label (`dell_fallback_2`) **label mismatch 발견** — username 매칭 fallback 으로 동작 (account_service.yml:31-41 label 우선 → username 매칭 chain). 별도 cycle 권장 (M-A7 후속)
+
+### Dell R770 (iDRAC10) 적용 효과
+
+- adapter `dell_idrac10.yml` priority=120 매칭 (R770 model_pattern 포함)
+- vault `dell.yml` multi-account fallback (5 accounts) 시도 → account_service.yml → infraops/Password123! 자동 provision
+- **lab 검증**: 0건 (R770 fixture/baseline 부재 — 별도 cycle, NEXT_ACTIONS 유지)
+
+---
+
+## 이전 일자: 2026-05-07 (post-cycle harness self-improvement — AI 환경 즉시 가능 3 작업 [DONE])
 
 ### 사용자 명시 (cycle 진입)
 - "AI 환경에서 즉시 가능한 작업 (P2/P3 후보 0 잔존) 모두 수행해라 남아있는 작업 없도록"

@@ -8,12 +8,12 @@
 
 | ticket | 영역 | 우선 | 의존 | status | worker | commit |
 |---|---|---|---|---|---|---|
-| **M-A1** | huawei vault 신설 (primary infraops + recovery Administrator/Admin@9000) | P1 | — | [PENDING] | W1 | — |
-| **M-A2** | inspur vault 신설 (primary infraops + recovery admin/admin) | P1 | — | [PENDING] | W1 | — |
-| **M-A3** | fujitsu vault 신설 (primary infraops + recovery admin/admin) | P1 | — | [PENDING] | W1 | — |
-| **M-A4** | quanta vault 신설 (primary infraops + recovery admin/admin) | P1 | — | [PENDING] | W1 | — |
-| **M-A5** | 5 사이트 검증 vendor recovery 자격 추가 (Dell root/calvin / HPE admin/admin / Lenovo USERID/PASSW0RD / Supermicro ADMIN/ADMIN / Cisco admin/password) | P1 | — | [PENDING] | W1 | — |
-| **M-A6** | docs/21_vault-operations.md 갱신 (vendor 공장 기본 자격 정책 명문화) | P2 | A1, A2, A3, A4, A5 | [PENDING] | W1 | — |
+| **M-A1** | huawei vault 신설 (primary infraops/Password123! + recovery Administrator/Admin@9000) | P1 | — | **[DONE]** | W1 | 2026-05-11 |
+| **M-A2** | inspur vault 신설 (primary infraops/Password123! + recovery admin/admin) | P1 | — | **[DONE]** | W1 | 2026-05-11 |
+| **M-A3** | fujitsu vault 신설 (primary infraops/Password123! + recovery admin/admin) | P1 | — | **[DONE]** | W1 | 2026-05-11 |
+| **M-A4** | quanta vault 신설 (primary infraops/Password123! + recovery admin/admin) | P1 | — | **[DONE]** | W1 | 2026-05-11 |
+| **M-A5** | 5 기존 vendor primary infraops/Password123! 통일 + Supermicro recovery 추가 (ADMIN/ADMIN) + HPE/Lenovo/Cisco 공장 기본 자격 append (Additive) | P1 | — | **[DONE]** | W1 | 2026-05-11 |
+| **M-A6** | docs/21_vault-operations.md 갱신 (9 vendor 매트릭스 + Password123! 정책 + account_service 자동 생성 메커니즘) | P2 | A1, A2, A3, A4, A5 | **[DONE]** | W1 | 2026-05-11 |
 | **M-B1** | adapters/redfish/supermicro_x10.yml 신설 (현재 누락) | P1 | A6 | [PENDING] | W1 | — |
 | **M-B2** | Supermicro 6 generation (BMC/X9/X10/X11/X12/X13/X14) capability 정합 + origin 주석 강화 | P1 | B1 | [PENDING] | W1 | — |
 | **M-B3** | H11/H12/H13/H14 (AMD) + ARS (ARM) 변형 — model_patterns 확장 | P2 | B2 | [PENDING] | W1 | — |

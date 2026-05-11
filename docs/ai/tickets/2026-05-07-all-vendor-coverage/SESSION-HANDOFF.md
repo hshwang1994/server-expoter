@@ -15,6 +15,40 @@
 
 ---
 
+## Session-1 (2026-05-11 — W1 영역 M-A1~A6 수행)
+
+### 사용자 지시 (2026-05-11)
+
+> "Dell R770 사이트를 참고해서 지금 Dell R770가 지원되는지 확인해줘. 벤더 default 계정 생성이 안되고있어."
+>
+> 사용자 결정:
+>  - 작업 범위: M-A1~A6 전체
+>  - vault password: `Goodmit0802!` / primary infraops 비밀번호: `Password123!`
+>  - Dell R770 lab 후속: vault 만 처리, lab 도입 시 별도 cycle
+
+### 발견된 root cause
+
+1. **Supermicro recovery 자격 부재** — primary infraops 실패 시 fallback 0개 → recovery 진입 불가 → account_service.yml 진입 안 함
+2. **4 신규 vendor (Huawei/Inspur/Fujitsu/Quanta) vault 자체 부재** — primary/recovery 모두 없음 (cycle 2026-05-01 SKIP)
+3. Dell R770 (iDRAC10) adapter 매칭 OK / firmware/vendor pattern OK / **lab fixture/baseline 부재** (별도 cycle)
+
+### 처리 결과 (M-A1~A6 [DONE])
+
+| 영역 | 작업 |
+|---|---|
+| 5 기존 vendor vault | primary infraops/Password123! 통일 (Passw0rd1!Infra → Password123!) + Supermicro recovery (ADMIN/ADMIN) / HPE recovery (admin/admin) / Lenovo recovery (USERID/PASSW0RD) / Cisco recovery (admin/password) 공장 기본 append (Additive — rule 92 R2) |
+| 4 신규 vendor vault | huawei.yml (Administrator/Admin@9000) / inspur.yml (admin/admin) / fujitsu.yml (admin/admin) / quanta.yml (admin/admin) 신설 |
+| docs/21 | 9 vendor 매트릭스 + Password123! 정책 + account_service 자동 생성 메커니즘 절 추가 |
+| 검증 | 9 vault encrypt OK / decrypt round-trip OK / primary infraops/Password123! 9건 OK / recovery 총 17건 (5 기존 14 + 4 신규 4 — 사실 5+4=17) |
+
+### Dell R770 적용 효과
+
+`adapters/redfish/dell_idrac10.yml` (priority=120) 가 R770 model_pattern 매칭 → vault `dell.yml` 의 multi-account fallback (infraops/Password123! → root/Dellidrac1! → root/calvin → root/GoodskInfra1! → root/Goodmit0802!) 시도 → 어느 자격 성공 → account_service.yml 가 infraops/Password123! 자동 provision.
+
+**제약 (변경 없음)**: lab/사이트 R770 fixture 부재 → baseline 회귀 부재 → 사이트 첫 적용 시 dryrun ON 권장 (NEXT_ACTIONS 유지).
+
+---
+
 ## 직전 commit history
 
 ```

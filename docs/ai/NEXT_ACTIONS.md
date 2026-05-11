@@ -1,6 +1,66 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
-## 일자: 2026-05-07 (post-cycle harness self-improvement — AI 환경 즉시 가능 3 작업 일괄 [DONE])
+## 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Session-1 — M-A1~A6 vendor default 계정 path 보장 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "Dell R770 사이트를 참고해서 지금 Dell R770가 지원되는지 확인해줘. 벤더 default 계정 생성이 안되고있어."
+
+### 본 cycle 결과 요약
+
+| Ticket | 작업 | 결과 |
+|---|---|---|
+| M-A1~A4 | 4 신규 vendor vault 신설 (Huawei/Inspur/Fujitsu/Quanta) | **[DONE]** — primary infraops/Password123! + recovery vendor 공장 기본 |
+| M-A5 | 5 기존 vendor vault 갱신 (Dell/HPE/Lenovo/Supermicro/Cisco) | **[DONE]** — primary Password123! 통일 + Additive recovery append (Supermicro 신규 / 4 vendor 공장 기본 추가) |
+| M-A6 | docs/21_vault-operations.md §6.5 신설 (9 vendor 매트릭스) | **[DONE]** — Password123! 정책 + account_service 메커니즘 명문화 |
+
+### vendor default 계정 자동 생성 path
+
+```
+primary infraops/Password123! 시도 → 401 (BMC 미설치)
+  → recovery vendor 공장 기본 자격 시도 → 200 (BMC reset 후 default)
+  → account_service.yml: redfish_gather mode='account_provision'
+  → BMC AccountService POST/PATCH → infraops/Password123! 생성
+  → 다음 run primary 자격 정상 인증
+```
+
+→ 9 vendor 모두 path 보장. lab 검증은 별도 cycle (NEXT_ACTIONS 유지).
+
+### Dell R770 (iDRAC10) 후속 (이전 entry 유지 — lab 도입 시)
+
+`adapters/redfish/dell_idrac10.yml` priority=120 (R770 model_pattern 포함). vault dell.yml 의 5 accounts (1 primary + 4 recovery) fallback 보장. **lab 부재 후속**:
+
+| # | 후속 항목 | 진입 조건 | 정본 |
+|---|---|---|---|
+| 1 | 사이트 fixture 캡처 | 사용자 R770 BMC 접근 가능 시 | `capture-site-fixture` skill |
+| 2 | baseline JSON 추가 | 실측 후 (rule 13 R4) | `schema/baseline_v1/dell_idrac10_baseline.json` |
+| 3 | lab 도입 후 별도 cycle | R770 lab/사이트 도입 결정 시 | `dell_idrac10 lab 검증` round |
+| 4 | origin 주석 갱신 | fixture 캡처 후 | `adapters/redfish/dell_idrac10.yml:6-13` "tested_against" 항목 |
+| 5 | dryrun ON 첫 적용 권장 | 사이트 R770 첫 수집 시 | `_rf_account_service_dryrun=true` 1회 시뮬레이션 |
+
+### 후속 cycle 권장 (M-A7 — label mismatch)
+
+adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증:
+
+| adapter | declared vault_label | actual vault label | mismatch |
+|---|---|---|---|
+| dell_idrac10.yml | `dell_root_dellidrac1` | (없음) | YES (username 매칭 fallback) |
+| dell_idrac10.yml | `dell_root_calvin` | `dell_fallback_2` | YES (username 매칭 fallback) |
+| dell_idrac9.yml, idrac8.yml 등 | (확인 필요) | (확인 필요) | TBD |
+
+→ 현재 username 매칭 fallback 으로 작동 중. label 정합화는 별도 cycle (가독성 + label 우선 매칭 효율).
+
+### 잔여 cycle 2026-05-07-all-vendor-coverage ticket (32건 [PENDING])
+
+본 Session-1 은 M-A1~A6 만 수행. 잔여 32 ticket (M-B1~L4) 는 별도 worker 세션 권장:
+- M-B (Supermicro 6 generation 보강, 4건)
+- M-C~G (4 신규 vendor + Superdome OEM tasks + mock fixture, 12건)
+- M-H (기존 4 vendor 미검증 generation, 4건)
+- M-I (gather 10 sections 매트릭스, 5건)
+- M-J~L (OEM namespace mapping + origin + catalog, 7건)
+
+---
+
+## 이전 일자: 2026-05-07 (post-cycle harness self-improvement — AI 환경 즉시 가능 3 작업 일괄 [DONE])
 
 ### 사용자 명시 (cycle 진입)
 - "AI 환경에서 즉시 가능한 작업 (P2/P3 후보 0 잔존) 모두 수행해라 남아있는 작업 없도록"
