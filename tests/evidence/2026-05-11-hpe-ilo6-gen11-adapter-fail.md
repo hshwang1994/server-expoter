@@ -119,3 +119,50 @@ if firmware_patterns and facts.get("firmware"):
 - **rule 95 (production-critical-review)**: HPE iLO 6 회귀 검증 누락 발견 — 다음 cycle 명시 회귀 대상
 - **rule 96 (external-contract-integrity)**: Manager.FirmwareVersion 형식이 vendor 펌웨어별로 다름 (`"iLO 6 v1.73"` vs `"1.73"` vs `"1.12.00"`) — facts.firmware 추출 정규화 검토 필요
 - **rule 50 R2**: lab 보유 vendor에서도 실 환경 회귀 누락 가능 — `pre_commit_hpe_ilo6_regression_check.py` 권장
+
+---
+
+## [RESOLVED] 근본 원인 + Fix (2026-05-11 cycle)
+
+### 진짜 원인 (가설 정정)
+
+가설 (facts.firmware regex 매치) 은 **부분적 진실 — 진짜 원인 아님**.
+
+**진짜 원인**: `redfish-gather/tasks/vendors/hpe/collect_oem.yml` L82 + `normalize_oem.yml` L39/L45 의 `when` 절:
+```yaml
+when:
+  - "(_rf_detected_model | default('')) | regex_search('(?i)Superdome|Flex|Compute Scale-up|CSUS')"
+```
+
+`regex_search`가 미매치 시 **None** 반환 → Ansible strict mode 의 conditional fail (`Conditional result (False) was derived from value of type 'NoneType'`). DL380 Gen11 model은 Superdome 패턴 미매치 → None → 전체 block fail → rescue → status=failed.
+
+### 식별 방법
+
+`redfish-gather/site.yml` rescue 의 `_fail_error_message` 에 `ansible_failed_task.name` prefix 추가 (commit `7906fe85`) → 빌드 #137 envelope errors[].message에 정확한 task 이름 노출 → 1턴에 원인 식별.
+
+### Fix commits
+
+| commit | 변경 | 효과 |
+|---|---|---|
+| `1065bb79` | detect_vendor.yml — `\| default({}, true)` None 가드 강화 | defensive (회귀 0) |
+| `7906fe85` | site.yml rescue — task name prefix in error msg | debugging visibility |
+| `5d6cf72c` | collect_oem.yml — regex_search `is not none` 명시 | **main fix** |
+| `a972acc4` | normalize_oem.yml — 동일 패턴 2곳 | **main fix** |
+
+### Round 2 검증 (build #139)
+
+| IP | vendor | adapter | sections | status |
+|---|---|---|---|---|
+| 10.50.11.232 | lenovo | redfish_lenovo_xcc3 | 8/10 | success |
+| **10.50.11.231** | **hpe** | **redfish_hpe_ilo7** | **8/10** | **success** ✓ |
+| 10.100.15.27 | dell | redfish_dell_idrac10 | 8/10 | success |
+| 10.100.15.2 | cisco | redfish_cisco_ucs_xseries | 8/10 | success |
+
+### 잔여 후속 작업 (다음 cycle)
+
+1. **adapter 오선택 (LOW)**: DL380 Gen11 (iLO 6) 가 `redfish_hpe_ilo7` (Gen12 adapter) 로 매칭됨 — detect_vendor probe 가 무인증으로 model/firmware 추출 못 함 → facts empty → priority 가장 높은 hpe_ilo7 (120) 선택. 정확한 매칭은 hpe_ilo6 여야. 현재 sections 8/10 수집 정상이지만 OEM 단계에서 Gen12 specific path 사용 가능.
+   - 조사: probe 무인증 응답의 어느 path에서 model/firmware 추출 가능한지 (ServiceRoot.Vendor / Oem.Hpe.Manager 등)
+2. **Cisco 10.100.15.1 운영 점검**: TCP/443 OK + HTTP 503 → Redfish 서비스 down/busy (운영 영역)
+3. **Cisco 10.100.15.3 운영 점검**: ICMP/TCP timeout → host down or firewall (운영 영역)
+4. **rule 95 hook**: `is not none` 패턴 lint — `regex_search` / `regex_findall` 의 conditional 사용 시 None 가드 강제 (pre_commit hook 권장)
+
