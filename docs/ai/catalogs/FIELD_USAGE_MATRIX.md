@@ -117,8 +117,8 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 
 | Channel | present | null | empty | not_supported | missing | total |
 |---|---|---|---|---|---|---|
-| redfish | 173 | 16 | 11 | 36 | 24 | 260 |
-| os | 100 | 10 | 35 | 24 | 26 | 195 |
+| redfish | 174 | 15 | 11 | 36 | 24 | 260 |
+| os | 101 | 10 | 35 | 24 | 25 | 195 |
 | esxi | 29 | 2 | 20 | 10 | 4 | 65 |
 
 ## 분류 1 후보 (수집 불가 — channel 제거): 13
@@ -137,7 +137,7 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 - `storage.infiniband[]` × os
 - `storage.infiniband[]` × esxi
 
-## 분류 2 후보 (서버 미지원 — help_ko 명시): 14
+## 분류 2 후보 (서버 미지원 — help_ko 명시): 12
 
 - `hardware.sku` × redfish
 - `hardware.oem` × redfish
@@ -151,8 +151,6 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 - `storage.logical_volumes[].total_mb` × redfish
 - `storage.logical_volumes[].health` × redfish
 - `storage.logical_volumes[].state` × redfish
-- `meta.duration_ms` × redfish
-- `cpu.summary` × os
 
 ## 분류 3? 후보 (코드 버그 의심 — Phase 2 검증): 1
 
@@ -233,7 +231,7 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 | `hardware.power_state` | redfish | O | O | _ | O | O | - | - | - | OK |
 | `storage.physical_disks[].failure_predicted` | redfish | O | O | e | O | O | _ | _ | _ | OK |
 | `network.interfaces[].kind` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
-| `meta.duration_ms` | redfish,os,esxi | n | O | O | O | O | O | O | O | redfish:2 |
+| `meta.duration_ms` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
 | `diagnosis.failure_stage` | redfish,os,esxi | n | n | n | n | n | n | n | n | redfish:1,os:1,esxi:1 |
 | `storage.physical_disks[].media_type` | redfish,os | O | O | e | O | O | O | O | O | OK |
 | `storage.physical_disks[].protocol` | redfish | O | O | e | O | O | n | n | n | OK |
@@ -241,7 +239,7 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 | `system.hosting_type` | os | - | - | O | - | - | O | O | O | esxi:DRIFT-B? |
 | `system.uptime_seconds` | os,esxi | - | - | O | - | - | O | O | O | OK |
 | `firmware[].updateable` | redfish | O | O | - | O | O | - | - | - | OK |
-| `cpu.summary` | redfish,os,esxi | O | O | O | O | O | _ | O | O | os:2 |
+| `cpu.summary` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
 | `memory.summary` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
 | `storage.summary` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
 | `network.summary` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |

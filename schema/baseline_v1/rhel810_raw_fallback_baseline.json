@@ -135,7 +135,21 @@
       "cores_physical": 2,
       "logical_threads": 2,
       "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
-      "architecture": "x86_64"
+      "architecture": "x86_64",
+      "summary": {
+        "groups": [
+          {
+            "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+            "manufacturer": "Intel",
+            "max_speed_mhz": null,
+            "l2_cache_kb": null,
+            "l3_cache_kb": null,
+            "sockets": 2,
+            "cores_per_socket": 1,
+            "total_cores": 2
+          }
+        ]
+      }
     },
     "storage": {
       "datastores": [],

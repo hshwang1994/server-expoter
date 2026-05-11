@@ -675,7 +675,7 @@
   "meta": {
     "started_at": "2026-04-01T05:47:31.955216Z",
     "finished_at": "2026-04-01T05:51:17.957606Z",
-    "duration_ms": null,
+    "duration_ms": 226002,
     "adapter_id": "redfish_cisco_cimc",
     "adapter_version": "1.0.0",
     "ansible_version": "2.20.3"
