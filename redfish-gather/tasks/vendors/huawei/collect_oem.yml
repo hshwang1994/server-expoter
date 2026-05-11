@@ -1,0 +1,67 @@
+---
+# redfish-gather/tasks/vendors/huawei/collect_oem.yml
+#
+# Huawei iBMC OEM 데이터 수집 — Oem.Huawei namespace
+#
+# source: Huawei iBMC Redfish API guide (확인 2026-05-07)
+#   - https://support.huawei.com/enterprise/en/doc/EDOC1000163550/41dfb258/ibmc
+#   - https://github.com/Huawei/Huawei-iBMC-Cmdlets
+# Fragment 철학 (rule 22) — 자기 fragment 만, 다른 gather 침범 금지
+# lab: 부재 (사용자 명시 2026-05-01) — mock fixture 기반 (M-C3)
+#
+# Oem.Huawei 주요 sub-namespace (web sources):
+#   - Oem.Huawei.SystemInfo       — 시스템 추가 정보 (Health 상세)
+#   - Oem.Huawei.NetworkBindings  — NIC bonding 정보
+#   - Oem.Huawei.BoardInfo        — 메인보드 / 백플레인 정보
+#   - Oem.Huawei.SmartProvisioning — Provisioning 상태
+#
+# iBMC 1.x 는 OEM 영역 약함 — rescue block 으로 graceful degradation
+
+- name: "redfish | huawei | collect_oem — best-effort"
+  block:
+    - name: "redfish | huawei | collect_oem | extract System.Oem.Huawei"
+      ansible.builtin.set_fact:
+        _huawei_oem_system: >-
+          {{ (((_rf_raw_collect.data | default({})).system | default({})).Oem
+              | default({})).Huawei | default({}) }}
+      no_log: true
+
+    - name: "redfish | huawei | collect_oem | extract Chassis.Oem.Huawei.BoardInfo"
+      ansible.builtin.set_fact:
+        _huawei_oem_board: >-
+          {{ (((_rf_raw_collect.data | default({})).chassis | default({})).Oem
+              | default({})).Huawei | default({}) }}
+      no_log: true
+
+    - name: "redfish | huawei | collect_oem | build fragment (자기 fragment만)"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          bmc:
+            oem_huawei:
+              system_health: "{{ _huawei_oem_system.SystemHealth | default(omit) }}"
+              system_info:   "{{ _huawei_oem_system.SystemInfo   | default(omit) }}"
+              provisioning:  "{{ _huawei_oem_system.SmartProvisioning | default(omit) }}"
+              network_bindings: "{{ _huawei_oem_system.NetworkBindings | default(omit) }}"
+              board_serial:  "{{ _huawei_oem_board.BoardInfo.BoardSerialNumber | default(omit) }}"
+              board_info:    "{{ _huawei_oem_board.BoardInfo | default(omit) }}"
+        _sections_supported_fragment: []
+        _sections_collected_fragment: []
+        _sections_failed_fragment:    []
+        _errors_fragment:             []
+      no_log: true
+  rescue:
+    - name: "redfish | huawei | collect_oem | rescue (iBMC 1.x OEM 약함 가능성)"
+      ansible.builtin.set_fact:
+        _data_fragment:               {}
+        _sections_supported_fragment: []
+        _sections_collected_fragment: []
+        _sections_failed_fragment:    []
+        _errors_fragment:
+          - section: bmc
+            message: "Huawei OEM 영역 일부 미수집 (iBMC 1.x 가능성 — graceful degradation)"
+            severity: warning
+      no_log: true
+
+# fragment 누적 병합 (rule 22 R3 — merge_fragment.yml 호출 의무)
+- name: "redfish | huawei | collect_oem | merge fragment"
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/common/tasks/normalize/merge_fragment.yml"

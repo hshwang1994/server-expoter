@@ -1,14 +1,42 @@
 ---
 # redfish-gather/tasks/vendors/hpe/normalize_oem.yml
 #
-# hpe OEM 수집 결과 정규화 (placeholder)
-# OEM 수집 요구사항 발생 시 collect_oem.yml 과 함께 구현한다.
+# HPE OEM 정규화 (Oem.Hpe namespace) — iLO 시리즈 + Superdome Flex
+# fragment 방식 (rule 22) — 자기 fragment 만 생성하고 merge_fragment 호출
+#
+# Additive only (rule 92 R2) — 기존 iLO normalize placeholder 변경 0 / Superdome fragment 추가만
+# M-G1 cycle 2026-05-07-all-vendor-coverage: Superdome Flex fragment 추가
 #
 # 원칙:
-#   - 표준 스키마 섹션 안의 하위 필드로 확장 (새 섹션 추가 최소화)
-#   - fragment 방식 유지 (_data_fragment → merge_fragment 호출)
+#   - 표준 스키마 섹션 (bmc / hardware) 안의 하위 필드로 확장 (새 섹션 추가 안 함)
+#   - Superdome 분기는 model_patterns 매칭 시만 fragment 추가 (when 조건)
+#   - 일반 iLO 시리즈 mock 영향 0
 
-- name: "redfish | hpe | normalize_oem (placeholder)"
+# ── 1) iLO 시리즈 OEM normalize placeholder (현행 유지) ─────────────────────────
+- name: "redfish | hpe | normalize_oem (iLO 시리즈 placeholder)"
   ansible.builtin.debug:
-    msg: "{{ _rf_vendor | default('unknown') }} OEM normalize: no-op"
+    msg: "{{ _rf_vendor | default('unknown') }} OEM normalize: no-op (iLO 시리즈)"
   no_log: false
+
+# ── 2) Superdome Flex fragment 추가 (M-G1) — model_patterns 매칭 시만 ───────────
+- name: "redfish | hpe | Superdome Flex fragment 생성 (모델 매칭 + OEM 영역 존재 시)"
+  ansible.builtin.set_fact:
+    _data_fragment:
+      bmc:
+        oem_hpe_superdome:
+          partition: "{{ _hpe_superdome_partition | default({}) }}"
+          flex_node: "{{ _hpe_superdome_flex_node | default({}) }}"
+          global_config: "{{ _hpe_superdome_global | default({}) }}"
+    _sections_supported_fragment: []
+    _sections_collected_fragment: []
+    _sections_failed_fragment: []
+    _errors_fragment: []
+  when:
+    - "(_rf_detected_model | default('')) | regex_search('(?i)Superdome|Flex')"
+    - (_hpe_superdome_partition | default({})) or (_hpe_superdome_flex_node | default({})) or (_hpe_superdome_global | default({}))
+
+- name: "redfish | hpe | Superdome fragment 누적 병합 (조건 매칭 시만)"
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/common/tasks/normalize/merge_fragment.yml"
+  when:
+    - "(_rf_detected_model | default('')) | regex_search('(?i)Superdome|Flex')"
+    - (_hpe_superdome_partition | default({})) or (_hpe_superdome_flex_node | default({})) or (_hpe_superdome_global | default({}))

@@ -60,8 +60,14 @@ graceful_degradation:
 
 vendor_notes:
   generation: x13
+  generation_year: "2022-2024"
   bmc_chip: ast2600
   root_of_trust: true
+  power_subsystem_introduction: true     # PowerSubsystem 표준 지원 (X12+)
+  storage_strategy_evolution: standard   # 표준 Storage path 지원
+  redfish_introduction: "DSP0268 v1.16+"
+# Lab status: 부재 — 사용자 명시 2026-05-07 Q2 (Supermicro 사이트 BMC 0대)
+# Next action: lab 도입 후 별도 cycle — capability 보정 (rule 50 R2 단계 10)
 
 diagnosis:
   protocol_name: redfish

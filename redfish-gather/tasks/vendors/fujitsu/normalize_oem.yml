@@ -1,0 +1,29 @@
+---
+# redfish-gather/tasks/vendors/fujitsu/normalize_oem.yml
+#
+# Fujitsu iRMC OEM 정규화 — Oem.ts_fujitsu / Oem.Fujitsu fallback
+# fragment 방식 (rule 22) — 자기 fragment 만 생성하고 merge_fragment 호출
+#
+# M-E2 cycle 2026-05-07-all-vendor-coverage: Fujitsu OEM tasks 신설
+#
+# 원칙:
+#   - 표준 스키마 섹션 (bmc / hardware) 안의 하위 필드로 확장 (새 섹션 추가 안 함)
+#   - Oem.ts_fujitsu 또는 Oem.Fujitsu fallback 둘 다 cover
+#   - iRMC S2 (OEM 부재) 케이스는 빈 dict 로 graceful
+
+- name: "redfish | fujitsu | normalize_oem — fragment 생성"
+  ansible.builtin.set_fact:
+    _data_fragment:
+      bmc:
+        oem_fujitsu:
+          system_info: "{{ _fujitsu_oem_system | default({}) }}"
+          chassis_info: "{{ _fujitsu_oem_chassis | default({}) }}"
+          manager_info: "{{ _fujitsu_oem_manager | default({}) }}"
+    _sections_supported_fragment: []  # bmc 는 standard collect 가 supported 등록 — OEM 은 보조
+    _sections_collected_fragment: []  # OEM 영역이 풍부할 때만 명시 (fragment 침범 금지)
+    _sections_failed_fragment: []
+    _errors_fragment: "{{ _fujitsu_oem_errors | default([]) }}"
+  no_log: false
+
+- name: "redfish | fujitsu | OEM fragment 누적 병합"
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/common/tasks/normalize/merge_fragment.yml"

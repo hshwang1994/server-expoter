@@ -27,6 +27,7 @@ priority: 110
 
 match:
   vendor: ["Supermicro", "Super Micro Computer, Inc.", "Super Micro Computer", "SUPERMICRO"]
+  # X14 (Intel) + H14 (AMD EPYC 신세대) — 동세대 BMC 공유 (이미 cycle 2026-05-01 포함)
   model_patterns: ["X14", "x14", "H14", "h14"]
 
 capabilities:
@@ -66,11 +67,17 @@ graceful_degradation:
 
 vendor_notes:
   generation: x14
+  generation_year: "2024+"
   bmc_chip: ast2600
   root_of_trust: true
   redfish_version: "1.21.0"
+  redfish_introduction: "DSP0268 v1.21+"
   schema_bundle: "2024.3"
   cpld_firmware_inventory: true
+  power_subsystem_introduction: true     # PowerSubsystem 표준 지원 (X12+)
+  storage_strategy_evolution: standard   # 표준 Storage path 지원
+# Lab status: 부재 — 사용자 명시 2026-05-07 Q2 (Supermicro 사이트 BMC 0대)
+# Next action: lab 도입 후 별도 cycle — capability 보정 (rule 50 R2 단계 10)
 
 diagnosis:
   protocol_name: redfish

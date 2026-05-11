@@ -1,0 +1,64 @@
+---
+# redfish-gather/tasks/vendors/inspur/collect_oem.yml
+#
+# Inspur ISBMC OEM 수집 — Oem.Inspur 또는 Oem.Inspur_System namespace
+#
+# source: Inspur 공식 매뉴얼 + GitHub community (확인 2026-05-07)
+#   - https://manualzz.com/doc/o/v7c5h/inspur-server-user-manual-nf5280m5-9.14-redfish
+#   - https://www.inspur.com/eportal/fileDir/defaultCurSite/resource/cms/2020/04/2020040211224398612.pdf
+# Fragment 철학 (rule 22) — 자기 fragment 만
+# lab: 부재 (사용자 명시 2026-05-01) — mock fixture 기반 (M-D2)
+#
+# Oem.Inspur sub-namespace (web sources — Inspur OEM 영역은 다른 vendor 보다 약함):
+#   - Oem.Inspur.SystemInfo  — 시스템 추가 정보 (CPLD / BIOS 별도)
+#   - Oem.Inspur.NetworkInfo — NIC 추가 정보
+#   - Oem.Inspur_System      — 일부 펌웨어 underscore 변형 사용 (fallback)
+#
+# Inspur OEM 부재는 정상 — fail 처리 안 함 (graceful)
+
+- name: "redfish | inspur | collect_oem — best-effort"
+  block:
+    - name: "redfish | inspur | collect_oem | extract System.Oem.Inspur (with underscore fallback)"
+      ansible.builtin.set_fact:
+        _inspur_oem_system: >-
+          {{ (((_rf_raw_collect.data | default({})).system | default({})).Oem | default({})).Inspur
+             | default((((_rf_raw_collect.data | default({})).system | default({})).Oem | default({})).Inspur_System
+                       | default({})) }}
+      no_log: true
+
+    - name: "redfish | inspur | collect_oem | extract Chassis.Oem.Inspur (with underscore fallback)"
+      ansible.builtin.set_fact:
+        _inspur_oem_chassis: >-
+          {{ (((_rf_raw_collect.data | default({})).chassis | default({})).Oem | default({})).Inspur
+             | default((((_rf_raw_collect.data | default({})).chassis | default({})).Oem | default({})).Inspur_System
+                       | default({})) }}
+      no_log: true
+
+    - name: "redfish | inspur | collect_oem | build fragment (자기 fragment만)"
+      ansible.builtin.set_fact:
+        _data_fragment:
+          bmc:
+            oem_inspur:
+              system_info:  "{{ _inspur_oem_system.SystemInfo  | default(omit) }}"
+              network_info: "{{ _inspur_oem_system.NetworkInfo | default(omit) }}"
+              chassis_info: "{{ _inspur_oem_chassis | default(omit) }}"
+              # raw 영역 보존 (사이트 fixture 도입 시 분기 정정 입력)
+              raw_system:   "{{ _inspur_oem_system | default(omit) }}"
+        _sections_supported_fragment: []
+        _sections_collected_fragment: []
+        _sections_failed_fragment:    []
+        _errors_fragment:             []
+      no_log: true
+  rescue:
+    - name: "redfish | inspur | collect_oem | rescue (Inspur OEM 부재는 정상 — graceful)"
+      ansible.builtin.set_fact:
+        _data_fragment:               {}
+        _sections_supported_fragment: []
+        _sections_collected_fragment: []
+        _sections_failed_fragment:    []
+        _errors_fragment:             []   # Inspur OEM 부재는 fail 아님
+      no_log: true
+
+# fragment 누적 병합 (rule 22 R3)
+- name: "redfish | inspur | collect_oem | merge fragment"
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/common/tasks/normalize/merge_fragment.yml"

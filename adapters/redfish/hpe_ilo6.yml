@@ -1,10 +1,23 @@
 ---
-# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# ── Origin metadata (rule 96 R1 + R1-A) ───────────────────────────────────────
 # Vendor: HPE / Hewlett Packard Enterprise
 # Firmware: iLO 6 — 1.x / 2.x
+# Generation: ilo6
+# Generation Year: "2022-2024 (ProLiant Gen11)"
+# Redfish Introduction: "DSP0268 v1.10+"
 # Origin: HPE iLO 6 Redfish API documentation
-# Last sync: 2026-04-28 (Round 11 reference 수집)
-# Notes: ProLiant Gen11. Redfish 1.x 표준 호환.
+# Last sync: 2026-05-11 (M-H2 — Round 11 + PowerSubsystem dual 보강)
+# Notes: ProLiant Gen11 (DL360 Gen11 / DL380 Gen11 / DL580 Gen11 등). Redfish 1.x 표준 호환.
+# Sources (rule 96 R1-A):
+#   - https://hewlettpackard.github.io/ilo-rest-api-docs/ilo6/
+#   - https://servermanagementportal.ext.hpe.com/docs/redfishservices/ilos/ilo6/
+# Lab status: Round 11 검증 (DL380 Gen11 1대 + 사이트 site-A DL380 Gen12) — iLO 6 일부 cover
+# Storage strategy: standard_with_smart_storage_fallback
+#   - 표준 Storage path 우선 + SmartStorage fallback (drive 부재 시 SmartStorage 조회)
+# Power strategy: Power + PowerSubsystem dual
+#   - iLO 6 시기 PowerSubsystem 도입 — Power deprecated path 와 dual
+#   - gather 시 PowerSubsystem 우선 + Power fallback
+# OEM namespace: Oem.Hpe
 # Tested against (실측 2026-04-28, Round 11):
 #   - ProLiant DL380 Gen11 × 1대 (10.50.11.231)
 #   - iLO FirmwareVersion: "iLO 6 v1.73"

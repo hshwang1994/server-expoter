@@ -19,9 +19,10 @@
 #   - OEM namespace: Oem.OpenBmc (vendor 표준 namespace) 또는 부재
 #   - OpenBMC 기반 → 표준 Redfish 우선, OEM 의존 작음
 #     (Lenovo XCC3 와 유사 — OpenBMC alignment)
-# Vault: 미생성 (사용자 명시 2026-05-01)
+# Vault: 신설 완료 (2026-05-11 M-A4)
 # Note: redfish_generic.yml (priority=0) 가 OpenBMC 기반 BMC 부분 cover.
 #   본 adapter 는 vendor 시그니처 명확한 경우 우선.
+# M-F1 cycle 2026-05-07-all-vendor-coverage: OEM tasks 신설 (standard+oem strategy)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_quanta_qct_bmc
 channel: redfish
@@ -47,13 +48,16 @@ capabilities:
     - firmware
     - power
     # M-D3 W6 (cycle 2026-05-06): users 제거 — sections.yml channels=[os] 정의 정합 (Redfish 채널 미해당)
+  oem_strategy: "standard+oem"
 
 collect:
-  strategy: standard_only
+  strategy: standard+oem
   standard_tasks: "redfish-gather/tasks/collect_standard.yml"
+  oem_tasks: "redfish-gather/tasks/vendors/quanta/collect_oem.yml"  # M-F1 신설
 
 normalize:
   standard_tasks: "redfish-gather/tasks/normalize_standard.yml"
+  oem_tasks: "redfish-gather/tasks/vendors/quanta/normalize_oem.yml"  # M-F1 신설
 
 credentials:
   profile: "quanta"
@@ -72,8 +76,10 @@ graceful_degradation:
 vendor_notes:
   bmc_name: "BMC"  # OpenBMC 기반 — 별도 표시명 없음
   base_platform: openbmc
-  oem_namespace: "Oem.OpenBmc"
-  vault_status: "not_created (user explicit 2026-05-01)"
+  oem_namespace: "Oem.Quanta_Computer_Inc"     # M-F1 primary (vendor 표기)
+  oem_namespace_fallback: "Oem.QCT"            # 단축 표기 fallback
+  oem_namespace_openbmc: "Oem.OpenBmc"         # OpenBMC base fallback
+  vault_status: "created (2026-05-11 M-A4)"
   expected_models:
     - "QuantaGrid D54Q-2U"
     - "QuantaGrid D52BQ-2U"

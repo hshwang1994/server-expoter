@@ -1,9 +1,12 @@
 ---
-# ── Origin metadata (rule 96 R1) ──────────────────────────────────────────────
+# ── Origin metadata (rule 96 R1 + R1-A) ───────────────────────────────────────
 # Vendor: Cisco
 # Firmware: 4.x / 5.x / 6.x — UCS C-Series M4 ~ M8 generation cover
+# Generation: cimc (CIMC 4.x ~ 6.x — M4 lab tested + M5~M8 web sources)
+# Generation Year: "2014-2024 (CIMC 2.x ~ 6.x evolution)"
+# Redfish Introduction: "DSP0268 v1.0+ ~ v1.10+"
 # Origin: Cisco UCS Manager / CIMC Redfish API documentation
-# Last sync: 2026-05-01 (F68 — M5~M8 generation 매트릭스 확장)
+# Last sync: 2026-05-11 (M-H4 — M5~M8 generation 매트릭스 + firmware_patterns 확장)
 # Notes: UCS C-Series M4~M8. strategy: standard_only (OEM 디렉터리 미생성).
 #
 # Generation 매트릭스 (F68 cycle 2026-05-01 — web sources):
@@ -54,6 +57,19 @@
 #   Q7. Manager NIC NameServers + IPv4Addresses[*].Gateway 응답함 — gather_bmc
 #       의 _network_meta 임시 키로 추출 후 normalize_standard.yml 의 dns_servers
 #       / default_gateways 에 union (이전: dns_servers 하드코딩 [], 손실).
+#
+# Generation matrix (M-H4 cycle 2026-05-07 — web sources 기반 확장):
+#   - CIMC 1.x (UCS M3, 2013): cisco_bmc.yml (priority=10) 가 fallback cover
+#   - CIMC 2.x (UCS M4 시기, 2014-2017): standard storage / Power deprecated only
+#   - CIMC 3.x (UCS M5 시기, 2017-2020): standard storage / Power deprecated only
+#   - CIMC 4.x (UCS M5/M6 시기, 2020-2022): PowerSubsystem 일부 도입
+#   - CIMC 5.x (UCS M7 시기, 2022-2024): PowerSubsystem 표준
+#   - CIMC 6.x (UCS M7/M8 시기, 2024+): PowerSubsystem 표준 + Storage RDE 가능
+# Lab status: M4 (10.100.15.2, CIMC 4.1) 만 lab 검증. M5~M8 web sources only.
+# UCS B-series (blade) 는 UCS Manager 매개 — 본 adapter 범위 외 (별도 cycle).
+# UCS S-series (storage) 는 cycle 2026-05-07 model_patterns 추가 — CIMC 와 유사.
+# UCS X-series 는 cisco_ucs_xseries.yml (priority=110) 별도 cover.
+# Next action: M5~M8 lab 도입 후 별도 cycle (Power / Storage 분기 검증)
 # ──────────────────────────────────────────────────────────────────────────────
 adapter_id: redfish_cisco_cimc
 channel: redfish
@@ -64,12 +80,15 @@ match:
   # F125 cycle 2026-05-01 — CIMC < 4.x advisory: 매우 제한적 Redfish (Redfish 1.0.x).
   #   3.x 이하 펌웨어는 cisco_bmc.yml (priority=10, generic fallback) 가 cover.
   # 본 adapter (M4 lab tested + M5~M8 web sources) 는 4.x / 5.x / 6.x cover.
+  # M-H4 (cycle 2026-05-07) — S-series storage server 추가 (CIMC 와 유사 + Storage 강화):
   firmware_patterns: ["^[4-6]\\.", "CIMC.*[4-6]"]
   model_patterns:
     - "UCSC-C[0-9]+ M[4-8]"
     - "C220 M[4-8]"
     - "C240 M[4-8]"
     - "C480 M[4-8]"
+    - "UCS-S3260.*"     # M-H4 cycle 2026-05-07 — S-series storage server M5+
+    - "S3260.*"         # M-H4 cycle 2026-05-07 — S-series 단축형
     - "TA-UNODE.*"
 
 capabilities:

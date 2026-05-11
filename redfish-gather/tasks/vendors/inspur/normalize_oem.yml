@@ -1,0 +1,19 @@
+---
+# redfish-gather/tasks/vendors/inspur/normalize_oem.yml
+#
+# Inspur OEM 정규화 — fragment 형식 (rule 22)
+#
+# 원칙:
+#   - 표준 스키마 섹션 안의 하위 필드로 확장 (새 섹션 추가 최소화)
+#   - Oem.Inspur vs Oem.Inspur_System fallback 은 collect_oem.yml 에서 이미 처리
+#   - 본 파일은 후처리 일관성 유지 (사이트 fixture 도입 시 mapping 확장 진입점)
+#
+# Fragment 변수 (rule 22 R7) — 자기 fragment 만
+
+- name: "redfish | inspur | normalize_oem — debug summary"
+  ansible.builtin.debug:
+    msg: >-
+      Inspur OEM normalize: {{ _rf_vendor | default('unknown') }} —
+      oem_inspur keys: {{ ((_collected_data | default({})).bmc | default({})).oem_inspur | default({}) | dict2items | map(attribute='key') | list }}
+  no_log: false
+  when: (_collected_data | default({})).bmc is defined
