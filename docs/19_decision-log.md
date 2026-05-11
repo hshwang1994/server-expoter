@@ -8,6 +8,62 @@
 
 > 최종 갱신: 2026-05-11
 
+## 2026-05-11 — advisory hook 격상 Phase 6 일괄 (2/4 + 1/4 보류)
+
+### 사용자 명시 (2026-05-11)
+- "남아있는 작업있으면 모두 수행해라" — Phase 6 남은 advisory hook 3종 단계적 격상
+
+### 결과
+
+| Hook | 결정 | 사유 |
+|---|---|---|
+| `pre_commit_status_logic_check` (rule 13 R8) | **격상 (BLOCKING)** | self-test 7/7 PASS / git log 5 cycle 위반 후보 1건 (M-A3 cosmetic — R8 Allowed 절) / escape hatch `STATUS_LOGIC_SKIP_COSMETIC=1` 적용 가능 |
+| `pre_commit_additive_only_check` (rule 92 R2 / 96 R1-B) | **격상 (BLOCKING)** | self-test 5/5 PASS / git log 5 cycle 위반 후보 2건 (모두 schema 주석 cosmetic — `ADDITIVE_SKIP_NEW_CYCLE=1` 우회) |
+| `pre_commit_ticket_consistency` (cold-start 6 절) | **격상 보류** | 기존 ticket 109 파일 전수 스캔 → **107건 위반 발견** (분석/결정 절 누락 / write-cold-start-ticket 정본 미준수). 격상 시 향후 ticket 작업 모두 차단 → 선행 작업 (107건 6 절 변환) 필요 |
+
+### 적용 변경 (각 1 commit 분리)
+
+| Hook | Commit | 변경 |
+|---|---|---|
+| status_logic | `01588650` | hook.py line 243 `return 0 → return 1` + docstring + stderr "(advisory)" → "(BLOCKING — cycle 2026-05-11 격상)" + install-git-hooks.sh 주석/환경변수 안내 |
+| additive_only | `e4c37086` | hook.py line 189 `return 0 → return 1` + docstring + stderr + install-git-hooks.sh |
+
+### 검증 (각 격상 후)
+
+- self-test PASS (status_logic 7/7 / additive_only 5/5)
+- pytest 587/587 PASS
+- verify_harness_consistency PASS (rules 28 / skills 51 / agents 60 / policies 10)
+- verify_vendor_boundary 위반 0
+- escape hatch 유지 (각 hook별 SKIP / SKIP_COSMETIC / SKIP_NEW_CYCLE 환경변수)
+
+### rule 70 R8 trigger 적용
+
+- trigger 1 (rule 본문 의미 변경): 적용 없음 (rule 13 R8 / rule 92 R2 / rule 96 R1-B 본문 변경 없음 — hook 동작 변경만)
+- trigger 2 (표면 카운트 변경): 적용 없음 (hook 개수 28 유지)
+- trigger 3 (보호 경로 정책 변경): 적용 없음
+- → ADR 의무 아님. 본 decision-log entry 만 governance trace.
+
+### ticket_consistency 격상 보류 — 선행 작업 명세
+
+**선행 작업**: 기존 docs/ai/tickets/**/fixes/*.md 107건 6 절 변환 (현재 위반)
+- 위반 패턴: "분석 / 구현" + "결정 / 결과" 절 누락 (대다수)
+- 권장: 별도 cycle (ticket 6 절 변환 cycle) — 격상 후순위 유지 (multi-worker 미사용으로 cycle 운영 부담 적음)
+- 격상 조건: 선행 cycle 후 전수 스캔 위반 0 확인 시 격상
+
+### 효과 — advisory hook 격상 통계 (cycle 2026-05-11 종료 시점)
+
+| Hook | 도입 | 격상 |
+|---|---|---|
+| pre_commit_jinja_namespace_check | cycle 2026-05-07 | cycle 2026-05-11 (Phase 4) |
+| pre_commit_docs20_sync_check | cycle 2026-05-06 | cycle 2026-05-11 (Phase 5) |
+| pre_commit_status_logic_check | cycle 2026-05-06-post | cycle 2026-05-11 (Phase 6.1) |
+| pre_commit_additive_only_check | cycle 2026-05-06-post | cycle 2026-05-11 (Phase 6.2) |
+| pre_commit_ticket_consistency | cycle 2026-05-06 | 격상 보류 (107건 선행 변환 필요) |
+
+→ envelope 정본 / status 매트릭스 / Additive only / Jinja namespace 4 영역 회귀 자동 차단 보장.
+
+---
+
 ## 2026-05-11 — docs20_sync hook advisory → BLOCKING 격상 (advisory hook 격상 1/4)
 
 ### 컨텍스트

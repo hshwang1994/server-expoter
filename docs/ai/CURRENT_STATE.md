@@ -1,6 +1,41 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (docs20_sync hook advisory → BLOCKING 격상 — advisory hook 격상 1/4 [DONE])
+## 일자: 2026-05-11 (advisory hook 격상 Phase 6 — 4 hook 중 3 격상 + 1 보류 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "남아있는 작업있으면 모두 수행해라" — Phase 6 남은 advisory hook 3종 단계적 격상
+
+### Phase 6 결과 매트릭스
+
+| # | Hook | 결정 | Commit | 사유 |
+|---|---|---|---|---|
+| 1 | docs20_sync (rule 13 R7) | **격상** | `44df9ad8` (Phase 5 — 직전 작업) | self-test 6/6 / git log 위반 후보 1건 cosmetic |
+| 2 | status_logic (rule 13 R8) | **격상** | `01588650` | self-test 7/7 / git log 위반 후보 1건 cosmetic |
+| 3 | additive_only (rule 92 R2 / 96 R1-B) | **격상** | `e4c37086` | self-test 5/5 / git log 위반 후보 2건 schema 주석 cosmetic |
+| 4 | ticket_consistency (cold-start 6 절) | **보류** | — | 기존 ticket 109 파일 중 **107건 위반** → 선행 작업 (6 절 변환 cycle) 필요 |
+
+### 검증 결과 (rule 24 6 체크리스트 — 3 격상 후)
+
+- **self-test**: status_logic 7/7 + additive_only 5/5 + docs20_sync 6/6 PASS
+- **pytest**: 587/587 PASS
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+- **escape hatch 유지** (모든 격상 hook): SKIP / SKIP_COSMETIC / SKIP_NEW_CYCLE 환경변수
+
+### 효과 — advisory hook 격상 통계 (cycle 2026-05-11 종료)
+
+총 5 hook BLOCKING (Jinja Phase 4 + docs20_sync Phase 5 + status_logic Phase 6.1 + additive_only Phase 6.2 + fragment_skeleton_sync 기존 blocking).
+남은 advisory: ticket_consistency 1종 (선행 작업 후 격상).
+
+### ticket_consistency 격상 보류 — 선행 작업
+
+- **위반 위치**: docs/ai/tickets/**/fixes/M-X#.md / F##.md 107 파일 (109 중 107) — 분석 / 결정 절 누락
+- **권장**: 별도 cycle (ticket 6 절 변환 cycle) — multi-worker 미사용으로 후순위
+- **격상 조건**: 선행 cycle 후 전수 스캔 위반 0 확인 시
+
+---
+
+## 이전 일자: 2026-05-11 (docs20_sync hook advisory → BLOCKING 격상 — advisory hook 격상 1/4 [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - "A. advisory hook 격상 (1개씩) — 권장사항으로 진행" — 4 advisory hook 중 첫 격상 대상은 권장 (docs20_sync — 가장 먼저 도입 / envelope 정본 보호 핵심)

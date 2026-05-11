@@ -2,6 +2,36 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-11 (advisory hook 격상 Phase 6 — 4 hook 중 3 격상 + 1 보류)
+
+### 사용자 명시
+- "남아있는 작업있으면 모두 수행해라" — Phase 6 남은 advisory hook 3종 단계적 격상
+
+### 회귀 검증 (cycle 종료 후)
+- **pytest 587/587 PASS** (19.64s)
+- **self-test** (3 hook 격상 후 재실행):
+  - pre_commit_status_logic_check: 7/7 PASS
+  - pre_commit_additive_only_check: 5/5 PASS
+  - pre_commit_docs20_sync_check: 6/6 PASS (직전 격상)
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+
+### Phase 6 결과 매트릭스
+
+| Hook | 결정 | Commit | self-test | git log false-positive | escape hatch |
+|---|---|---|---|---|---|
+| status_logic | 격상 | `01588650` | 7/7 | 1건 (M-A3 cosmetic) | STATUS_LOGIC_SKIP_COSMETIC |
+| additive_only | 격상 | `e4c37086` | 5/5 | 2건 (schema 주석 cosmetic) | ADDITIVE_SKIP_NEW_CYCLE |
+| ticket_consistency | 보류 | — | 11/11 | 107/109 ticket 위반 → 선행 변환 필요 | (격상 보류로 escape hatch 미적용) |
+
+### ticket_consistency 격상 보류 — 전수 스캔 결과
+- 총 109 ticket fixes/*.md 파일 (M-/F prefix, INDEX/archive 제외)
+- **위반 107건** ("분석 / 구현" + "결정 / 결과" 절 누락 — write-cold-start-ticket 정본 미준수)
+- 격상 시 향후 ticket 작업 모두 차단 → 선행 작업 (107건 6 절 변환 cycle) 필요
+- Phase 7 NEXT_ACTIONS 등재 (다음 cycle 우선순위)
+
+---
+
 ## 2026-05-11 (docs20_sync hook advisory → BLOCKING 격상 — advisory hook 격상 1/4)
 
 ### 회귀 검증

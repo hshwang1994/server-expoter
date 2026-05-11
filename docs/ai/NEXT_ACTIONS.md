@@ -279,14 +279,21 @@ adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증
 - **rule 70 R8 trigger 적용**: 0건 (rule 13 R7 본문 변경 0 / 표면 카운트 변경 0 / 보호 경로 변경 0) → ADR 의무 아님. docs/19_decision-log.md entry 만 추가
 - **검증**: self-test 6/6 PASS / pytest 587/587 PASS / verify_harness_consistency PASS / verify_vendor_boundary 위반 0
 
-### Phase 6: 남은 advisory hook 3종 단계적 격상 (PENDING)
+### ~~Phase 6: 남은 advisory hook 3종 단계적 격상 (PENDING)~~ **[DONE 2026-05-11 — 2 격상 + 1 보류]**
 
-- 격상 패턴 (Jinja / docs20_sync 동일):
-  1. **pre_commit_status_logic_check** (rule 13 R8 — cycle 2026-05-06-post 도입) — 다음 cycle 격상 후보 1순위 (envelope 정본 4종 + status 매트릭스 ↔ build_status.yml)
-  2. **pre_commit_additive_only_check** (rule 92 R2 / 96 R1-B — cycle 2026-05-06-post 도입) — 다음 cycle 격상 후보 2순위 (호환성 cycle envelope shape 변경 0 보장)
-  3. **pre_commit_ticket_consistency** (cold-start 6 절 — cycle 2026-05-06 도입) — 후순위 (multi-worker 미사용으로 cycle 운영 부담 적음)
-- 각각 1 cycle 추가 advisory 운영 + false-positive 0 재확인 후 단계적 격상.
-- 권장: cycle 사이 사용자 / 사이트 / 호환성 cycle 사이에 1개씩 진행 (동시 격상 시 회귀 사고 확률 ↑).
+- 격상 일자: 2026-05-11 (사용자 "남아있는 작업있으면 모두 수행해라" 명시)
+- 결과:
+  1. **pre_commit_status_logic_check** (rule 13 R8) — **격상 commit `01588650`** (self-test 7/7 / cosmetic escape hatch)
+  2. **pre_commit_additive_only_check** (rule 92 R2 / 96 R1-B) — **격상 commit `e4c37086`** (self-test 5/5 / new-cycle escape hatch)
+  3. **pre_commit_ticket_consistency** (cold-start 6 절) — **격상 보류** (107/109 ticket 위반 → 선행 작업 필요)
+
+### Phase 7: ticket_consistency 격상 선행 작업 (PENDING)
+
+- **선행**: docs/ai/tickets/**/fixes/M-X#.md / F##.md **107건 6 절 변환**
+- **위반 패턴**: "분석 / 구현" 절 + "결정 / 결과" 절 누락 (대다수)
+- **정본 reference**: `write-cold-start-ticket` skill / `.claude/skills/write-cold-start-ticket/`
+- **권장**: 별도 cycle (ticket 6 절 변환 cycle) — 다음 cycle 우선순위 (multi-worker 미사용으로 cycle 운영 부담 적음 — 후순위)
+- **격상 조건**: 선행 cycle 후 전수 스캔 위반 0 확인 시 BLOCKING 격상 (Jinja / docs20_sync / status_logic / additive_only 동일 패턴)
 
 ### 다음 cycle 권장 (외부 의존)
 
