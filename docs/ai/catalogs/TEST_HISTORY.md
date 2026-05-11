@@ -2,6 +2,29 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-11 (harness-cycle 자기개선 — PROJECT_MAP fingerprint + NEXT_ACTIONS stale fix)
+
+### 회귀 검증 (cycle 종료 시)
+- **pytest 587/587 PASS** (22.41s) — cycle 진입 시점 587 / 종료 587 (테스트 추가/삭제 0)
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+- **check_project_map_drift**: 갱신 후 fingerprint 일치
+- **output_schema_drift_check**: sections=10 / fd_paths=65 / fd_section_prefixes=16
+- **envelope_change_check**: clean (envelope 13 필드 / data shape 변경 0)
+- **adapter_origin_check --all --redfish-only**: 30/30 PASS
+
+### Tier 1 자동 fix (2건)
+- `.claude/policy/project-map-fingerprint.yaml` — 3 디렉터리 fingerprint 갱신 (redfish-gather + adapters + tests)
+- `docs/ai/NEXT_ACTIONS.md:194-201` — "잔여 32 ticket [PENDING]" stale entry 갱신 ([DONE] 반영)
+
+### Tier 2/3 발견 — 0건
+
+### 영향
+- 코드 변경 / 테스트 추가 / vault 변경 / 의존성 변경 / envelope shape 변경 모두 **0** (Tier 1 catalog 정합 갱신만)
+- 호출자 시스템 영향 0
+
+---
+
 ## 2026-05-07 (refactor-review cycle — 7 우려 8 Phase + 잔여 후속 4 task)
 
 ### pytest 회귀

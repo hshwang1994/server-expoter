@@ -1,6 +1,56 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (M-A7-followup — vault_label 회귀 + docs/21 §6.6 naming convention [DONE])
+## 일자: 2026-05-11 (harness-cycle 자기개선 — PROJECT_MAP fingerprint 갱신 + NEXT_ACTIONS stale entry 정합 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "E. 하네스 자기개선 cycle" — harness-cycle skill 6단계 파이프라인 1회 트리거
+
+### Phase 1 (Observer) 결과 — drift 1건 (Tier 1)
+
+| # | 측정 대상 | 직전 (2026-05-07-post) | 현재 (2026-05-11) | Drift? |
+|---|---|---|---|---|
+| 1 | output_schema | sections=10 / fd=65 / prefixes=16 | sections=10 / fd=65 / prefixes=16 | NO |
+| 2 | **PROJECT_MAP fingerprint** | 4 cycle 전 baseline | 3 디렉터리 변경 (redfish-gather + adapters + tests) | **YES (Tier 1)** |
+| 3 | vendor_adapter_matrix | 39 adapter / 9 vendor | 39 adapter (redfish 28 + os 7 + esxi 4) / 9 vendor | NO |
+| 4 | callback_endpoints | Jenkinsfile 2종 | Jenkinsfile + Jenkinsfile_portal | NO |
+| 5 | jenkinsfile_cron | 0 trigger | 0 trigger | NO |
+| 6 | harness_surface | rules 28 / skills 51 / agents 60 / hooks 28 / policies 10 | 동일 | NO |
+| 7 | vendor_baseline | 8 baseline | 8 baseline | NO |
+| 8 | fragment_topology | 변경 없음 | 변경 없음 | NO |
+| 9 | branch_gap (origin/main) | ahead=0 behind=0 | ahead=0 behind=0 (M-A7-followup push 후) | NO |
+| 10 | vendor_boundary | clean | clean | NO |
+| 11 | external_contracts | 2026-05-11 (M-K2) | TTL 90d 안 | NO |
+| 12 | compatibility_matrix | 2026-05-11 (M-L3) | TTL 14d 안 | NO |
+
+### Tier 1 자동 fix 적용 (2건)
+
+| 영역 | 변경 |
+|---|---|
+| **`.claude/policy/project-map-fingerprint.yaml`** | `check_project_map_drift.py --update` — 3 디렉터리 fingerprint 갱신 (redfish-gather: `4e849a7c021c` → `20d12f7e7f47` / adapters: `c63a033173be` → `1202c98777f2` / tests: `6e099b4e1cb1` → `cf8c9b1ac05a`) |
+| **`docs/ai/NEXT_ACTIONS.md` line 194-201** | "잔여 32 ticket [PENDING]" stale entry → "모두 [DONE]" 갱신 (cycle 2026-05-07-all-vendor-coverage 39 ticket 전체 종료 반영) |
+
+### 검증 결과 (rule 24 6 체크리스트)
+
+- **pytest**: 587/587 PASS
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0
+- **check_project_map_drift**: fingerprint 일치 (갱신 후)
+- **output_schema_drift_check**: sections=10 / fd_paths=65 / fd_section_prefixes=16
+- **envelope_change_check**: clean
+- **adapter_origin_check --all --redfish-only**: 30/30 PASS
+
+### Tier 2/3 발견 — 0건
+
+본 cycle 에서 사용자 결정 필요 항목 (Tier 2/3) 발견 없음. 모두 Tier 1 catalog stale fix 로 자동 진행.
+
+### 다음 cycle 권장 (외부 의존)
+
+- **lab 도입 후 별도 cycle 매트릭스** (NEXT_ACTIONS Phase 3 표 참조) — Huawei/Inspur/Fujitsu/Quanta + 6 generation 미검증 vendor
+- **Jinja namespace hook blocking 격상** (NEXT_ACTIONS Phase 4 PENDING) — 1~2 cycle 추가 advisory 운영 후 결정
+
+---
+
+## 이전 일자: 2026-05-11 (M-A7-followup — vault_label 회귀 + docs/21 §6.6 naming convention [DONE])
 
 ### 사용자 명시 (2026-05-11)
 - "M-A7 후속 작업 2건 진행해줘" — 회귀 테스트 + docs/21 §6.6 naming convention 절 추가

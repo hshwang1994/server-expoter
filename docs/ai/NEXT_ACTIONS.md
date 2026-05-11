@@ -191,14 +191,18 @@ adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증
 
 → 효과: label 우선 매칭 활성화 (account_service.yml:31-41 chain) — username fallback 대신 label 즉시 hit → 성능 향상.
 
-### 잔여 cycle 2026-05-07-all-vendor-coverage ticket (32건 [PENDING])
+### ~~잔여 cycle 2026-05-07-all-vendor-coverage ticket (32건 [PENDING])~~ **[DONE 2026-05-11]**
 
-본 Session-1 은 M-A1~A6 만 수행. 잔여 32 ticket (M-B1~L4) 는 별도 worker 세션 권장:
-- M-B (Supermicro 6 generation 보강, 4건)
-- M-C~G (4 신규 vendor + Superdome OEM tasks + mock fixture, 12건)
-- M-H (기존 4 vendor 미검증 generation, 4건)
-- M-I (gather 10 sections 매트릭스, 5건)
-- M-J~L (OEM namespace mapping + origin + catalog, 7건)
+본 Session-1 은 M-A1~A6 만 수행. 잔여 32 ticket (M-B1~L4) 는 후속 세션 sequential 진행 — **모두 [DONE]**:
+- M-B (Supermicro 6 generation 보강, 4건) — commit `a8f14cfc` Phase 1
+- M-C~G (4 신규 vendor + Superdome OEM tasks + mock fixture, 12건) — commit `a8f14cfc` Phase 1
+- M-H (기존 4 vendor 미검증 generation, 4건) — commit `a8f14cfc` Phase 1
+- M-I (gather 10 sections 매트릭스, 5건) — commit `734e0519` Phase 2
+- M-J~L (OEM namespace mapping + origin + catalog, 7건) — commit `7e20ced9` Phase 3
+
+→ 추가 후속 작업 2건: M-A7 (adapter recovery_accounts.vault_label 정합 29 adapter) commit `a82afc4b` + M-A7-followup (회귀 테스트 90건 + docs/21 §6.6 naming convention) commit `6e6d4da4` **모두 [DONE]**.
+
+→ **cycle 2026-05-07-all-vendor-coverage 전체 종료** (총 39 ticket — M-A1~A7 + M-B~L + A7-followup)
 
 ---
 
