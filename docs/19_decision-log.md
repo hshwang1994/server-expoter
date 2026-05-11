@@ -6,7 +6,74 @@
 > 검증 라운드(Round) 결과, 사용자 의심 분석, 정책 변경 같은 큰 결정은 모두 이 문서에 시간순으로 추가된다.
 > 코드만 읽고는 알 수 없는 맥락(왜 이 fallback 이 있는지 등)이 여기 있다.
 
-> 최종 갱신: 2026-05-07
+> 최종 갱신: 2026-05-11
+
+## 2026-05-11 — M-A7 adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합
+
+### 컨텍스트
+
+cycle 2026-05-11 M-A1~A6 (vendor default 계정 자동 생성 path 보장) 후속 검증 중 `dell_idrac10.yml` 의 declared `recovery_accounts.vault_label` (`dell_root_dellidrac1`, `dell_root_calvin`) 이 vault `dell.yml` 의 실 label (`dell_fallback_1`, `dell_fallback_2`, `dell_current`, `lab_dell_root`) 와 mismatch 발견. `account_service.yml:31-41` 의 label 우선 → username fallback chain 으로 기능 정상이지만 label 매칭 활성화 안 됨 (username fallback 으로 항상 우회). 9 vendor 전수 동일 패턴.
+
+### 사용자 결정 (2026-05-11)
+
+**Q1: Dell/HPE/Lenovo adapter 정합 범위**
+- 결정: **B. Vault 전수 declare 확장** (Dell 4 / HPE 3 / Lenovo 3 entry — vault 실 label 와 동일)
+- 대안 A (최소 rename) / C (현 상태 유지 + 문서화) 거절
+
+**Q2: Supermicro/Cisco/Huawei/Inspur/Fujitsu/Quanta 6 vendor 처리**
+- 결정: **A. 본 cycle 에 함께 채움** (`*_factory` 1~2 entry)
+- 대안 B (별도 cycle / lab 도입 시) 거절
+
+### 적용 변경 (29 adapter — generic 제외)
+
+| Vendor | Adapter 수 | Before | After |
+|---|---|---|---|
+| Dell | 4 | 2 entry (`dell_root_dellidrac1`, `dell_root_calvin`) | 4 entry (`dell_fallback_1`, `dell_fallback_2`, `dell_current`, `lab_dell_root`) |
+| HPE | 6 | 1 entry (`hp_admin_hpinvent1`) | 3 entry (`hpe_fallback`, `hpe_current`, `hpe_factory`) |
+| Lenovo | 4 | 1 entry (`lenovo_userid_default`) | 3 entry (`lenovo_fallback`, `lenovo_current`, `lenovo_factory`) |
+| Supermicro | 8 | `[]` | 1 entry (`supermicro_factory`) |
+| Cisco | 3 | `[]` | 2 entry (`cisco_current`, `cisco_factory`) |
+| Huawei | 1 | `[]` | 1 entry (`huawei_factory`) |
+| Inspur | 1 | `[]` | 1 entry (`inspur_factory`) |
+| Fujitsu | 1 | `[]` | 1 entry (`fujitsu_factory`) |
+| Quanta | 1 | `[]` | 1 entry (`quanta_factory`) |
+
+총 변경 line: 94 insertions / 39 deletions (29 file). vault 변경 0.
+
+### 원칙 준수
+
+- **Additive only** (rule 92 R2) — adapter declare entry **추가만**. 코드 로직 / collect / normalize / match 불변
+- **envelope shape 변경 0** (rule 13 R5 / rule 96 R1-B) — adapter declare 텍스트만 변경. 호출자 시스템 파싱 영향 0
+- **vault 자동 반영 영향 0** (rule 27 R6) — cacheable / fact_caching / decrypt 캐시 모두 0 유지
+
+### 효과
+
+- **label 우선 매칭 활성화** — `account_service.yml:31-41` chain 의 label match (line 32-35) 가 즉시 hit → username fallback (line 37-39) 추가 시도 회피. multi-vendor 환경에서 try_one_account 시도 회수 감소 (성능 향상)
+- **label mismatch 해제** — 9 vendor 전수 (Dell + HPE + Lenovo 14 adapter mismatch 해제)
+- **6 vendor recovery_accounts 채움** — Supermicro/Cisco/Huawei/Inspur/Fujitsu/Quanta `[]` → 1+ entry (`*_factory`)
+- **호출자 영향 0** — envelope shape 불변
+
+### 검증
+
+- **pytest**: 497/497 PASS
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 PASS
+- **verify_vendor_boundary**: 위반 0 (gather 코드 hardcoding 변경 없음)
+- **adapter_origin_check --all --redfish-only**: 30/30 PASS (redfish_generic 포함)
+- **output_schema_drift_check**: sections=10 / fd_paths=65 / fd_section_prefixes=16 — 변경 0
+- **envelope_change_check**: 변경 0
+
+### 정본 reference
+
+- `docs/21_vault-operations.md` §6.5 — 9 vendor recovery 자격 매트릭스 (line 191-208)
+- `redfish-gather/tasks/account_service.yml:31-41` — label 우선 → username fallback chain
+- `redfish-gather/tasks/try_one_account.yml` — 시도 체인
+
+### 후속 (별도 cycle 권장)
+
+- **신규 회귀 테스트** — `tests/unit/test_adapter_vault_label_consistency.py` (29 adapter × declared label ∈ docs/21 §6.5 vendor 매트릭스 검증). 본 cycle 시간 제약으로 보류. 별도 ticket
+- **lab 도입 후 검증** — Huawei/Inspur/Fujitsu/Quanta + 6 generation 미검증 vendor 의 label 매칭 회귀는 lab 도입 후 NEXT_ACTIONS 후속 cycle
+
+---
 
 ## 2026-05-07 — schema/output_examples/ 신설 + baseline_v1 annotated 정리 (실 장비 개더링)
 

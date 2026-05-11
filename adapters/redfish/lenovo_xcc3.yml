@@ -72,7 +72,9 @@ credentials:
   profile: "lenovo"
   fallback_profiles: []
   recovery_accounts:
-    - { vault_label: lenovo_userid_default, role: recovery }
+    - { vault_label: lenovo_fallback, role: recovery }
+    - { vault_label: lenovo_current,  role: recovery }
+    - { vault_label: lenovo_factory,  role: recovery }
 
 auth:
   preferred: [basic]

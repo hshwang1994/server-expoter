@@ -167,17 +167,24 @@ primary infraops/Password123! 시도 → 401 (BMC 미설치)
 | 4 | origin 주석 갱신 | fixture 캡처 후 | `adapters/redfish/dell_idrac10.yml:6-13` "tested_against" 항목 |
 | 5 | dryrun ON 첫 적용 권장 | 사이트 R770 첫 수집 시 | `_rf_account_service_dryrun=true` 1회 시뮬레이션 |
 
-### 후속 cycle 권장 (M-A7 — label mismatch)
+### ~~후속 cycle 권장 (M-A7 — label mismatch)~~ **[DONE 2026-05-11]**
 
-adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증:
+adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 검증 — **완료 (M-A7 cycle 2026-05-11)**.
 
-| adapter | declared vault_label | actual vault label | mismatch |
-|---|---|---|---|
-| dell_idrac10.yml | `dell_root_dellidrac1` | (없음) | YES (username 매칭 fallback) |
-| dell_idrac10.yml | `dell_root_calvin` | `dell_fallback_2` | YES (username 매칭 fallback) |
-| dell_idrac9.yml, idrac8.yml 등 | (확인 필요) | (확인 필요) | TBD |
+29 adapter (generic 제외) 의 `recovery_accounts` 를 vault 실 label 과 1:1 매핑. 사용자 결정 Q1=B (Dell/HPE/Lenovo 전수 declare 확장) + Q2=A (Supermicro/Cisco/Huawei/Inspur/Fujitsu/Quanta 본 cycle 함께 채움).
 
-→ 현재 username 매칭 fallback 으로 작동 중. label 정합화는 별도 cycle (가독성 + label 우선 매칭 효율).
+| adapter | Before | After |
+|---|---|---|
+| Dell 4 adapter | `dell_root_dellidrac1`, `dell_root_calvin` (2) | `dell_fallback_1`, `dell_fallback_2`, `dell_current`, `lab_dell_root` (4) |
+| HPE 6 adapter | `hp_admin_hpinvent1` (1) | `hpe_fallback`, `hpe_current`, `hpe_factory` (3) |
+| Lenovo 4 adapter | `lenovo_userid_default` (1) | `lenovo_fallback`, `lenovo_current`, `lenovo_factory` (3) |
+| Supermicro 8 adapter | `[]` | `supermicro_factory` (1) |
+| Cisco 3 adapter | `[]` | `cisco_current`, `cisco_factory` (2) |
+| Huawei/Inspur/Fujitsu/Quanta 4 adapter | `[]` | `*_factory` (각 1) |
+
+→ pytest 497/497 PASS / verify_harness_consistency / verify_vendor_boundary / adapter_origin_check 30/30 / output_schema_drift_check / envelope_change_check 모두 PASS. envelope shape 변경 0 (rule 13 R5 / rule 96 R1-B). 호출자 시스템 영향 0.
+
+→ 효과: label 우선 매칭 활성화 (account_service.yml:31-41 chain) — username fallback 대신 label 즉시 hit → 성능 향상.
 
 ### 잔여 cycle 2026-05-07-all-vendor-coverage ticket (32건 [PENDING])
 

@@ -55,7 +55,9 @@ normalize:
 credentials:
   profile: "supermicro"
   fallback_profiles: []
-  recovery_accounts: []
+  # P2 AccountService 진입점 — vault/redfish/supermicro.yml accounts 의 label 과 매핑
+  recovery_accounts:
+    - { vault_label: supermicro_factory, role: recovery }
 
 auth:
   preferred: [basic]

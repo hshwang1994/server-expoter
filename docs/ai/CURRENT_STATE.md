@@ -1,6 +1,53 @@
 # server-exporter 현재 상태
 
-## 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Session-1 — M-A1~A6 [DONE])
+## 일자: 2026-05-11 (M-A7 — adapter `recovery_accounts.vault_label` ↔ vault `accounts.label` 정합 [DONE])
+
+### 사용자 명시 (2026-05-11)
+- "cycle 2026-05-06 multi-session-compatibility 진입" → 이미 [DONE] 확인 후 NEXT_ACTIONS M-A7 채택 (AI 자율 가능 영역)
+- Q1=B: Dell/HPE/Lenovo adapter 를 vault 전수 declare 확장
+- Q2=A: 6 vendor (Supermicro/Cisco/Huawei/Inspur/Fujitsu/Quanta) 도 본 cycle 에 함께 채움 (`*_factory` 1+ entry)
+
+### 적용 변경 (29 adapter — Additive only)
+
+| Vendor | Adapter 수 | Before | After |
+|---|---|---|---|
+| Dell | 4 (idrac/idrac8/idrac9/idrac10) | 2 entry (`dell_root_dellidrac1`, `dell_root_calvin`) | **4 entry** (`dell_fallback_1`, `dell_fallback_2`, `dell_current`, `lab_dell_root`) |
+| HPE | 6 (ilo/ilo4/ilo5/ilo6/ilo7/superdome_flex) | 1 entry (`hp_admin_hpinvent1`) | **3 entry** (`hpe_fallback`, `hpe_current`, `hpe_factory`) |
+| Lenovo | 4 (bmc/imm2/xcc/xcc3) | 1 entry (`lenovo_userid_default`) | **3 entry** (`lenovo_fallback`, `lenovo_current`, `lenovo_factory`) |
+| Supermicro | 8 (bmc/x9/x10/x11/x12/x13/x14/ars) | `[]` | **1 entry** (`supermicro_factory`) |
+| Cisco | 3 (bmc/cimc/ucs_xseries) | `[]` | **2 entry** (`cisco_current`, `cisco_factory`) |
+| Huawei | 1 (ibmc) | `[]` | **1 entry** (`huawei_factory`) |
+| Inspur | 1 (isbmc) | `[]` | **1 entry** (`inspur_factory`) |
+| Fujitsu | 1 (irmc) | `[]` | **1 entry** (`fujitsu_factory`) |
+| Quanta | 1 (qct_bmc) | `[]` | **1 entry** (`quanta_factory`) |
+
+총 29 adapter (generic 제외). vault 변경 0 (rule 92 R2 Additive only — adapter declare 텍스트만 변경, 로직/collect/normalize/match 불변).
+
+### 효과
+
+- **label 우선 매칭 활성화** — `account_service.yml:31-41` label 우선 → username fallback chain 에서 label 매칭 즉시 hit. 추가 fallback 시도 회수 감소 (성능 향상)
+- **label mismatch 해제** — Dell `dell_root_calvin` ↔ vault `dell_fallback_2` mismatch 등 9 vendor 전수 해제
+- **6 vendor recovery_accounts 채움** — Supermicro/Cisco/Huawei/Inspur/Fujitsu/Quanta 의 `[]` 비어있던 entry 가 1~2 entry 로 채움
+- **envelope shape 변경 0** (rule 13 R5 / rule 96 R1-B) — 호출자 시스템 파싱 영향 0
+
+### 검증 결과
+
+- **pytest**: 497/497 PASS (cycle 2026-05-11 M-A1~A6 시점 324 → 497 — 신규 회귀 173건 누적)
+- **verify_harness_consistency**: rules 28 / skills 51 / agents 60 / policies 10 — 정합
+- **verify_vendor_boundary**: 위반 0 (gather 코드 hardcoding 변경 없음)
+- **adapter_origin_check --all --redfish-only**: 30/30 PASS
+- **output_schema_drift_check**: sections=10 / fd_paths=65 / fd_section_prefixes=16
+- **envelope_change_check**: 변경 0 (adapter declare 텍스트만)
+
+### 정본 reference
+
+- `docs/21_vault-operations.md` §6.5 — 9 vendor recovery 자격 매트릭스 (line 191-208)
+- `redfish-gather/tasks/account_service.yml:31-41` — label 우선 → username fallback chain (불변)
+- `redfish-gather/tasks/try_one_account.yml` — 시도 체인 (불변)
+
+---
+
+## 이전 일자: 2026-05-11 (cycle 2026-05-07-all-vendor-coverage Session-1 — M-A1~A6 [DONE])
 
 ### 사용자 명시 (2026-05-11 cycle 진입)
 - "Dell R770 사이트를 참고해서 지금 Dell R770가 지원되는지 확인해줘. 벤더 default 계정 생성이 안되고있어."

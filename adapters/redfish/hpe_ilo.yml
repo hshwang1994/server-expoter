@@ -57,7 +57,9 @@ credentials:
   fallback_profiles: []
   # P2 AccountService 진입점 — vault/redfish/hpe.yml accounts 의 label 과 매핑
   recovery_accounts:
-    - { vault_label: hp_admin_hpinvent1, role: recovery }
+    - { vault_label: hpe_fallback, role: recovery }
+    - { vault_label: hpe_current,  role: recovery }
+    - { vault_label: hpe_factory,  role: recovery }
 
 auth:
   preferred: [session, basic]

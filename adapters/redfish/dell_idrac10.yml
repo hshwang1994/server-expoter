@@ -56,8 +56,10 @@ credentials:
   profile: "dell"
   fallback_profiles: []
   recovery_accounts:
-    - { vault_label: dell_root_dellidrac1, role: recovery }
-    - { vault_label: dell_root_calvin,     role: recovery }
+    - { vault_label: dell_fallback_1, role: recovery }
+    - { vault_label: dell_fallback_2, role: recovery }
+    - { vault_label: dell_current,    role: recovery }
+    - { vault_label: lab_dell_root,   role: recovery }
 
 auth:
   preferred: [session, basic]

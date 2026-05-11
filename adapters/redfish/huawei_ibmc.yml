@@ -95,7 +95,9 @@ normalize:
 credentials:
   profile: "huawei"
   fallback_profiles: []
-  recovery_accounts: []  # vault 미생성 — lab/사이트 도입 후 정의
+  # P2 AccountService 진입점 — vault/redfish/huawei.yml accounts 의 label 과 매핑 (lab 부재 — recovery factory 만 정의)
+  recovery_accounts:
+    - { vault_label: huawei_factory, role: recovery }
 
 auth:
   preferred: [basic]

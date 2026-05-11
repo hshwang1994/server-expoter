@@ -61,7 +61,10 @@ normalize:
 credentials:
   profile: "cisco"
   fallback_profiles: []
-  recovery_accounts: []
+  # P2 AccountService 진입점 — vault/redfish/cisco.yml accounts 의 label 과 매핑
+  recovery_accounts:
+    - { vault_label: cisco_current, role: recovery }
+    - { vault_label: cisco_factory, role: recovery }
 
 graceful_degradation:
   on_section_fail: continue

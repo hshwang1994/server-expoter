@@ -60,7 +60,9 @@ normalize:
 credentials:
   profile: "inspur"
   fallback_profiles: []
-  recovery_accounts: []
+  # P2 AccountService 진입점 — vault/redfish/inspur.yml accounts 의 label 과 매핑 (lab 부재 — recovery factory 만 정의)
+  recovery_accounts:
+    - { vault_label: inspur_factory, role: recovery }
 
 auth:
   preferred: [basic]
