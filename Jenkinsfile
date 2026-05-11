@@ -167,7 +167,7 @@ pipeline {
                                     inventory   : inventory,
                                     installation: 'ansible',
                                     colorized   : true,
-                                    extras      : "--vault-password-file=${vaultPassFile}",
+                                    extras      : "--vault-password-file=\"${vaultPassFile}\"",
                                 )
                             } finally {
                                 sh "rm -f ${vaultPassFile} || true"
