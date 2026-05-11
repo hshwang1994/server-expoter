@@ -47,7 +47,8 @@
 | 정적 검증 | py_compile OK / yaml parse OK / pytest 626 PASS / verify_harness OK / verify_vendor_boundary OK / hook self-test 10/10 |
 | 발견 버그 | 0건 (Additive only + HPE 한정 분기 + POST-regex_* 가드 위치 정밀화) |
 | 문서 갱신 | evidence (RESOLVED #1 + #4) + INDEX (T-01/T-02 완료) + CURRENT_STATE + rule 95 + surface-counts |
-| 후속 작업 | (1) Jenkins 빌드 회귀 검증 (push 후 hshwang-gather loc=git target_type=redfish bmc_ip=10.50.11.231) — 다음 세션 / (2) Cisco 10.100.15.1 + 10.100.15.3 운영 점검 (AI 외) / (3) regex_search hook BLOCKING 격상 (1주 후 검토) |
+| 후속 작업 | (1) ~~Jenkins 빌드 회귀 검증~~ — **[DONE] build #140 (HPE 단일) + #141 (5-host 전 vendor)** 모두 SUCCESS / (2) Cisco 10.100.15.1 + 10.100.15.3 운영 점검 (AI 외) / (3) regex_search hook BLOCKING 격상 (1주 후 검토) |
+| Jenkins 회귀 | build #140 (HPE Gen11 단일 — adapter=redfish_hpe_ilo6 정확 매칭 ✓) + build #141 (5-host: HPE+Lenovo+Dell×2+Cisco) 모두 SUCCESS — **타 vendor 회귀 0건 사용자 명시 요구 충족** |
 | 태그 | (선택 — 본 fix 는 사이트 검증 후) |
 | 회귀 | pytest 626 + adapter 시뮬레이션 9 + probe_facts 단위 9 + 하네스 + vendor boundary + harness consistency 모두 PASS |
 

@@ -158,9 +158,32 @@ when:
 | 10.100.15.27 | dell | redfish_dell_idrac10 | 8/10 | success |
 | 10.100.15.2 | cisco | redfish_cisco_ucs_xseries | 8/10 | success |
 
+### Round 3 검증 (T-01 fix 후, cycle 2026-05-11)
+
+#### build #140 (HPE 단일 host)
+
+| IP | vendor | adapter | sections | status | 비고 |
+|---|---|---|---|---|---|
+| **10.50.11.231** | **hpe** | **redfish_hpe_ilo6** | **8/10** | **success** | **T-01 fix 검증 — Gen11/iLO 6 정확 매칭 ✓** (#139 의 hpe_ilo7 오선택 해소) |
+
+#### build #141 (전 vendor 회귀 — HPE + Lenovo + Dell × 2 + Cisco)
+
+| IP | vendor | adapter | sections | status | 비고 |
+|---|---|---|---|---|---|
+| 10.50.11.231 | hpe | redfish_hpe_ilo6 | 8/10 | success | T-01 fix 확인 |
+| 10.50.11.232 | lenovo | redfish_lenovo_xcc3 | 8/10 | success | 회귀 0 |
+| 10.100.15.27 | dell | redfish_dell_idrac10 | 8/10 | success | 회귀 0 |
+| 10.100.15.28 | dell | redfish_dell_idrac10 | 8/10 | success | 회귀 0 |
+| 10.100.15.2 | cisco | redfish_cisco_ucs_xseries | 8/10 | success | 회귀 0 |
+
+- 5/5 host SUCCESS — Dell / Lenovo / Cisco 영향 0 확인 (사용자 명시 "다른 세대장비 다른 장비 문제 발생되지않도록")
+- adapter selection 정확도: HPE Gen11 → hpe_ilo7 (Gen12 adapter) → **hpe_ilo6 (Gen11 정확 adapter)** 로 정정. 타 vendor 변화 없음.
+- sections collected: hardware / bmc / cpu / memory / storage / network / firmware / power (8/10)
+- sections not_supported: system / users (이전 build #139 와 동일 — adapter capabilities 정합)
+
 ### 잔여 후속 작업 (다음 cycle)
 
-1. ~~**adapter 오선택 (LOW)**: DL380 Gen11 (iLO 6) 가 `redfish_hpe_ilo7` (Gen12 adapter) 로 매칭됨~~ — **[RESOLVED] cycle 2026-05-11 T-01 fix**: `redfish_gather.py` `_extract_probe_facts(root, vendor)` 신규 함수 + `detect_vendor()` 가 ServiceRoot 응답 함께 반환 + `main()` 이 `probe_facts` top-level field 노출 (Additive — envelope shape 신 키 추가는 probe 응답 한정). `detect_vendor.yml` 이 `data.bmc.firmware_version` / `data.system.model` 가 비었을 때 `probe_facts.model_hint` (= ServiceRoot.Product) / `probe_facts.firmware_hint` (= Oem.Hpe.Manager[0].ManagerFirmwareVersion) / `probe_facts.manager_type` 로 fallback. 회귀: pytest 608/608 + 9건 adapter 선택 시뮬레이션 + 9건 _extract_probe_facts 단위 — DL380 Gen11 → hpe_ilo6 정확 선택 확인, Gen12 → hpe_ilo7 유지, 타 vendor (Dell/Lenovo/Cisco/Supermicro/Huawei/Inspur/Fujitsu/Quanta) 영향 0.
+1. ~~**adapter 오선택 (LOW)**: DL380 Gen11 (iLO 6) 가 `redfish_hpe_ilo7` (Gen12 adapter) 로 매칭됨~~ — **[RESOLVED] cycle 2026-05-11 T-01 fix + Jenkins build #140 실 검증 통과**: `redfish_gather.py` `_extract_probe_facts(root, vendor)` 신규 함수 + `detect_vendor()` 가 ServiceRoot 응답 함께 반환 + `main()` 이 `probe_facts` top-level field 노출 (Additive — envelope shape 신 키 추가는 probe 응답 한정). `detect_vendor.yml` 이 `data.bmc.firmware_version` / `data.system.model` 가 비었을 때 `probe_facts.model_hint` (= ServiceRoot.Product) / `probe_facts.firmware_hint` (= Oem.Hpe.Manager[0].ManagerFirmwareVersion) / `probe_facts.manager_type` 로 fallback. 회귀: pytest 608/608 + 9건 adapter 선택 시뮬레이션 + 9건 _extract_probe_facts 단위 — DL380 Gen11 → hpe_ilo6 정확 선택 확인, Gen12 → hpe_ilo7 유지, 타 vendor (Dell/Lenovo/Cisco/Supermicro/Huawei/Inspur/Fujitsu/Quanta) 영향 0.
 2. **Cisco 10.100.15.1 운영 점검**: TCP/443 OK + HTTP 503 → Redfish 서비스 down/busy (운영 영역 — AI 작업 외)
 3. **Cisco 10.100.15.3 운영 점검**: ICMP/TCP timeout → host down or firewall (운영 영역 — AI 작업 외)
 4. ~~**rule 95 hook**: `is not none` 패턴 lint~~ — **[RESOLVED] cycle 2026-05-11 T-02 fix**: `scripts/ai/hooks/pre_commit_regex_search_conditional_check.py` 신규 hook (advisory) + rule 95 R1 #12 추가 + `install-git-hooks.sh` 등록 + `surface-counts.yaml` hooks 29 갱신. POST-regex_* 가드 위치 정밀화 (`| default('')` 가 regex_search **앞** 에 있으면 INPUT 만 가드 — 5d6cf72c 사고 사례 정확 차단). self-test 10/10 + 전체 codebase 0 false positive. 1주 안정 후 BLOCKING 격상 검토.
