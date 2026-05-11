@@ -186,7 +186,8 @@
                                         | default(['system','hardware','bmc','cpu','memory',
                                                    'storage','network','firmware']) }}"
             _fail_error_section:    "redfish_gather"
-            _fail_error_message:    "{{ ansible_failed_result.msg | default('Redfish 수집 예외') }}"
+            # 2026-05-11 debugging visibility: ansible_failed_task.name 을 메시지 prefix 로 포함 — json_only callback 으로 차단된 fatal task 위치 추적용.
+            _fail_error_message:    "[task: {{ ansible_failed_task.name | default('unknown') }}] {{ ansible_failed_result.msg | default('Redfish 수집 예외') }}"
 
         - name: "redfish | rescue | build_failed_output"
           ansible.builtin.include_tasks:
