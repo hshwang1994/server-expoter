@@ -909,6 +909,77 @@ def _hoist_oem_extras(oem_dict, target):                                      # 
     return cleaned
 
 
+# cycle 2026-05-07 M-I5: RoleId enum 정규화 매트릭스 (9 vendor).
+# vendor 별 default role enum 변형을 5 표준 카테고리로 매핑.
+# 표준 카테고리: 'administrator' / 'operator' / 'readonly' / 'none' / 'custom'
+# rule 12 R1 Allowed — Redfish AccountService spec enum 직접 의존.
+# rule 92 R2 — Additive helper (호출자가 옵션 사용. envelope 영향 0).
+_ROLE_ID_NORMALIZATION_MATRIX = {                                             # nosec rule12-r1
+    # Dell iDRAC 표준
+    'administrator': 'administrator',
+    'admin':         'administrator',                                         # nosec rule12-r1 — Cisco CIMC
+    'supervisor':    'administrator',                                         # nosec rule12-r1 — Lenovo XCC
+    'operator':      'operator',
+    'user':          'operator',                                              # nosec rule12-r1 — Supermicro
+    'readonly':      'readonly',
+    'read-only':     'readonly',
+    'read_only':     'readonly',
+    'commonuser':    'readonly',                                              # nosec rule12-r1 — Huawei iBMC
+    'callback':      'readonly',                                              # nosec rule12-r1 — Supermicro read-only role
+    'none':          'none',
+    'virtualmedia':  'custom',                                                # nosec rule12-r1 — HPE iLO
+}
+
+
+def _normalize_role_id(raw_role):                                             # nosec rule12-r1
+    """cycle 2026-05-07 M-I5: RoleId enum 정규화 (9 vendor → 5 표준 enum).
+
+    Args:
+        raw_role: BMC 응답의 RoleId raw 문자열 (Administrator / admin / Supervisor / ...)
+
+    Returns:
+        normalized: 'administrator' / 'operator' / 'readonly' / 'none' / 'custom' / raw
+                    (매트릭스에 없는 vendor-specific role 은 lowercase 그대로 보존)
+
+    rule 92 R2 — Additive (호출자가 옵션 사용. envelope 영향 0).
+    """
+    if raw_role is None:
+        return None
+    s = str(raw_role).strip().lower()
+    if not s:
+        return None
+    return _ROLE_ID_NORMALIZATION_MATRIX.get(s, s)
+
+
+def _normalize_dimm_label(raw_label):                                         # nosec rule12-r1
+    """cycle 2026-05-07 M-I5: DIMM ServiceLabel vendor 별 정규화.
+
+    vendor 별 라벨 변형을 공통 형식으로 통일:
+      - Dell:       "DIMM_A1"        → "DIMM A1"
+      - HPE:        "P1-DIMM-A1"     → "P1 DIMM A1"  (CPU prefix 보존)
+      - Lenovo:     "DIMM 1"         → "DIMM 1"
+      - Supermicro: "CPU0_DIMM_A1"   → "CPU0 DIMM A1"
+
+    Args:
+        raw_label: 원본 ServiceLabel (예: "DIMM_A1")
+
+    Returns: normalized label (공백 구분) — 정보 손실 없음
+
+    rule 92 R2 — Additive (호출자가 옵션 사용. raw label 도 함께 보존 권장).
+    """
+    if raw_label is None:
+        return None
+    s = str(raw_label).strip()
+    if not s:
+        return None
+    # underscore / hyphen → space 통일, 다중 공백 압축
+    normalized = s.replace('_', ' ').replace('-', ' ')
+    # 다중 공백 압축
+    while '  ' in normalized:
+        normalized = normalized.replace('  ', ' ')
+    return normalized
+
+
 def _normalize_link_status(value):
     """Normalize Redfish LinkStatus to standard enum.
 
@@ -984,6 +1055,61 @@ _OEM_EXTRACTORS = {                                                           # 
     # System/Chassis Oem.Cisco는 일부 운영 메타 노출).
     'cisco':      _extract_oem_cisco,                                         # nosec rule12-r1
 }
+
+
+# cycle 2026-05-07 M-I3: bmc / firmware OEM namespace unified extractor.
+# 9 vendor 의 OEM namespace 변형 (Oem.Hp vs Oem.Hpe / Oem.Inspur vs Oem.Inspur_System
+# / Oem.ts_fujitsu vs Oem.Fujitsu / Oem.Quanta_Computer_Inc vs Oem.QCT) 한 번에 해석.
+# rule 12 R1 Allowed — Redfish API spec OEM namespace 직접 의존 (Allowed 영역).
+# rule 92 R2 Additive — 본 helper 는 raw dict 만 반환. envelope 영향 0.
+_OEM_NAMESPACE_FALLBACK_CHAIN = (                                             # nosec rule12-r1
+    ('dell',       ('Dell',)),                                                # nosec rule12-r1
+    ('hpe',        ('Hpe', 'Hp')),                                            # nosec rule12-r1 — iLO4 legacy
+    ('lenovo',     ('Lenovo',)),                                              # nosec rule12-r1
+    ('cisco',      ('Cisco', 'Cisco_RackUnit')),                              # nosec rule12-r1 — UCS variant
+    ('supermicro', ('Supermicro',)),                                          # nosec rule12-r1
+    ('huawei',     ('Huawei',)),                                              # nosec rule12-r1
+    ('inspur',     ('Inspur', 'Inspur_System')),                              # nosec rule12-r1 — older firmware variant
+    ('fujitsu',    ('ts_fujitsu', 'Fujitsu')),                                # nosec rule12-r1 — iRMC alias
+    ('quanta',     ('Quanta_Computer_Inc', 'QCT')),                           # nosec rule12-r1
+)
+
+
+def _extract_oem_unified(data, expected_vendor=None):                         # nosec rule12-r1
+    """cycle 2026-05-07 M-I3: 9 vendor OEM namespace 통합 추출 helper.
+
+    Redfish 응답의 `Oem.<namespace>` 영역을 vendor 별 alias chain (Oem.Hp / Oem.Hpe,
+    Oem.ts_fujitsu / Oem.Fujitsu 등) 순서대로 탐색해 첫 매치 반환.
+
+    Args:
+        data: Redfish 응답 dict (Manager / System / Chassis 어느 것도 OK)
+        expected_vendor: 정규화된 vendor 이름 (dell/hpe/lenovo/...). 주어지면
+                         해당 vendor namespace chain 만 시도. None 이면 전체 9
+                         vendor chain 모두 순회 (첫 매치).
+
+    Returns:
+        (oem_dict, matched_vendor, matched_namespace)
+        - oem_dict: 매치한 OEM 영역 dict ({} 가능)
+        - matched_vendor: 'dell' / 'hpe' / ... 또는 None
+        - matched_namespace: 'Dell' / 'Hp' / 'ts_fujitsu' / ... 또는 None
+
+    rule 12 R1 Allowed — Redfish API spec OEM namespace 직접 의존.
+    rule 92 R2 — Additive helper. 호출자가 raw dict 사용. envelope shape 변경 0.
+    """
+    if not isinstance(data, dict):
+        return {}, None, None
+    oem_root = data.get('Oem')
+    if not isinstance(oem_root, dict) or not oem_root:
+        return {}, None, None
+    chain = _OEM_NAMESPACE_FALLBACK_CHAIN
+    if expected_vendor:
+        chain = tuple((v, ns) for v, ns in chain if v == expected_vendor)
+    for vendor_key, namespaces in chain:
+        for ns in namespaces:
+            value = oem_root.get(ns)
+            if isinstance(value, dict) and value:
+                return value, vendor_key, ns
+    return {}, None, None
 
 
 def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verify_ssl,
@@ -1589,8 +1715,98 @@ def _gather_standard_storage(bmc_ip, members, username, password, timeout, verif
     return controllers, volumes, errors
 
 
+def _gather_smart_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):    # nosec rule12-r1
+    """HPE iLO4 SmartStorage legacy path (cycle 2026-05-07 M-I1 — Additive).
+
+    iLO4 (Gen8/Gen9 pre-iLO5) 펌웨어는 표준 `/Systems/{id}/Storage` 미도입,
+    HPE OEM `/Systems/{id}/SmartStorage/ArrayControllers/*` + `/HostBusAdapters/*`
+    경로로만 storage 정보 제공.
+
+    rule 12 R1 Allowed — HPE OEM Redfish spec 직접 의존 (SmartStorage namespace).
+    source: HPE iLO4 Redfish API guide (DSP0268 v1.5 pre-spec OEM path).
+
+    Returns: (controllers: list, volumes: list, errors: list) — gather_standard_storage 와
+             동일한 envelope shape (controllers / volumes / health / drives).
+    실측 fixture: tests/fixtures/redfish/hpe_ilo4/ (Round 14 web sources).
+    """
+    base = _p(system_uri) + '/SmartStorage'
+    st, ss_root, err = _get(bmc_ip, base, username, password, timeout, verify_ssl)
+    errors = []
+    if err or st != 200:
+        errors.append(_err('storage', f'SmartStorage 미지원: {err or st}'))
+        return [], [], errors
+
+    controllers = []
+    # ArrayControllers (RAID) + HostBusAdapters (HBA pass-through) 둘 다 시도
+    for coll_key in ('ArrayControllers', 'HostBusAdapters'):
+        coll_link = _safe(ss_root, coll_key, '@odata.id')
+        if not coll_link:
+            continue
+        cst, coll, cerr = _get(bmc_ip, _p(coll_link), username, password, timeout, verify_ssl)
+        if cerr or cst != 200:
+            errors.append(_err('storage', f'SmartStorage.{coll_key} 실패: {cerr or cst}'))
+            continue
+        for member in (_safe(coll, 'Members') or []):
+            ctrl_uri = _safe(member, '@odata.id')
+            if not ctrl_uri:
+                continue
+            ctrl_st, ctrl_data, ctrl_err = _get(bmc_ip, _p(ctrl_uri), username, password, timeout, verify_ssl)
+            if ctrl_err or ctrl_st != 200:
+                errors.append(_err('storage', f'SmartStorage controller {ctrl_uri} 실패: {ctrl_err or ctrl_st}'))
+                continue
+            # PhysicalDrives 컬렉션 (iLO4 SmartStorage 구조)
+            drives = []
+            pd_link = _safe(ctrl_data, 'PhysicalDrives', '@odata.id') or _safe(ctrl_data, 'Links', 'PhysicalDrives', '@odata.id')
+            if pd_link:
+                pst, pcoll, _perr = _get(bmc_ip, _p(pd_link), username, password, timeout, verify_ssl)
+                if pst == 200:
+                    for pd_m in (_safe(pcoll, 'Members') or []):
+                        pd_uri = _safe(pd_m, '@odata.id')
+                        if not pd_uri:
+                            continue
+                        pdst, pddata, _pderr = _get(bmc_ip, _p(pd_uri), username, password, timeout, verify_ssl)
+                        if pdst != 200:
+                            continue
+                        cap_int = _safe_int(_safe(pddata, 'CapacityGB')) or _safe_int(_safe(pddata, 'CapacityMiB'))
+                        # CapacityGB (iLO4) → bytes
+                        cap_bytes = (cap_int * 1_000_000_000) if cap_int and _safe(pddata, 'CapacityGB') else None
+                        drives.append({
+                            'id':             _safe(pddata, 'Id'),
+                            'name':           _safe(pddata, 'Model') or _safe(pddata, 'Name'),
+                            'model':          _safe(pddata, 'Model'),
+                            'serial':         _safe(pddata, 'SerialNumber'),
+                            'manufacturer':   _safe(pddata, 'Manufacturer'),
+                            'media_type':     _safe(pddata, 'MediaType'),
+                            'protocol':       _safe(pddata, 'InterfaceType'),
+                            'capacity_bytes': cap_bytes,
+                            'capacity_gb':    cap_int if cap_int else None,
+                            'health':         _safe(pddata, 'Status', 'Health'),
+                        })
+            ctrl_id = _safe(ctrl_data, 'Id')
+            controllers.append({
+                'id':                      ctrl_id,
+                'name':                    _safe(ctrl_data, 'Model') or _safe(ctrl_data, 'Name'),
+                'health':                  _safe(ctrl_data, 'Status', 'Health'),
+                'drives':                  drives,
+                'controller_name':         _safe(ctrl_data, 'Model'),
+                'controller_model':        _safe(ctrl_data, 'Model'),
+                'controller_firmware':     _safe(ctrl_data, 'FirmwareVersion', 'Current', 'VersionString')
+                                           or _safe(ctrl_data, 'FirmwareVersion'),
+                'controller_manufacturer': _safe(ctrl_data, 'Manufacturer') or 'HPE',  # nosec rule12-r1 — SmartStorage path 은 HPE OEM legacy spec 직접 의존
+                'controller_health':       _safe(ctrl_data, 'Status', 'Health'),
+            })
+    # SmartStorage 는 logical volume (LogicalDrives) 별도 경로 — iLO4 fixture 부재로
+    # 본 cycle 은 controllers + drives 만 (Additive — 향후 lab fixture 추가 시 보강)
+    return controllers, [], errors
+
+
 def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
-    """Storage 진입 — Storage → SimpleStorage fallback dispatcher."""
+    """Storage 진입 — Storage → SimpleStorage → SmartStorage fallback dispatcher.
+
+    cycle 2026-05-07 M-I1: SmartStorage (HPE iLO4) fallback chain 추가 — Additive.
+    기존 Storage / SimpleStorage 분기 변경 0. SmartStorage 는 iLO4 legacy path 라
+    표준 / SimpleStorage 둘 다 404 일 때만 시도.
+    """
     path = _p(system_uri) + '/Storage'
     st, coll, err = _get(bmc_ip, path, username, password, timeout, verify_ssl)
     errors = []
@@ -1605,7 +1821,16 @@ def gather_storage(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             coll = coll2
             errors.append(_err('storage', 'Storage 미지원, SimpleStorage fallback 사용'))
         else:
-            errors.append(_err('storage', f'Storage/SimpleStorage 모두 실패: {err or st}'))
+            # cycle 2026-05-07 M-I1: SmartStorage (HPE iLO4 OEM legacy) fallback —
+            # 표준/SimpleStorage 모두 404 시 HPE 구 path 시도 (Additive).
+            ctrls, vols, smart_errors = _gather_smart_storage(
+                bmc_ip, system_uri, username, password, timeout, verify_ssl
+            )
+            if ctrls:
+                errors.append(_err('storage', 'Storage/SimpleStorage 미지원, SmartStorage (HPE OEM legacy) fallback 사용'))  # nosec rule12-r1 — SmartStorage OEM path spec
+                errors.extend(smart_errors)
+                return {'controllers': ctrls, 'volumes': vols}, errors
+            errors.append(_err('storage', f'Storage/SimpleStorage/SmartStorage 모두 실패: {err or st}'))
             return {'controllers': [], 'volumes': []}, errors
 
     members = _safe(coll, 'Members') or []
@@ -1651,6 +1876,72 @@ def gather_network(bmc_ip, system_uri, username, password, timeout, verify_ssl):
             'ipv4': ipv4_addrs,
         })
     return nics, errors
+
+
+def _detect_nic_ocp_slot(adata):                                              # nosec rule12-r1
+    """cycle 2026-05-07 M-I4: NIC OCP (Open Compute Project) mezzanine 식별.
+
+    NetworkAdapter.Location.PartLocation.LocationType 또는 ServiceLabel 패턴으로
+    OCP NIC 식별. 펌웨어 별 차이:
+      - iDRAC9 6.x+ : Location.PartLocation.LocationType='Slot' + ServiceLabel='OCP'
+      - iLO6+ : Oem.Hpe.Location.OCPSlot
+      - Supermicro X13+ : Location.PartLocation.LocationType='Slot' + name 'OCP*'
+
+    Returns: 'ocp' / 'pcie' / None (식별 불가)
+
+    rule 12 R1 Allowed — DSP0268 Location.PartLocation spec 직접 의존.
+    rule 92 R2 — Additive helper (호출자가 사용. envelope 영향 0).
+    """
+    if not isinstance(adata, dict):
+        return None
+    loc = _safe(adata, 'Location', 'PartLocation') or {}
+    service_label = (_safe(loc, 'ServiceLabel') or '').upper()
+    location_type = (_safe(loc, 'LocationType') or '').lower()
+    name = (_safe(adata, 'Name') or '').upper()
+    if 'OCP' in service_label or 'OCP' in name:
+        return 'ocp'
+    # HPE OEM fallback
+    hpe_oem = _safe(adata, 'Oem', 'Hpe') or {}                                # nosec rule12-r1
+    if _safe(hpe_oem, 'Location', 'OCPSlot') or _safe(hpe_oem, 'OCPSlot'):    # nosec rule12-r1
+        return 'ocp'
+    if location_type == 'slot':
+        return 'pcie'
+    return None
+
+
+def _detect_nic_sriov_capable(adata):                                         # nosec rule12-r1
+    """cycle 2026-05-07 M-I4: NIC SR-IOV capability 식별.
+
+    표준 DSP0268 v1.6+ NetworkDeviceFunctions 우선, vendor OEM fallback:
+      - 표준: NetworkDeviceFunctions[*].SRIOV.SRIOVCapable
+      - Dell: Oem.Dell.NICDeviceFunctions.SRIOVCapable
+      - HPE:  Oem.Hpe.NetworkAdapter.SRIOVConfig (dict 존재 = capable)
+
+    Args:
+        adata: NetworkAdapter 응답 dict
+
+    Returns: True / False / None (미응답)
+
+    rule 12 R1 Allowed — Redfish OEM spec 직접 의존.
+    rule 92 R2 — Additive helper (envelope 영향 0).
+    """
+    if not isinstance(adata, dict):
+        return None
+    # 표준 path: Controllers[0].Links.NetworkDeviceFunctions (DSP0268 v1.6+)
+    # 본 helper 는 adapter 단위 응답만 사용 — 깊은 collection fetch 는 호출자 책임.
+    # SR-IOV capability 표시는 일반적으로 NetworkAdapter root 또는 Oem 영역에 hint.
+    if _safe(adata, 'SRIOV', 'SRIOVCapable') is True:
+        return True
+    # Dell OEM
+    dell_oem = _safe(adata, 'Oem', 'Dell') or {}                              # nosec rule12-r1
+    dell_sriov = _safe(dell_oem, 'NICDeviceFunctions', 'SRIOVCapable')        # nosec rule12-r1
+    if dell_sriov is not None:
+        return bool(dell_sriov)
+    # HPE OEM
+    hpe_oem = _safe(adata, 'Oem', 'Hpe') or {}                                # nosec rule12-r1
+    if _safe(hpe_oem, 'NetworkAdapter', 'SRIOVConfig'):                       # nosec rule12-r1
+        return True
+    return None
 
 
 def gather_network_adapters_chassis(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
@@ -1920,11 +2211,56 @@ def _gather_power_subsystem(bmc_ip, chassis_uri, username, password, timeout, ve
     return {'power_supplies': psus, 'power_control': power_control}, errors
 
 
+def _merge_power_dual(legacy_result, subsystem_result):    # nosec rule12-r1
+    """cycle 2026-05-07 M-I2: Power (deprecated) + PowerSubsystem dual-emit dedup.
+
+    DSP0268 v1.13+ 이전/이후 펌웨어가 dual emit 하는 환경 (iDRAC9 5.x / iLO5-6 /
+    XCC3 / Supermicro X12-X14) 에서 PowerSupplies 중복 제거.
+
+    Strategy: 두 결과의 power_supplies 를 합치되 같은 (model, serial) 또는 같은
+    (name, model) tuple 은 한 번만. PowerControl 은 legacy 우선 (PowerSubsystem
+    표준에는 system-level metric 없고 EnvironmentMetrics 로 분리됨 — legacy 가
+    더 풍부).
+
+    rule 92 R2: 입력 dict shape 유지 — `power_supplies` + `power_control` 키만.
+    호출자 envelope 영향 0.
+
+    Returns: merged dict (power_supplies + power_control).
+    """
+    legacy_psus = (legacy_result or {}).get('power_supplies') or []
+    sub_psus = (subsystem_result or {}).get('power_supplies') or []
+
+    seen = set()
+    merged_psus = []
+    for psu in legacy_psus + sub_psus:
+        if not isinstance(psu, dict):
+            continue
+        # dedup key: (model, serial) 우선, 둘 다 없으면 (name, model)
+        key = (
+            psu.get('model') or '',
+            psu.get('serial') or '',
+            psu.get('name') or '',
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        merged_psus.append(psu)
+
+    # PowerControl: legacy 우선 (system-level metric 풍부), 없으면 subsystem
+    pc = (legacy_result or {}).get('power_control') or (subsystem_result or {}).get('power_control')
+    return {'power_supplies': merged_psus, 'power_control': pc}
+
+
 def gather_power(bmc_ip, chassis_uri, username, password, timeout, verify_ssl):
     """Chassis/{id}/Power — PSU 정보. chassis_uri는 detect_vendor()에서 전달.
 
     cycle 2026-05-01: /Power 404 시 /PowerSubsystem fallback (DMTF 2020.4 신 schema).
     Storage SimpleStorage fallback 패턴 따름 (line 1417).
+
+    cycle 2026-05-07 M-I2: dual-emit dedup helper (_merge_power_dual) 추가 (Additive).
+    현재 dispatcher 는 404 fallback only — dual emit 펌웨어 (iDRAC9 5.x / iLO5-6
+    등) 의 PSU 중복 처리는 향후 adapter capability `power_strategy=dual` 활성화
+    시 본 helper 호출 (현 cycle 은 사이트 검증 4 vendor 영향 0 위해 wire 보류).
     """
     errors = []
     if not chassis_uri:

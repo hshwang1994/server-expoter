@@ -34,11 +34,11 @@
 | **M-H2** | HPE iLO (legacy) / iLO4 / iLO5 / iLO6 — capability + origin + mock 4건 | P1 | — | **[DONE]** | W4-Agent | 2026-05-11 |
 | **M-H3** | Lenovo bmc / IMM2 / XCC — XCC2 firmware_patterns 추가 (Additive 분기, 새 adapter 회피) + mock 3건 | P1 | — | **[DONE]** | W4-Agent | 2026-05-11 |
 | **M-H4** | Cisco BMC / CIMC 2.x/3.x/4.x — S-series model_patterns 추가 + mock 4건 | P1 | — | **[DONE]** | W4-Agent | 2026-05-11 |
-| **M-I1** | storage section (PLDM RDE / SmartStorage / OEM Drive / Volume / SimpleStorage) 변형 매트릭스 + fallback | P1 | H1, H2, H3, H4 | [PENDING] | W4 | — |
-| **M-I2** | power section (Power deprecated → PowerSubsystem 마이그레이션) 변형 매트릭스 + fallback | P1 | I1 | [PENDING] | W4 | — |
-| **M-I3** | bmc / firmware section (vendor OEM namespace 노출) 변형 매트릭스 | P1 | I2 | [PENDING] | W4 | — |
-| **M-I4** | network section (NIC OEM driver / SR-IOV / OCP) 변형 매트릭스 | P2 | I3 | [PENDING] | W5 | — |
-| **M-I5** | system / cpu / memory / users (표준 가까움) gap 검증 | P2 | I4 | [PENDING] | W5 | — |
+| **M-I1** | storage section — `_gather_smart_storage()` helper + 3차 fallback chain (Storage→SimpleStorage→SmartStorage) | P1 | H1, H2, H3, H4 | **[DONE]** | Phase2-Agent | 2026-05-11 |
+| **M-I2** | power section — `_merge_power_dual()` PSU dedup (Power deprecated + PowerSubsystem dual-emit) | P1 | I1 | **[DONE]** | Phase2-Agent | 2026-05-11 |
+| **M-I3** | bmc / firmware section — `_OEM_NAMESPACE_FALLBACK_CHAIN` constant + `_extract_oem_unified()` (9 vendor × 14 namespace alias) | P1 | I2 | **[DONE]** | Phase2-Agent | 2026-05-11 |
+| **M-I4** | network section — `_detect_nic_ocp_slot()` + `_detect_nic_sriov_capable()` helpers | P2 | I3 | **[DONE]** | Phase2-Agent | 2026-05-11 |
+| **M-I5** | system/cpu/memory/users — `_normalize_role_id()` (9 vendor → 5 표준) + `_normalize_dimm_label()` | P2 | I4 | **[DONE]** | Phase2-Agent | 2026-05-11 |
 | **M-J1** | OEM namespace mapping (9 vendor) redfish_gather.py 분기 매트릭스 + Cisco vendor task 신설 | P1 | B4, C3, D2, E3, F2, G2, H1~H4, I5 | [PENDING] | W5 | — |
 | **M-K1** | 모든 신규/보강 adapter origin 주석 일관성 검증 (rule 96 R1-A) | P1 | J1 | [PENDING] | W5 | — |
 | **M-K2** | docs/ai/catalogs/EXTERNAL_CONTRACTS.md 갱신 (9 vendor × N gen × N section × source URL) | P1 | K1 | [PENDING] | W5 | — |
