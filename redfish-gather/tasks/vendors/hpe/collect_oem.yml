@@ -13,6 +13,14 @@
 #   — 동일 Oem.Hpe namespace + PartitionInfo/FlexNodeInfo/GlobalConfiguration 상속
 #   — model regex 확장 Additive only (rule 92 R2) — fragment shape 변경 0
 #
+# cycle 2026-05-12 (ADR-2026-05-12) — RMC 멀티-노드 토폴로지 정식 지원:
+#   - 본 task 는 Partition0 representative OEM 영역만 처리 (현행 placeholder 유지).
+#   - 멀티 partition 별 Oem.Hpe.PartitionInfo 정밀화는 lab 도입 cycle 영역 (NEXT_ACTIONS C7).
+#   - 실제 multi-node 데이터는 redfish_gather.py `_collect_multi_node_topology` 가 수집해
+#     `data.multi_node.partitions[]` 컨테이너에 노출 (envelope Additive — rule 92 R2).
+#   - lab 도입 후 본 task 를 `_rf_raw_collect.multi_node.partitions[].system.Oem.Hpe.*`
+#     loop 로 확장 — 단, gather_systems_multi 가 raw OEM 보존 API 추가 필요.
+#
 # source: HPE Superdome Flex Server Admin Guide (확인 2026-05-11 — lab 부재)
 # source: https://support.hpe.com/hpesc/public/docDisplay (Superdome Flex/280 매뉴얼)
 # source: https://github.com/HewlettPackard/sdflexutils (sdflexutils 1.5.1)

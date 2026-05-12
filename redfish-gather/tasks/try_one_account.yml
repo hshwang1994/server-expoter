@@ -19,12 +19,16 @@
   block:
 
     - name: "redfish | try_account | attempt"
+      # cycle 2026-05-12 (ADR-2026-05-12): manager_layout 인자 전달 (Additive).
+      # adapter `vendor_notes.manager_layout` 정의 vendor (HPE CSUS 3200 / Superdome
+      # Flex) 만 멀티-노드 토폴로지 활성. 다른 vendor 는 빈 문자열 → 모듈이 None 처리.
       redfish_gather:
-        bmc_ip:     "{{ _rf_ip }}"
-        username:   "{{ _try_account.username | default('') }}"
-        password:   "{{ _try_account.password | default('') }}"
-        timeout:    "{{ _rf_timeout }}"
-        verify_ssl: false
+        bmc_ip:         "{{ _rf_ip }}"
+        username:       "{{ _try_account.username | default('') }}"
+        password:       "{{ _try_account.password | default('') }}"
+        timeout:        "{{ _rf_timeout }}"
+        verify_ssl:     false
+        manager_layout: "{{ _rf_adapter_manager_layout | default('') }}"
       register:    _rf_attempt
       failed_when: false
       no_log: true

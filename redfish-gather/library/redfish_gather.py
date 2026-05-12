@@ -689,6 +689,127 @@ def _resolve_first_member_uri(bmc_ip, coll_uri, username, password, timeout, ver
     return _safe(members[0], '@odata.id'), st, None
 
 
+def _resolve_all_member_uris(bmc_ip, coll_uri, username, password, timeout, verify_ssl):
+    """컬렉션 URI → 모든 Members 의 @odata.id 추출 (cycle 2026-05-12 — ADR-2026-05-12).
+
+    `_resolve_first_member_uri` 의 Additive 확장. RMC (HPE Compute Scale-up Server 3200 /
+    Superdome Flex) 같이 단일 진입점이 N개 Manager / N개 nPartition / N개 Chassis 를
+    노출하는 환경에서 전수 수집을 위해 신설. 기존 단일 노드 함수는 변경 0 (rule 92 R2
+    Additive only / rule 95 R1 #11 production 위험 회피).
+
+    source (rule 96 R1-A):
+      - HPE 공식: "supports large, partitionable systems managed by a single aggregated
+        controller like HPE Compute Scale-up Server 3200 RMC"
+      - DMTF DSP0266 v1.15.0 Collection.Members[] 표준 schema
+
+    Returns: (members: list[dict], status_code, error_msg)
+        members: [{'uri': str, 'id': str}]  (Member ID = URI 의 마지막 path segment)
+    """
+    if not coll_uri:
+        return [], None, 'collection uri 없음'
+    st, coll, err = _get(bmc_ip, _p(coll_uri), username, password, timeout, verify_ssl)
+    if err or st != 200:
+        return [], st, err or f'HTTP {st}'
+    raw_members = _safe(coll, 'Members') or []
+    out = []
+    for m in raw_members:
+        uri = _safe(m, '@odata.id')
+        if not uri:
+            continue
+        # Member ID = URI 의 마지막 path segment (trailing '/' 제거)
+        mid = uri.rstrip('/').rsplit('/', 1)[-1] if '/' in uri else uri
+        out.append({'uri': uri, 'id': mid})
+    if not out:
+        return [], st, 'members 없음'
+    return out, st, None
+
+
+def _classify_rmc_label(manager_uri, manager_id, manager_layout):                # nosec rule12-r1
+    """Manager URI / ID + adapter capability 기반 BMC 표시명 결정 (cycle 2026-05-12).
+
+    HPE CSUS 3200 / Superdome Flex 의 RMC primary 시스템에서 manager 별 라벨 분기:
+      - RMC (Rack Management Controller) → 'RMC'
+      - PDHC (per-chassis controller) → 'PDHC'
+      - per-node iLO 5 → 'iLO'
+
+    rule 12 R1 Allowed 영역 — line 1308 `bmc_names` 매핑 (외부 spec 기반 표준 이름) 의
+    fallback path 확장. `manager_layout` None 시 기존 동작 100% 보존 (Additive).
+
+    source (rule 96 R1-A): HPE Superdome Flex Admin Guide + sdflexutils GitHub README
+
+    Returns: str | None  (None 시 호출자가 bmc_names[vendor] fallback 사용)
+    """
+    if not manager_layout:
+        return None
+    lid = (manager_id or '').lower()
+    luri = (manager_uri or '').lower()
+    # 우선순위: ID substring → URI substring → layout default
+    if 'rmc' in lid or 'rmc' in luri:                                            # nosec rule12-r1
+        return 'RMC'                                                             # nosec rule12-r1
+    if 'pdhc' in lid or 'pdhc' in luri:                                          # nosec rule12-r1
+        return 'PDHC'                                                            # nosec rule12-r1
+    if 'ilo' in lid or 'ilo' in luri:                                            # nosec rule12-r1
+        return 'iLO'                                                             # nosec rule12-r1
+    # layout default — `rmc_primary` 시 첫 Manager 는 RMC 로 가정 (호출자가 순서 지정)
+    if manager_layout in ('rmc_primary', 'rmc_primary_ilo_secondary'):
+        return 'RMC'                                                             # nosec rule12-r1
+    return None
+
+
+def _classify_manager_role(manager_uri, manager_id, manager_layout):             # nosec rule12-r1
+    """Manager 의 role (primary / secondary) 결정 (cycle 2026-05-12).
+
+    `manager_layout` + ID substring 매칭 기반:
+      - RMC → primary
+      - PDHC / iLO (rmc_primary_ilo_secondary 시) → secondary
+      - layout 미정의 → None
+
+    Returns: str | None
+    """
+    if not manager_layout:
+        return None
+    lid = (manager_id or '').lower()
+    luri = (manager_uri or '').lower()
+    if 'rmc' in lid or 'rmc' in luri:                                            # nosec rule12-r1
+        return 'primary'
+    if manager_layout in ('rmc_primary', 'rmc_primary_ilo_secondary'):
+        if 'pdhc' in lid or 'pdhc' in luri or 'ilo' in lid or 'ilo' in luri:    # nosec rule12-r1
+            return 'secondary'
+    return None
+
+
+def _classify_chassis_kind(chassis_uri, chassis_id, chassis_data):               # nosec rule12-r1
+    """Chassis 의 kind (base / expansion / compute_module) 결정 (cycle 2026-05-12).
+
+    HPE Superdome Flex / CSUS 3200 multi-chassis 환경:
+      - base / Base → 'base'
+      - expansion / Expansion → 'expansion'
+      - compute / module → 'compute_module'
+      - ChassisType 표준 필드 사용 가능 시 우선
+
+    source (rule 96 R1-A): DMTF DSP0266 Chassis.v1_20 ChassisType enum
+
+    Returns: str | None
+    """
+    lid = (chassis_id or '').lower()
+    luri = (chassis_uri or '').lower()
+    if 'base' in lid or 'base' in luri:
+        return 'base'
+    if 'expansion' in lid or 'expansion' in luri:
+        return 'expansion'
+    if 'compute' in lid or 'module' in lid or 'compute' in luri:
+        return 'compute_module'
+    # ChassisType 표준 fallback
+    if isinstance(chassis_data, dict):
+        ctype = (_safe(chassis_data, 'ChassisType') or '').lower()
+        if ctype == 'enclosure':
+            # base / expansion 구분 안 되는 generic enclosure
+            return 'enclosure'
+        if ctype in ('rackmount', 'card', 'blade'):
+            return ctype
+    return None
+
+
 def detect_vendor(bmc_ip, username, password, timeout, verify_ssl):
     """ServiceRoot(무인증)에서 벤더 식별 + Systems/Managers/Chassis URI 해석.
 
@@ -1287,12 +1408,18 @@ def gather_system(bmc_ip, system_uri, vendor, username, password, timeout, verif
     return result, errors
 
 
-def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_ssl):
+def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_ssl,
+               manager_layout=None):
     """bmc 섹션 수집 (Redfish endpoints).
 
     호출 endpoint:
       - GET {manager_uri}                            (예: /redfish/v1/Managers/1)
       - GET {manager_uri}/EthernetInterfaces (선택, BMC IP 추출)
+
+    cycle 2026-05-12 (ADR-2026-05-12): `manager_layout` 옵션 인자 추가 (Additive).
+      - None (기본값) — 기존 동작 100% 보존. `bmc.name = bmc_names[vendor]` 통일.
+      - 'rmc_primary' / 'rmc_primary_ilo_secondary' — `_classify_rmc_label` 우선 적용.
+        Manager URI/ID substring (`rmc` / `pdhc` / `ilo`) 매칭 시 'RMC' / 'PDHC' / 'iLO'.
 
     Returns: (data_dict, errors_list)
     """
@@ -1310,9 +1437,12 @@ def gather_bmc(bmc_ip, manager_uri, vendor, username, password, timeout, verify_
                  'cisco': 'CIMC',                                              # nosec rule12-r1
                  'huawei': 'iBMC', 'inspur': 'ISBMC', 'fujitsu': 'iRMC',       # nosec rule12-r1
                  'quanta': 'BMC'}                                              # nosec rule12-r1
+    # cycle 2026-05-12 (ADR-2026-05-12): RMC primary 시스템 (HPE CSUS 3200 / Superdome Flex)
+    # 라벨 분기 — manager_layout 정의 시 _classify_rmc_label 우선. None 일 때 기존 동작.
+    rmc_label = _classify_rmc_label(manager_uri, _safe(data, 'Id'), manager_layout)
     # cycle-016 Phase M/N: BMC 운영 정보 강화 — datetime / dns / mac / uuid / last_reset / timezone / power_state
     result = {
-        'name':             bmc_names.get(vendor, 'BMC'),
+        'name':             rmc_label or bmc_names.get(vendor, 'BMC'),
         'firmware_version': _safe(data, 'FirmwareVersion'),
         'model':            _safe(data, 'Model'),
         'manager_type':     _safe(data, 'ManagerType'),
@@ -2441,20 +2571,205 @@ def _make_section_runner(all_errors, collected, failed, unsupported=None):
     return _run
 
 
+def gather_managers_multi(bmc_ip, managers_coll_uri, vendor, username, password,
+                          timeout, verify_ssl, manager_layout=None):
+    """모든 Managers Member 별 gather_bmc 호출 (cycle 2026-05-12 / ADR-2026-05-12).
+
+    HPE CSUS 3200 / Superdome Flex 의 RMC + per-chassis PDHC + per-node iLO5 전수 수집.
+    `manager_layout` 으로 `bmc.name` 라벨 분기 (RMC / PDHC / iLO).
+
+    rule 92 R2 Additive only — 기존 `gather_bmc` 함수 변경 0. 다른 vendor 영향 0
+    (이 함수는 manager_layout 정의된 vendor 만 호출).
+
+    Returns: {'managers': [{id, uri, role, bmc}], 'errors': [...]}
+    """
+    out = {'managers': [], 'errors': []}
+    members, _st, err = _resolve_all_member_uris(
+        bmc_ip, managers_coll_uri, username, password, timeout, verify_ssl
+    )
+    if err:
+        out['errors'].append(_err('multi_node.managers',
+            f'Managers 컬렉션 실패: {err}'))
+        return out
+    for m in members:
+        bmc_data, bmc_errs = gather_bmc(
+            bmc_ip, m['uri'], vendor,
+            username, password, timeout, verify_ssl,
+            manager_layout=manager_layout,
+        )
+        out['managers'].append({
+            'id':   m['id'],
+            'uri':  m['uri'],
+            'role': _classify_manager_role(m['uri'], m['id'], manager_layout),
+            'bmc':  bmc_data,
+        })
+        out['errors'].extend(bmc_errs)
+    return out
+
+
+def gather_systems_multi(bmc_ip, systems_coll_uri, vendor, username, password,
+                         timeout, verify_ssl, chassis_uri=None):
+    """모든 Systems Member 별 gather_system + per-partition summary (cycle 2026-05-12).
+
+    nPartition 환경 — 각 Partition 별 cpu / memory / storage / network 모두 수집.
+
+    Returns: {'partitions': [{id, system_uri, system, cpu, memory, storage, network}],
+              'errors': [...]}
+    """
+    out = {'partitions': [], 'errors': []}
+    members, _st, err = _resolve_all_member_uris(
+        bmc_ip, systems_coll_uri, username, password, timeout, verify_ssl
+    )
+    if err:
+        out['errors'].append(_err('multi_node.partitions',
+            f'Systems 컬렉션 실패: {err}'))
+        return out
+    creds = (username, password, timeout, verify_ssl)
+    for m in members:
+        sys_data, sys_errs = gather_system(bmc_ip, m['uri'], vendor, *creds, chassis_uri)
+        cpu_data, cpu_errs = gather_processors(bmc_ip, m['uri'], *creds)
+        mem_data, mem_errs = gather_memory(bmc_ip, m['uri'], *creds)
+        sto_data, sto_errs = gather_storage(bmc_ip, m['uri'], *creds)
+        net_data, net_errs = gather_network(bmc_ip, m['uri'], *creds)
+        out['partitions'].append({
+            'id':         m['id'],
+            'system_uri': m['uri'],
+            'system':     sys_data,
+            'cpu':        cpu_data,
+            'memory':     mem_data,
+            'storage':    sto_data,
+            'network':    net_data,
+        })
+        out['errors'].extend(sys_errs)
+        out['errors'].extend(cpu_errs)
+        out['errors'].extend(mem_errs)
+        out['errors'].extend(sto_errs)
+        out['errors'].extend(net_errs)
+    return out
+
+
+def gather_chassis_multi(bmc_ip, chassis_coll_uri, username, password,
+                         timeout, verify_ssl):
+    """모든 Chassis Member 별 hardware + power 수집 (cycle 2026-05-12).
+
+    Base / Expansion / Compute Module 구분 + ChassisType 표준 fallback.
+
+    Returns: {'chassis': [{id, uri, kind, chassis_type, manufacturer, model, ..., power}],
+              'errors': [...]}
+    """
+    out = {'chassis': [], 'errors': []}
+    members, _st, err = _resolve_all_member_uris(
+        bmc_ip, chassis_coll_uri, username, password, timeout, verify_ssl
+    )
+    if err:
+        out['errors'].append(_err('multi_node.chassis',
+            f'Chassis 컬렉션 실패: {err}'))
+        return out
+    for m in members:
+        cst, cdata, cerr = _get(bmc_ip, _p(m['uri']),
+                                username, password, timeout, verify_ssl)
+        if cerr or cst != 200:
+            out['errors'].append(_err('multi_node.chassis',
+                f"Chassis {m['id']} GET 실패: {cerr or cst}"))
+            continue
+        kind = _classify_chassis_kind(m['uri'], m['id'], cdata)
+        pwr_data, pwr_errs = gather_power(bmc_ip, m['uri'],
+                                          username, password, timeout, verify_ssl)
+        out['chassis'].append({
+            'id':            m['id'],
+            'uri':           m['uri'],
+            'kind':          kind,
+            'chassis_type':  _safe(cdata, 'ChassisType'),
+            'manufacturer':  _safe(cdata, 'Manufacturer'),
+            'model':         _safe(cdata, 'Model'),
+            'serial_number': _safe(cdata, 'SerialNumber'),
+            'part_number':   _safe(cdata, 'PartNumber'),
+            'power':         pwr_data,
+        })
+        out['errors'].extend(pwr_errs)
+    return out
+
+
+def _collect_multi_node_topology(bmc_ip, vendor, service_root,
+                                 username, password, timeout, verify_ssl,
+                                 manager_layout=None):
+    """Multi-node topology 전수 수집 (cycle 2026-05-12 / ADR-2026-05-12).
+
+    `manager_layout` 미정의 (None) 시 None 반환 — 기존 13 vendor 영향 0.
+    HPE CSUS 3200 (`rmc_primary`) / Superdome Flex (`rmc_primary_ilo_secondary`) 만 활성.
+
+    Returns: dict | None
+        dict shape: {
+            'enabled': bool,
+            'layout': str,
+            'summary': {partition_count, manager_count, chassis_count,
+                        representative_partition},
+            'partitions': list, 'managers': list, 'chassis': list,
+            'errors': list,
+        }
+    """
+    if not manager_layout:
+        return None
+    if not isinstance(service_root, dict):
+        return None
+    systems_uri  = _safe(service_root, 'Systems',  '@odata.id')
+    managers_uri = _safe(service_root, 'Managers', '@odata.id')
+    chassis_uri_coll = _safe(service_root, 'Chassis',  '@odata.id')
+
+    sys_result = gather_systems_multi(
+        bmc_ip, systems_uri, vendor, username, password, timeout, verify_ssl,
+    )
+    mgr_result = gather_managers_multi(
+        bmc_ip, managers_uri, vendor, username, password, timeout, verify_ssl,
+        manager_layout=manager_layout,
+    )
+    chs_result = gather_chassis_multi(
+        bmc_ip, chassis_uri_coll, username, password, timeout, verify_ssl,
+    )
+
+    partitions = sys_result.get('partitions') or []
+    managers   = mgr_result.get('managers')   or []
+    chassis    = chs_result.get('chassis')    or []
+
+    representative = partitions[0]['id'] if partitions else None
+    return {
+        'enabled': True,
+        'layout':  manager_layout,
+        'summary': {
+            'partition_count':           len(partitions),
+            'manager_count':             len(managers),
+            'chassis_count':             len(chassis),
+            'representative_partition':  representative,
+        },
+        'partitions': partitions,
+        'managers':   managers,
+        'chassis':    chassis,
+        'errors': (
+            sys_result.get('errors', [])
+            + mgr_result.get('errors', [])
+            + chs_result.get('errors', [])
+        ),
+    }
+
+
 def _collect_all_sections(bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
                           username, password, timeout, verify_ssl,
-                          all_errors, collected, failed, unsupported=None):
+                          all_errors, collected, failed, unsupported=None,
+                          manager_layout=None):
     """9개 섹션 dispatch (system / bmc / processors / memory / storage / network /
     firmware / power / network_adapters[P4]).
 
     cycle 2026-05-01: unsupported list 추가 — 404 응답 섹션을 별도 분류
     (capability 미지원 = noise 아님).
+
+    cycle 2026-05-12 (ADR-2026-05-12): `manager_layout` 옵션 인자 추가 (Additive).
+    None 시 기존 동작 100% 보존. RMC primary adapter 만 `gather_bmc` 라벨 분기 활성.
     """
     _run = _make_section_runner(all_errors, collected, failed, unsupported)
     creds = (username, password, timeout, verify_ssl)
     return {
         'system':            _run('system',     gather_system,     bmc_ip, system_uri, vendor, *creds, chassis_uri),
-        'bmc':               _run('bmc',        gather_bmc,        bmc_ip, manager_uri, vendor, *creds),
+        'bmc':               _run('bmc',        gather_bmc,        bmc_ip, manager_uri, vendor, *creds, manager_layout),
         'processors':        _run('processors', gather_processors, bmc_ip, system_uri,          *creds),
         'memory':            _run('memory',     gather_memory,     bmc_ip, system_uri,          *creds),
         'storage':           _run('storage',    gather_storage,    bmc_ip, system_uri,          *creds),
@@ -3009,6 +3324,12 @@ def main():
             target_password = dict(type='str',  default='', no_log=True),
             target_role     = dict(type='str',  default='Administrator'),
             dryrun          = dict(type='bool', default=True),
+            # cycle 2026-05-12 (ADR-2026-05-12): HPE CSUS 3200 / Superdome Flex
+            # RMC primary 멀티-노드 토폴로지 수집 활성. adapter `vendor_notes.manager_layout`
+            # 을 detect_vendor.yml → collect_standard.yml → 본 모듈까지 전달.
+            # None 시 기존 13 vendor 영향 0 (Additive only — rule 92 R2).
+            #   Allowed values: None / 'rmc_primary' / 'rmc_primary_ilo_secondary'
+            manager_layout  = dict(type='str',  default=None, required=False),
         ),
         supports_check_mode=True,
     )
@@ -3054,6 +3375,10 @@ def main():
     # ── 기존 gather mode (cycle 2026-05-01: unsupported 분류 추가) ──────
     all_errors, collected, failed, unsupported = [], [], [], []
 
+    # cycle 2026-05-12 (ADR-2026-05-12): manager_layout (adapter capability) 수신.
+    # None 시 기존 13 vendor 영향 0 (Additive).
+    manager_layout = p.get('manager_layout') or None
+
     vendor, system_uri, manager_uri, chassis_uri, det_errors, service_root = detect_vendor(
         bmc_ip, username, password, timeout, verify_ssl
     )
@@ -3072,12 +3397,22 @@ def main():
             changed=False, status='failed', vendor=vendor,
             collected=[], failed_sections=['all'], unsupported_sections=[],
             errors=all_errors, data={}, probe_facts=probe_facts,
+            multi_node=None,
         )
 
     result_data = _collect_all_sections(
         bmc_ip, vendor, system_uri, manager_uri, chassis_uri,
         username, password, timeout, verify_ssl,
         all_errors, collected, failed, unsupported,
+        manager_layout=manager_layout,
+    )
+
+    # cycle 2026-05-12 (ADR-2026-05-12): manager_layout 정의 vendor 만 multi_node 수집.
+    # None / 미정의 vendor — 13 vendor 영향 0 (Additive only).
+    multi_node = _collect_multi_node_topology(
+        bmc_ip, vendor, service_root,
+        username, password, timeout, verify_ssl,
+        manager_layout=manager_layout,
     )
 
     final_status, clean = _compute_final_status(collected, failed, all_errors)
@@ -3087,6 +3422,7 @@ def main():
         collected=clean, failed_sections=list(set(failed)),
         unsupported_sections=list(set(unsupported)),
         errors=all_errors, data=result_data, probe_facts=probe_facts,
+        multi_node=multi_node,
     )
 
 

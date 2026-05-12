@@ -529,6 +529,11 @@
         {%- else -%}
           {{ none }}
         {%- endif -%}
+      # cycle 2026-05-12 (ADR-2026-05-12): HPE CSUS 3200 / Superdome Flex RMC primary
+      # 멀티-노드 토폴로지 수집 결과 (Additive 신 키). manager_layout 미정의 vendor 는
+      # None — `data.multi_node = null` 로 envelope 에 emit (13 vendor 영향 0).
+      # rule 13 R5 envelope 13 필드 shape 변경 0 + rule 92 R2 Additive only + rule 96 R1-B.
+      multi_node: "{{ _rf_raw_collect.multi_node | default(none) }}"
     _sections_supported_fragment: >-
       {{ ['hardware','bmc','cpu','memory','storage','network','firmware','power'] }}
     _sections_collected_fragment: >-

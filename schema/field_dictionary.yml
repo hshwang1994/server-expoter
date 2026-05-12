@@ -985,3 +985,114 @@ fields:
       Linux: firewalld/ufw/nftables/iptables detection. Windows: pagefile as swap_*_mb.
       ESXi: firewall_tool only (runtime detail not collected).
       Best-effort: null/[] when unavailable.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # cycle 2026-05-12 (ADR-2026-05-12) — RMC 멀티-노드 토폴로지
+  # HPE CSUS 3200 / Superdome Flex 처럼 단일 진입점이 N개 Manager / N개 nPartition /
+  # N개 Chassis 노출. adapter `vendor_notes.manager_layout` 정의 vendor 만 활성.
+  # 기타 13 vendor 는 `data.multi_node = null` (Additive — envelope shape 변경 0).
+  # ──────────────────────────────────────────────────────────────────────────
+
+  "multi_node":
+    type: "object|null"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      RMC 산하 멀티-노드 토폴로지 컨테이너. HPE CSUS 3200 / Superdome Flex 처럼 단일
+      진입점이 N개 Manager / N개 nPartition / N개 Chassis 노출 환경에서 활성.
+      adapter vendor_notes.manager_layout 미정의 vendor 는 null. 기존 data.system /
+      data.bmc / ... 등 9 section path 는 Partition0 representative 로 유지 (Additive
+      only — rule 92 R2).
+    help_en: >-
+      RMC multi-node topology container. Active for single-aggregated-controller
+      environments like HPE CSUS 3200 / Superdome Flex. null when adapter
+      vendor_notes.manager_layout not defined. Existing data.system/data.bmc/...
+      paths retained as Partition0 representative (Additive only — rule 92 R2).
+
+  "multi_node.enabled":
+    type: "boolean"
+    priority: nice
+    channel: [redfish]
+    help_ko: "멀티-노드 토폴로지 수집 활성 여부 (true / false / null)."
+    help_en: "Multi-node topology collection enabled flag (true / false / null)."
+
+  "multi_node.layout":
+    type: "string|null"
+    enum: [null, "rmc_primary", "rmc_primary_ilo_secondary"]
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      Manager 토폴로지 레이아웃. rmc_primary = RMC 단일 진입점 (CSUS 3200).
+      rmc_primary_ilo_secondary = RMC + 각 compute module iLO 5 보조 (Superdome Flex).
+    help_en: >-
+      Manager topology layout. rmc_primary = RMC sole entry (CSUS 3200).
+      rmc_primary_ilo_secondary = RMC + per-compute-module iLO 5 secondary (Superdome Flex).
+
+  "multi_node.summary":
+    type: "object"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      partition_count / manager_count / chassis_count / representative_partition.
+      호출자가 멀티-노드 규모 파악 시 사용.
+    help_en: >-
+      partition_count / manager_count / chassis_count / representative_partition.
+      Used by callers to gauge multi-node scale.
+
+  "multi_node.partitions[]":
+    type: "object[]"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      Partition 별 system / cpu / memory / storage / network 수집 결과 리스트. 각
+      entry: id (Partition0/Partition1) / system_uri / system / cpu / memory / storage / network.
+    help_en: >-
+      Per-partition collection results. Each entry: id / system_uri / system /
+      cpu / memory / storage / network.
+
+  "multi_node.managers[]":
+    type: "object[]"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      Manager 별 bmc 수집 결과 리스트. 각 entry: id (RMC/PDHC0/Bay1.iLO5) / uri /
+      role (primary/secondary) / bmc dict. bmc.name 은 라벨 분기 결과 (RMC / PDHC / iLO).
+    help_en: >-
+      Per-manager bmc results. Each entry: id (RMC/PDHC0/Bay1.iLO5) / uri /
+      role (primary/secondary) / bmc dict. bmc.name reflects label classification.
+
+  "multi_node.chassis[]":
+    type: "object[]"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      Chassis 별 hardware/power 수집 결과 리스트. 각 entry: id / uri / kind
+      (base/expansion/compute_module) / chassis_type / manufacturer / model /
+      serial_number / part_number / power.
+    help_en: >-
+      Per-chassis hardware/power results. Each entry: id / uri / kind / chassis_type /
+      manufacturer / model / serial_number / part_number / power.
+
+  "diagnosis.details.multi_node_layout":
+    type: "string|null"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      adapter vendor_notes.manager_layout 값 노출. 호출자가 multi_node 활성 여부를
+      diagnosis 만으로 확인 가능.
+    help_en: >-
+      Mirrors adapter vendor_notes.manager_layout. Allows callers to detect
+      multi-node activation from diagnosis without inspecting data.multi_node.
+
+  "diagnosis.details.rmc_activation_check":
+    type: "boolean|null"
+    priority: nice
+    channel: [redfish]
+    help_ko: >-
+      RMC Redfish API 활성화 검사 결과. manager_layout=rmc_* 환경에서 collect 성공
+      시 true / 실패 시 false / 비-RMC 환경 시 null. HPE community 7200359 같은
+      사이트 RMC 비활성 / 라이선스 부재 사고 진단 hint.
+    help_en: >-
+      RMC Redfish API activation check. true on success / false on failure under
+      manager_layout=rmc_* / null for non-RMC environments. Diagnostic hint for
+      site RMC deactivation cases (cf. HPE community 7200359).

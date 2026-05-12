@@ -1,5 +1,37 @@
 # server-exporter 다음 작업 (NEXT_ACTIONS)
 
+## 일자: 2026-05-12 (cycle hpe-csus-rmc-multi-node 후속 [PENDING] — rule 50 R2 단계 10 / rule 96 R1-C 의무 등재)
+
+> ADR-2026-05-12 (RMC 멀티-노드 토폴로지 정식 지원) 후속. HPE CSUS 3200 / Superdome Flex lab 부재 상태 — 사이트 도입 후 검증 / 정정 의무.
+
+### lab 도입 후 별도 cycle 권장 — HPE CSUS 3200 / Superdome Flex RMC
+
+| # | 항목 | trigger | 책임 / skill | 상태 |
+|---|---|---|---|---|
+| C1 | 사이트 fixture 캡처 (CSUS 3200 / Superdome Flex 각 1대) | RMC IP 확보 + Redfish 활성화 (`docs/22_rmc-activation-guide.md` 4 절) | `capture-site-fixture` skill — `tests/fixtures/redfish/hpe_csus_3200/` 17 파일 실측 교체 | PENDING (lab 부재) |
+| C2 | baseline JSON 추가 — `schema/baseline_v1/hpe_csus_3200_baseline.json` + `hpe_superdome_flex_baseline.json` | C1 fixture 캡처 완료 | `update-vendor-baseline` skill (rule 13 R4 실측 baseline) | PENDING |
+| C3 | lab 도입 cycle `hpe-csus-rmc-lab-validation` round | C1 + C2 완료 | 신 round — mock fixture 정정 + adapter origin 주석 갱신 + `tests/expected/` 디렉터리 삭제 | PENDING |
+| C4 | vault 분리 결정 (`vault/redfish/hpe_csus.yml`) | 사용자 명시 승인 + 사이트 자격증명 정책 | rule 50 R2 단계 4 — 현재 `hpe.yml` 재사용 / 분리 시 신 vault | PENDING (사용자 명시 대기) |
+| C5 | ServiceRoot.Product 실측 — 정확 model 문자열 | C1 | adapter `model_patterns` 정밀화 (현재 추정: `Compute Scale-up Server 3200` / `Superdome Flex`) | PENDING |
+| C6 | Managers / Systems / Chassis Member 개수 + ID 패턴 실측 | C1 | mock fixture 의 RMC / PDHC0~N / Bay1.iLO5 / Partition0~N / Base / Expansion0~N 패턴 검증 | PENDING |
+| C7 | `Oem.Hpe.PartitionInfo` / `FlexNodeInfo` / `GlobalConfiguration` schema 실측 | C1 | `redfish-gather/tasks/vendors/hpe/normalize_oem.yml` 의 `default({})` 정정. `gather_systems_multi` 에 raw OEM 보존 API 확장 검토 | PENDING |
+| C8 | RMC 활성화 / Subscription License / 펌웨어 요구 실측 | C1 + C4 | `docs/22_rmc-activation-guide.md` 4 절 정정 (Subscription 명칭 / 펌웨어 범위 확정) | PENDING |
+
+### Phase 2 진입 trigger (자율 결정 가능)
+
+- C1 (사이트 fixture) trigger 충족 시 별도 cycle `hpe-csus-rmc-lab-validation` 진입
+- C3 lab cycle 완료 시 본 NEXT_ACTIONS C1~C8 모두 [DONE] 표시 + 본 절 삭제
+
+### 관련
+
+- ADR: `docs/ai/decisions/ADR-2026-05-12-csus-rmc-multi-node.md`
+- plan: `C:\Users\hshwa\.claude\plans\hpe-compute-scale-up-server-csus-spicy-newell.md`
+- skill: `capture-site-fixture`, `update-vendor-baseline`, `add-new-vendor`
+- 정본: `docs/22_rmc-activation-guide.md` (활성화 절차) + `docs/20_json-schema-fields.md` 7-bis 절 (envelope shape)
+- rule 50 R2 단계 10 (lab 부재 vendor 의무) + rule 96 R1-A / R1-B / R1-C
+
+---
+
 ## 일자: 2026-05-11 (cycle field-channel-refinement 후속 [PENDING])
 
 ### 본 cycle 결과 (Phase 1~5 완료)

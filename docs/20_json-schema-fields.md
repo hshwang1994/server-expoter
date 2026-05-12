@@ -395,6 +395,82 @@ hostname = system.hostname  OR  system.fqdn  OR  ip_fallback
 
 ---
 
+## 7-bis. RMC 멀티-노드 토폴로지 (`data.multi_node`)
+
+> cycle 2026-05-12 (ADR-2026-05-12) 추가. HPE Compute Scale-up Server 3200 / Superdome Flex 처럼 단일 RMC (Rack Management Controller) 가 N개 chassis × N개 nPartition × 다중 Manager 를 통합 노출하는 환경 정식 지원.
+
+### 활성 조건
+
+`data.multi_node` 는 adapter `vendor_notes.manager_layout` 정의 vendor 에서만 활성:
+
+| vendor | adapter | manager_layout | 활성 |
+|---|---|---|---|
+| HPE CSUS 3200 | `hpe_csus_3200.yml` | `rmc_primary` | YES |
+| HPE Superdome Flex | `hpe_superdome_flex.yml` | `rmc_primary_ilo_secondary` | YES |
+| 기타 13 vendor (HPE iLO 4~7 / Dell / Cisco / Lenovo / Supermicro / Huawei / Inspur / Fujitsu / Quanta) | — | (미정의) | NO — `data.multi_node = null` |
+
+### Envelope shape (Additive only — rule 92 R2 / 96 R1-B)
+
+기존 9 section path (`data.system` / `data.bmc` / `data.cpu` / `data.memory` / `data.storage` / `data.network` / `data.firmware` / `data.power` / `data.hardware`) 는 **Partition0 representative** 로 그대로 유지. 호출자 시스템 파싱 변경 0.
+
+```json
+{
+  "data": {
+    "system": { ... },
+    "bmc":    { "name": "RMC", ... },
+    "cpu":    { ... },
+    "...":    {},
+    "multi_node": {
+      "enabled": true,
+      "layout": "rmc_primary",
+      "summary": {
+        "partition_count": 3,
+        "manager_count": 4,
+        "chassis_count": 3,
+        "representative_partition": "Partition0"
+      },
+      "partitions": [
+        { "id": "Partition0", "system_uri": "/redfish/v1/Systems/Partition0",
+          "system": {}, "cpu": {}, "memory": {}, "storage": {}, "network": {} },
+        { "id": "Partition1" },
+        { "id": "Partition2" }
+      ],
+      "managers": [
+        { "id": "RMC",       "uri": "/redfish/v1/Managers/RMC",
+          "role": "primary",   "bmc": { "name": "RMC" } },
+        { "id": "PDHC0",     "role": "secondary", "bmc": { "name": "PDHC" } },
+        { "id": "Bay1.iLO5", "role": "secondary", "bmc": { "name": "iLO" } }
+      ],
+      "chassis": [
+        { "id": "Base",       "kind": "base",      "chassis_type": "Enclosure" },
+        { "id": "Expansion1", "kind": "expansion" },
+        { "id": "Expansion2", "kind": "expansion" }
+      ]
+    }
+  },
+  "diagnosis": {
+    "details": {
+      "multi_node_layout": "rmc_primary",
+      "rmc_activation_check": true
+    }
+  }
+}
+```
+
+### 호출자 가이드
+
+| 시나리오 | 권장 처리 |
+|---|---|
+| 기존 호출자 (`data.system` / `data.bmc` 만 사용) | 변경 0 — Partition0 데이터로 동일 동작 |
+| 멀티-노드 인식 호출자 | `data.multi_node != null` 확인 후 `partitions[]` / `managers[]` / `chassis[]` 순회 |
+| 활성화 미상 진단 | `diagnosis.details.rmc_activation_check == false` 시 사이트 RMC Redfish 서비스 / Subscription 라이선스 확인 (`docs/22_rmc-activation-guide.md`) |
+
+### Lab 부재 한계 (NEXT_ACTIONS C1~C8)
+
+현재 mock fixture 는 sdflexutils + DMTF v1.15 + iLO 5 API ref 합성. ServiceRoot.Product 정확 문자열 / Manager ID 패턴 / Oem.Hpe schema 는 사이트 실측 후 정정 의무 (`docs/ai/NEXT_ACTIONS.md` C1~C8 참조).
+
+---
+
 ## 8. 더 깊이 보고 싶을 때
 
 | 보고 싶은 것 | 파일 |

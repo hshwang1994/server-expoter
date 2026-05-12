@@ -1,0 +1,52 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#ComputerSystem.ComputerSystem",
+  "@odata.id": "/redfish/v1/Systems/Partition0",
+  "@odata.type": "#ComputerSystem.v1_20_0.ComputerSystem",
+  "Id": "Partition0",
+  "Name": "Partition 0 (Bare Metal nPAR)",
+  "SystemType": "Physical",
+  "Manufacturer": "HPE",
+  "Model": "Compute Scale-up Server 3200",
+  "SerialNumber": "MOCK-CSUS-P0-001",
+  "SKU": "P52345-B21",
+  "PartNumber": "P52345-001",
+  "AssetTag": "lab-mock",
+  "UUID": "csus-3200-partition0-uuid",
+  "BiosVersion": "U54 v3.10 (05/01/2026)",
+  "PowerState": "On",
+  "HostName": "csus-p0",
+  "Status": {"Health": "OK", "State": "Enabled"},
+  "ProcessorSummary": {
+    "Count": 4,
+    "Model": "Intel(R) Xeon(R) Platinum 8480+",
+    "CoreCount": 224,
+    "LogicalProcessorCount": 448,
+    "Status": {"Health": "OK"}
+  },
+  "MemorySummary": {
+    "TotalSystemMemoryGiB": 2048,
+    "MemoryMirroring": "None",
+    "Status": {"Health": "OK"}
+  },
+  "Boot": {"BootSourceOverrideEnabled": "Disabled"},
+  "Processors": {"@odata.id": "/redfish/v1/Systems/Partition0/Processors"},
+  "Memory":     {"@odata.id": "/redfish/v1/Systems/Partition0/Memory"},
+  "Storage":    {"@odata.id": "/redfish/v1/Systems/Partition0/Storage"},
+  "EthernetInterfaces": {"@odata.id": "/redfish/v1/Systems/Partition0/EthernetInterfaces"},
+  "Oem": {
+    "Hpe": {
+      "@odata.type": "#HpeComputerSystemExt.v2_22_0.HpeComputerSystemExt",
+      "PartitionInfo": {
+        "PartitionId": 0,
+        "PartitionName": "Partition0",
+        "NumNodes": 4,
+        "NumSockets": 4,
+        "Note": "lab 부재 — sdflex-ironic-driver wiki 합성. rule 96 R1-A."
+      },
+      "GlobalConfiguration": {
+        "OperatingMode": "nPAR",
+        "Note": "lab 부재 — sdflexutils 1.5.1 추정"
+      }
+    }
+  }
+}

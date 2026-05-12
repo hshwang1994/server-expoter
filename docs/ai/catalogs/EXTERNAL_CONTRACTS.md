@@ -2,6 +2,46 @@
 
 > 외부 시스템 (Redfish / IPMI / SSH / WinRM / vSphere) 계약 카탈로그. rule 28 #11 측정 대상 (TTL 90일). rule 96 origin 주석 정본.
 
+## 일자: 2026-05-12 (cycle hpe-csus-rmc-multi-node — RMC 멀티-노드 토폴로지 web sources 보강)
+
+> 사용자 명시 (2026-05-12): "HPE Compute Scale-up Server(CSUS) 3200 ... RMC(Rack Management Controller)를 통해 수행된다 ... CSUS 지원하는 방식을 모두 의심해야해. 다만문제는 테스트해볼 장비가 없어서 web을 통해서 확인할 수 밖에 없다는거야."
+> ADR-2026-05-12 / `data.multi_node` Additive 컨테이너 / 8 결정.
+
+### HPE RMC — 사용자 제시 URL + WebSearch 권위 인용 (8건)
+
+| # | URL | 영역 | 확인일 | 인용 |
+|---|---|---|---|---|
+| 1 | https://support.hpe.com/hpesc/public/docDisplay?docId=sd00002765en_us&docLocale=en_US | HPE Compute Scale-up Server 3200 Administration Guide (사용자 제시) | 2026-05-12 | WebFetch 본문 미수신 (SPA / 인증) — WebSearch 가 해당 URL 을 "CSUS 3200 Administration Guide" 로 식별. RMC API endpoint 정본 reference. |
+| 2 | https://servermanagementportal.ext.hpe.com/docs/concepts/gettingstarted | HPE Server Management Portal (Redfish 표준 reference) | 2026-05-12 | ServiceRoot: `{"Product": "...", "Vendor": "HPE", "RedfishVersion": "1.x"}`. Base URL `https://{ip}/redfish/v1/`. Session API `/redfish/v1/SessionService/Sessions`. Headers `X-Auth-Token` / `Authorization`. RMC 전용 multi-Manager 노출 / nPar Systems ID 패턴 미문서화. |
+| 3 | https://www.hpe.com/psnow/doc/a50009596enw | CSUS 3200 architecture and RAS | 2026-05-11 | "built on the proven HPE Superdome Flex architecture". RMC + PDHC + RMP 명시. |
+| 4 | https://cdrdv2-public.intel.com/792357/FAQ%20-%20HPE%20Compute%20Scale-up%20Server%203200.pdf | CSUS 3200 FAQ | 2026-05-11 | "Redfish interface from the RMC enables the HPE tools to manage the system". 표준 RESTful API over HTTPS. |
+| 5 | (WebSearch 인용 / scribd) | CSUS 3200 Overview / Technical White Paper | 2026-05-12 | "Because HPE has been working with the industry on the Redfish standard since its inception, it already supports large, partitionable systems managed by a single aggregated controller like HPE Compute Scale-up Server 3200 RMC". "supports full nPar (Partitioning). An nPartition is a set of HPE Compute Scale-up Server chassis defined to work together to form a single computer system". |
+| 6 | https://community.hpe.com/t5/servers-general/impossible-to-get-redfish-answer-from-superdome-flex-rmc/td-p/7200359 | HPE community 위험 신호 | 2026-05-12 | 사용자 보고: ServiceRoot 호출 시 "Error getting service root, aborting". HPE Pro 근본 원인 미확정 — reference doc a00119177en_us 만 제시. → 사이트 RMC Redfish 비활성화 / 라이선스 부재 가능성. 본 server-exporter `diagnosis.details.rmc_activation_check` 메타로 진단 hint. |
+| 7 | https://itpfdoc.hitachi.co.jp/manuals/rv3000/hard/SDF/Server/SDF280/P06150-401a.pdf | HPE Superdome Flex Server Admin Guide P06150-401a | 2026-05-12 | WebFetch PDF binary 디코딩 실패 — Hitachi-hosted Superdome Flex 280 Admin Guide. lab 도입 시 본 PDF text 추출 + 정정 의무. |
+| 8 | https://github.com/HewlettPackard/sdflexutils | sdflexutils 1.5.1 (Partition0 명시) | 2026-05-12 | Systems ID 패턴 `/redfish/v1/Systems/Partition<N>` 명시. mock fixture 합성 base. |
+
+### 외부 계약 추정 (lab 부재 — 사이트 실측 시 정정)
+
+| 항목 | 추정 | 근거 | 정정 의무 |
+|---|---|---|---|
+| ServiceRoot.Product | "Compute Scale-up Server 3200" (CSUS) / "Superdome Flex" (Flex 280) | sdflexutils + Superdome Flex Admin Guide | NEXT_ACTIONS C5 |
+| Managers Member IDs | RMC / PDHC0 / PDHC1 / Bay1.iLO5 | Superdome Flex Admin Guide + sdflexutils GitHub README | NEXT_ACTIONS C6 |
+| Systems Member IDs | Partition0 / Partition1 / Partition2 | sdflexutils 1.5.1 | NEXT_ACTIONS C6 |
+| Chassis Member IDs | Base / Expansion1 / Expansion2 (최대 4) | HPE psnow doc/a50009596enw + DMTF Chassis v1.20 | NEXT_ACTIONS C6 |
+| Oem.Hpe.PartitionInfo schema | `{PartitionId, PartitionName, NumNodes, NumSockets, ...}` | sdflex-ironic-driver wiki + sdflexutils 1.5.1 | NEXT_ACTIONS C7 |
+| RMC firmware 형식 | `^[34]\.[0-9]+\..*` (CSUS RMC 3.x/4.x) / `^[23]\.[0-9]+\..*` (Superdome Flex RMC 2.x/3.x) | adapter origin 추정 | NEXT_ACTIONS C8 |
+| RMC 활성화 요구 | Subscription License + RMC Web GUI enable | community 7200359 + docs/22 | NEXT_ACTIONS C8 |
+
+### server-exporter 적용 (cycle 2026-05-12)
+
+- `redfish-gather/library/redfish_gather.py` — `_resolve_all_member_uris` / `gather_*_multi` / `_collect_multi_node_topology` / `_classify_rmc_label` 신설 (Additive). `gather_bmc` 에 `manager_layout` 옵션 인자.
+- `data.multi_node` Additive envelope 컨테이너 — `enabled` / `layout` / `summary` / `partitions[]` / `managers[]` / `chassis[]`.
+- `diagnosis.details.multi_node_layout` + `rmc_activation_check` Additive 메타.
+- adapter `vendor_notes.manager_layout` 정의 vendor 만 활성 — 기타 13 vendor 영향 0 (Additive only).
+- mock fixture `tests/fixtures/redfish/hpe_csus_3200/` 7 파일 합성 (3-partition × 4-manager × 3-chassis).
+
+---
+
 ## 일자: 2026-05-11 (cycle adapter-selection-review — Supermicro AST2500/AST2600 firmware 형식 web sources)
 
 > 사용자 명시 검증 요청 ("어떤 adapter 를 쓸지 결정하는 단계 문제 발생 이력 — 지금 잘 돼있나") 후속.

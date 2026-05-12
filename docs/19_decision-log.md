@@ -6,7 +6,90 @@
 > 검증 라운드(Round) 결과, 사용자 의심 분석, 정책 변경 같은 큰 결정은 모두 이 문서에 시간순으로 추가된다.
 > 코드만 읽고는 알 수 없는 맥락(왜 이 fallback 이 있는지 등)이 여기 있다.
 
-> 최종 갱신: 2026-05-11
+> 최종 갱신: 2026-05-12
+
+## 2026-05-12 — HPE CSUS 3200 / Superdome Flex RMC 멀티-노드 Redfish 수집 정식 지원 (lab 부재 — 별도 cycle)
+
+### 사용자 명시 (2026-05-12)
+
+- "HPE Compute Scale-up Server(CSUS) 3200 ... Redfish API를 사용한 통신은 RMC(Rack Management Controller)를 통해 수행된다 ... CSUS장비도 개더링할 수 있도록 계획해야할 듯 해. 지금 CSUS 장비를 개더링하는 방식은 이방식이 아닌것같아서 CSUS 지원하는 방식을 모두 의심해야해. 다만문제는 테스트해볼 장비가 없어서 web을 통해서 확인할 수 밖에 없다는거야."
+- AskUserQuestion 4 답변: (1) 전 Partition / Manager / Chassis 수집 (대형 변경) / (2) WebFetch + WebSearch 권위 인용으로 EXTERNAL_CONTRACTS 보강 / (3) RMC 분리 — adapter capability 기반 분기 (Additive) / (4) lab 부재 — web sources only
+
+### 컨텍스트
+
+cycle 2026-05-11 에 `hpe_csus_3200.yml` (priority=96) + `hpe_superdome_flex.yml` (priority=95) 어댑터가 web sources 기반으로 추가되었으나, **하부 라이브러리 `redfish-gather/library/redfish_gather.py` 가 단일 노드 가정**:
+
+- `_resolve_first_member_uri` (line 714-729) — Members[0] 만 추출 → Partition1~N / per-chassis PDHC / Bay iLO5 / Expansion Chassis 누락
+- `gather_bmc` (line 1290) / `gather_system` (line 1173) — 단일 manager_uri / system_uri 인자
+- `bmc_names['hpe'] = 'iLO'` (line 1308) — RMC primary 시스템이 `bmc.name = 'iLO'` 로 잘못 출력
+- ServiceRoot 실패 시 graceful fail 부재 — HPE community 7200359 "Error getting service root, aborting" 사례
+
+HPE 공식 인용 (WebSearch 2026-05-12): "supports large, partitionable systems managed by a single aggregated controller like HPE Compute Scale-up Server 3200 RMC. supports full nPar (Partitioning)."
+
+### 결정 (8종)
+
+상세는 `docs/ai/decisions/ADR-2026-05-12-csus-rmc-multi-node.md` 참조.
+
+1. **envelope 표현 — Option C**: `data.multi_node` Additive 단일 컨테이너 + 기존 9 section path 100% 보존 (`data.system`/`data.bmc`/... 변경 0)
+2. **코드 리팩토링 — 변형 1**: `gather_*_multi()` 함수 신설 + 기존 함수 그대로 유지 (rule 92 R2 / 95 R1 #11)
+3. **RMC 라벨**: adapter `vendor_notes.manager_layout` 을 `redfish_gather.py` 까지 전달 + `_classify_rmc_label` substring 매칭 (rule 12 R1 line 1308 nosec 영역)
+4. **precheck graceful fail**: `diagnosis.details.rmc_activation_check` + `multi_node_layout` Additive + `docs/22_rmc-activation-guide.md` 신규
+5. **mock fixture 합성**: 3-partition × 4-manager × 3-chassis (sdflexutils + DMTF v1.15 + iLO5 API ref 3-source cross-check) + README 출처 매핑
+6. **baseline 경로**: `tests/expected/redfish/hpe_csus_3200/mock_v1.json` 별도 경로 — `schema/baseline_v1/` 는 lab 도입 cycle 까지 미작성 (rule 13 R4 보호)
+7. **derived 추가**: 기존 baseline 9종 `data.multi_node: null` Additive (inject_summary_to_baselines.py 패턴 재사용)
+8. **NEXT_ACTIONS C1~C8 등재**: rule 50 R2 단계 10 + rule 96 R1-C 의무 (사이트 fixture / baseline / lab cycle / vault / Product 실측 / Member ID 실측 / Oem schema 실측 / 활성화 요구 실측)
+
+### 대안 거절 사유
+
+| 대안 | 거절 사유 |
+|---|---|
+| `data.<section>` 을 list 로 전환 (Option B) | 호환성 0% — 호출자 (Jenkins 콜백 / 포털) 폭파. rule 92 R2 / 96 R1-B 위반 |
+| 기존 `gather_*` 함수에 `multi=True` 옵션 + 내부 분기 (변형 2) | 분기 복잡도 + 단위 테스트 부담 |
+| 단일 노드 함수 deprecation + 일괄 전환 (변형 3) | 13 vendor 회귀 영향 — rule 92 R2 / rule 95 R1 #11 위반. 절대 채택 불가 |
+| `bmc.manager_type` 신 보조 필드 추가 | `data.<section>.<field>` 추가 — rule 96 R1-B 위반 (호환성 cycle 외 별도 schema cycle 의무) |
+| `schema/baseline_v1/hpe_csus_3200_baseline.json` 합성 추가 | rule 13 R4 실측 baseline 보호 위반 |
+
+### 적용 변경 (Phase 0~7)
+
+| 영역 | 변경 |
+|---|---|
+| `redfish-gather/library/redfish_gather.py` | `_resolve_all_member_uris` / `gather_systems_multi` / `gather_managers_multi` / `gather_chassis_multi` / `_classify_rmc_label` / `_collect_multi_node_topology` 신설 (Additive). `gather_bmc` 에 `manager_layout` 옵션 인자 |
+| `redfish-gather/tasks/{detect_vendor,collect_standard,try_one_account,normalize_standard}.yml` | `_rf_adapter_manager_layout` fact + `manager_layout` 인자 전달 + `_data_fragment.multi_node` 조립 |
+| `redfish-gather/tasks/vendors/hpe/{collect,normalize}_oem.yml` | 멀티 partition loop (`systems[0]` → 전수) |
+| `adapters/redfish/hpe_csus_3200.yml` / `hpe_superdome_flex.yml` | vendor_notes 정정 ("첫 partition 만 수집" 표현 제거, `multi_node_support: true` Additive) |
+| `schema/field_dictionary.yml` | `data.multi_node.*` 8~12 nice entries 추가 |
+| `schema/baseline_v1/*.json` (9종) | `data.multi_node: null` derived 추가 |
+| `tests/fixtures/redfish/hpe_csus_3200/` | 신규 17 fixture (3-partition × 4-manager × 3-chassis) |
+| `tests/fixtures/redfish/hpe_superdome_flex/` | Partition1/2 + Expansion 보강 |
+| `tests/expected/redfish/hpe_csus_3200/mock_v1.json` | 신규 (fixture-derived expected) |
+| `tests/redfish/test_{hpe_csus_multi_node,resolve_all_members,classify_rmc_label}.py` | 신규 3 단위 테스트 |
+| `docs/20_json-schema-fields.md` | rule 13 R7 동기화 (multi_node 절 추가) |
+| `docs/22_rmc-activation-guide.md` | 신규 — RMC 활성화 절차 + community 7200359 트러블슈팅 |
+| `docs/ai/decisions/ADR-2026-05-12-csus-rmc-multi-node.md` | 신규 ADR (rule 70 R8 Trigger 2 + 3) |
+| `docs/ai/catalogs/EXTERNAL_CONTRACTS.md` | sd00002765en_us (CSUS 3200 Administration Guide) + WebSearch 권위 인용 보강 |
+| `docs/ai/catalogs/VENDOR_ADAPTERS.md` / `COMPATIBILITY-MATRIX.md` | multi_node_support column / row 갱신 |
+| `docs/ai/NEXT_ACTIONS.md` | C1~C8 등재 |
+| `.claude/ai-context/vendors/hpe.md` | RMC + multi-partition 절 보강 |
+
+### 검증
+
+Phase 7 SUB-7.1~7.8 — 본 cycle 종료 시 갱신 의무 (pytest 전수 / ansible-syntax-check / 6 hook).
+
+Additive 검증 체크리스트:
+- envelope 13 필드 shape 변경 0 (`pre_commit_additive_only_check.py` blocking 통과)
+- sections 10 변경 0
+- field_dictionary 65 → +8~12 nice entries (`pre_commit_docs20_sync_check.py` 통과)
+- 13 vendor 회귀 0 (manager_layout 미정의 vendor 의 `data.multi_node = null` 외 변경 0)
+
+### 관련
+
+- ADR: `docs/ai/decisions/ADR-2026-05-12-csus-rmc-multi-node.md`
+- plan: `C:\Users\hshwa\.claude\plans\hpe-compute-scale-up-server-csus-spicy-newell.md`
+- rule 13 R5/R7, rule 22, rule 12 R1, rule 50 R2 단계 10, rule 70 R8 Trigger 2+3, rule 92 R2, rule 95 R1 #11, rule 96 R1-A/B/C
+- 선례 cycle: 2026-05-11 hpe-csus-add (어댑터 신설), 2026-05-06 M-E2 (hpe_superdome_flex 신설), 2026-05-11 F2 (inject_summary_to_baselines.py derived)
+- 위험 signal: HPE community 7200359 "impossible to get redfish answer from superdome flex rmc"
+
+---
 
 ## 2026-05-11 — Adapter 선택 단계 검증 + Supermicro X12 priority 일관성 fix (DRIFT-015)
 

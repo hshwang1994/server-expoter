@@ -102,7 +102,8 @@ graceful_degradation:
 
 # CSUS 3200 특이사항 (lab 부재 — web sources 추정. 사이트 실측 시 정정)
 vendor_notes:
-  multi_partition: true              # nPAR — 첫 partition (Partition0) 만 수집 (Superdome Flex 상속)
+  multi_partition: true              # nPAR — 전 partition 수집 (cycle 2026-05-12 ADR-2026-05-12)
+  multi_node_support: true           # cycle 2026-05-12 — _collect_multi_node_topology 활성
   systems_id_pattern: "Partition*"   # /redfish/v1/Systems/Partition0 (추정 — Superdome Flex 동일 패턴)
   manager_layout: "rmc_primary"      # RMC = primary AccountService host. PDHC = per-chassis 보조.
   rmc_firmware_min: "3.0"            # 추정 — Superdome Flex RMC 2.x/3.x 후속이라 3.x 시작 가정
@@ -115,5 +116,6 @@ diagnosis:
   protocol_name: redfish
   not_supported_message: >-
     HPE Compute Scale-up Server 3200 (CSUS 3200) — RMC + PDHC 관리, multi-partition (nPAR).
-    첫 partition (Partition0) 만 수집됨. 전체 partition 수집은 별도 cycle 필요.
-    lab 부재 — 사이트 실측 시 model_patterns / firmware_patterns 정정 의무.
+    cycle 2026-05-12 (ADR-2026-05-12) — 전 partition / 전 manager / 전 chassis 수집 활성.
+    data.multi_node 컨테이너에 partitions / managers / chassis 리스트 노출 (Additive).
+    lab 부재 — 사이트 실측 시 model_patterns / firmware_patterns / OEM schema 정정 의무.
