@@ -148,8 +148,6 @@
       "total_mb": 524288,
       "total_basis": "physical_installed",
       "installed_mb": 524288,
-      "visible_mb": null,
-      "free_mb": null,
       "slots": [
         {
           "id": "1",

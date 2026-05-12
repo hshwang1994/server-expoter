@@ -88,8 +88,6 @@
       "total_mb": 1048576,                                 // 1 TB DDR4
       "total_basis": "physical_installed",              // total_mb 의미 — physical_installed (dmidecode) / os_visible (/proc/meminfo) / hypervisor_visible (ESXi)
       "installed_mb": 1048576,                          // 물리 설치 메모리 (dmidecode SUM)
-      "visible_mb": null,                               // OS 가 인식한 메모리 (/proc/meminfo)
-      "free_mb": null,                                  // free 메모리 (현재)
       "slots": [                                        // 메모리 슬롯 별 정보 (DIMM)
         {"id": "1", "name": "DIMM_A1", "locator": "DIMM_A1", "capacity_mb": 65536, "type": "DDR4", "base_module_type": null, "speed_mhz": 2400, "manufacturer": "Samsung", "serial": "88B56DFA", "part_number": "M386A8K40BM1-CRC", "rank_count": null, "data_width_bits": 64, "bus_width_bits": null, "error_correction": null, "health": "OK"},
         {"id": "2", "name": "DIMM_A2", "locator": "DIMM_A2", "capacity_mb": 65536, "type": "DDR4", "base_module_type": null, "speed_mhz": 2400, "manufacturer": "Samsung", "serial": "88B58F69", "part_number": "M386A8K40BM1-CRC", "rank_count": null, "data_width_bits": 64, "bus_width_bits": null, "error_correction": null, "health": "OK"},
@@ -173,7 +171,6 @@
         {"id": "2.0", "name": "Ethernet Interface", "kind": "server_nic", "mac": "00:27:E3:6C:DC:81", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
         {"id": "2.1", "name": "Ethernet Interface", "kind": "server_nic", "mac": "00:27:E3:6C:DC:82", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []}
       ],
-      "driver_map": [],                                 // interface ↔ driver / VLAN / bond master 매핑
       "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)
       "ports": [                                        // Redfish BMC NetworkAdapter.NetworkPorts (OS/ESXi 는 빈 list)
         {"adapter_id": "UCSC-PCIE-CSC-02", "adapter_model": "UCS VIC 1225", "port_id": "0", "name": "Port-0", "physical_port_number": "0", "link_status": "down", "link_state": null, "current_link_speed_mbps": null, "port_type": "", "health": null, "associated_address": "00:27:E3:6C:A6:60"},

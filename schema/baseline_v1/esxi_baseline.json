@@ -190,7 +190,6 @@
           "adapter": "Cisco Systems Inc Cisco VIC Ethernet NIC"
         }
       ],
-      "driver_map": [],
       "summary": {
         "groups": [
           {
@@ -223,7 +222,6 @@
           "vswitch": "vSwitch0"
         }
       ],
-      "ports": [],
       "default_gateways": []
     },
     "bmc": null,
@@ -232,9 +230,7 @@
     "memory": {
       "total_mb": 1048464,
       "total_basis": "hypervisor_visible",
-      "installed_mb": null,
       "visible_mb": 1048464,
-      "free_mb": 414360,
       "slots": [],
       "summary": {
         "groups": [],

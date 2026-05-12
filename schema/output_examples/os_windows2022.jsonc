@@ -72,7 +72,6 @@
       "total_basis": "physical_installed",              // total_mb 의미 — physical_installed (dmidecode) / os_visible (/proc/meminfo) / hypervisor_visible (ESXi)
       "installed_mb": 8192,                             // 물리 설치 메모리 (dmidecode SUM)
       "visible_mb": 8192,                               // OS 가 인식한 메모리 (/proc/meminfo)
-      "free_mb": 5671,                                  // free 메모리 (현재)
       "slots": [                                        // 메모리 슬롯 별 정보 (DIMM)
         {
           "capacity_mb": 8192,                          // 슬롯 capacity (MB)
@@ -108,8 +107,6 @@
     },
     "network": {
       "driver_map": [],                                    // Windows 는 보통 빈 list (Get-NetAdapter 만 사용)
-      "ports": [],                                      // Redfish BMC NetworkAdapter.NetworkPorts (OS/ESXi 는 빈 list)
-      "adapters": [],                                      // Windows 는 PCI 어댑터 list 별도 안 만듦
       "portgroups": [],                                 // ESXi portgroup list (OS/Redfish 는 빈 list)
       "dns_servers": ["10.100.64.251"],                 // 시스템 DNS 서버 list
       "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)

@@ -130,7 +130,6 @@
         {"id": "DA000000", "name": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "manufacturer": "Broadcom", "model": "BCM 5719 1Gb 4p BASE-T OCP Adptr", "part_number": "BCM95719N1905HC", "serial_number": "1CH0150001", "firmware_version": "20.33.41", "mac": null, "link_status": "up", "speed_mbps": null, "port_count": 4}
       ],
       "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)
-      "driver_map": [],                                 // interface ↔ driver / VLAN / bond master 매핑
       "interfaces": [                                   // OS 또는 서버 NIC interface (논리 / 물리)
         {"id": "9", "name": "9", "kind": "server_nic", "mac": "8c:84:74:e9:be:84", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
         {"id": "10", "name": "10", "kind": "server_nic", "mac": "8c:84:74:e9:be:85", "mtu": null, "speed_mbps": null, "link_status": "unknown", "is_primary": false, "addresses": []},
@@ -182,8 +181,6 @@
       "total_mb": 524288,                                  // 512 GB
       "total_basis": "physical_installed",              // total_mb 의미 — physical_installed (dmidecode) / os_visible (/proc/meminfo) / hypervisor_visible (ESXi)
       "installed_mb": 524288,                           // 물리 설치 메모리 (dmidecode SUM)
-      "visible_mb": null,                               // OS 가 인식한 메모리 (/proc/meminfo)
-      "free_mb": null,                                  // free 메모리 (현재)
       "slots": [                                        // 메모리 슬롯 별 정보 (DIMM)
         {"id": "proc1dimm1", "name": "proc1dimm1", "locator": "PROC 1 DIMM 1", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "42D8690F", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},
         {"id": "proc1dimm3", "name": "proc1dimm3", "locator": "PROC 1 DIMM 3", "capacity_mb": 32768, "type": "DDR5", "base_module_type": "RDIMM", "speed_mhz": 4400, "manufacturer": "Samsung", "serial": "527E27F9", "part_number": "M321R4GA3EB0-CWMXJ", "rank_count": 2, "data_width_bits": 64, "bus_width_bits": 80, "error_correction": "MultiBitECC", "health": "OK"},

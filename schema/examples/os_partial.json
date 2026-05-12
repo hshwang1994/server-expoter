@@ -114,7 +114,6 @@
       "total_basis": "physical_installed",
       "installed_mb": 262144,
       "visible_mb": 261800,
-      "free_mb": 128000,
       "slots": [],
       "summary": {
         "groups": [],

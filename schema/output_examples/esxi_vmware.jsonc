@@ -138,7 +138,6 @@
       "total_basis": "hypervisor_visible",                 // ESXi 전용 — hypervisor 가 인식한 양
       "installed_mb": null,                                // ESXi 는 dmidecode 미사용
       "visible_mb": 1048464,                            // OS 가 인식한 메모리 (/proc/meminfo)
-      "free_mb": 591912,                                // free 메모리 (현재)
       "slots": [],                                         // ESXi 는 DIMM 슬롯 정보 없음 (Redfish 가 풍부)
       "summary": {
         "groups": [],

@@ -74,8 +74,6 @@
       "total_mb": 262144,                                  // 256 GB
       "total_basis": "physical_installed",              // total_mb 의미 — physical_installed (dmidecode) / os_visible (/proc/meminfo) / hypervisor_visible (ESXi)
       "installed_mb": 262144,                           // 물리 설치 메모리 (dmidecode SUM)
-      "visible_mb": null,                                  // BMC 는 OS visible 모름
-      "free_mb": null,                                  // free 메모리 (현재)
       "slots": [                                        // 메모리 슬롯 별 정보 (DIMM)
         {
           "id": "DIMM.Socket.A1",                          // Redfish DIMM Memory @id
@@ -259,7 +257,6 @@
         {"id": "NIC.Slot.8-1-1", "name": "System Ethernet Interface", "kind": "server_nic", "mac": "3C:FD:FE:B6:1C:E0", "mtu": null, "speed_mbps": 10000, "link_status": "up", "is_primary": false, "addresses": []}
       ],
       "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)
-      "driver_map": [],                                 // interface ↔ driver / VLAN / bond master 매핑
       "summary": {
         "groups": [
           {"speed_mbps": 10000, "model": "Intel(R) 25GbE 2P XXV710 Adptr", "manufacturer": "Intel Corporation", "link_type": "ethernet", "quantity": 2, "link_up_count": 2},

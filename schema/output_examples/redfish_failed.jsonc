@@ -93,7 +93,6 @@
       "ports": [],                                      // Redfish BMC NetworkAdapter.NetworkPorts (OS/ESXi 는 빈 list)
       "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)
       "portgroups": [],                                 // ESXi portgroup list (OS/Redfish 는 빈 list)
-      "driver_map": [],                                 // interface ↔ driver / VLAN / bond master 매핑
       "summary": {"groups": []}
     },
     "users": [],

@@ -203,15 +203,13 @@
         {"family": "ipv4", "address": "10.100.64.254"}
       ],
       "virtual_switches": [],                              // ESXi vSwitch (OS 는 빈 list)
-      "portgroups": [],                                    // ESXi portgroup (OS 는 빈 list)
-      "ports": []                                          // Redfish BMC NIC port (OS 는 빈 list)
+      "portgroups": []                                    // ESXi portgroup (OS 는 빈 list)
     },
     "memory": {                                            // RAM 슬롯 / 총량
       "total_mb": 8192,                                    // 전체 메모리 (MB)
       "total_basis": "physical_installed",                 // total_mb 의 의미 — physical_installed / os_visible / hypervisor_visible
       "installed_mb": 8192,                                // 물리 설치 (dmidecode SUM)
       "visible_mb": 7940,                                  // OS 인식 (/proc/meminfo) — Python ok 모드에서 채워짐
-      "free_mb": 7292,                                     // free
       "slots": [                                           // 메모리 슬롯 (DIMM)
         {
           "capacity_mb": 8192,                             // 슬롯 capacity

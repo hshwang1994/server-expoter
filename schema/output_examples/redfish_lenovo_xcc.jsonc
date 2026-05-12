@@ -119,8 +119,6 @@
       "total_mb": 524288,                               // 전체 (MB) — total_basis 가 결정
       "total_basis": "physical_installed",              // total_mb 의미 — physical_installed (dmidecode) / os_visible (/proc/meminfo) / hypervisor_visible (ESXi)
       "installed_mb": 524288,                           // 물리 설치 메모리 (dmidecode SUM)
-      "visible_mb": null,                               // OS 가 인식한 메모리 (/proc/meminfo)
-      "free_mb": null,                                  // free 메모리 (현재)
       "slots": [                                        // 메모리 슬롯 별 정보 (DIMM)
         {"id": "1", "name": "DIMM 1", "locator": "DIMM 1", "capacity_mb": 32768, "type": "DDR4", "base_module_type": "RDIMM", "speed_mhz": 3200, "manufacturer": "Micron Technology", "serial": "802C0F2022286493D7", "part_number": "36ASF4G72PZ-3G2J3", "rank_count": 1, "data_width_bits": 64, "bus_width_bits": 72, "error_correction": null, "health": "OK"},
         {"id": "3", "name": "DIMM 3", "locator": "DIMM 3", "capacity_mb": 32768, "type": "DDR4", "base_module_type": "RDIMM", "speed_mhz": 3200, "manufacturer": "Micron Technology", "serial": "802C0F202228648DF2", "part_number": "36ASF4G72PZ-3G2J3", "rank_count": 1, "data_width_bits": 64, "bus_width_bits": 72, "error_correction": null, "health": "OK"},
@@ -161,7 +159,6 @@
         "primary_speed_mbps": 100                       // 기본 NIC 속도
       },
       "virtual_switches": [],                           // ESXi vSwitch list (OS/Redfish 는 빈 list)
-      "driver_map": [],                                 // interface ↔ driver / VLAN / bond master 매핑
       "default_gateways": [{"family": "ipv4", "address": "10.50.11.254"}],  // 기본 게이트웨이 list (IPv4 / IPv6)
       "ports": [                                        // Redfish BMC NetworkAdapter.NetworkPorts (OS/ESXi 는 빈 list)
         {"adapter_id": "slot-9", "adapter_model": "K70201", "port_id": "1", "name": "Phyical Port 1", "physical_port_number": "1", "link_status": "down", "link_state": null, "current_link_speed_mbps": null, "port_type": "", "health": "OK", "associated_address": "6CFE543CEC90"},

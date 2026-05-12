@@ -70,7 +70,6 @@
   "errors": [],                                            // 수집 중 errors — warning 수준이면 status=success 와 공존 가능 (rule 13 R8)
   "data": {                                                // 실제 수집된 raw 데이터 (섹션별 dict)
     "network": {                                           // NIC / IP / DNS / 라우팅
-      "ports": [],                                         // Redfish BMC NIC port (OS 채널은 빈 list)
       "default_gateways": [                                // 기본 게이트웨이 list (IPv4 / IPv6)
         {
           "family": "ipv4",                                // 주소 family — "ipv4" | "ipv6"
@@ -157,7 +156,6 @@
       "total_basis": "physical_installed",                 // total_mb 의미 — physical_installed (dmidecode) / os_visible (/proc/meminfo) / hypervisor_visible (ESXi)
       "installed_mb": 8192,                                // 물리 설치 메모리 (dmidecode SUM)
       "visible_mb": 7696,                                  // OS 가 인식한 메모리 (raw fallback 모드는 null 인 경우 있음)
-      "free_mb": 6197,                                     // free 메모리 (현재)
       "slots": [                                           // 메모리 슬롯 별 정보 (DIMM)
         {
           "capacity_mb": 8192,                             // 슬롯 capacity (MB)

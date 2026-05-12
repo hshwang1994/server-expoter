@@ -80,7 +80,6 @@
       "total_basis": "physical_installed",
       "installed_mb": 4096,
       "visible_mb": 3886,
-      "free_mb": 1245,
       "slots": [
         {
           "capacity_mb": 4096,
@@ -127,8 +126,6 @@
       "default_gateways": [
         {"family": "ipv4", "address": "10.100.64.254"}
       ],
-      "adapters": [],
-      "ports": [],
       "summary": {
         "groups": [
           {
