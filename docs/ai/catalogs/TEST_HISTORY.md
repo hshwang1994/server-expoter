@@ -2,6 +2,24 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-12 (cycle field-channel-refinement-F2b — ubuntu/windows cpu.summary 8 필드 일관성)
+
+### Linux ssh probe 추가 (paramiko 직접 실측)
+- 10.100.64.167 (ubuntu2404): lscpu Vendor=GenuineIntel/Socket=4, dmidecode VMware7,1, sudo -n 가용
+- 10.100.64.96 (baremetal — Dell R760 Ubuntu 24.04.3): lscpu Xeon Silver 4510/Socket=2/cps=12, max_speed_mhz=4100MHz, mem=128GB, NVMe 447GB+SSD 10.5TB+1.6TB
+- 10.100.64.163 (rhel920): VMware VM, RHEL 9.2 (Plow), kernel 5.14.0-284
+- 10.100.64.165 (rhel960): VMware VM, RHEL 9.6, kernel 5.14.0-570
+
+### 실행 결과 (F2-b 적용 후)
+- `pytest tests/`: **621 PASS / 0 FAIL** (30.03s)
+- `python scripts/ai/measure_field_usage_matrix.py --update-md`: 520 cells 재측정 (분류 변화 없음 — cpu.summary 형식 변환만)
+- `python scripts/ai/verify_harness_consistency.py`: PASS
+
+### baseline 변경
+- `ubuntu_baseline.json` cpu.summary 4 → 8 필드 (manufacturer/max_speed_mhz/l2_cache_kb/l3_cache_kb 추가)
+- `windows_baseline.json` cpu.summary 4 → 8 필드 (manufacturer/max_speed_mhz/l2_cache_kb/l3_cache_kb 추가)
+- 8 필드 derived: manufacturer="Intel" (model 에서 추론), max_speed_mhz=null (VM raw 부재), l2/l3=null (raw 부재)
+
 ## 2026-05-11 (cycle field-channel-refinement-F5 — OS channel system.runtime 구현)
 
 ### Linux 실장비 ssh probe (paramiko)

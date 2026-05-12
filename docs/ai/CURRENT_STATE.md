@@ -1,5 +1,38 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-12 (cycle field-channel-refinement-F2b — ubuntu/windows cpu.summary 8 필드 일관성 [DONE])
+
+### 컨텍스트
+- 사용자 명시: "남아있는 작업 모두 수행해줘" — F2-b/F3/F4 검토
+- 사용자 제공 OS access 5 + 베어메탈 1 + Windows 1 + Redfish 10 + ESXi 3
+
+### 결과 (3 영역 검토)
+
+- **F2-b ubuntu/windows**: cpu.summary 4 필드 → 8 필드 derived (manufacturer="Intel" + max_speed_mhz/l2_cache_kb/l3_cache_kb=null). raw fallback 빌더 emit 형식과 일치.
+- **F4**: 베어메탈 OS (10.100.64.96 = Dell R760 Ubuntu 24.04.3) ssh probe 결과 — sudo 부재로 dmidecode 일부 제한. LAB_INVENTORY 이미 등재 (Linux baremetal 1대). 신규 baseline 추가는 별도 cycle.
+- **F3 Supermicro**: 사용자 자료 부재 — PENDING 유지
+- **F6 신규** (cycle 외 권장): rhel920/rhel960/rocky960 baseline 추가 — 별도 cycle (큰 작업)
+
+### Linux ssh probe 발견 (5 호스트)
+- ubuntu2404 (10.100.64.167): VMware VM, Intel E5-2699 v4, sockets=4, max_speed_mhz=null
+- baremetal (10.100.64.96): Dell R760, Intel Xeon Silver 4510, max_speed_mhz=4100, 128GB, 10.5TB SSD
+- rhel920 (10.100.64.163): VMware VM, sockets=4 (lscpu)
+- rhel960 (10.100.64.165): VMware VM, sockets=4 (lscpu)
+- rocky960 (10.100.64.169): VMware VM, chronyd active
+
+### 회귀 검증
+- pytest 621 PASS / 0 FAIL (30.03s)
+- verify_harness_consistency PASS
+- 매트릭스: 분류 1 13 / 분류 2 12 / 분류 3? 1 / drift 8 (변화 없음 — cpu.summary 형식 변환만 derived)
+
+### NEXT_ACTIONS 정리
+- F1/F2/F2-b/F5: **DONE** (2026-05-11~12)
+- F3: PENDING (Supermicro 자료 부재)
+- F4: PENDING (Windows winrm / 베어메탈 sudo 환경 필요)
+- F6: PENDING (rhel920/rhel960/rocky960 신규 baseline — 별도 cycle)
+
+---
+
 ## 일자: 2026-05-11 (cycle field-channel-refinement-F5 — OS channel system.runtime 구현 [DONE])
 
 ### 컨텍스트

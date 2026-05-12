@@ -141,6 +141,10 @@
         "groups": [
           {
             "model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+            "manufacturer": "Intel",
+            "max_speed_mhz": null,
+            "l2_cache_kb": null,
+            "l3_cache_kb": null,
             "sockets": 1,
             "cores_per_socket": 2,
             "total_cores": 2

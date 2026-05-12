@@ -15,15 +15,30 @@
 |---|---|---|---|---|
 | F1 | `meta.duration_ms × cisco_baseline.json` null 갱신 | finished_at - started_at = 226002ms derived | rule 13 R4 derived 적용 | **DONE (2026-05-11)** |
 | F2 | `cpu.summary × rhel810_raw_fallback` baseline 갱신 (코드는 이미 OK) | raw fallback 빌더 emit 8 필드 derived (manufacturer/sockets 등) | baseline 갱신 (derived) | **DONE (2026-05-11)** |
-| F2-b | ubuntu/windows baseline 의 cpu.summary 형식 일관성 (현 4 필드 → 8 필드 코드와 일치) | 실장비 재캡처 또는 baseline 일괄 갱신 cycle | `update-vendor-baseline` skill (rule 13 R4) | PENDING |
-| F3 | Supermicro baseline 확보 (cycle field-channel 정확도 향상) | Supermicro 사이트 BMC IP 확보 | `update-vendor-baseline` skill (rule 13 R4) | PENDING |
-| F4 | 베어메탈 Windows / ESXi baseline 확보 | 베어메탈 장비 확보 | `windows_baseline.json` 의 memory.slots / esxi_baseline 의 storage.physical_disks 검증 | PENDING |
+| F2-b | ubuntu/windows baseline 의 cpu.summary 형식 일관성 (현 4 필드 → 8 필드 코드와 일치) | derived 채움 (manufacturer/max_speed_mhz/l2/l3 null) | rule 13 R4 derived 적용 | **DONE (2026-05-12)** |
+| F3 | Supermicro baseline 확보 (cycle field-channel 정확도 향상) | Supermicro 사이트 BMC IP 확보 | `update-vendor-baseline` skill (rule 13 R4) | PENDING (사용자 자료 부재) |
+| F4 | Windows 실측 baseline + 베어메탈 OS baseline 신규 | Windows winrm 환경 + 베어메탈 sudo 권한 | `windows_baseline` 실측 갱신 + `baremetal_dell_r760_baseline.json` 신규 (sudo 필요) | PENDING (winrm/sudo 환경) |
 | F5 | OS channel `system.runtime` 구현 (현재 ESXi 만) | Linux raw block + Windows win_shell 9 필드 통일 빌더 추가 | `gather_system.yml` Linux/Windows + field_dictionary channel `[os, esxi]` 확장 | **DONE (2026-05-11)** |
+| F6 | 신규 OS baseline 추가 (rhel920 / rhel960 / rocky960) | 사용자 access 확보 (10.100.64.{163,165,169}) | 전체 섹션 캡처 — 별도 cycle (큰 작업, system.runtime F5 신규 빌더 검증 포함) | PENDING (별도 cycle 권장) |
 
 ### Phase 2 진입 trigger (자율 결정 가능)
 
-- F2-b / F3 / F4 / F5 중 trigger 1개 이상 충족 시 별도 cycle 진입
+- F3 / F4 / F6 중 trigger 1개 이상 충족 시 별도 cycle 진입
 - Phase 1 cycle (본 cycle) 의 `FIELD_USAGE_MATRIX.md` 정합성 재검증 — `python scripts/ai/measure_field_usage_matrix.py --update-md`
+
+### F6 우선순위 (cycle baseline-expansion — 별도 plan 권장)
+
+사용자 제공 OS access (2026-05-11):
+- 10.100.64.163 (rhel920) — RHEL 9.2 VM
+- 10.100.64.165 (rhel960) — RHEL 9.6 VM
+- 10.100.64.169 (rocky960) — Rocky 9.6 VM
+
+각 baseline 추가 절차 (rule 13 R4):
+1. `ansible-playbook os-gather/site.yml -e target_ip=<IP>` 실 수집 (Jenkins Agent 환경)
+2. 출력 envelope → `schema/baseline_v1/{name}_baseline.json` 저장
+3. `tests/evidence/2026-MM-DD-{name}.md` evidence 기록
+4. `update-vendor-baseline` skill 절차 follow
+5. F5 신규 system.runtime 9 필드 검증 — 실측 결과로 baseline 안정성 확보
 
 ---
 
