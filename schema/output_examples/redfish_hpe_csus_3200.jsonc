@@ -170,6 +170,7 @@
     },
     "firmware": [],                                     // UpdateService FirmwareInventory (mock 비어있음 — 실측 시 BMC/BIOS/NIC firmware list)
     "power": null,                                      // Chassis.PowerSubsystem (mock — site 실측 시 PSU / power_supplies)
+    "users": [],                                        // AccountService Accounts list. Redfish 채널은 일반적으로 빈 list (rule 12 capability)
     "multi_node": {                                     // cycle 2026-05-12 (ADR-2026-05-12) — RMC primary 시스템 전수 수집 컨테이너 (Additive)
       "enabled": true,                                  // manager_layout 정의 vendor 만 true — null 시 비-RMC vendor
       "layout": "rmc_primary",                          // rmc_primary (CSUS 3200) / rmc_primary_ilo_secondary (Superdome Flex)
@@ -180,20 +181,43 @@
         "representative_partition": "Partition0"        // data.system / data.bmc / data.cpu 등 기존 9 section path 의 source
       },
       "partitions": [                                   // per-partition 수집 list — 각 partition 의 system/cpu/memory/storage/network
-        {
-          "id": "Partition0",                           // /redfish/v1/Systems/<id> 의 마지막 segment
+        {                                                // F1+F2 cycle 2026-05-12 갱신 — Partition0/1/2 각 4-socket × 2TB 동일 mock (sdflexutils + DMTF v1.15 합성)
+          "id": "Partition0",                           // /redfish/v1/Systems/<id> 의 마지막 segment (representative — data.system / data.cpu 의 source)
           "system_uri": "/redfish/v1/Systems/Partition0",
-          "system": {
+          "system": {                                   // hardware 깊이 (cycle-016 Phase N 16 필드 패턴 — sku/asset_tag/system_type/part_number 등)
             "manufacturer": "HPE",
             "model": "Compute Scale-up Server 3200",
             "serial": "MOCK-CSUS-P0-001",
+            "uuid": "00000000-0000-4000-8000-000000000001",
+            "sku": "P52345-B21",
+            "bios_version": "U54 v3.10 (05/01/2026)",
             "power_state": "On",
-            "health": "OK"
+            "health": "OK",
+            "asset_tag": "lab-mock-p0",
+            "system_type": "Physical",
+            "part_number": "P52345-001"
           },
-          "cpu": {},                                    // mock — site 실측 시 partition 별 cpu summary
-          "memory": {},
-          "storage": {},
-          "network": []
+          "cpu": {                                      // partition 별 CPU summary — 4-socket × Intel Xeon Platinum 8480+
+            "sockets": 4,
+            "cores_physical": 224,
+            "logical_threads": 448,
+            "model": "Intel(R) Xeon(R) Platinum 8480+",
+            "max_speed_mhz": null,
+            "architecture": null
+          },
+          "memory": {                                   // partition 별 memory — 2 TiB DDR5
+            "total_mb": 2097152,
+            "installed_mb": 2097152,
+            "visible_mb": null,
+            "free_mb": null,
+            "slots": []
+          },
+          "storage": {                                  // partition 별 storage (mock — site 실측 시 controllers/disks/volumes)
+            "controllers": [],
+            "physical_disks": [],
+            "logical_volumes": []
+          },
+          "network": []                                 // partition 별 NIC list (mock — site 실측 시 EthernetInterfaces)
         },
         {
           "id": "Partition1",
@@ -201,12 +225,36 @@
           "system": {
             "manufacturer": "HPE",
             "model": "Compute Scale-up Server 3200",
+            "serial": "MOCK-CSUS-P1-002",
+            "uuid": "00000000-0000-4000-8000-000000000002",
+            "sku": "P52345-B21",
+            "bios_version": "U54 v3.10 (05/01/2026)",
             "power_state": "On",
-            "health": "OK"
+            "health": "OK",
+            "asset_tag": "lab-mock-p1",
+            "system_type": "Physical",
+            "part_number": "P52345-001"
           },
-          "cpu": {},
-          "memory": {},
-          "storage": {},
+          "cpu": {
+            "sockets": 4,
+            "cores_physical": 224,
+            "logical_threads": 448,
+            "model": "Intel(R) Xeon(R) Platinum 8480+",
+            "max_speed_mhz": null,
+            "architecture": null
+          },
+          "memory": {
+            "total_mb": 2097152,
+            "installed_mb": 2097152,
+            "visible_mb": null,
+            "free_mb": null,
+            "slots": []
+          },
+          "storage": {
+            "controllers": [],
+            "physical_disks": [],
+            "logical_volumes": []
+          },
           "network": []
         },
         {
@@ -215,12 +263,36 @@
           "system": {
             "manufacturer": "HPE",
             "model": "Compute Scale-up Server 3200",
+            "serial": "MOCK-CSUS-P2-003",
+            "uuid": "00000000-0000-4000-8000-000000000003",
+            "sku": "P52345-B21",
+            "bios_version": "U54 v3.10 (05/01/2026)",
             "power_state": "On",
-            "health": "OK"
+            "health": "OK",
+            "asset_tag": "lab-mock-p2",
+            "system_type": "Physical",
+            "part_number": "P52345-001"
           },
-          "cpu": {},
-          "memory": {},
-          "storage": {},
+          "cpu": {
+            "sockets": 4,
+            "cores_physical": 224,
+            "logical_threads": 448,
+            "model": "Intel(R) Xeon(R) Platinum 8480+",
+            "max_speed_mhz": null,
+            "architecture": null
+          },
+          "memory": {
+            "total_mb": 2097152,
+            "installed_mb": 2097152,
+            "visible_mb": null,
+            "free_mb": null,
+            "slots": []
+          },
+          "storage": {
+            "controllers": [],
+            "physical_disks": [],
+            "logical_volumes": []
+          },
           "network": []
         }
       ],

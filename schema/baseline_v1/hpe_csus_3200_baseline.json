@@ -155,6 +155,7 @@
     },
     "firmware": [],
     "power": null,
+    "users": [],
     "multi_node": {
       "enabled": true,
       "layout": "rmc_primary",
@@ -172,12 +173,35 @@
             "manufacturer": "HPE",
             "model": "Compute Scale-up Server 3200",
             "serial": "MOCK-CSUS-P0-001",
+            "uuid": "00000000-0000-4000-8000-000000000001",
+            "sku": "P52345-B21",
+            "bios_version": "U54 v3.10 (05/01/2026)",
             "power_state": "On",
-            "health": "OK"
+            "health": "OK",
+            "asset_tag": "lab-mock-p0",
+            "system_type": "Physical",
+            "part_number": "P52345-001"
           },
-          "cpu": {},
-          "memory": {},
-          "storage": {},
+          "cpu": {
+            "sockets": 4,
+            "cores_physical": 224,
+            "logical_threads": 448,
+            "model": "Intel(R) Xeon(R) Platinum 8480+",
+            "max_speed_mhz": null,
+            "architecture": null
+          },
+          "memory": {
+            "total_mb": 2097152,
+            "installed_mb": 2097152,
+            "visible_mb": null,
+            "free_mb": null,
+            "slots": []
+          },
+          "storage": {
+            "controllers": [],
+            "physical_disks": [],
+            "logical_volumes": []
+          },
           "network": []
         },
         {
@@ -186,12 +210,36 @@
           "system": {
             "manufacturer": "HPE",
             "model": "Compute Scale-up Server 3200",
+            "serial": "MOCK-CSUS-P1-002",
+            "uuid": "00000000-0000-4000-8000-000000000002",
+            "sku": "P52345-B21",
+            "bios_version": "U54 v3.10 (05/01/2026)",
             "power_state": "On",
-            "health": "OK"
+            "health": "OK",
+            "asset_tag": "lab-mock-p1",
+            "system_type": "Physical",
+            "part_number": "P52345-001"
           },
-          "cpu": {},
-          "memory": {},
-          "storage": {},
+          "cpu": {
+            "sockets": 4,
+            "cores_physical": 224,
+            "logical_threads": 448,
+            "model": "Intel(R) Xeon(R) Platinum 8480+",
+            "max_speed_mhz": null,
+            "architecture": null
+          },
+          "memory": {
+            "total_mb": 2097152,
+            "installed_mb": 2097152,
+            "visible_mb": null,
+            "free_mb": null,
+            "slots": []
+          },
+          "storage": {
+            "controllers": [],
+            "physical_disks": [],
+            "logical_volumes": []
+          },
           "network": []
         },
         {
@@ -200,12 +248,36 @@
           "system": {
             "manufacturer": "HPE",
             "model": "Compute Scale-up Server 3200",
+            "serial": "MOCK-CSUS-P2-003",
+            "uuid": "00000000-0000-4000-8000-000000000003",
+            "sku": "P52345-B21",
+            "bios_version": "U54 v3.10 (05/01/2026)",
             "power_state": "On",
-            "health": "OK"
+            "health": "OK",
+            "asset_tag": "lab-mock-p2",
+            "system_type": "Physical",
+            "part_number": "P52345-001"
           },
-          "cpu": {},
-          "memory": {},
-          "storage": {},
+          "cpu": {
+            "sockets": 4,
+            "cores_physical": 224,
+            "logical_threads": 448,
+            "model": "Intel(R) Xeon(R) Platinum 8480+",
+            "max_speed_mhz": null,
+            "architecture": null
+          },
+          "memory": {
+            "total_mb": 2097152,
+            "installed_mb": 2097152,
+            "visible_mb": null,
+            "free_mb": null,
+            "slots": []
+          },
+          "storage": {
+            "controllers": [],
+            "physical_disks": [],
+            "logical_volumes": []
+          },
           "network": []
         }
       ],
