@@ -1,0 +1,294 @@
+{
+  "target_type": "redfish",
+  "collection_method": "redfish_api",
+  "ip": "10.50.11.999",
+  "hostname": "csus-3200-mock",
+  "vendor": "hpe",
+  "status": "success",
+  "sections": {
+    "system": "not_supported",
+    "hardware": "success",
+    "bmc": "success",
+    "cpu": "success",
+    "memory": "success",
+    "storage": "success",
+    "network": "success",
+    "firmware": "success",
+    "users": "not_supported",
+    "power": "success"
+  },
+  "diagnosis": {
+    "reachable": true,
+    "port_open": true,
+    "protocol_supported": true,
+    "auth_success": true,
+    "failure_stage": null,
+    "failure_reason": null,
+    "details": {
+      "channel": "redfish",
+      "adapter_candidate": "redfish_hpe_csus_3200",
+      "checked_ports": [
+        443
+      ],
+      "selected_port": 443,
+      "redfish_version": "1.15.0",
+      "product": "Compute Scale-up Server 3200",
+      "systems_uri": "/redfish/v1/Systems/",
+      "multi_node_layout": "rmc_primary",
+      "rmc_activation_check": true,
+      "baseline_origin": "mock-derived (lab 부재 — sdflexutils + DMTF v1.15 + iLO5 API ref 합성). cycle 2026-05-12 ADR-2026-05-12. C1 사이트 fixture 캡처 후 실측 baseline 으로 교체 의무 (NEXT_ACTIONS)."
+    }
+  },
+  "meta": {
+    "started_at": "2026-05-12T00:00:00.000000Z",
+    "finished_at": "2026-05-12T00:02:00.000000Z",
+    "duration_ms": 120000,
+    "adapter_id": "redfish_hpe_csus_3200",
+    "adapter_version": "1.0.0",
+    "ansible_version": "2.20.3"
+  },
+  "correlation": {
+    "serial_number": "MOCK-CSUS-P0-001",
+    "system_uuid": "00000000-0000-4000-8000-000000000001",
+    "bmc_ip": "10.50.11.999",
+    "host_ip": "10.50.11.999"
+  },
+  "errors": [],
+  "data": {
+    "system": {
+      "os_family": null,
+      "distribution": null,
+      "version": null,
+      "kernel": null,
+      "architecture": null,
+      "uptime_seconds": null,
+      "selinux": null,
+      "fqdn": "csus-p0"
+    },
+    "hardware": {
+      "vendor": "HPE",
+      "model": "Compute Scale-up Server 3200",
+      "serial": "MOCK-CSUS-P0-001",
+      "uuid": "00000000-0000-4000-8000-000000000001",
+      "sku": "P52345-B21",
+      "bios_version": "U54 v3.10 (05/01/2026)",
+      "bios_date": null,
+      "power_state": "On",
+      "health": "OK",
+      "asset_tag": "lab-mock",
+      "system_type": "Physical",
+      "part_number": "P52345-001",
+      "last_reset_time": null,
+      "boot_progress": null,
+      "tpm": null,
+      "oem": {}
+    },
+    "bmc": {
+      "name": "RMC",
+      "firmware_version": "3.10.00",
+      "model": "HPE CSUS 3200 RMC",
+      "manager_type": "EnclosureManager",
+      "health": "OK",
+      "state": "Enabled",
+      "power_state": "On",
+      "uuid": "rmc-csus-3200-uuid-001",
+      "last_reset_time": "2026-04-01T00:00:00Z",
+      "timezone": "UTC",
+      "ip": null,
+      "mac_address": null,
+      "dns_name": null,
+      "datetime": "2026-05-12T12:00:00Z",
+      "datetime_offset": "+00:00",
+      "oem": {
+        "ilo_version": null
+      }
+    },
+    "cpu": {
+      "sockets": 4,
+      "cores_physical": 224,
+      "logical_threads": 448,
+      "model": "Intel(R) Xeon(R) Platinum 8480+",
+      "max_speed_mhz": null,
+      "architecture": null,
+      "summary": {
+        "groups": [],
+        "manufacturer": "Intel",
+        "max_speed_mhz": null,
+        "l2_cache_kb": null,
+        "l3_cache_kb": null
+      }
+    },
+    "memory": {
+      "total_mb": 2097152,
+      "total_basis": "physical_installed",
+      "installed_mb": 2097152,
+      "visible_mb": null,
+      "free_mb": null,
+      "slots": [],
+      "summary": {
+        "groups": [],
+        "grand_total_gb": 2048
+      }
+    },
+    "storage": {
+      "filesystems": [],
+      "physical_disks": [],
+      "datastores": [],
+      "controllers": [],
+      "logical_volumes": [],
+      "summary": {
+        "groups": [],
+        "grand_total_gb": 0
+      },
+      "hbas": [],
+      "infiniband": []
+    },
+    "network": {
+      "dns_servers": [],
+      "default_gateways": [],
+      "interfaces": [],
+      "summary": {
+        "groups": []
+      },
+      "adapters": [],
+      "ports": []
+    },
+    "firmware": [],
+    "power": null,
+    "multi_node": {
+      "enabled": true,
+      "layout": "rmc_primary",
+      "summary": {
+        "partition_count": 3,
+        "manager_count": 4,
+        "chassis_count": 3,
+        "representative_partition": "Partition0"
+      },
+      "partitions": [
+        {
+          "id": "Partition0",
+          "system_uri": "/redfish/v1/Systems/Partition0",
+          "system": {
+            "manufacturer": "HPE",
+            "model": "Compute Scale-up Server 3200",
+            "serial": "MOCK-CSUS-P0-001",
+            "power_state": "On",
+            "health": "OK"
+          },
+          "cpu": {},
+          "memory": {},
+          "storage": {},
+          "network": []
+        },
+        {
+          "id": "Partition1",
+          "system_uri": "/redfish/v1/Systems/Partition1",
+          "system": {
+            "manufacturer": "HPE",
+            "model": "Compute Scale-up Server 3200",
+            "power_state": "On",
+            "health": "OK"
+          },
+          "cpu": {},
+          "memory": {},
+          "storage": {},
+          "network": []
+        },
+        {
+          "id": "Partition2",
+          "system_uri": "/redfish/v1/Systems/Partition2",
+          "system": {
+            "manufacturer": "HPE",
+            "model": "Compute Scale-up Server 3200",
+            "power_state": "On",
+            "health": "OK"
+          },
+          "cpu": {},
+          "memory": {},
+          "storage": {},
+          "network": []
+        }
+      ],
+      "managers": [
+        {
+          "id": "RMC",
+          "uri": "/redfish/v1/Managers/RMC",
+          "role": "primary",
+          "bmc": {
+            "name": "RMC",
+            "firmware_version": "3.10.00",
+            "model": "HPE CSUS 3200 RMC",
+            "manager_type": "EnclosureManager",
+            "health": "OK"
+          }
+        },
+        {
+          "id": "PDHC0",
+          "uri": "/redfish/v1/Managers/PDHC0",
+          "role": "secondary",
+          "bmc": {
+            "name": "PDHC",
+            "firmware_version": "3.10.00",
+            "health": "OK"
+          }
+        },
+        {
+          "id": "PDHC1",
+          "uri": "/redfish/v1/Managers/PDHC1",
+          "role": "secondary",
+          "bmc": {
+            "name": "PDHC",
+            "firmware_version": "3.10.00",
+            "health": "OK"
+          }
+        },
+        {
+          "id": "Bay1.iLO5",
+          "uri": "/redfish/v1/Managers/Bay1.iLO5",
+          "role": "secondary",
+          "bmc": {
+            "name": "iLO",
+            "firmware_version": "2.85",
+            "health": "OK"
+          }
+        }
+      ],
+      "chassis": [
+        {
+          "id": "Base",
+          "uri": "/redfish/v1/Chassis/Base",
+          "kind": "base",
+          "chassis_type": "Enclosure",
+          "manufacturer": "HPE",
+          "model": "Compute Scale-up Server 3200 Base",
+          "serial_number": "MOCK-CSUS-BASE-001",
+          "part_number": "P52340-B21",
+          "power": null
+        },
+        {
+          "id": "Expansion1",
+          "uri": "/redfish/v1/Chassis/Expansion1",
+          "kind": "expansion",
+          "chassis_type": "Enclosure",
+          "manufacturer": "HPE",
+          "model": "Compute Scale-up Server 3200 Expansion",
+          "serial_number": null,
+          "part_number": null,
+          "power": null
+        },
+        {
+          "id": "Expansion2",
+          "uri": "/redfish/v1/Chassis/Expansion2",
+          "kind": "expansion",
+          "chassis_type": "Enclosure",
+          "manufacturer": "HPE",
+          "model": "Compute Scale-up Server 3200 Expansion",
+          "serial_number": null,
+          "part_number": null,
+          "power": null
+        }
+      ]
+    }
+  },
+  "schema_version": "1"
+}

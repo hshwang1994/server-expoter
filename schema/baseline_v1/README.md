@@ -20,12 +20,28 @@
 |---|---|---|---|
 | `dell_baseline.json` | `dell_baseline_annotated.jsonc` | Redfish | Dell PowerEdge R740 (iDRAC 9 / FW 4.00) |
 | `hpe_baseline.json` | `hpe_baseline_annotated.jsonc` | Redfish | HPE ProLiant DL380 Gen11 (iLO 6 / FW 1.73) |
+| **`hpe_csus_3200_baseline.json`** (cycle 2026-05-12) | `schema/output_examples/redfish_hpe_csus_3200.jsonc` | Redfish | **HPE Compute Scale-up Server 3200 — mock-derived (lab 부재 / sdflexutils + DMTF v1.15 + iLO5 API ref 합성)** |
 | `lenovo_baseline.json` | `lenovo_baseline_annotated.jsonc` | Redfish | Lenovo ThinkSystem SR650 V2 (XCC / FW 5.70) |
 | `cisco_baseline.json` | `cisco_baseline_annotated.jsonc` | Redfish | Cisco TA-UNODE-G1 (CIMC) |
 | `esxi_baseline.json` | `esxi_baseline_annotated.jsonc` | ESXi | ESXi 7.0.3 |
 | `ubuntu_baseline.json` | `ubuntu_baseline_annotated.jsonc` | OS (Linux) | Ubuntu 24.04 |
 | `windows_baseline.json` | `windows_baseline_annotated.jsonc` | OS (Windows) | Windows 10 |
 | `rhel810_raw_fallback_baseline.json` | `rhel810_raw_fallback_baseline_annotated.jsonc` | OS (Linux) | RHEL 8.10 — Python raw fallback 경로 |
+
+## mock-derived baseline 정책 (cycle 2026-05-12 신설)
+
+> ADR-2026-05-12 Q6 결정 갱신 (2026-05-12 사용자 명시 승인): lab 부재 vendor 도 baseline_v1/ 에 추가 가능 — 단 **mock-derived marker 의무**.
+
+mock-derived baseline 의 필수 marker (양쪽 모두):
+
+1. **본 README 표 의 vendor 행 옆** "mock-derived (lab 부재 ...)" 명시
+2. **baseline JSON 의 `diagnosis.details.baseline_origin`** 필드 — 출처 + cycle + NEXT_ACTIONS 교체 의무 명시
+3. **호환 한글 주석본** (`schema/output_examples/{vendor}.jsonc`) 헤더에 "Lab 부재 — Mock 합성" 명시
+
+회귀 비교 도구 (`tests/test_baseline.py` 등) 가 mock-derived baseline 을 사용할 때 의식할 점:
+- mock-derived 통과 = 합성 fixture 통과 ≠ 사이트 통과
+- NEXT_ACTIONS (`docs/ai/NEXT_ACTIONS.md`) 의 C1~C8 등 사이트 fixture 캡처 후속 작업 진행 시 mock-derived baseline 은 실측으로 교체 의무 (rule 13 R4 정신)
+- mock-derived 가 실측 baseline 으로 잘못 인용되는 사고 차단을 위해 `diagnosis.details.baseline_origin` 자동 검사 hook 도입 검토 (NEXT_ACTIONS — 미래 작업)
 
 ### 한글 주석본을 보는 순서
 

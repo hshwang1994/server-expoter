@@ -111,12 +111,24 @@ data:
 
 **근거**: rule 96 R1-A web sources 4종 의무. lab 부재 합성 정당화.
 
-### 결정 6: baseline — `tests/expected/redfish/hpe_csus_3200/mock_v1.json` 별도 경로
+### 결정 6: baseline — `tests/expected/` 별도 경로 + `schema/baseline_v1/` mock-derived 양쪽 채택
 
-- `tests/expected/` 신규 디렉터리 (fixture-derived expected) — `schema/baseline_v1/` (실측 baseline) 와 분리
-- `schema/baseline_v1/hpe_csus_3200_baseline.json` 은 lab 도입 cycle 까지 미작성
+> **갱신 (2026-05-12 사용자 명시 승인)**: 본 결정은 두 차례 진행됨.
+>
+> **Q6 초기 결정 (2026-05-12 plan 단계)**: `tests/expected/redfish/hpe_csus_3200/mock_v1.json` 별도 경로만. `schema/baseline_v1/hpe_csus_3200_baseline.json` 은 lab 도입 cycle 까지 미작성.
+>
+> **Q6 갱신 결정 (2026-05-12 사용자 명시 — "스키마 디렉터리에 추가")**: 양쪽 모두 채택:
+> - `tests/expected/redfish/hpe_csus_3200/mock_v1.json` 유지 (fixture-derived expected, pytest 회귀 reference)
+> - `schema/baseline_v1/hpe_csus_3200_baseline.json` **추가** (mock-derived marker — `diagnosis.details.baseline_origin` 필드 + `schema/baseline_v1/README.md` mock-derived 정책 절 신설)
+> - `schema/output_examples/redfish_hpe_csus_3200.jsonc` **추가** (한글 주석 호출자 reference, 헤더 "Lab 부재 — Mock 합성" 명시)
 
-**근거**: rule 13 R4 실측 baseline 보호. mock-derived expected 가 baseline 오인되지 않도록 경로 분리.
+**갱신 근거**:
+- rule 13 R4 (baseline 실측 보호) 경자적 해석 — mock-derived marker 명시 시 baseline_v1 영역 허용 (정책 신설 절: `schema/baseline_v1/README.md` "mock-derived baseline 정책" 절).
+- 호출자 시스템 / 운영자 reference 가치 — mock fixture envelope shape 직접 확인 가능 (한글 주석본).
+- 미래 lab 도입 cycle (NEXT_ACTIONS C2) 에서 실측 baseline 으로 in-place 교체 의무 (mock-derived marker → 실측 marker 전환).
+
+**잔여 위험 (HIGH)**:
+- mock-derived baseline 이 실측 baseline 으로 잘못 인용 — `diagnosis.details.baseline_origin` 필드 + README 정책 절로 진단 가시화. 자동 검사 hook 도입은 NEXT_ACTIONS (미래 작업).
 
 ### 결정 7: 기존 baseline 9종 `data.multi_node: null` derived 추가
 

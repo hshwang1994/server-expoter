@@ -49,6 +49,18 @@ HPE 공식 인용 (WebSearch 2026-05-12): "supports large, partitionable systems
 | `bmc.manager_type` 신 보조 필드 추가 | `data.<section>.<field>` 추가 — rule 96 R1-B 위반 (호환성 cycle 외 별도 schema cycle 의무) |
 | `schema/baseline_v1/hpe_csus_3200_baseline.json` 합성 추가 | rule 13 R4 실측 baseline 보호 위반 |
 
+### 갱신 (2026-05-12 — 사용자 명시 "schema 디렉터리에 추가")
+
+> Q6 결정 번복 — `tests/expected/` 별도 경로만 → 양쪽 모두 (schema/baseline_v1/ + schema/output_examples/ + tests/expected/) 채택.
+
+| 영역 | 변경 |
+|---|---|
+| `schema/baseline_v1/hpe_csus_3200_baseline.json` | **신규** — mock-derived marker (`diagnosis.details.baseline_origin` 필드 + `schema/baseline_v1/README.md` mock-derived 정책 절 신설). 9 sections + multi_node 활성 (3-partition × 4-manager × 3-chassis). |
+| `schema/output_examples/redfish_hpe_csus_3200.jsonc` | **신규** — 한글 주석 호출자 reference. "Lab 부재 — Mock 합성" 헤더. envelope 13 필드 + multi_node 컨테이너 + RMC 라벨 분기 설명. |
+| `schema/baseline_v1/README.md` | mock-derived baseline 정책 절 신설 — marker 3종 (README 표 / JSON baseline_origin / output_examples 헤더) + 자동 검사 hook 도입 후속 작업 표기. |
+| `schema/output_examples/README.md` | Redfish 표에 CSUS 3200 행 추가 (10 → 11 entries). |
+| `docs/ai/decisions/ADR-2026-05-12-csus-rmc-multi-node.md` | Q6 결정 번복 명시 + 갱신 근거 + 잔여 위험 (mock-derived 실측 오인 — HIGH). |
+
 ### 적용 변경 (Phase 0~7)
 
 | 영역 | 변경 |
