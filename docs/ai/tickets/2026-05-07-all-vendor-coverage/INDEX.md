@@ -64,10 +64,12 @@ server-exporter 가 **모든 vendor × 모든 generation × 모든 host** 지원
 
 | 단계 | 상태 |
 |---|---|
-| Session-0 ticket 작성 | [WIP] |
-| Session-1 ~ 5 worker 진행 | [PENDING] |
-| 통합 검증 (pytest / verify_*) | [PENDING] |
-| cycle 종료 (HARNESS-RETROSPECTIVE) | [PENDING] |
+| Session-0 ticket 작성 | [DONE] (2026-05-07) |
+| Session-1 ~ 5 worker 진행 | [DONE] (39/39 ticket — M-A1~A7 + M-B~L + A7-followup 모두 [DONE] 2026-05-11) |
+| 통합 검증 (pytest / verify_*) | [DONE] (pytest 587/587 PASS / verify_harness_consistency PASS / verify_vendor_boundary PASS) |
+| cycle 종료 (HARNESS-RETROSPECTIVE) | [DONE] (cycle 정식 종료 기록은 `docs/ai/NEXT_ACTIONS.md` "2026-05-11 cycle 2026-05-07-all-vendor-coverage Session-1" 절) |
+
+> **cycle 종료**: 2026-05-11 — 39 ticket 모두 [DONE]. HARNESS-RETROSPECTIVE 별도 미작성 — 학습은 NEXT_ACTIONS + ADR/decision-log 에 흡수. 후속 작업은 lab 도입 의존 (NEXT_ACTIONS "lab 도입 후 별도 cycle 권장" 절).
 
 - 마지막 commit (cycle 시작 시점): `ec6dc7ff` — schema/output_examples/ 신설 (실 장비 개더링 한글 주석본 10개)
 - adapter: **28** (Supermicro X10 신설 시 +1 = 29 예상)
