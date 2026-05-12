@@ -1,5 +1,39 @@
 # server-exporter 현재 상태
 
+## 일자: 2026-05-12 (cycle hpe-csus-rmc-multi-node — HPE CSUS 3200 / Superdome Flex RMC 멀티-노드 정식 지원 [DONE])
+
+### 컨텍스트
+- 사용자 명시: "HPE Compute Scale-up Server(CSUS) 3200 ... Redfish API를 사용한 통신은 RMC(Rack Management Controller)를 통해 수행된다는 정보를 받았어 ... CSUS 지원하는 방식을 모두 의심해야해. 다만문제는 테스트해볼 장비가 없어서 web을 통해서 확인할 수 밖에 없다는거야."
+- AskUserQuestion 4 답변 (2026-05-12): (1) 전 Partition / Manager / Chassis 수집 / (2) WebFetch + WebSearch 권위 인용으로 EXTERNAL_CONTRACTS 보강 / (3) RMC 분리 — adapter capability 기반 분기 (Additive) / (4) lab 부재 — web sources only
+- ADR-2026-05-12 작성 + plan 파일 (`C:\Users\hshwa\.claude\plans\hpe-compute-scale-up-server-csus-spicy-newell.md`) + ExitPlanMode 승인
+
+### 결과 (Phase 0~7 완료)
+- **envelope shape 변경 0** (rule 13 R5 / 92 R2 / 96 R1-B). 13 vendor 영향 0.
+- **신 Additive 컨테이너**: `data.multi_node` (enabled/layout/summary/partitions[]/managers[]/chassis[]). manager_layout 미정의 vendor 는 null.
+- **redfish_gather.py** +384 lines: `_resolve_all_member_uris` / `gather_systems_multi` / `gather_managers_multi` / `gather_chassis_multi` / `_classify_rmc_label` / `_classify_manager_role` / `_classify_chassis_kind` / `_collect_multi_node_topology` 신설. `gather_bmc` 에 `manager_layout` 옵션 인자 (None 시 기존 동작 100% 보존).
+- **diagnosis.details Additive 메타**: `multi_node_layout` + `rmc_activation_check` — HPE community 7200359 위험 신호 대응.
+- **Adapter**: `hpe_csus_3200.yml` + `hpe_superdome_flex.yml` 의 `vendor_notes.multi_node_support: true` 추가.
+- **Field_dictionary**: 65→74 entries (+9 nice — multi_node.* + diagnosis.details.*).
+- **Mock fixture** (lab 부재 web sources 합성): `tests/fixtures/redfish/hpe_csus_3200/` 7 파일 (3-partition × 4-manager × 3-chassis).
+- **Baseline 8종** derived 추가 (`data.multi_node: null`).
+- **Docs**: docs/20 7-bis 절 + docs/22 RMC activation guide 신규 + EXTERNAL_CONTRACTS HPE RMC 8 sources + NEXT_ACTIONS C1~C8.
+
+### 회귀 검증 (rule 24 6/6 게이트 PASS)
+- pytest **650 PASS / 0 FAIL** (기존 621 + 신 29)
+- verify_harness_consistency / verify_vendor_boundary / output_schema_drift_check / validate_field_dictionary / 4 pre_commit hook 모두 PASS
+- commit `0b29b9d2` + tag `hpe-csus-rmc-multi-node-2026-05-12` — github + gitlab 동시 push (rule 93 R7)
+
+### NEXT_ACTIONS (lab 부재 단계 10 — rule 50 R2 / 96 R1-C)
+- C1 사이트 fixture 캡처 / C2 baseline / C3 lab cycle / C4 vault 결정 / C5 Product 실측 / C6 Member ID 실측 / C7 Oem schema 실측 / C8 RMC 활성화 실측
+
+### 관련
+- ADR: `docs/ai/decisions/ADR-2026-05-12-csus-rmc-multi-node.md`
+- envelope ref: `docs/20_json-schema-fields.md` 7-bis 절
+- 활성화 가이드: `docs/22_rmc-activation-guide.md`
+- decision log: `docs/19_decision-log.md` 2026-05-12 Round
+
+---
+
 ## 일자: 2026-05-12 (cycle field-channel-refinement-F2b — ubuntu/windows cpu.summary 8 필드 일관성 [DONE])
 
 ### 컨텍스트

@@ -32,7 +32,8 @@
 | HPE | iLO5 | `hpe_ilo5.yml` (90) | hpe.yml | tasks/vendors/hpe/ | 일부 + M-H2 mock | × |
 | HPE | iLO6 | `hpe_ilo6.yml` (100) | hpe.yml | tasks/vendors/hpe/ | 일부 + Round 11 + 사이트 Gen12 | partial |
 | HPE | **iLO7** | `hpe_ilo7.yml` (**120**) | hpe.yml | tasks/vendors/hpe/ | 일부 | **[PASS]** |
-| HPE | Superdome Flex (Gen 1/2 + 280) | `hpe_superdome_flex.yml` (95) | hpe.yml | tasks/vendors/hpe/ (M-G1 분기 보강) | M-G2 mock | × (lab 부재) |
+| HPE | Superdome Flex (Gen 1/2 + 280) | `hpe_superdome_flex.yml` (95) | hpe.yml | tasks/vendors/hpe/ (M-G1 분기 보강) | M-G2 mock + cycle 2026-05-12 multi-partition 보강 권장 | × (lab 부재) — **multi_node_support: true** (cycle 2026-05-12 ADR-2026-05-12) |
+| HPE | **Compute Scale-up Server 3200 (CSUS)** | `hpe_csus_3200.yml` (96) | hpe.yml | tasks/vendors/hpe/ (model regex Superdome\|Flex\|Compute Scale-up\|CSUS) | cycle 2026-05-12 mock fixture 합성 (3-partition × 4-manager × 3-chassis) | × (lab 부재) — **multi_node_support: true / manager_layout: rmc_primary** (cycle 2026-05-12) |
 | **Lenovo** | BMC (IBM legacy) | `lenovo_bmc.yml` (10) | lenovo.yml | tasks/vendors/lenovo/ | (graceful) | × |
 | Lenovo | IMM (legacy) | (lenovo_bmc fallback) | lenovo.yml | tasks/vendors/lenovo/ | (graceful) | × |
 | Lenovo | IMM2 | `lenovo_imm2.yml` (50) | lenovo.yml | tasks/vendors/lenovo/ | M-H3 mock | × |

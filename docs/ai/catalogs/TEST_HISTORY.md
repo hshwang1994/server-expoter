@@ -2,6 +2,39 @@
 
 > 테스트 실행 / Round 검증 / Baseline 갱신 이력 (append-only, rule 70).
 
+## 2026-05-12 (cycle hpe-csus-rmc-multi-node — HPE CSUS 3200 / Superdome Flex RMC 멀티-노드 정식 지원)
+
+### 신규 단위 테스트 3 모듈 (29 PASS)
+- `tests/unit/test_classify_rmc_label.py` — 15 PASS: `_classify_rmc_label` / `_classify_manager_role` / `_classify_chassis_kind` 라벨 분기
+- `tests/unit/test_resolve_all_members.py` — 6 PASS: `_resolve_all_member_uris` Members 전수 추출 + 기존 `_resolve_first_member_uri` 행동 보존
+- `tests/unit/test_hpe_csus_multi_node.py` — 8 PASS: `_collect_multi_node_topology` 통합 (3-partition × 4-manager × 3-chassis)
+
+### Mock fixture (lab 부재 — web sources 합성, rule 96 R1-A)
+- `tests/fixtures/redfish/hpe_csus_3200/` 7 JSON + README — 합성 출처: sdflexutils 1.5.1 + DMTF DSP0266 v1.15 + iLO 5 API ref + HPE psnow doc/a50009596enw + support.hpe.com sd00002765en_us (사용자 제시 URL).
+- `tests/expected/redfish/hpe_csus_3200/mock_v1.json` — fixture-derived expected (baseline 아님 — rule 13 R4 보호).
+
+### Baseline 8종 derived 추가 (`data.multi_node: null`)
+- cisco / dell / esxi / hpe / lenovo / rhel810_raw_fallback / ubuntu / windows — manager_layout 미정의 vendor 의 envelope Additive 키 보장.
+
+### 회귀 검증 결과
+- `pytest tests/`: **650 PASS / 0 FAIL** (20.95s) — 기존 621 + 신 29
+- `verify_harness_consistency`: **PASS** (rules=28 / skills=51 / agents=60 / policies=10)
+- `verify_vendor_boundary`: **PASS** — 신 라벨 분기 substring 매칭은 `nosec rule12-r1` (rule 12 R1 Allowed BMC 표시명 영역)
+- `output_schema_drift_check`: **PASS** — sections=10 / fd_paths=74 (+9 nice) / fd_section_prefixes=17
+- `validate_field_dictionary`: **PASS** — 65→74 entries / 8/8 checks / 9 advisory
+- `pre_commit_{additive_only,docs20_sync,regex_search_conditional}_check`: **PASS** (silent)
+
+### Commit / Tag
+- commit `0b29b9d2` — github + gitlab 동시 push (rule 93 R7)
+- tag `hpe-csus-rmc-multi-node-2026-05-12`
+
+### 한계
+- 사이트 실측 부재 — pytest 통과 = 합성 fixture 통과 ≠ 사이트 통과
+- NEXT_ACTIONS C1~C8 등재 (사이트 fixture 캡처 / baseline / lab cycle / vault / Product 실측 / Member ID 실측 / Oem schema 실측 / RMC 활성화 실측)
+- HPE community 7200359 위험 신호 대응: `diagnosis.details.rmc_activation_check` 메타 + `docs/22_rmc-activation-guide.md` 신규
+
+---
+
 ## 2026-05-12 (cycle field-channel-refinement-F2b — ubuntu/windows cpu.summary 8 필드 일관성)
 
 ### Linux ssh probe 추가 (paramiko 직접 실측)

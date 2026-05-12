@@ -1,7 +1,13 @@
 # VENDOR_ADAPTERS — server-exporter
 
 > 9 vendor x 채널별 adapter 매트릭스 (rule 28 #3 측정 대상, TTL 14일).
-> 실측 (`ls adapters/redfish/*.yml | wc -l`) — 2026-05-11 (cycle hpe-csus-add).
+> 실측 (`ls adapters/redfish/*.yml | wc -l`) — 2026-05-12 (cycle hpe-csus-rmc-multi-node).
+>
+> **cycle 2026-05-12 변경**: adapter 카운트 변경 없음 (31 그대로). `vendor_notes` 보강만:
+>   - `hpe_csus_3200.yml` / `hpe_superdome_flex.yml` 에 `multi_node_support: true` Additive (ADR-2026-05-12).
+>   - `data.multi_node` Additive envelope 컨테이너 — RMC primary 시스템 (manager_layout=rmc_*) 전수 수집.
+>   - field_dictionary 65→74 entries (+9 nice — multi_node.* / diagnosis.details.*).
+>   - mock fixture `tests/fixtures/redfish/hpe_csus_3200/` 7 파일 합성 (3-partition × 4-manager × 3-chassis).
 >
 > **cycle 2026-05-11 변경**: 30 adapter → 31 adapter
 >   - `hpe_csus_3200.yml` 신설 (priority=96, HPE Compute Scale-up Server 3200, lab 부재 — web sources 7건)
@@ -41,8 +47,8 @@
 |---|---|---|---|---|
 | `hpe_ilo7.yml` | redfish_hpe_ilo7 | **120** | iLO7 (Gen12, 1대) — cycle 2026-05-11 `hpe-ilo7-gen12-match-fix`: 2-part firmware "1.10" 매치 보강 (Additive `^1\.1[0-9]`) | **PASS** |
 | `hpe_ilo6.yml` | redfish_hpe_ilo6 | 100 | iLO6 (Gen11 + 사이트 Gen12) | Round 11 부분 |
-| `hpe_csus_3200.yml` | redfish_hpe_csus_3200 | 96 | **Compute Scale-up Server 3200 (CSUS, RMC + PDHC, DDR5, 2023+) — cycle 2026-05-11 신설** | 부재 (web sources 7건) |
-| `hpe_superdome_flex.yml` | redfish_hpe_superdome_flex | 95 | Superdome Flex (RMC + iLO5 dual-manager) | 부재 |
+| `hpe_csus_3200.yml` | redfish_hpe_csus_3200 | 96 | **Compute Scale-up Server 3200 (CSUS, RMC + PDHC, DDR5, 2023+) — cycle 2026-05-11 신설 / cycle 2026-05-12 multi_node_support 활성 (ADR-2026-05-12)** | 부재 (web sources 8건 — sd00002765en_us 보강) |
+| `hpe_superdome_flex.yml` | redfish_hpe_superdome_flex | 95 | Superdome Flex (RMC + iLO5 dual-manager) — cycle 2026-05-12 multi_node_support 활성 | 부재 |
 | `hpe_ilo5.yml` | redfish_hpe_ilo5 | 90 | iLO5 (Gen10/10+) | 부재 |
 | `hpe_ilo4.yml` | redfish_hpe_ilo4 | 50 | iLO4 (Gen9, 2.30+) | 부재 |
 | `hpe_ilo.yml` | redfish_hpe_ilo | 10 | generic HPE fallback (iLO 1/2/3 legacy) | 부재 |
@@ -206,6 +212,7 @@ credentials:
 | 2026-05-06 (multi-session) | 28 (+1 hpe_superdome_flex) | (변경 없음) |
 | 2026-05-07 (all-vendor-coverage) | 30 (+2: supermicro_x10/ars) | +5 (Cisco M-J1 / Huawei M-C2 / Inspur M-D1 / Fujitsu M-E2 / Quanta M-F1) |
 | **2026-05-11 (hpe-csus-add)** | **31 (+1 hpe_csus_3200)** | **HPE regex 확장 Additive (Superdome|Flex → Superdome|Flex|Compute Scale-up|CSUS)** |
+| **2026-05-12 (hpe-csus-rmc-multi-node)** | **31 (변경 없음)** | **HPE CSUS 3200 / Superdome Flex `vendor_notes.multi_node_support: true` Additive — RMC primary 시스템 전수 수집 (ADR-2026-05-12 / `data.multi_node` 컨테이너)** |
 
 ## 갱신 trigger (rule 28 #3)
 
