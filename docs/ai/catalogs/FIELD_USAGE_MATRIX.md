@@ -109,19 +109,19 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 
 # Field Usage Matrix — 측정 결과
 
-- field_dictionary entries: 65
+- field_dictionary entries: 74
 - baselines: 8
-- 총 cells: 520
+- 총 cells: 592
 
 ## 4 상태 카운트 (channel × state)
 
 | Channel | present | null | empty | not_supported | missing | total |
 |---|---|---|---|---|---|---|
-| redfish | 174 | 15 | 11 | 36 | 24 | 260 |
-| os | 104 | 10 | 35 | 24 | 22 | 195 |
-| esxi | 29 | 2 | 20 | 10 | 4 | 65 |
+| redfish | 174 | 11 | 11 | 36 | 64 | 296 |
+| os | 104 | 10 | 33 | 24 | 51 | 222 |
+| esxi | 29 | 1 | 18 | 10 | 16 | 74 |
 
-## 분류 1 후보 (수집 불가 — channel 제거): 13
+## 분류 1 후보 (수집 불가 — channel 제거): 22
 
 - `vendor` × os
 - `storage.physical_disks[]` × esxi
@@ -136,6 +136,15 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 - `storage.infiniband[]` × redfish
 - `storage.infiniband[]` × os
 - `storage.infiniband[]` × esxi
+- `multi_node` × redfish
+- `multi_node.enabled` × redfish
+- `multi_node.layout` × redfish
+- `multi_node.summary` × redfish
+- `multi_node.partitions[]` × redfish
+- `multi_node.managers[]` × redfish
+- `multi_node.chassis[]` × redfish
+- `diagnosis.details.multi_node_layout` × redfish
+- `diagnosis.details.rmc_activation_check` × redfish
 
 ## 분류 2 후보 (서버 미지원 — help_ko 명시): 12
 
@@ -157,12 +166,30 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 - `storage.logical_volumes[].boot_volume` × redfish
 
 
-## Drift 검출 (8 entries)
+## Drift 검출 (17 entries)
 
+- `diagnosis.details.multi_node_layout`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `diagnosis.details.rmc_activation_check`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
 - `diagnosis.failure_stage`:
   - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
   - DRIFT-A(os): 선언했지만 모든 baseline null/missing → channel 제거 후보
   - DRIFT-A(esxi): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `multi_node`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `multi_node.chassis[]`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `multi_node.enabled`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `multi_node.layout`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `multi_node.managers[]`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `multi_node.partitions[]`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
+- `multi_node.summary`:
+  - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
 - `network.adapters[]`:
   - DRIFT-A(redfish): 선언했지만 모든 baseline null/missing → channel 제거 후보
 - `network.driver_map[]`:
@@ -199,8 +226,8 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 | `hardware.sku` | redfish | n | O | _ | O | O | - | - | - | redfish:2 |
 | `hardware.oem` | redfish | e | O | _ | O | O | - | - | - | redfish:2 |
 | `memory.total_basis` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
-| `memory.installed_mb` | redfish,os | O | O | n | O | O | O | n | O | os:2 |
-| `memory.visible_mb` | os,esxi | n | n | O | n | n | O | O | O | OK |
+| `memory.installed_mb` | redfish,os | O | O | _ | O | O | O | n | O | os:2 |
+| `memory.visible_mb` | os,esxi | _ | _ | O | _ | _ | O | O | O | OK |
 | `storage.physical_disks[]` | redfish,os,esxi | O | O | e | O | O | O | O | O | esxi:1 |
 | `storage.physical_disks[].id` | redfish,os | O | O | e | O | O | O | O | O | OK |
 | `storage.physical_disks[].predicted_life_percent` | redfish | O | O | e | O | O | _ | _ | _ | OK |
@@ -243,13 +270,22 @@ Phase 2 cycle 안에서 즉시 fix 대상 코드 버그 — **0건 확정**.
 | `memory.summary` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
 | `storage.summary` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
 | `network.summary` | redfish,os,esxi | O | O | O | O | O | O | O | O | OK |
-| `network.adapters[]` | redfish,esxi | _ | _ | O | _ | _ | e | _ | _ | redfish:1 |
-| `network.ports[]` | redfish | _ | _ | e | _ | _ | e | _ | _ | redfish:1 |
+| `network.adapters[]` | redfish,esxi | _ | _ | O | _ | _ | _ | _ | _ | redfish:1 |
+| `network.ports[]` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
 | `network.virtual_switches[]` | esxi | _ | _ | O | _ | _ | _ | _ | _ | OK |
-| `network.driver_map[]` | os | _ | _ | e | _ | _ | _ | _ | _ | os:1 |
+| `network.driver_map[]` | os | _ | _ | _ | _ | _ | _ | _ | _ | os:1 |
 | `storage.hbas[]` | redfish,os,esxi | _ | _ | O | _ | _ | _ | _ | _ | redfish:1,os:1 |
 | `storage.infiniband[]` | redfish,os,esxi | _ | _ | e | _ | _ | _ | _ | _ | redfish:1,os:1,esxi:1 |
 | `system.runtime` | os,esxi | - | - | O | - | - | O | O | O | OK |
+| `multi_node` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `multi_node.enabled` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `multi_node.layout` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `multi_node.summary` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `multi_node.partitions[]` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `multi_node.managers[]` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `multi_node.chassis[]` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `diagnosis.details.multi_node_layout` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
+| `diagnosis.details.rmc_activation_check` | redfish | _ | _ | _ | _ | _ | _ | _ | _ | redfish:1 |
 
 **범례**: O=present / n=null / e=empty / -=not_supported / _=missing
 

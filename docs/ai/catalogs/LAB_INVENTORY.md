@@ -69,6 +69,8 @@
 | Round 16 (예정) | ESXi 회귀 | LOW | 3대로 community.vmware 안정성 |
 | Browser E2E (cycle-015 활성) | Jenkins UI login | DONE | cloviradmin 인증 PASS (test_master_login_then_dashboard) |
 | Browser E2E (예정) | BMC Web UI (iDRAC/iLO/XCC/CIMC) | LOW | 후속 cycle |
+| HPE CSUS 3200 lab (예정) | RMC 멀티-노드 (cycle 2026-05-12 hpe-csus-rmc-multi-node) | MED | 사이트 fixture 캡처 후 (NEXT_ACTIONS C1~C8) — 합성 fixture `tests/fixtures/redfish/hpe_csus_3200/` 정정 의무 |
+| HPE Superdome Flex lab (예정) | RMC + iLO5 dual-manager | MED | 사이트 fixture 캡처 후 — `tests/fixtures/redfish/hpe_superdome_flex/` multi-partition 보강 |
 
 ## 6. 자격증명 정책
 
